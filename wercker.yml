@@ -1,21 +1,61 @@
-box: tcnksm/gox:1.5.3
+# The container definition we want to use for developing our app
+box: golang
+
 build:
-    steps:
-        - setup-go-workspace
-        - script:
-            name: go test
-            code: |
-                make test
-        - script:
-            name: Publish Coveralls
-            code: goveralls -service="wercker.com" -coverprofile=profile.cov -repotoken $COVERALLS_TOKEN
-        - script:
-            name: gox build
-            code: |
-                XC_OS="linux darwin windows" XC_ARCH="386 amd64" make bin
-        - tcnksm/zip:
-            input: pkg
-            output: $WERCKER_OUTPUT_DIR/dist
+  steps:
+    - setup-go-workspace
+    # - wercker/golint
+    - script:
+        name: retrieve artifacts
+        code: |
+          mkdir -p output
+          mkdir -p build
+          if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build .; fi
+          if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output .; fi
+          ls -larth build
+          ls -larth output
+    - script:
+        name: build
+        code: |
+          make bin
+    - script:
+        name: test
+        code: |
+          make test
+    - script:
+        name: publish artifacts
+        code: |
+          if [ -d "$WERCKER_CACHE_DIR/build" ]; then rm -rf $WERCKER_CACHE_DIR/build; fi
+          if [ -d "$WERCKER_CACHE_DIR/output" ]; then rm -rf $WERCKER_CACHE_DIR/output; fi
+          cp -r build $WERCKER_CACHE_DIR/build
+          cp -r output $WERCKER_CACHE_DIR/output
+          ls -larth build
+          ls -larth output
+
+package:
+  box: ruby:2.1
+  steps:
+    - script:
+        name: retrieve artifacts
+        code: |
+          cp -r $WERCKER_CACHE_DIR/build build
+          cp -r $WERCKER_CACHE_DIR/output output
+          ls -larth build
+          ls -larth output
+    - script:
+        name: package
+        code: |
+          apt-get update && apt-get install -y unzip zip wget
+          make package
+    - script:
+        name: publish artifacts
+        code: |
+          if [ -d "$WERCKER_CACHE_DIR/build" ]; then rm -rf $WERCKER_CACHE_DIR/build; fi
+          if [ -d "$WERCKER_CACHE_DIR/output" ]; then rm -rf $WERCKER_CACHE_DIR/output; fi
+          cp -r build $WERCKER_CACHE_DIR/build
+          cp -r output $WERCKER_CACHE_DIR/output
+          ls -larth build
+          ls -larth output
 
 deploy:
     steps:

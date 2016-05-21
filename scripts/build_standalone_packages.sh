@@ -13,6 +13,7 @@ if [ ! -d "pact-provider-verifier-${PACT_PROVIDER_VERIFIER_VERSION}" ]; then
   cd pact-provider-verifier-${PACT_PROVIDER_VERIFIER_VERSION}
   bundle
   bundle exec rake package
+  cd ..
 else
   echo "pact provider verifier already generated, run './scripts/clean.sh' to generate a new package"
 fi

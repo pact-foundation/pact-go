@@ -36,3 +36,4 @@ pact-provider-verifier
 *.iml
 *.idea
 *.bak
+_*

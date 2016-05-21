@@ -24,7 +24,7 @@ how to get going.
 
 
 [![wercker status](https://app.wercker.com/status/273436f3ec1ec8e6ea348b81e93aeea1/s/master "wercker status")](https://app.wercker.com/project/bykey/273436f3ec1ec8e6ea348b81e93aeea1)
-
+[![Coverage Status](https://coveralls.io/repos/github/mefellows/pact-go/badge.svg?branch=master)](https://coveralls.io/github/mefellows/pact-go?branch=master)
 
 ## Installation
 
@@ -39,8 +39,7 @@ how to get going.
 
 ## Documentation
 
-Additional documentation can be found in the [Pact Wiki](https://github.com/realestate-com-au/pact/wiki),
-and in the [Pact-JVM wiki](https://github.com/DiUS/pact-jvm/wiki).
+Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki](https://github.com/realestate-com-au/pact/wiki).
 
 ## Developing
 

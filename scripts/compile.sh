@@ -3,23 +3,20 @@
 set -ex
 
 # Create go binary and package verifier + mock service into distribution
+ls -larth .
+mkdir -p output
+mkdir -p dist
 rm -rf output/*
 rm -rf dist/*
-go get github.com/mitchellh/gox
-go get -d ./...
-
-# if [ -n "$(type -t rvm)" ]; then
-#   rvm use 2.1.5
-# fi
 
 ###
 ### Darwin/OSX
 ###
 
 rm -rf output/*
-# gox -os="darwin" -arch="amd64" -output="output/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
 cd output
+cp ../build/pact-go_darwin* .
 cp ../build/pact-provider-verifier-*/pkg/pact-provider-verifier-*osx* .
 cp ../build/pact-mock_service-*/pkg/pact-mock-service-*osx*.tar.gz .
 
@@ -37,9 +34,8 @@ cd ..
 ####
 
 rm -rf output/*
-gox -os="windows" -arch="386" -output="output/{{.Dir}}_{{.OS}}_{{.Arch}}"
-
 cd output
+cp ../build/pact-go_windows* .
 cp ../build/pact-provider-verifier-*/pkg/pact-provider-verifier-*win32*.zip .
 cp ../build/pact-mock_service-*/pkg/pact-mock-service-*win32*.zip .
 
@@ -56,9 +52,8 @@ cd ..
 ####
 
 rm -rf output/*
-gox -os="linux" -arch="386" -output="output/{{.Dir}}_{{.OS}}_{{.Arch}}"
-
 cd output
+cp ../build/pact-go_linux_386* .
 cp ../build/pact-provider-verifier-*/pkg/pact-provider-verifier-*linux-x86.tar.gz .
 cp ../build/pact-mock_service-*/pkg/pact-mock-service-*linux-x86.tar.gz .
 
@@ -75,9 +70,8 @@ cd ..
 ####
 
 rm -rf output/*
-gox -os="linux" -arch="amd64" -output="output/{{.Dir}}_{{.OS}}_{{.Arch}}"
-
 cd output
+cp ../build/pact-go_linux_amd64* .
 cp ../build/pact-provider-verifier-*/pkg/pact-provider-verifier-*linux-x86_64* .
 cp ../build/pact-mock_service-*/pkg/pact-mock-service-*linux-x86_64*.tar.gz .
 
