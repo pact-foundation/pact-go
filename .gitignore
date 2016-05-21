@@ -22,3 +22,17 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+pkg
+bin
+dist
+build
+output
+pact-mock-service
+pact-provider-verifier
+
+*.out
+*.cov
+*.iml
+*.idea
+*.bak
