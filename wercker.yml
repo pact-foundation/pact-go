@@ -23,6 +23,9 @@ build:
         code: |
           make test
     - script:
+        name: Publish Coveralls
+        code: goveralls -service="wercker.com" -coverprofile=profile.cov -repotoken $COVERALLS_TOKEN
+    - script:
         name: publish artifacts
         code: |
           if [ -d "$WERCKER_CACHE_DIR/build" ]; then rm -rf $WERCKER_CACHE_DIR/build; fi
