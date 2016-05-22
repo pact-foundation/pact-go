@@ -1,7 +1,8 @@
 package daemon
 
+// Runs the RPC daemon for remote communication
+
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -9,10 +10,28 @@ import (
 	"net/rpc"
 )
 
-// Runs the RPC daemon for remote communication
+// MockServer contains the settings to run a local Mock Server
+type MockServer struct {
+	Pid  int
+	port int
+}
+
+// Port returns the allocated mock servers port.
+func (m *MockServer) Port() int {
+	return m.port
+}
+
+// Daemon wraps the commands for the RPC server.
+type Daemon struct {
+}
 
 // StartServer starts a mock server and returns a pointer to a MockServer
 // struct.
+func (d *Daemon) StartServer(request *MockServer, reply *MockServer) error {
+	*reply = *request
+
+	return nil
+}
 
 // StopServer stops the given mock server.
 
@@ -20,36 +39,13 @@ import (
 
 // Verify runs the Pact verification process against a given API Provider.
 
-type Args struct {
-	A, B int
-}
-
-type Quotient struct {
-	Quo, Rem int
-}
-
-type Arith int
-
-func (t *Arith) Multiply(args *Args, reply *int) error {
-	*reply = args.A * args.B
-	return nil
-}
-
-func (t *Arith) Divide(args *Args, quo *Quotient) error {
-	if args.B == 0 {
-		return errors.New("divide by zero")
-	}
-	quo.Quo = args.A / args.B
-	quo.Rem = args.A % args.B
-	return nil
-}
-
+// StartDaemon starts the daemon RPC server.
 func StartDaemon() {
-	fmt.Println("Starting daemon......")
-	arith := new(Arith)
-	rpc.Register(arith)
+	fmt.Println("Starting daemon on port 6666")
+	server := new(Daemon)
+	rpc.Register(server)
 	rpc.HandleHTTP()
-	l, e := net.Listen("tcp", ":1234")
+	l, e := net.Listen("tcp", ":6666")
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}
