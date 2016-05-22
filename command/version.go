@@ -16,6 +16,5 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	fmt.Println("Version init =>>")
 	RootCmd.AddCommand(versionCmd)
 }

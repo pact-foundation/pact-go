@@ -1,8 +1,6 @@
 package command
 
 import (
-	"fmt"
-
 	"github.com/mefellows/pact-go/daemon"
 	"github.com/spf13/cobra"
 )
@@ -17,6 +15,5 @@ var daemonCmd = &cobra.Command{
 }
 
 func init() {
-	fmt.Println("daemon init =>>")
 	RootCmd.AddCommand(daemonCmd)
 }

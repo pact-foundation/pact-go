@@ -22,7 +22,6 @@ var mockServiceCmd = &cobra.Command{
 }
 
 func init() {
-	fmt.Println("mock service init =>>")
 	RootCmd.AddCommand(mockServiceCmd)
 }
 
