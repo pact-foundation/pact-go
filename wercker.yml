@@ -4,7 +4,7 @@ box: golang
 build:
   steps:
     - setup-go-workspace
-    # - wercker/golint
+    - wercker/golint
     - script:
         name: retrieve artifacts
         code: |

@@ -6,4 +6,4 @@ set -e
 
 # Setup dev
 echo "==> Creating OS distributions..."
-tar -xzf dist/darwin-amd64.tar.gz -C ..
+tar -xzf dist/darwin-amd64.tar.gz -C $(pwd)
