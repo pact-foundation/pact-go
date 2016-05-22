@@ -9,8 +9,8 @@ func simplePact() (pact *PactMock) {
 	pact = &PactMock{}
 	pact.
 		UponReceiving("Some name for the test").
-		WithRequest(Request{}).
-		WillRespondWith(Response{})
+		WithRequest(&PactRequest{}).
+		WillRespondWith(&PactResponse{})
 	return
 }
 
@@ -19,8 +19,8 @@ func providerStatesPact() (pact *PactMock) {
 	pact.
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(Request{}).
-		WillRespondWith(Response{})
+		WithRequest(&PactRequest{}).
+		WillRespondWith(&PactResponse{})
 	return
 }
 
@@ -29,8 +29,8 @@ func TestPactDSL(t *testing.T) {
 	pact.
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(Request{}).
-		WillRespondWith(Response{})
+		WithRequest(&PactRequest{}).
+		WillRespondWith(&PactResponse{})
 }
 
 func TestPactVerify_NoState(t *testing.T) {
