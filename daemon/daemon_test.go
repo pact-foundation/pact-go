@@ -27,6 +27,24 @@ func TestStartServer(t *testing.T) {
 	}
 }
 
+func TestStopServer(t *testing.T) {
+	daemon := &Daemon{}
+	req := MockServer{Pid: 1234}
+	res := MockServer{}
+	err := daemon.StopServer(&req, &res)
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+
+	if res.Pid != 0 {
+		t.Fatalf("Expected PID to be 0 but got: %d", res.Pid)
+	}
+
+	if res.Status() != 0 {
+		t.Fatalf("Expected exit status to be 0 but got: %d", res.Status())
+	}
+}
+
 func TestStartServer_Fail(t *testing.T) {
 
 }

@@ -11,14 +11,34 @@ import (
 )
 
 // MockServer contains the settings to run a local Mock Server
+// type MockServer interface {
+// 	Port() int
+// 	Status() int
+// 	Stop() *MockServer
+// }
+
+// MockServer contains the RPC client interface to a Mock Server
 type MockServer struct {
-	Pid  int
-	port int
+	Pid    int
+	port   int
+	status int
 }
 
 // Port returns the allocated mock servers port.
 func (m *MockServer) Port() int {
 	return m.port
+}
+
+// Status returns exit code of th eserver.
+func (m *MockServer) Status() int {
+	return m.status
+}
+
+// Stop stops the given mock server and captures the exit status.
+func (m *MockServer) Stop() *MockServer {
+	m.status = 0
+	m.Pid = 0
+	return m
 }
 
 // Daemon wraps the commands for the RPC server.
@@ -34,6 +54,11 @@ func (d *Daemon) StartServer(request *MockServer, reply *MockServer) error {
 }
 
 // StopServer stops the given mock server.
+func (d *Daemon) StopServer(request *MockServer, reply *MockServer) error {
+	request.Stop()
+	*reply = *request
+	return nil
+}
 
 // Publish publishes Pact files from a given location (file/http).
 
