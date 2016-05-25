@@ -8,14 +8,8 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"net/url"
 )
-
-// MockServer contains the settings to run a local Mock Server
-// type MockServer interface {
-// 	Port() int
-// 	Status() int
-// 	Stop() *MockServer
-// }
 
 // MockServer contains the RPC client interface to a Mock Server
 type MockServer struct {
@@ -32,6 +26,30 @@ func (m *MockServer) Port() int {
 // Status returns exit code of th eserver.
 func (m *MockServer) Status() int {
 	return m.status
+}
+
+// PublishRequest contains the details required to Publish Pacts to a broker.
+type PublishRequest struct {
+	// Array of local Pact files or directories containing them. Required.
+	PactUrls []url.URL
+
+	// URL to fetch the provider states for the given provider API. Optional.
+	PactBroker url.URL
+
+	// Username for Pact Broker basic authentication. Optional
+	PactBrokerUsername string
+
+	// Password for Pact Broker basic authentication. Optional
+	PactBrokerPassword string
+}
+
+// PublishResponse contains the exit status and any message from the Broker.
+type PublishResponse struct {
+	// System exit code from the Publish task.
+	ExitCode int
+
+	// Error message (if any) from the publish process.
+	Message string
 }
 
 // Stop stops the given mock server and captures the exit status.
@@ -53,6 +71,15 @@ func (d *Daemon) StartServer(request *MockServer, reply *MockServer) error {
 	return nil
 }
 
+// ListServers returns a slice of all running MockServers.
+func (d *Daemon) ListServers(request interface{}, reply *[]MockServer) error {
+	*reply = []MockServer{
+		MockServer{Pid: 1},
+	}
+
+	return nil
+}
+
 // StopServer stops the given mock server.
 func (d *Daemon) StopServer(request *MockServer, reply *MockServer) error {
 	request.Stop()
@@ -61,6 +88,13 @@ func (d *Daemon) StopServer(request *MockServer, reply *MockServer) error {
 }
 
 // Publish publishes Pact files from a given location (file/http).
+func (d *Daemon) Publish(request *PublishRequest, reply *PublishResponse) error {
+	*reply = *&PublishResponse{
+		ExitCode: 0,
+		Message:  "Success",
+	}
+	return nil
+}
 
 // Verify runs the Pact verification process against a given API Provider.
 
