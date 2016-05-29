@@ -9,23 +9,16 @@ import (
 	"net/http"
 	"net/rpc"
 	"net/url"
+	"os"
+	"os/signal"
 )
 
-// MockServer contains the RPC client interface to a Mock Server
-type MockServer struct {
+// PactMockServer contains the RPC client interface to a Mock Server
+type PactMockServer struct {
 	Pid    int
-	port   int
-	status int
-}
-
-// Port returns the allocated mock servers port.
-func (m *MockServer) Port() int {
-	return m.port
-}
-
-// Status returns exit code of th eserver.
-func (m *MockServer) Status() int {
-	return m.status
+	Port   int
+	Status int
+	Svc    Service
 }
 
 // PublishRequest contains the details required to Publish Pacts to a broker.
@@ -43,8 +36,8 @@ type PublishRequest struct {
 	PactBrokerPassword string
 }
 
-// PublishResponse contains the exit status and any message from the Broker.
-type PublishResponse struct {
+// PactResponse contains the exit status and any message from the Broker.
+type PactResponse struct {
 	// System exit code from the Publish task.
 	ExitCode int
 
@@ -52,44 +45,60 @@ type PublishResponse struct {
 	Message string
 }
 
-// Stop stops the given mock server and captures the exit status.
-func (m *MockServer) Stop() *MockServer {
-	m.status = 0
-	m.Pid = 0
-	return m
-}
+// VerifyRequest contains the verification params.
+type VerifyRequest struct{}
 
 // Daemon wraps the commands for the RPC server.
 type Daemon struct {
+	pactMockSvcManager Service
 }
 
-// StartServer starts a mock server and returns a pointer to a MockServer
+// NewDaemon returns a new Daemon with all instance variables initialised.
+func NewDaemon(pactMockServiceManager Service) *Daemon {
+	pactMockServiceManager.Setup()
+
+	return &Daemon{
+		pactMockSvcManager: pactMockServiceManager,
+	}
+}
+
+// Shutdown ensures all services are cleanly destroyed.
+func (d *Daemon) Shutdown() {
+	for _, s := range d.pactMockSvcManager.List() {
+		d.pactMockSvcManager.Stop(s.Process.Pid)
+	}
+}
+
+// StartServer starts a mock server and returns a pointer to aPactMockServer
 // struct.
-func (d *Daemon) StartServer(request *MockServer, reply *MockServer) error {
-	*reply = *request
+func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) error {
+	reply = &PactMockServer{}
+	reply.Port, reply.Svc = d.pactMockSvcManager.NewService()
+	cmd := reply.Svc.Start()
+	reply.Pid = cmd.Process.Pid
 
 	return nil
 }
 
-// ListServers returns a slice of all running MockServers.
-func (d *Daemon) ListServers(request interface{}, reply *[]MockServer) error {
-	*reply = []MockServer{
-		MockServer{Pid: 1},
+// ListServers returns a slice of all running PactMockServers.
+func (d *Daemon) ListServers(request interface{}, reply *[]PactMockServer) error {
+	*reply = []PactMockServer{
+		PactMockServer{Pid: 1},
 	}
 
 	return nil
 }
 
 // StopServer stops the given mock server.
-func (d *Daemon) StopServer(request *MockServer, reply *MockServer) error {
-	request.Stop()
+func (d *Daemon) StopServer(request *PactMockServer, reply *PactMockServer) error {
+	d.pactMockSvcManager.Stop(request.Pid)
 	*reply = *request
 	return nil
 }
 
 // Publish publishes Pact files from a given location (file/http).
-func (d *Daemon) Publish(request *PublishRequest, reply *PublishResponse) error {
-	*reply = *&PublishResponse{
+func (d *Daemon) Publish(request *PublishRequest, reply *PactResponse) error {
+	*reply = *&PactResponse{
 		ExitCode: 0,
 		Message:  "Success",
 	}
@@ -97,16 +106,37 @@ func (d *Daemon) Publish(request *PublishRequest, reply *PublishResponse) error 
 }
 
 // Verify runs the Pact verification process against a given API Provider.
+func (d *Daemon) Verify(request *VerifyRequest, reply *PactResponse) error {
+	*reply = *&PactResponse{
+		ExitCode: 0,
+		Message:  "Success",
+	}
+	return nil
+}
 
 // StartDaemon starts the daemon RPC server.
-func StartDaemon() {
+func (d *Daemon) StartDaemon() {
 	fmt.Println("Starting daemon on port 6666")
-	server := new(Daemon)
-	rpc.Register(server)
+	rpc.Register(d)
 	rpc.HandleHTTP()
-	l, e := net.Listen("tcp", ":6666")
-	if e != nil {
-		log.Fatal("listen error:", e)
-	}
-	http.Serve(l, nil)
+
+	// Start daemon in background
+	go func() {
+		l, e := net.Listen("tcp", ":6666")
+		if e != nil {
+			log.Fatal("listen error:", e)
+		}
+		http.Serve(l, nil)
+	}()
+
+	d.pactMockSvcManager.Start()
+
+	// Wait for sigterm
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	s := <-c
+	fmt.Println("Got signal:", s, ". Shutting down all services")
+
+	d.Shutdown()
+	fmt.Println("done")
 }

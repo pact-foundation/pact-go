@@ -10,7 +10,10 @@ var daemonCmd = &cobra.Command{
 	Short: "Creates a daemon for the Pact DSLs to communicate with",
 	Long:  `Creates a daemon for the Pact DSLs to communicate with`,
 	Run: func(cmd *cobra.Command, args []string) {
-		daemon.StartDaemon()
+		svc := &daemon.PactMockService{}
+		svc.Setup()
+		daemon.NewDaemon(svc).StartDaemon()
+
 	},
 }
 

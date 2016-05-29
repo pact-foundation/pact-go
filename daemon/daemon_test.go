@@ -1,9 +1,40 @@
 package daemon
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
 	"reflect"
 	"testing"
 )
+
+type MockService struct {
+}
+
+func (r MockService) Run(command string, args ...string) ([]byte, error) {
+	cs := []string{"-test.run=TestHelperProcess", "--"}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	out, err := cmd.CombinedOutput()
+	return out, err
+}
+
+func TestHello(t *testing.T) {
+	runner = MockService{}
+	out := Hello()
+	if out == "testing helper process" {
+		t.Logf("out was eq to %s", string(out))
+	}
+}
+
+func TestHelperProcess(*testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+	defer os.Exit(0)
+	fmt.Println("testing helper process")
+}
 
 func TestStartDaemon(t *testing.T) {
 
@@ -14,7 +45,7 @@ func TestStartDaemon_Fail(t *testing.T) {
 }
 
 func TestStartServer(t *testing.T) {
-	daemon := &Daemon{}
+	daemon := CreateDaemon()
 	req := MockServer{Pid: 1234}
 	res := MockServer{}
 	err := daemon.StartServer(&req, &res)
@@ -42,6 +73,7 @@ func TestListServers(t *testing.T) {
 
 func TestStopServer(t *testing.T) {
 	daemon := &Daemon{}
+
 	req := MockServer{Pid: 1234}
 	res := MockServer{}
 	err := daemon.StopServer(&req, &res)
@@ -53,8 +85,8 @@ func TestStopServer(t *testing.T) {
 		t.Fatalf("Expected PID to be 0 but got: %d", res.Pid)
 	}
 
-	if res.Status() != 0 {
-		t.Fatalf("Expected exit status to be 0 but got: %d", res.Status())
+	if res.Status != 0 {
+		t.Fatalf("Expected exit status to be 0 but got: %d", res.Status)
 	}
 }
 
@@ -73,7 +105,7 @@ func TestVerification_Fail(t *testing.T) {
 func TestPublish(t *testing.T) {
 	daemon := &Daemon{}
 	req := PublishRequest{}
-	var res PublishResponse
+	var res PactResponse
 	err := daemon.Publish(&req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
