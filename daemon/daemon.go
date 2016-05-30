@@ -45,6 +45,12 @@ type PactResponse struct {
 	Message string
 }
 
+// PactListResponse contains a list of all running Servers.
+type PactListResponse struct {
+	// System exit code from the Publish task.
+	Servers []*PactMockServer
+}
+
 // VerifyRequest contains the verification params.
 type VerifyRequest struct{}
 
@@ -111,10 +117,23 @@ func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) err
 }
 
 // ListServers returns a slice of all running PactMockServers.
-func (d *Daemon) ListServers(request interface{}, reply *[]PactMockServer) error {
-	*reply = []PactMockServer{
-		PactMockServer{Pid: 1},
+func (d *Daemon) ListServers(request interface{}, reply *PactListResponse) error {
+	var servers []*PactMockServer
+
+	for port, s := range d.pactMockSvcManager.List() {
+		fmt.Println("Listing!")
+		servers = append(servers, &PactMockServer{
+			Pid:  s.Process.Pid,
+			Port: port,
+			Svc:  d.pactMockSvcManager,
+		})
 	}
+
+	*reply = *&PactListResponse{
+		Servers: servers,
+	}
+
+	fmt.Println(reply)
 
 	return nil
 }

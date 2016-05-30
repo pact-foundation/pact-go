@@ -14,6 +14,9 @@ type ServiceMock struct {
 	ServicePort         int
 	ServiceStopCount    int
 	ServicesSetupCalled bool
+
+	// ExecFunc sets the function to run when starting commands
+	ExecFunc func() *exec.Cmd
 }
 
 // Setup the Management services.
@@ -34,7 +37,11 @@ func (s *ServiceMock) List() map[int]*exec.Cmd {
 
 // Start a Service and log its output.
 func (s *ServiceMock) Start() *exec.Cmd {
-	return s.ServiceStartCmd
+
+	cmd := s.ExecFunc()
+	cmd.Start()
+
+	return cmd
 }
 
 // NewService creates a new MockService with default settings.
