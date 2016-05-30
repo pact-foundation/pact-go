@@ -51,6 +51,7 @@ type VerifyRequest struct{}
 // Daemon wraps the commands for the RPC server.
 type Daemon struct {
 	pactMockSvcManager Service
+	signalChan         chan os.Signal
 }
 
 // NewDaemon returns a new Daemon with all instance variables initialised.
@@ -59,13 +60,42 @@ func NewDaemon(pactMockServiceManager Service) *Daemon {
 
 	return &Daemon{
 		pactMockSvcManager: pactMockServiceManager,
+		signalChan:         make(chan os.Signal, 1),
 	}
+}
+
+// StartDaemon starts the daemon RPC server.
+func (d *Daemon) StartDaemon() {
+	fmt.Println("Starting daemon on port 6666")
+	rpc.Register(d)
+	rpc.HandleHTTP()
+
+	// Start daemon in background
+	go func() {
+		l, e := net.Listen("tcp", ":6666")
+		if e != nil {
+			log.Fatal("listen error:", e)
+		}
+		http.Serve(l, nil)
+	}()
+
+	d.pactMockSvcManager.Start()
+
+	// Wait for sigterm
+	signal.Notify(d.signalChan, os.Interrupt, os.Kill)
+	s := <-d.signalChan
+	fmt.Println("Got signal:", s, ". Shutting down all services")
+
+	d.Shutdown()
+	fmt.Println("done")
 }
 
 // Shutdown ensures all services are cleanly destroyed.
 func (d *Daemon) Shutdown() {
 	for _, s := range d.pactMockSvcManager.List() {
-		d.pactMockSvcManager.Stop(s.Process.Pid)
+		if s != nil {
+			d.pactMockSvcManager.Stop(s.Process.Pid)
+		}
 	}
 }
 
@@ -112,31 +142,4 @@ func (d *Daemon) Verify(request *VerifyRequest, reply *PactResponse) error {
 		Message:  "Success",
 	}
 	return nil
-}
-
-// StartDaemon starts the daemon RPC server.
-func (d *Daemon) StartDaemon() {
-	fmt.Println("Starting daemon on port 6666")
-	rpc.Register(d)
-	rpc.HandleHTTP()
-
-	// Start daemon in background
-	go func() {
-		l, e := net.Listen("tcp", ":6666")
-		if e != nil {
-			log.Fatal("listen error:", e)
-		}
-		http.Serve(l, nil)
-	}()
-
-	d.pactMockSvcManager.Start()
-
-	// Wait for sigterm
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
-	s := <-c
-	fmt.Println("Got signal:", s, ". Shutting down all services")
-
-	d.Shutdown()
-	fmt.Println("done")
 }
