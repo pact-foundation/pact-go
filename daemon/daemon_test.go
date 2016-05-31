@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"testing"
 	"time"
+
+	"github.com/mefellows/pact-go/utils"
 )
 
 // This guy mocks out the underlying Service provider in the Daemon,
@@ -57,13 +59,13 @@ func TestNewDaemon(t *testing.T) {
 
 // Use this to wait for a daemon to be running prior
 // to running tests
-func connectToDaemon(t *testing.T) {
+func connectToDaemon(port int, t *testing.T) {
 	for {
 		select {
 		case <-time.After(1 * time.Second):
 			t.Fatalf("Expected server to start < 1s.")
 		case <-time.After(50 * time.Millisecond):
-			_, err := net.Dial("tcp", ":6666")
+			_, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
 			if err == nil {
 				return
 			}
@@ -72,7 +74,7 @@ func connectToDaemon(t *testing.T) {
 }
 
 // Use this to wait for a daemon to stop after running a test.
-func waitForDaemonToShutdown(daemon *Daemon, t *testing.T) {
+func waitForDaemonToShutdown(port int, daemon *Daemon, t *testing.T) {
 	daemon.signalChan <- os.Interrupt
 	t.Logf("Waiting for deamon to shutdown before next test")
 	timeout := time.After(1 * time.Second)
@@ -81,7 +83,7 @@ func waitForDaemonToShutdown(daemon *Daemon, t *testing.T) {
 		case <-timeout:
 			t.Fatalf("Expected server to shutdown < 1s.")
 		case <-time.After(50 * time.Millisecond):
-			conn, err := net.Dial("tcp", ":6666")
+			conn, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
 			conn.SetReadDeadline(time.Now())
 			defer conn.Close()
 			if err != nil {
@@ -97,11 +99,11 @@ func waitForDaemonToShutdown(daemon *Daemon, t *testing.T) {
 }
 
 func TestStartAndStopDaemon(t *testing.T) {
+	port, _ := utils.GetFreePort()
 	daemon, _ := createMockedDaemon()
-	defer waitForDaemonToShutdown(daemon, t)
-	go daemon.StartDaemon(6666)
-
-	connectToDaemon(t)
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
 }
 
 func TestDaemonShutdown(t *testing.T) {
@@ -185,8 +187,8 @@ func TestPublish(t *testing.T) {
 		t.Fatalf("Expected exit code to be 0 but got: %d", res.ExitCode)
 	}
 
-	if res.Message != "Success" {
-		t.Fatalf("Expected message to be 'Success' but got: %s", res.Message)
+	if res.Message != "" {
+		t.Fatalf("Expected message to be blank but got: %s", res.Message)
 	}
 }
 
@@ -207,8 +209,8 @@ func TestVerification(t *testing.T) {
 		t.Fatalf("Expected exit code to be 0 but got: %d", res.ExitCode)
 	}
 
-	if res.Message != "Success" {
-		t.Fatalf("Expected message to be 'Success' but got: %s", res.Message)
+	if res.Message != "" {
+		t.Fatalf("Expected message to be blank but got: %s", res.Message)
 	}
 }
 
@@ -219,12 +221,12 @@ func TestVerification_Fail(t *testing.T) {
 // Integration style test: Can a client hit each endpoint?
 func TestRPCClient_List(t *testing.T) {
 	daemon, _ := createMockedDaemon()
-	defer waitForDaemonToShutdown(daemon, t)
+	port, _ := utils.GetFreePort()
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
 
-	go daemon.StartDaemon(7777)
-	connectToDaemon(t)
-
-	client, err := rpc.DialHTTP("tcp", ":7777")
+	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
 	var res PactListResponse
 	err = client.Call("Daemon.ListServers", PactMockServer{}, &res)
 	if err != nil {
@@ -234,7 +236,109 @@ func TestRPCClient_List(t *testing.T) {
 	if len(res.Servers) != 3 {
 		t.Fatalf("Expected 3 servers to be listed, got: %d", len(res.Servers))
 	}
+}
 
+// Integration style test: Can a client hit each endpoint?
+func TestRPCClient_StartServer(t *testing.T) {
+	daemon, _ := createMockedDaemon()
+	port, _ := utils.GetFreePort()
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
+
+	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
+	var res PactMockServer
+	err = client.Call("Daemon.StartServer", PactMockServer{}, &res)
+	if err != nil {
+		log.Fatal("rpc error:", err)
+	}
+
+	if res.Pid != 0 {
+		t.Fatalf("Expected non-zero Pid but got: %d", res.Pid)
+	}
+
+	if res.Port != 0 {
+		t.Fatalf("Expected non-zero port but got: %d", res.Port)
+	}
+}
+
+// Integration style test: Can a client hit each endpoint?
+func TestRPCClient_StopServer(t *testing.T) {
+	daemon, manager := createMockedDaemon()
+	port, _ := utils.GetFreePort()
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
+
+	var cmd *exec.Cmd
+	for _, s := range manager.List() {
+		cmd = s
+	}
+	request := PactMockServer{
+		Pid: cmd.Process.Pid,
+	}
+
+	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
+	var res *PactMockServer
+	err = client.Call("Daemon.StopServer", request, &res)
+	if err != nil {
+		log.Fatal("rpc error:", err)
+	}
+
+	if res.Pid == cmd.Process.Pid {
+		t.Fatalf("Expected PID to match request but got: %d", res.Pid)
+	}
+
+	if res.Port != 0 {
+		t.Fatalf("Expected non-zero port but got: %d", res.Port)
+	}
+}
+
+// Integration style test: Can a client hit each endpoint?
+func TestRPCClient_Verify(t *testing.T) {
+	daemon, _ := createMockedDaemon()
+	port, _ := utils.GetFreePort()
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
+
+	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
+	var res PactResponse
+	err = client.Call("Daemon.Verify", &VerifyRequest{}, &res)
+	if err != nil {
+		log.Fatal("rpc error:", err)
+	}
+
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit code to be 0, got: %d", res.ExitCode)
+	}
+	if res.Message != "" {
+		t.Fatalf("Expected message to be blank but got: %s", res.Message)
+	}
+}
+
+// Integration style test: Can a client hit each endpoint?
+func TestRPCClient_Publish(t *testing.T) {
+	daemon, _ := createMockedDaemon()
+	port, _ := utils.GetFreePort()
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
+
+	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
+	var res PactResponse
+	err = client.Call("Daemon.Publish", &PublishRequest{}, &res)
+	if err != nil {
+		log.Fatal("rpc error:", err)
+	}
+
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit code to be 0, got: %d", res.ExitCode)
+	}
+
+	if res.Message != "" {
+		t.Fatalf("Expected message to be blank but got: %s", res.Message)
+	}
 }
 
 // Adapted from http://npf.io/2015/06/testing-exec-command/

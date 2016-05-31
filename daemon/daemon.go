@@ -3,12 +3,10 @@ package daemon
 // Runs the RPC daemon for remote communication
 
 import (
-	"encoding/gob"
 	"fmt"
 	"net"
 	"net/http"
 	"net/rpc"
-	"net/url"
 	"os"
 	"os/signal"
 )
@@ -20,18 +18,13 @@ type PactMockServer struct {
 	Status int
 }
 
-func init() {
-	gob.Register(map[string]interface{}{})
-	gob.Register(ServiceMock{})
-}
-
 // PublishRequest contains the details required to Publish Pacts to a broker.
 type PublishRequest struct {
 	// Array of local Pact files or directories containing them. Required.
-	PactUrls []url.URL
+	PactUrls []string
 
 	// URL to fetch the provider states for the given provider API. Optional.
-	PactBroker url.URL
+	PactBroker string
 
 	// Username for Pact Broker basic authentication. Optional
 	PactBrokerUsername string
@@ -171,7 +164,7 @@ func (d *Daemon) StopServer(request *PactMockServer, reply *PactMockServer) erro
 func (d *Daemon) Publish(request *PublishRequest, reply *PactResponse) error {
 	*reply = *&PactResponse{
 		ExitCode: 0,
-		Message:  "Success",
+		Message:  "",
 	}
 	return nil
 }
@@ -180,7 +173,7 @@ func (d *Daemon) Publish(request *PublishRequest, reply *PactResponse) error {
 func (d *Daemon) Verify(request *VerifyRequest, reply *PactResponse) error {
 	*reply = *&PactResponse{
 		ExitCode: 0,
-		Message:  "Success",
+		Message:  "",
 	}
 	return nil
 }
