@@ -12,7 +12,8 @@ var daemonCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		svc := &daemon.PactMockService{}
 		svc.Setup()
-		daemon.NewDaemon(svc).StartDaemon()
+		port := 6666
+		daemon.NewDaemon(svc).StartDaemon(port)
 
 	},
 }

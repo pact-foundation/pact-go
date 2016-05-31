@@ -87,8 +87,6 @@ func (s *ServiceManager) List() map[int]*exec.Cmd {
 
 // Start a Service and log its output.
 func (s *ServiceManager) Start() *exec.Cmd {
-	// cmdName := fmt.Sprintf(filepath.Join(dir, "pact-mock-service", "bin", "pact-mock-service"))
-	// cmdName := fmt.Sprintf(filepath.Join(dir, "pact-provider-verifier", "bin", "pact-provider-verifier"))
 	cmd := exec.Command(s.Command, s.Args...)
 
 	cmdReader, err := cmd.StdoutPipe()

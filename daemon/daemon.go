@@ -3,8 +3,8 @@ package daemon
 // Runs the RPC daemon for remote communication
 
 import (
+	"encoding/gob"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -18,7 +18,11 @@ type PactMockServer struct {
 	Pid    int
 	Port   int
 	Status int
-	Svc    Service
+}
+
+func init() {
+	gob.Register(map[string]interface{}{})
+	gob.Register(ServiceMock{})
 }
 
 // PublishRequest contains the details required to Publish Pacts to a broker.
@@ -71,21 +75,42 @@ func NewDaemon(pactMockServiceManager Service) *Daemon {
 }
 
 // StartDaemon starts the daemon RPC server.
-func (d *Daemon) StartDaemon() {
-	fmt.Println("Starting daemon on port 6666")
-	rpc.Register(d)
-	rpc.HandleHTTP()
+func (d *Daemon) StartDaemon(port int) {
+	fmt.Println("Starting daemon on port", port)
+	// rpc.Register(d)
+	// rpc.HandleHTTP()
+	//
+	// // Start daemon in background
+	// go func() {
+	// 	l, e := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	// 	if e != nil {
+	// 		log.Fatal("listen error:", e)
+	// 	}
+	// 	http.Serve(l, nil)
+	// }()
 
-	// Start daemon in background
-	go func() {
-		l, e := net.Listen("tcp", ":6666")
-		if e != nil {
-			log.Fatal("listen error:", e)
-		}
-		http.Serve(l, nil)
-	}()
+	serv := rpc.NewServer()
+	serv.Register(d)
 
-	d.pactMockSvcManager.Start()
+	// ===== workaround ==========
+	oldMux := http.DefaultServeMux
+	mux := http.NewServeMux()
+	http.DefaultServeMux = mux
+	// ===========================
+
+	serv.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
+
+	// ===== workaround ==========
+	http.DefaultServeMux = oldMux
+	// ===========================
+
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		panic(err)
+	}
+	go http.Serve(l, mux)
+
+	// d.pactMockSvcManager.Start()
 
 	// Wait for sigterm
 	signal.Notify(d.signalChan, os.Interrupt, os.Kill)
@@ -109,22 +134,22 @@ func (d *Daemon) Shutdown() {
 // struct.
 func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) error {
 	reply = &PactMockServer{}
-	reply.Port, reply.Svc = d.pactMockSvcManager.NewService()
-	cmd := reply.Svc.Start()
+	port, svc := d.pactMockSvcManager.NewService()
+	reply.Port = port
+	cmd := svc.Start()
 	reply.Pid = cmd.Process.Pid
 
 	return nil
 }
 
 // ListServers returns a slice of all running PactMockServers.
-func (d *Daemon) ListServers(request interface{}, reply *PactListResponse) error {
+func (d *Daemon) ListServers(request PactMockServer, reply *PactListResponse) error {
 	var servers []*PactMockServer
 
 	for port, s := range d.pactMockSvcManager.List() {
 		servers = append(servers, &PactMockServer{
 			Pid:  s.Process.Pid,
 			Port: port,
-			Svc:  d.pactMockSvcManager,
 		})
 	}
 

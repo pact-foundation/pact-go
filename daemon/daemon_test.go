@@ -2,36 +2,14 @@ package daemon
 
 import (
 	"fmt"
+	"log"
 	"net"
+	"net/rpc"
 	"os"
 	"os/exec"
 	"testing"
 	"time"
 )
-
-func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
-	cs := []string{"-test.run=TestHelperProcess", "--", command}
-	cs = append(cs, args...)
-	cmd := exec.Command(os.Args[0], cs...)
-	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=%t", success)}
-	return cmd
-}
-
-func TestHelperProcess(t *testing.T) {
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
-		return
-	}
-	<-time.After(30 * time.Second)
-
-	// some code here to check arguments perhaps?
-	// Fail :(
-	if os.Getenv("GO_WANT_HELPER_PROCESS_TO_SUCCEED") == "false" {
-		os.Exit(1)
-	}
-
-	// Success :)
-	os.Exit(0)
-}
 
 func createMockedDaemon() (*Daemon, *ServiceMock) {
 	svc := &ServiceMock{
@@ -72,10 +50,7 @@ func TestNewDaemon(t *testing.T) {
 	}
 }
 
-func TestStartAndStopDaemon(t *testing.T) {
-	daemon, _ := createMockedDaemon()
-	go daemon.StartDaemon()
-
+func connectToDaemon(t *testing.T) {
 	for {
 		select {
 		case <-time.After(1 * time.Second):
@@ -83,16 +58,46 @@ func TestStartAndStopDaemon(t *testing.T) {
 		case <-time.After(50 * time.Millisecond):
 			_, err := net.Dial("tcp", ":6666")
 			if err == nil {
-				daemon.signalChan <- os.Interrupt
 				return
 			}
 		}
 	}
 }
 
+func waitForDaemonToShutdown(daemon *Daemon, t *testing.T) {
+	daemon.signalChan <- os.Interrupt
+	t.Logf("Waiting for deamon to shutdown before next test")
+	timeout := time.After(1 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			t.Fatalf("Expected server to shutdown < 1s.")
+		case <-time.After(50 * time.Millisecond):
+			conn, err := net.Dial("tcp", ":6666")
+			conn.SetReadDeadline(time.Now())
+			defer conn.Close()
+			if err != nil {
+				return
+			}
+			buffer := make([]byte, 8)
+			_, err = conn.Read(buffer)
+			if err != nil {
+				return
+			}
+		}
+	}
+}
+
+func TestStartAndStopDaemon(t *testing.T) {
+	daemon, _ := createMockedDaemon()
+	defer waitForDaemonToShutdown(daemon, t)
+	go daemon.StartDaemon(6666)
+
+	connectToDaemon(t)
+}
+
 func TestDaemonShutdown(t *testing.T) {
 	daemon, manager := createMockedDaemon()
-
 	daemon.Shutdown()
 
 	if manager.ServiceStopCount != 3 {
@@ -122,7 +127,7 @@ func TestStartServer(t *testing.T) {
 func TestListServers(t *testing.T) {
 	daemon, _ := createMockedDaemon()
 	var res PactListResponse
-	err := daemon.ListServers(nil, &res)
+	err := daemon.ListServers(PactMockServer{}, &res)
 
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -203,6 +208,27 @@ func TestVerification_Fail(t *testing.T) {
 
 }
 
+// Integration style test: Can a client hit each endpoint?
+func TestRPCClient_List(t *testing.T) {
+	daemon, _ := createMockedDaemon()
+	defer waitForDaemonToShutdown(daemon, t)
+
+	go daemon.StartDaemon(7777)
+	connectToDaemon(t)
+
+	client, err := rpc.DialHTTP("tcp", ":7777")
+	var res PactListResponse
+	err = client.Call("Daemon.ListServers", PactMockServer{}, &res)
+	if err != nil {
+		log.Fatal("rpc error:", err)
+	}
+
+	if len(res.Servers) != 3 {
+		t.Fatalf("Expected 3 servers to be listed, got: %d", len(res.Servers))
+	}
+
+}
+
 // Adapted from http://npf.io/2015/06/testing-exec-command/
 var fakeExecSuccessCommand = func() *exec.Cmd {
 	return fakeExecCommand("", true, "")
@@ -210,4 +236,28 @@ var fakeExecSuccessCommand = func() *exec.Cmd {
 
 var fakeExecFailCommand = func() *exec.Cmd {
 	return fakeExecCommand("", false, "")
+}
+
+func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestHelperProcess", "--", command}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=%t", success)}
+	return cmd
+}
+
+func TestHelperProcess(t *testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+	<-time.After(30 * time.Second)
+
+	// some code here to check arguments perhaps?
+	// Fail :(
+	if os.Getenv("GO_WANT_HELPER_PROCESS_TO_SUCCEED") == "false" {
+		os.Exit(1)
+	}
+
+	// Success :)
+	os.Exit(0)
 }
