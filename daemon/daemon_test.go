@@ -18,11 +18,10 @@ func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
 }
 
 func TestHelperProcess(t *testing.T) {
-	fmt.Fprintln(os.Stdout, "HELLLlloooo")
-	<-time.After(30 * time.Second)
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
 		return
 	}
+	<-time.After(30 * time.Second)
 
 	// some code here to check arguments perhaps?
 	// Fail :(
@@ -68,7 +67,7 @@ func TestNewDaemon(t *testing.T) {
 	var daemon interface{}
 	daemon, _ = createMockedDaemon()
 
-	if _, ok := daemon.(Daemon); !ok {
+	if _, ok := daemon.(*Daemon); !ok {
 		t.Fatalf("must be a Daemon")
 	}
 }
@@ -135,34 +134,29 @@ func TestListServers(t *testing.T) {
 }
 
 func TestStopServer(t *testing.T) {
-	daemon := &Daemon{}
+	daemon, manager := createMockedDaemon()
+	var cmd *exec.Cmd
+	var res PactMockServer
 
-	req := PactMockServer{Pid: 1234}
-	res := PactMockServer{}
-	err := daemon.StopServer(&req, &res)
+	for _, s := range manager.List() {
+		cmd = s
+	}
+	request := PactMockServer{
+		Pid: cmd.Process.Pid,
+	}
+
+	err := daemon.StopServer(&request, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
 
-	if res.Pid != 0 {
+	if res.Pid != cmd.Process.Pid {
 		t.Fatalf("Expected PID to be 0 but got: %d", res.Pid)
 	}
 
 	if res.Status != 0 {
 		t.Fatalf("Expected exit status to be 0 but got: %d", res.Status)
 	}
-}
-
-func TestStartServer_Fail(t *testing.T) {
-
-}
-
-func TestVerification(t *testing.T) {
-
-}
-
-func TestVerification_Fail(t *testing.T) {
-
 }
 
 func TestPublish(t *testing.T) {
@@ -184,6 +178,28 @@ func TestPublish(t *testing.T) {
 }
 
 func TestPublish_Fail(t *testing.T) {
+
+}
+
+func TestVerification(t *testing.T) {
+	daemon := &Daemon{}
+	req := VerifyRequest{}
+	var res PactResponse
+	err := daemon.Verify(&req, &res)
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit code to be 0 but got: %d", res.ExitCode)
+	}
+
+	if res.Message != "Success" {
+		t.Fatalf("Expected message to be 'Success' but got: %s", res.Message)
+	}
+}
+
+func TestVerification_Fail(t *testing.T) {
 
 }
 

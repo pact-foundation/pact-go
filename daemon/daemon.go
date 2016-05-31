@@ -121,7 +121,6 @@ func (d *Daemon) ListServers(request interface{}, reply *PactListResponse) error
 	var servers []*PactMockServer
 
 	for port, s := range d.pactMockSvcManager.List() {
-		fmt.Println("Listing!")
 		servers = append(servers, &PactMockServer{
 			Pid:  s.Process.Pid,
 			Port: port,
@@ -132,8 +131,6 @@ func (d *Daemon) ListServers(request interface{}, reply *PactListResponse) error
 	*reply = *&PactListResponse{
 		Servers: servers,
 	}
-
-	fmt.Println(reply)
 
 	return nil
 }
