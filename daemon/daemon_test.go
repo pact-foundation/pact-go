@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+// This guy mocks out the underlying Service provider in the Daemon,
+// but executes actual Daemon code.
+//
+// Stubbing the exec.Cmd interface is hard, see fakeExec* functions for
+// the magic.
 func createMockedDaemon() (*Daemon, *ServiceMock) {
 	svc := &ServiceMock{
 		Command:           "test",
@@ -50,6 +55,8 @@ func TestNewDaemon(t *testing.T) {
 	}
 }
 
+// Use this to wait for a daemon to be running prior
+// to running tests
 func connectToDaemon(t *testing.T) {
 	for {
 		select {
@@ -64,6 +71,7 @@ func connectToDaemon(t *testing.T) {
 	}
 }
 
+// Use this to wait for a daemon to stop after running a test.
 func waitForDaemonToShutdown(daemon *Daemon, t *testing.T) {
 	daemon.signalChan <- os.Interrupt
 	t.Logf("Waiting for deamon to shutdown before next test")

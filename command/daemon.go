@@ -14,7 +14,6 @@ var daemonCmd = &cobra.Command{
 		svc.Setup()
 		port := 6666
 		daemon.NewDaemon(svc).StartDaemon(port)
-
 	},
 }
 
