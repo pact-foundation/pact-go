@@ -285,8 +285,8 @@ func TestRPCClient_StopServer(t *testing.T) {
 		log.Fatal("rpc error:", err)
 	}
 
-	if res.Pid == cmd.Process.Pid {
-		t.Fatalf("Expected PID to match request but got: %d", res.Pid)
+	if res.Pid != cmd.Process.Pid {
+		t.Fatalf("Expected PID to match request %d but got: %d", cmd.Process.Pid, res.Pid)
 	}
 
 	if res.Port != 0 {

@@ -3,7 +3,6 @@ package daemon
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 )
@@ -23,6 +22,7 @@ type ServiceManager struct {
 	Command             string
 	processes           map[int]*exec.Cmd
 	Args                []string
+	Env                 []string
 	commandCompleteChan chan *exec.Cmd
 	commandCreatedChan  chan *exec.Cmd
 }
@@ -43,8 +43,9 @@ func (s *ServiceManager) addServiceMonitor() {
 	for {
 		select {
 		case p := <-s.commandCreatedChan:
-			log.Printf("Adding service with pid: %d", p.Process.Pid)
-			s.processes[p.Process.Pid] = p
+			if p != nil && p.Process != nil {
+				s.processes[p.Process.Pid] = p
+			}
 		}
 	}
 }
@@ -55,9 +56,10 @@ func (s *ServiceManager) removeServiceMonitor() {
 	for {
 		select {
 		case p = <-s.commandCompleteChan:
-			log.Println("Removing service with pid: ", p.Process.Pid)
-			p.Process.Signal(os.Interrupt)
-			delete(s.processes, p.Process.Pid)
+			if p != nil && p.Process != nil {
+				p.Process.Signal(os.Interrupt)
+				delete(s.processes, p.Process.Pid)
+			}
 		}
 	}
 }
@@ -88,6 +90,7 @@ func (s *ServiceManager) List() map[int]*exec.Cmd {
 // Start a Service and log its output.
 func (s *ServiceManager) Start() *exec.Cmd {
 	cmd := exec.Command(s.Command, s.Args...)
+	cmd.Env = s.Env
 
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
