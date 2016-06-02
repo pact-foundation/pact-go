@@ -62,6 +62,16 @@ func TestStopDaemon(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	go d.StartDaemon(port)
 	connectToDaemon(port, t)
+	var res string
+	d.StopDaemon("", &res)
+	waitForDaemonToShutdown(port, d, t)
+}
+
+func TestShutdownDaemon(t *testing.T) {
+	d, _ := createMockedDaemon()
+	port, _ := utils.GetFreePort()
+	go d.StartDaemon(port)
+	connectToDaemon(port, t)
 	d.Shutdown()
 }
 
@@ -83,7 +93,9 @@ func connectToDaemon(port int, t *testing.T) {
 
 // Use this to wait for a daemon to stop after running a test.
 func waitForDaemonToShutdown(port int, daemon *Daemon, t *testing.T) {
-	daemon.signalChan <- os.Interrupt
+	if daemon != nil {
+		daemon.signalChan <- os.Interrupt
+	}
 	t.Logf("Waiting for deamon to shutdown before next test")
 	timeout := time.After(1 * time.Second)
 	for {
@@ -222,10 +234,6 @@ func TestVerification(t *testing.T) {
 	}
 }
 
-func TestVerification_Fail(t *testing.T) {
-
-}
-
 // Integration style test: Can a client hit each endpoint?
 func TestRPCClient_List(t *testing.T) {
 	daemon, _ := createMockedDaemon()
@@ -347,6 +355,24 @@ func TestRPCClient_Publish(t *testing.T) {
 	if res.Message != "" {
 		t.Fatalf("Expected message to be blank but got: %s", res.Message)
 	}
+}
+
+// Integration style test: Can a client hit each endpoint?
+func TestRPCClient_StopDaemon(t *testing.T) {
+	daemon, _ := createMockedDaemon()
+	port, _ := utils.GetFreePort()
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
+
+	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
+	var res string
+	err = client.Call("Daemon.StopDaemon", "", &res)
+	if err != nil {
+		log.Fatal("rpc error:", err)
+	}
+
+	waitForDaemonToShutdown(port, nil, t)
 }
 
 // Adapted from http://npf.io/2015/06/testing-exec-command/
