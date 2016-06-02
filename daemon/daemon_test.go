@@ -57,6 +57,14 @@ func TestNewDaemon(t *testing.T) {
 	}
 }
 
+func TestStopDaemon(t *testing.T) {
+	d, _ := createMockedDaemon()
+	port, _ := utils.GetFreePort()
+	go d.StartDaemon(port)
+	connectToDaemon(port, t)
+	d.Shutdown()
+}
+
 // Use this to wait for a daemon to be running prior
 // to running tests
 func connectToDaemon(port int, t *testing.T) {
@@ -125,7 +133,7 @@ func TestStartServer(t *testing.T) {
 		t.Fatalf("Error: %v", err)
 	}
 
-	if res.Pid != 0 {
+	if res.Pid == 0 {
 		t.Fatalf("Expected non-zero Pid but got: %d", res.Pid)
 	}
 
@@ -253,7 +261,7 @@ func TestRPCClient_StartServer(t *testing.T) {
 		log.Fatal("rpc error:", err)
 	}
 
-	if res.Pid != 0 {
+	if res.Pid == 0 {
 		t.Fatalf("Expected non-zero Pid but got: %d", res.Pid)
 	}
 

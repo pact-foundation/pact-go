@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var channelTimeout = time.After(50 * time.Millisecond)
+var channelTimeout = 50 * time.Millisecond
 
 func createServiceManager() *ServiceManager {
 	cs := []string{"-test.run=TestHelperProcess", "--", os.Args[0]}
@@ -53,17 +53,17 @@ func TestServiceManager_removeServiceMonitor(t *testing.T) {
 	}
 
 	mgr.commandCompleteChan <- cmd
-
+	var timeout = time.After(channelTimeout)
 	for {
 		select {
 		case <-time.After(10 * time.Millisecond):
 			if len(mgr.processes) == 0 {
 				return
 			}
-		case <-channelTimeout:
+		case <-timeout:
 			if len(mgr.processes) != 0 {
-				t.Fatalf(`Expected 1 command to be removed from the queue.
-          Timed out after 500millis`)
+				t.Fatalf(`Expected 1 command to be removed from the queue. Have %d
+          Timed out after 500millis`, len(mgr.processes))
 			}
 		}
 	}
@@ -74,6 +74,7 @@ func TestServiceManager_addServiceMonitor(t *testing.T) {
 	cmd := fakeExecCommand("", true, "")
 	cmd.Start()
 	mgr.commandCreatedChan <- cmd
+	var timeout = time.After(channelTimeout)
 
 	for {
 		select {
@@ -81,7 +82,7 @@ func TestServiceManager_addServiceMonitor(t *testing.T) {
 			if len(mgr.processes) == 1 {
 				return
 			}
-		case <-channelTimeout:
+		case <-timeout:
 			if len(mgr.processes) != 1 {
 				t.Fatalf(`Expected 1 command to be added to the queue, but got: %d.
           Timed out after 500millis`, len(mgr.processes))
@@ -95,8 +96,8 @@ func TestServiceManager_addServiceMonitorWithDeadJob(t *testing.T) {
 	mgr := createServiceManager()
 	cmd := fakeExecCommand("", true, "")
 	mgr.commandCreatedChan <- cmd
+	var timeout = time.After(channelTimeout)
 
-	attempts := 0
 	for {
 		select {
 		case <-time.After(10 * time.Millisecond):
@@ -104,10 +105,12 @@ func TestServiceManager_addServiceMonitorWithDeadJob(t *testing.T) {
 				t.Fatalf(`Expected 0 command to be added to the queue, but got: %d.
           Timed out after 5 attempts`, len(mgr.processes))
 			}
-			attempts++
-			if attempts == 5 {
-				return
+		case <-timeout:
+			if len(mgr.processes) != 0 {
+				t.Fatalf(`Expected 0 command to be added to the queue, but got: %d.
+				Timed out after 50millis`, len(mgr.processes))
 			}
+			return
 		}
 	}
 }
@@ -121,14 +124,14 @@ func TestServiceManager_Stop(t *testing.T) {
 	}
 
 	mgr.Stop(cmd.Process.Pid)
-
+	var timeout = time.After(channelTimeout)
 	for {
 		select {
 		case <-time.After(10 * time.Millisecond):
 			if len(mgr.processes) == 0 {
 				return
 			}
-		case <-channelTimeout:
+		case <-timeout:
 			if len(mgr.processes) != 0 {
 				t.Fatalf(`Expected 1 command to be removed from the queue.
           Timed out after 500millis`)
@@ -155,6 +158,7 @@ func TestServiceManager_List(t *testing.T) {
 func TestServiceManager_Start(t *testing.T) {
 	mgr := createServiceManager()
 	mgr.Start()
+	var timeout = time.After(channelTimeout)
 
 	for {
 		select {
@@ -162,7 +166,7 @@ func TestServiceManager_Start(t *testing.T) {
 			if len(mgr.processes) == 1 {
 				return
 			}
-		case <-channelTimeout:
+		case <-timeout:
 			if len(mgr.processes) != 1 {
 				t.Fatalf(`Expected 1 command to be added to the queue, but got: %d.
           Timed out after 500millis`, len(mgr.processes))
@@ -170,5 +174,4 @@ func TestServiceManager_Start(t *testing.T) {
 			return
 		}
 	}
-
 }

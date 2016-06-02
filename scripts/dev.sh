@@ -2,6 +2,7 @@
 
 set -e
 
+./scripts/build.sh
 ./scripts/package.sh
 
 # Setup dev

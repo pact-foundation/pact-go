@@ -14,6 +14,21 @@ func simplePact() (pact *PactMock) {
 	return
 }
 
+//
+// func TestPact_Before(t *testing.T) {
+// 	pact := &PactConsumer{}
+// 	pact.Before()
+// 	<-time.After(1 * time.Second)
+// 	pact.After()
+//
+// 	// Can I hit stuff?
+//
+// 	//
+//
+// }
+
+//
+
 func providerStatesPact() (pact *PactMock) {
 	pact = &PactMock{}
 	pact.

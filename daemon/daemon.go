@@ -70,17 +70,6 @@ func NewDaemon(pactMockServiceManager Service) *Daemon {
 // StartDaemon starts the daemon RPC server.
 func (d *Daemon) StartDaemon(port int) {
 	fmt.Println("Starting daemon on port", port)
-	// rpc.Register(d)
-	// rpc.HandleHTTP()
-	//
-	// // Start daemon in background
-	// go func() {
-	// 	l, e := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	// 	if e != nil {
-	// 		log.Fatal("listen error:", e)
-	// 	}
-	// 	http.Serve(l, nil)
-	// }()
 
 	serv := rpc.NewServer()
 	serv.Register(d)
@@ -102,8 +91,7 @@ func (d *Daemon) StartDaemon(port int) {
 		panic(err)
 	}
 	go http.Serve(l, mux)
-
-	// d.pactMockSvcManager.Start()
+	fmt.Println("Server started, waiting for stuff!")
 
 	// Wait for sigterm
 	signal.Notify(d.signalChan, os.Interrupt, os.Kill)
@@ -112,6 +100,13 @@ func (d *Daemon) StartDaemon(port int) {
 
 	d.Shutdown()
 	fmt.Println("done")
+}
+
+// StopDaemon allows clients to programmatically shuts down the running Daemon
+// via RPC.
+func (d *Daemon) StopDaemon(request string, reply *string) error {
+	d.signalChan <- os.Interrupt
+	return nil
 }
 
 // Shutdown ensures all services are cleanly destroyed.
@@ -126,12 +121,12 @@ func (d *Daemon) Shutdown() {
 // StartServer starts a mock server and returns a pointer to aPactMockServer
 // struct.
 func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) error {
-	reply = &PactMockServer{}
+	server := &PactMockServer{}
 	port, svc := d.pactMockSvcManager.NewService()
-	reply.Port = port
+	server.Port = port
 	cmd := svc.Start()
-	reply.Pid = cmd.Process.Pid
-
+	server.Pid = cmd.Process.Pid
+	*reply = *server
 	return nil
 }
 
