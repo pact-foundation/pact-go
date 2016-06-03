@@ -3,6 +3,8 @@ package dsl
 import (
 	"errors"
 	"testing"
+
+	"github.com/mefellows/pact-go/utils"
 )
 
 func simplePact() (pact *PactMock) {
@@ -14,18 +16,20 @@ func simplePact() (pact *PactMock) {
 	return
 }
 
-//
-// func TestPact_Before(t *testing.T) {
-// 	pact := &PactConsumer{}
-// 	pact.Before()
-// 	<-time.After(1 * time.Second)
-// 	pact.After()
-//
-// 	// Can I hit stuff?
-//
-// 	//
-//
-// }
+func TestPact_Before(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port)
+
+	// pact := &PactConsumer{Port: port}
+	// pact.Before()
+	// <-time.After(1 * time.Second)
+	// pact.After()
+
+	// Can I hit stuff?
+
+	//
+
+}
 
 //
 

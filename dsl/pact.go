@@ -2,8 +2,6 @@ package dsl
 
 import (
 	"fmt"
-	"log"
-	"net/rpc"
 
 	"github.com/mefellows/pact-go/daemon"
 )
@@ -31,39 +29,32 @@ type Pact interface {
 
 // PactConsumer is the main implementation of the Pact interface.
 type PactConsumer struct {
+	// Current server for the consumer
 	server *daemon.PactMockServer
+
+	// Stores the current state
+	State []string
+
+	// Port the Pact Daemon is running on
+	Port int
+
+	// Pact RPC Client
+	pactClient *PactClient
 }
 
 // Before starts the Pact Mock Server before each test suite.
-
-// TODO: Turn these calls into a client library not exposing the RPC junk.
-//       Move the daemon stuff into another package?
-
 func (p *PactConsumer) Before() Pact {
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", 6666))
-	var res daemon.PactMockServer
-	err = client.Call("Daemon.StartServer", daemon.PactMockServer{}, &res)
-	if err != nil {
-		log.Fatal("rpc error:", err)
-	}
+	client := &PactClient{Port: p.Port}
+	p.pactClient = client
+	p.server = client.StartServer()
 
-	log.Println("Have pact mock:", &res)
-	p.server = &res
 	return p
 }
 
 // After stops the Pact Mock Server after each test suite.
 func (p *PactConsumer) After() Pact {
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", 6666))
-	var res daemon.PactMockServer
+	p.server = p.pactClient.StopServer(p.server)
 
-	fmt.Println("CLIENT Stopping:", p.server.Pid)
-	err = client.Call("Daemon.StopServer", p.server, &res)
-	if err != nil {
-		log.Println("ERror!!", err)
-	}
-
-	log.Println("Have pact mock stop response:", res)
 	return p
 }
 

@@ -17,7 +17,8 @@ type Client interface {
 
 // PactClient is the default implementation of the Client interface.
 type PactClient struct {
-	port int
+	// Port the daemon is running on
+	Port int
 }
 
 func getHTTPClient(port int) (*rpc.Client, error) {
@@ -47,7 +48,7 @@ func waitForPort(port int) {
 // StartServer starts a remote Pact Mock Server.
 func (p *PactClient) StartServer() *daemon.PactMockServer {
 	var res daemon.PactMockServer
-	client, err := getHTTPClient(p.port)
+	client, err := getHTTPClient(p.Port)
 	if err != nil {
 		log.Fatal("rpc error:", err)
 	}
@@ -61,7 +62,7 @@ func (p *PactClient) StartServer() *daemon.PactMockServer {
 // ListServers starts a remote Pact Mock Server.
 func (p *PactClient) ListServers() *daemon.PactListResponse {
 	var res daemon.PactListResponse
-	client, err := getHTTPClient(p.port)
+	client, err := getHTTPClient(p.Port)
 	err = client.Call("Daemon.ListServers", daemon.PactMockServer{}, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
@@ -71,7 +72,7 @@ func (p *PactClient) ListServers() *daemon.PactListResponse {
 
 // StopServer stops a remote Pact Mock Server.
 func (p *PactClient) StopServer(server *daemon.PactMockServer) *daemon.PactMockServer {
-	client, err := getHTTPClient(p.port)
+	client, err := getHTTPClient(p.Port)
 	var res daemon.PactMockServer
 	err = client.Call("Daemon.StopServer", server, &res)
 	if err != nil {

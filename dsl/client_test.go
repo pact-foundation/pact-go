@@ -77,8 +77,8 @@ func createDaemon(port int) *daemon.Daemon {
 	return d
 }
 
-// func TestRPCClient_ListFail(t *testing.T) {
-// 	client := &PactClient{ /* don't supply port */ }
+// func TestClient_Fail(t *testing.T) {
+// 	client := NewPactClient{ /* don't supply port */ }
 //
 // }
 
@@ -88,7 +88,7 @@ func TestRPCClient_List(t *testing.T) {
 	createDaemon(port)
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
-	client := &PactClient{port: port}
+	client := &PactClient{Port: port}
 	server := client.StartServer()
 
 	waitForPortInTest(server.Port, t)
@@ -132,82 +132,3 @@ func TestRPCClient_StartServer(t *testing.T) {
 	<-time.After(10 * time.Second)
 	waitForDaemonToShutdown(port, t)
 }
-
-/*
-// Integration style test: Can a client hit each endpoint?
-func TestRPCClient_StopServer(t *testing.T) {
-	port, _ := utils.GetFreePort()
-	// defer waitForDaemonToShutdown(port, daemon, t)
-	d := createDaemon(port)
-	waitForPortInTest(port, t)
-
-	var cmd *exec.Cmd
-	for _, s := range manager.List() {
-		cmd = s
-	}
-	request := daemon.PactMockServer{
-		Pid: cmd.Process.Pid,
-	}
-
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res *daemon.PactMockServer
-	err = client.Call("Daemon.StopServer", request, &res)
-	if err != nil {
-		log.Fatal("rpc error:", err)
-	}
-
-	if res.Pid != cmd.Process.Pid {
-		t.Fatalf("Expected PID to match request %d but got: %d", cmd.Process.Pid, res.Pid)
-	}
-
-	if res.Port != 0 {
-		t.Fatalf("Expected non-zero port but got: %d", res.Port)
-	}
-}
-
-// Integration style test: Can a client hit each endpoint?
-func TestRPCClient_Verify(t *testing.T) {
-	port, _ := utils.GetFreePort()
-	d := createDaemon(port)
-	// defer waitForDaemonToShutdown(port, daemon, t)
-	waitForPortInTest(port, t)
-
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res daemon.PactResponse
-	err = client.Call("Daemon.Verify", &daemon.VerifyRequest{}, &res)
-	if err != nil {
-		log.Fatal("rpc error:", err)
-	}
-
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code to be 0, got: %d", res.ExitCode)
-	}
-	if res.Message != "" {
-		t.Fatalf("Expected message to be blank but got: %s", res.Message)
-	}
-}
-
-// Integration style test: Can a client hit each endpoint?
-func TestRPCClient_Publish(t *testing.T) {
-	port, _ := utils.GetFreePort()
-	d := createDaemon(port)
-	// defer waitForDaemonToShutdown(port, daemon, t)
-	go d.StartDaemon(port)
-	waitForPortInTest(port, t)
-
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res PactResponse
-	err = client.Call("Daemon.Publish", &PublishRequest{}, &res)
-	if err != nil {
-		log.Fatal("rpc error:", err)
-	}
-
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code to be 0, got: %d", res.ExitCode)
-	}
-
-	if res.Message != "" {
-		t.Fatalf("Expected message to be blank but got: %s", res.Message)
-	}
-}
-*/
