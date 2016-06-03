@@ -5,6 +5,8 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -69,12 +71,41 @@ func waitForDaemonToShutdown(port int, t *testing.T) {
 	}
 }
 
-func createDaemon(port int) *daemon.Daemon {
-	s := &daemon.PactMockService{}
-	_, svc := s.NewService()
+// This guy mocks out the underlying Service provider in the Daemon,
+// but executes actual Daemon code.
+//
+// Stubbing the exec.Cmd interface is hard, see fakeExec* functions for
+// the magic.
+func createDaemon(port int) (*daemon.Daemon, *daemon.ServiceMock) {
+	svc := &daemon.ServiceMock{
+		Command:           "test",
+		Args:              []string{},
+		ServiceStopResult: true,
+		ServiceStopError:  nil,
+		ExecFunc:          fakeExecSuccessCommand,
+		ServiceList: map[int]*exec.Cmd{
+			1: fakeExecCommand("", true, ""),
+			2: fakeExecCommand("", true, ""),
+			3: fakeExecCommand("", true, ""),
+		},
+		ServiceStartCmd: nil,
+	}
+
+	// Start all processes to get the Pids!
+	for _, s := range svc.ServiceList {
+		s.Start()
+	}
+
+	// Cleanup all Processes when we finish
+	defer func() {
+		for _, s := range svc.ServiceList {
+			s.Process.Kill()
+		}
+	}()
+
 	d := daemon.NewDaemon(svc)
 	go d.StartDaemon(port)
-	return d
+	return d, svc
 }
 
 // func TestClient_Fail(t *testing.T) {
@@ -89,46 +120,41 @@ func TestRPCClient_List(t *testing.T) {
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
-	server := client.StartServer()
 
-	waitForPortInTest(server.Port, t)
+	waitForPortInTest(port, t)
 
 	s := client.ListServers()
 
-	if len(s.Servers) != 1 {
-		t.Fatalf("Expected 1 server to be running, got %d", len(s.Servers))
+	if len(s.Servers) != 3 {
+		t.Fatalf("Expected 3 server to be running, got %d", len(s.Servers))
 	}
-
-	// client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	// var res daemon.PactMockServer
-	// err = client.Call("Daemon.StartServer", daemon.PactMockServer{}, &res)
-	// if err != nil {
-	// 	log.Fatal("rpc error:", err)
-	// }
-	//
-	// waitForPortInTest(res.Port, t)
-	//
-	// client, err = rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	// var res2 daemon.PactListResponse
-	// err = client.Call("Daemon.ListServers", daemon.PactMockServer{}, &res2)
-	// if err != nil {
-	// 	log.Fatal("rpc error:", err)
-	// }
 }
 
 // Integration style test: Can a client hit each endpoint?
 func TestRPCClient_StartServer(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	createDaemon(port)
+	_, svc := createDaemon(port)
+	waitForPortInTest(port, t)
+	defer waitForDaemonToShutdown(port, t)
+	client := &PactClient{Port: port}
+
 	waitForPortInTest(port, t)
 
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res daemon.PactMockServer
-	err = client.Call("Daemon.StartServer", daemon.PactMockServer{}, &res)
-	if err != nil {
-		log.Fatal("rpc error:", err)
+	client.StartServer()
+	if svc.ServiceStartCount != 1 {
+		t.Fatalf("Expected 1 server to have been started, got %d", svc.ServiceStartCount)
 	}
+}
 
-	<-time.After(10 * time.Second)
-	waitForDaemonToShutdown(port, t)
+// Adapted from http://npf.io/2015/06/testing-exec-command/
+var fakeExecSuccessCommand = func() *exec.Cmd {
+	return fakeExecCommand("", true, "")
+}
+
+func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestHelperProcess", "--", command}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=%t", success)}
+	return cmd
 }

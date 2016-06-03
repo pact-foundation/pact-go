@@ -91,7 +91,6 @@ func (d *Daemon) StartDaemon(port int) {
 		panic(err)
 	}
 	go http.Serve(l, mux)
-	fmt.Println("Server started, waiting for stuff!")
 
 	// Wait for sigterm
 	signal.Notify(d.signalChan, os.Interrupt, os.Kill)

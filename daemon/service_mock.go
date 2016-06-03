@@ -11,6 +11,7 @@ type ServiceMock struct {
 	ServiceStopError    error
 	ServiceList         map[int]*exec.Cmd
 	ServiceStartCmd     *exec.Cmd
+	ServiceStartCount   int
 	ServicePort         int
 	ServiceStopCount    int
 	ServicesSetupCalled bool
@@ -38,6 +39,7 @@ func (s *ServiceMock) List() map[int]*exec.Cmd {
 // Start a Service and log its output.
 func (s *ServiceMock) Start() *exec.Cmd {
 
+	s.ServiceStartCount++
 	cmd := s.ExecFunc()
 	cmd.Start()
 
