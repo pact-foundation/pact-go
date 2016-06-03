@@ -7,6 +7,7 @@ import (
 	"net/rpc"
 	"os"
 	"os/exec"
+	"reflect"
 	"testing"
 	"time"
 
@@ -35,7 +36,6 @@ func waitForPortInTest(port int, t *testing.T) {
 func waitForDaemonToShutdown(port int, t *testing.T) {
 	req := ""
 	res := ""
-	// var req interface{}
 
 	waitForPortInTest(port, t)
 
@@ -43,11 +43,9 @@ func waitForDaemonToShutdown(port int, t *testing.T) {
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
 
 	err = client.Call("Daemon.StopDaemon", &req, &res)
-	// err = client.Call("Daemon.StopDaemon", req, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
 	}
-	fmt.Println(res)
 
 	t.Logf("Waiting for deamon to shutdown before next test")
 	timeout := time.After(1 * time.Second)
@@ -72,7 +70,8 @@ func waitForDaemonToShutdown(port int, t *testing.T) {
 }
 
 // This guy mocks out the underlying Service provider in the Daemon,
-// but executes actual Daemon code.
+// but executes actual Daemon code. This means we don't spin up the real
+// mock service but execute our code in isolation.
 //
 // Stubbing the exec.Cmd interface is hard, see fakeExec* functions for
 // the magic.
@@ -108,20 +107,13 @@ func createDaemon(port int) (*daemon.Daemon, *daemon.ServiceMock) {
 	return d, svc
 }
 
-// func TestClient_Fail(t *testing.T) {
-// 	client := NewPactClient{ /* don't supply port */ }
-//
-// }
-
 // Integration style test: Can a client hit each endpoint?
-func TestRPCClient_List(t *testing.T) {
+func TestClient_List(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	createDaemon(port)
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
-
-	waitForPortInTest(port, t)
 
 	s := client.ListServers()
 
@@ -130,20 +122,92 @@ func TestRPCClient_List(t *testing.T) {
 	}
 }
 
+func TestClient_ListFail(t *testing.T) {
+	timeoutDuration = 50 * time.Millisecond
+	client := &PactClient{ /* don't supply port */ }
+	client.StartServer()
+	list := client.ListServers()
+
+	if len(list.Servers) != 0 {
+		t.Fatalf("Expected 0 servers, got %d", len(list.Servers))
+	}
+	timeoutDuration = oldTimeoutDuration
+}
+
 // Integration style test: Can a client hit each endpoint?
-func TestRPCClient_StartServer(t *testing.T) {
+func TestClient_StartServer(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	_, svc := createDaemon(port)
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	waitForPortInTest(port, t)
-
 	client.StartServer()
 	if svc.ServiceStartCount != 1 {
 		t.Fatalf("Expected 1 server to have been started, got %d", svc.ServiceStartCount)
 	}
+}
+
+var oldTimeoutDuration = timeoutDuration
+
+func TestClient_StartServerFail(t *testing.T) {
+	timeoutDuration = 50 * time.Millisecond
+
+	client := &PactClient{ /* don't supply port */ }
+	server := client.StartServer()
+	if server.Port != 0 {
+		t.Fatalf("Expected server to be empty %v", server)
+	}
+	timeoutDuration = oldTimeoutDuration
+}
+
+// Integration style test: Can a client hit each endpoint?
+func TestClient_StopServer(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	_, svc := createDaemon(port)
+	waitForPortInTest(port, t)
+	defer waitForDaemonToShutdown(port, t)
+	client := &PactClient{Port: port}
+
+	client.StopServer(&daemon.PactMockServer{})
+	if svc.ServiceStopCount != 1 {
+		t.Fatalf("Expected 1 server to have been stopped, got %d", svc.ServiceStartCount)
+	}
+}
+
+func TestClient_StopServerFail(t *testing.T) {
+	timeoutDuration = 50 * time.Millisecond
+	client := &PactClient{ /* don't supply port */ }
+	res := client.StopServer(&daemon.PactMockServer{})
+	should := &daemon.PactMockServer{}
+	if !reflect.DeepEqual(res, should) {
+		t.Fatalf("Expected nil object but got a difference: %v != %v", res, should)
+	}
+	timeoutDuration = oldTimeoutDuration
+}
+
+// Integration style test: Can a client hit each endpoint?
+func TestClient_StopDaemon(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port)
+	waitForPortInTest(port, t)
+	client := &PactClient{Port: port}
+
+	err := client.StopDaemon()
+	if err != nil {
+		t.Fatalf("Err: %v", err)
+	}
+	waitForDaemonToShutdown(port, t)
+}
+
+func TestClient_StopDaemonFail(t *testing.T) {
+	timeoutDuration = 50 * time.Millisecond
+	client := &PactClient{ /* don't supply port */ }
+	err := client.StopDaemon()
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+	timeoutDuration = oldTimeoutDuration
 }
 
 // Adapted from http://npf.io/2015/06/testing-exec-command/

@@ -14,7 +14,7 @@ type Service interface {
 	Stop(pid int) (bool, error)
 	List() map[int]*exec.Cmd
 	Start() *exec.Cmd
-	NewService() (int, Service)
+	NewService(args []string) (int, Service)
 }
 
 // ServiceManager is the default implementation of the Service interface.

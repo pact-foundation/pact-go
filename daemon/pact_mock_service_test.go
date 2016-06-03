@@ -4,7 +4,7 @@ import "testing"
 
 func TestNewService(t *testing.T) {
 	s := &PactMockService{}
-	port, svc := s.NewService()
+	port, svc := s.NewService([]string{})
 
 	if port <= 0 {
 		t.Fatalf("Expected non-zero port but got: %d", port)

@@ -15,7 +15,7 @@ type PactMockService struct {
 }
 
 // NewService creates a new PactMockService with default settings.
-func (m *PactMockService) NewService() (int, Service) {
+func (m *PactMockService) NewService(args []string) (int, Service) {
 	port, _ := utils.GetFreePort()
 	// version := 2
 	// dir, _ := os.Getwd()
@@ -30,6 +30,7 @@ func (m *PactMockService) NewService() (int, Service) {
 		// fmt.Sprintf("--log-dir %s", logDir),
 		// fmt.Sprintf("--ssl"),
 	}
+	m.Args = append(m.Args, args...)
 	m.Command = getCommandPath()
 	return port, m
 }

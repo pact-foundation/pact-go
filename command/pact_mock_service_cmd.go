@@ -19,7 +19,7 @@ var mockServiceCmd = &cobra.Command{
 		// Start the service
 		svcManager := &daemon.PactMockService{}
 		svcManager.Setup()
-		_, svc := svcManager.NewService()
+		_, svc := svcManager.NewService([]string{})
 		svc.Start()
 
 		// Block until a signal is received.

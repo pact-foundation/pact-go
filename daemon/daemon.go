@@ -16,6 +16,7 @@ type PactMockServer struct {
 	Pid    int
 	Port   int
 	Status int
+	Args   []string
 }
 
 // PublishRequest contains the details required to Publish Pacts to a broker.
@@ -121,7 +122,7 @@ func (d *Daemon) Shutdown() {
 // struct.
 func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) error {
 	server := &PactMockServer{}
-	port, svc := d.pactMockSvcManager.NewService()
+	port, svc := d.pactMockSvcManager.NewService(request.Args)
 	server.Port = port
 	cmd := svc.Start()
 	server.Pid = cmd.Process.Pid
