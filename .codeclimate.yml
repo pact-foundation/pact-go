@@ -1,3 +1,4 @@
+---
 engines:
   fixme:
     enabled: true
@@ -7,7 +8,7 @@ engines:
     enabled: true
   gofmt:
     enabled: true
-        
+
 ratings:
   paths:
     - "**.go"
