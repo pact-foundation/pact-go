@@ -3,7 +3,7 @@ package dsl
 import (
 	"fmt"
 
-	"github.com/mefellows/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/daemon"
 )
 
 // Pact is the container structure to run the Consumer Pact test cases.

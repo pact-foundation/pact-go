@@ -24,14 +24,14 @@ how to get going.
 
 
 [![wercker status](https://app.wercker.com/status/273436f3ec1ec8e6ea348b81e93aeea1/s/master "wercker status")](https://app.wercker.com/project/bykey/273436f3ec1ec8e6ea348b81e93aeea1)
-[![Coverage Status](https://coveralls.io/repos/github/mefellows/pact-go/badge.svg?branch=master)](https://coveralls.io/github/mefellows/pact-go?branch=master)
-[![Code Climate](https://codeclimate.com/github/mefellows/pact-go/badges/gpa.svg)](https://codeclimate.com/github/mefellows/pact-go)
-[![Issue Count](https://codeclimate.com/github/mefellows/pact-go/badges/issue_count.svg)](https://codeclimate.com/github/mefellows/pact-go)
-[![GoDoc](https://godoc.org/github.com/mefellows/pact-go?status.svg)](https://godoc.org/github.com/mefellows/pact-go)
+[![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=master)](https://coveralls.io/github/pact-foundation/pact-go?branch=master)
+[![Code Climate](https://codeclimate.com/github/pact-foundation/pact-go/badges/gpa.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
+[![Issue Count](https://codeclimate.com/github/pact-foundation/pact-go/badges/issue_count.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
+[![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
 
 ## Installation
 
-* Download a [release](https://github.com/mefellows/pact-go/releases) for your OS.
+* Download a [release](https://github.com/pact-foundation/pact-go/releases) for your OS.
 * Unzip the package into a known location, and add to the `PATH`.
 * Run `pact-go` to see what options are available
 
@@ -49,7 +49,7 @@ running for long periods (e.g. on a CI server).
 ### Examples
 
 ```go
-import "github.com/mefellows/pact-go/dsl"
+import "github.com/pact-foundation/pact-go/dsl"
 import ...
 // 1. Start the daemon with `./pact-go daemon`
 // 2. cd <pact-go>/examples
@@ -106,9 +106,9 @@ Additional documentation can be found at the main [Pact website](http://pact.io)
 
 For full integration testing locally, Ruby 2.1.5 must be installed. Under the hood, Pact Go bundles the [Pact Mock Service]() and [Pact Provider Verifier]() projects to implement up to v2.0 of the Pact Specification. This is only temporary, until [Pact Reference](https://github.com/pact-foundation/pact-reference/) work is completed.
 
-* Git clone https://github.com/mefellows/pact-go.git
+* Git clone https://github.com/pact-foundation/pact-go.git
 * Run `make dev` to build the package and setup the Ruby 'binaries' locally
 
 ### Docker
 
-The current Wercker build uses this custom [Docker image](https://github.com/mefellows/pact-go-docker-build).
+The current Wercker build uses this custom [Docker image](https://github.com/pact-foundation/pact-go-docker-build).

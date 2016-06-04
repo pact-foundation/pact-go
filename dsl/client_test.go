@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mefellows/pact-go/daemon"
-	"github.com/mefellows/pact-go/utils"
+	"github.com/pact-foundation/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 // Use this to wait for a daemon to be running prior
