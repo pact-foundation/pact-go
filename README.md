@@ -23,8 +23,8 @@ Read [Getting started with Pact](http://dius.com.au/2016/02/03/microservices-pac
 how to get going.
 
 
-[![wercker status](https://app.wercker.com/status/273436f3ec1ec8e6ea348b81e93aeea1/s/master "wercker status")](https://app.wercker.com/project/bykey/273436f3ec1ec8e6ea348b81e93aeea1)
-[![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=master)](https://coveralls.io/github/pact-foundation/pact-go?branch=master)
+[![wercker status](https://app.wercker.com/status/fad2d928716c629e641cae515ac58547/s/master "wercker status")](https://app.wercker.com/project/bykey/fad2d928716c629e641cae515ac58547)
+[![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=HEAD)](https://coveralls.io/github/pact-foundation/pact-go?branch=HEAD)
 [![Code Climate](https://codeclimate.com/github/pact-foundation/pact-go/badges/gpa.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
 [![Issue Count](https://codeclimate.com/github/pact-foundation/pact-go/badges/issue_count.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
