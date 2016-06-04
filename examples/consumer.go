@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mefellows/pact-go/dsl"
+	"github.com/pact-foundation/pact-go/dsl"
 )
 
 // Example Pact: How to run me!

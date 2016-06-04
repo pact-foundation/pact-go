@@ -7,7 +7,7 @@ import (
 	"net/rpc"
 	"time"
 
-	"github.com/mefellows/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/daemon"
 )
 
 var timeoutDuration = 1 * time.Second

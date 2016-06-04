@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mefellows/pact-go/utils"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 // This guy mocks out the underlying Service provider in the Daemon,

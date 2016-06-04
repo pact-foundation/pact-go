@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/mefellows/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/daemon"
 	"github.com/spf13/cobra"
 )
 

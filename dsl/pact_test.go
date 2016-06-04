@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mefellows/pact-go/daemon"
-	"github.com/mefellows/pact-go/utils"
+	"github.com/pact-foundation/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 func createPact() {

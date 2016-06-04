@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mefellows/pact-go/utils"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 // PactMockService is a wrapper for the Pact Mock Service.
