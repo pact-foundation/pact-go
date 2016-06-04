@@ -60,6 +60,7 @@ package:
           ls -larth build
           ls -larth output
 
+# TODO: Get tokens for Pact foundation
 deploy:
     steps:
         - tcnksm/ghr:
