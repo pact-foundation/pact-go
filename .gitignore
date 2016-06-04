@@ -37,3 +37,7 @@ pact-provider-verifier
 *.idea
 *.bak
 _*
+*.log
+pact-go
+pacts
+logs

@@ -12,14 +12,14 @@ import (
 
 var timeoutDuration = 1 * time.Second
 
-// Client is the simplified remote interface to the Pact Daemon
+// Client is the simplified remote interface to the Pact Daemon.
 type Client interface {
 	StartServer() *daemon.PactMockServer
 }
 
 // PactClient is the default implementation of the Client interface.
 type PactClient struct {
-	// Port the daemon is running on
+	// Port the daemon is running on.
 	Port int
 }
 
@@ -32,9 +32,8 @@ func getHTTPClient(port int) (*rpc.Client, error) {
 }
 
 // Use this to wait for a daemon to be running prior
-// to running tests
+// to running tests.
 func waitForPort(port int) error {
-	fmt.Printf("client - Waiting for daemon port: %d", port)
 	timeout := time.After(timeoutDuration)
 
 	for {
@@ -61,6 +60,11 @@ func (p *PactClient) StartServer() *daemon.PactMockServer {
 			log.Fatal("rpc error:", err)
 		}
 	}
+
+	if err == nil {
+		waitForPort(res.Port)
+	}
+
 	return &res
 }
 

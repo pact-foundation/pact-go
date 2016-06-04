@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -194,47 +195,47 @@ func TestStopServer(t *testing.T) {
 	}
 }
 
-func TestPublish(t *testing.T) {
-	daemon := &Daemon{}
-	req := PublishRequest{}
-	var res PactResponse
-	err := daemon.Publish(&req, &res)
-	if err != nil {
-		t.Fatalf("Error: %v", err)
+func TestStopServer_Fail(t *testing.T) {
+	daemon, manager := createMockedDaemon()
+	var cmd *exec.Cmd
+	var res PactMockServer
+
+	for _, s := range manager.List() {
+		cmd = s
+	}
+	request := PactMockServer{
+		Pid: cmd.Process.Pid,
 	}
 
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code to be 0 but got: %d", res.ExitCode)
-	}
+	manager.ServiceStopError = errors.New("failed to stop server")
 
-	if res.Message != "" {
-		t.Fatalf("Expected message to be blank but got: %s", res.Message)
-	}
-}
-
-func TestPublish_Fail(t *testing.T) {
-
-}
-
-func TestVerification(t *testing.T) {
-	daemon := &Daemon{}
-	req := VerifyRequest{}
-	var res PactResponse
-	err := daemon.Verify(&req, &res)
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code to be 0 but got: %d", res.ExitCode)
-	}
-
-	if res.Message != "" {
-		t.Fatalf("Expected message to be blank but got: %s", res.Message)
+	err := daemon.StopServer(&request, &res)
+	if err == nil {
+		t.Fatalf("Expected error but got none")
 	}
 }
 
-// Integration style test: Can a client hit each endpoint?
+func TestStopServer_FailedStatus(t *testing.T) {
+	daemon, manager := createMockedDaemon()
+	var cmd *exec.Cmd
+	var res PactMockServer
+
+	for _, s := range manager.List() {
+		cmd = s
+	}
+	request := PactMockServer{
+		Pid: cmd.Process.Pid,
+	}
+
+	manager.ServiceStopResult = false
+
+	daemon.StopServer(&request, &res)
+
+	if res.Status != 1 {
+		t.Fatalf("Expected exit status to be 1 but got: %d", res.Status)
+	}
+}
+
 func TestRPCClient_List(t *testing.T) {
 	daemon, _ := createMockedDaemon()
 	port, _ := utils.GetFreePort()
@@ -254,7 +255,6 @@ func TestRPCClient_List(t *testing.T) {
 	}
 }
 
-// Integration style test: Can a client hit each endpoint?
 func TestRPCClient_StartServer(t *testing.T) {
 	daemon, _ := createMockedDaemon()
 	port, _ := utils.GetFreePort()
@@ -278,7 +278,6 @@ func TestRPCClient_StartServer(t *testing.T) {
 	}
 }
 
-// Integration style test: Can a client hit each endpoint?
 func TestRPCClient_StopServer(t *testing.T) {
 	daemon, manager := createMockedDaemon()
 	port, _ := utils.GetFreePort()
@@ -309,55 +308,6 @@ func TestRPCClient_StopServer(t *testing.T) {
 		t.Fatalf("Expected non-zero port but got: %d", res.Port)
 	}
 }
-
-// Integration style test: Can a client hit each endpoint?
-func TestRPCClient_Verify(t *testing.T) {
-	daemon, _ := createMockedDaemon()
-	port, _ := utils.GetFreePort()
-	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
-	connectToDaemon(port, t)
-
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res PactResponse
-	err = client.Call("Daemon.Verify", &VerifyRequest{}, &res)
-	if err != nil {
-		log.Fatal("rpc error:", err)
-	}
-
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code to be 0, got: %d", res.ExitCode)
-	}
-	if res.Message != "" {
-		t.Fatalf("Expected message to be blank but got: %s", res.Message)
-	}
-}
-
-// Integration style test: Can a client hit each endpoint?
-func TestRPCClient_Publish(t *testing.T) {
-	daemon, _ := createMockedDaemon()
-	port, _ := utils.GetFreePort()
-	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
-	connectToDaemon(port, t)
-
-	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res PactResponse
-	err = client.Call("Daemon.Publish", &PublishRequest{}, &res)
-	if err != nil {
-		log.Fatal("rpc error:", err)
-	}
-
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code to be 0, got: %d", res.ExitCode)
-	}
-
-	if res.Message != "" {
-		t.Fatalf("Expected message to be blank but got: %s", res.Message)
-	}
-}
-
-// Integration style test: Can a client hit each endpoint?
 func TestRPCClient_StopDaemon(t *testing.T) {
 	daemon, _ := createMockedDaemon()
 	port, _ := utils.GetFreePort()

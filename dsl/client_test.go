@@ -39,7 +39,7 @@ func waitForDaemonToShutdown(port int, t *testing.T) {
 
 	waitForPortInTest(port, t)
 
-	fmt.Println("Sending remote shutdown signal...")
+	t.Log("Sending remote shutdown signal...\n")
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
 
 	err = client.Call("Daemon.StopDaemon", &req, &res)
@@ -107,7 +107,6 @@ func createDaemon(port int) (*daemon.Daemon, *daemon.ServiceMock) {
 	return d, svc
 }
 
-// Integration style test: Can a client hit each endpoint?
 func TestClient_List(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	createDaemon(port)
@@ -134,7 +133,6 @@ func TestClient_ListFail(t *testing.T) {
 	timeoutDuration = oldTimeoutDuration
 }
 
-// Integration style test: Can a client hit each endpoint?
 func TestClient_StartServer(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	_, svc := createDaemon(port)
@@ -161,7 +159,6 @@ func TestClient_StartServerFail(t *testing.T) {
 	timeoutDuration = oldTimeoutDuration
 }
 
-// Integration style test: Can a client hit each endpoint?
 func TestClient_StopServer(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	_, svc := createDaemon(port)
@@ -186,7 +183,6 @@ func TestClient_StopServerFail(t *testing.T) {
 	timeoutDuration = oldTimeoutDuration
 }
 
-// Integration style test: Can a client hit each endpoint?
 func TestClient_StopDaemon(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	createDaemon(port)

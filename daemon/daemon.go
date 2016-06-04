@@ -34,8 +34,8 @@ type PublishRequest struct {
 	PactBrokerPassword string
 }
 
-// PactResponse contains the exit status and any message from the Broker.
-type PactResponse struct {
+// Response contains the exit status and any message from the Broker.
+type Response struct {
 	// System exit code from the Publish task.
 	ExitCode int
 
@@ -99,7 +99,6 @@ func (d *Daemon) StartDaemon(port int) {
 	fmt.Println("Got signal:", s, ". Shutting down all services")
 
 	d.Shutdown()
-	fmt.Println("done")
 }
 
 // StopDaemon allows clients to programmatically shuts down the running Daemon
@@ -124,6 +123,7 @@ func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) err
 	server := &PactMockServer{}
 	port, svc := d.pactMockSvcManager.NewService(request.Args)
 	server.Port = port
+	server.Status = -1
 	cmd := svc.Start()
 	server.Pid = cmd.Process.Pid
 	*reply = *server
@@ -150,25 +150,12 @@ func (d *Daemon) ListServers(request PactMockServer, reply *PactListResponse) er
 
 // StopServer stops the given mock server.
 func (d *Daemon) StopServer(request *PactMockServer, reply *PactMockServer) error {
-	d.pactMockSvcManager.Stop(request.Pid)
+	success, err := d.pactMockSvcManager.Stop(request.Pid)
+	if success == true {
+		request.Status = 0
+	} else {
+		request.Status = 1
+	}
 	*reply = *request
-	return nil
-}
-
-// Publish publishes Pact files from a given location (file/http).
-func (d *Daemon) Publish(request *PublishRequest, reply *PactResponse) error {
-	*reply = *&PactResponse{
-		ExitCode: 0,
-		Message:  "",
-	}
-	return nil
-}
-
-// Verify runs the Pact verification process against a given API Provider.
-func (d *Daemon) Verify(request *VerifyRequest, reply *PactResponse) error {
-	*reply = *&PactResponse{
-		ExitCode: 0,
-		Message:  "",
-	}
-	return nil
+	return err
 }

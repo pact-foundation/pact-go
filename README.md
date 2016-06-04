@@ -25,6 +25,8 @@ how to get going.
 
 [![wercker status](https://app.wercker.com/status/273436f3ec1ec8e6ea348b81e93aeea1/s/master "wercker status")](https://app.wercker.com/project/bykey/273436f3ec1ec8e6ea348b81e93aeea1)
 [![Coverage Status](https://coveralls.io/repos/github/mefellows/pact-go/badge.svg?branch=master)](https://coveralls.io/github/mefellows/pact-go?branch=master)
+[![Code Climate](https://codeclimate.com/github/mefellows/pact-go/badges/gpa.svg)](https://codeclimate.com/github/mefellows/pact-go)
+[![Issue Count](https://codeclimate.com/github/mefellows/pact-go/badges/issue_count.svg)](https://codeclimate.com/github/mefellows/pact-go)
 [![GoDoc](https://godoc.org/github.com/mefellows/pact-go?status.svg)](https://godoc.org/github.com/mefellows/pact-go)
 
 ## Installation
@@ -39,10 +41,57 @@ Due to some design constraints, Pact Go runs a two-step process
 
 1. Run `pact-go daemon` in a separate process/shell. The Consumer and Provider
 DSLs communicate over a local (RPC) connection, and is transparent to clients.
-1. Create your Pact Consumer/Provider Tests.
+1. Create your Pact Consumer/Provider Tests. It defaults to run on port `6666`.
 
 NOTE: The daemon is completely thread safe and it is safe to leave the daemon
 running for long periods (e.g. on a CI server).
+
+### Examples
+
+```golang
+import "github.com/mefellows/pact-go/dsl"
+import ...
+// 1. Start the daemon with `./pact-go daemon`
+// 2. cd <pact-go>/examples
+// 3. go run consumer.go
+func main() {
+
+	// Create Pact connecting to local Daemon
+	pact := &dsl.Pact{
+		Port:     6666, // Ensure this port matches the daemon port!
+		Consumer: "My Consumer",
+		Provider: "My Provider",
+	}
+	defer pact.Teardown()
+
+	// Pass in test case
+	var test = func() error {
+		_, err := http.Get(fmt.Sprintf("http://localhost:%d/", pact.Server.Port))
+		return err
+	}
+
+	// Set up our interactions. Note we have multiple in this test case!
+	pact.
+		AddInteraction().
+		Given("Some state").
+		UponReceiving("Some name for the test").
+		WithRequest(&dsl.Request{
+			Method: "GET",
+			Path:   "/",
+		}).
+		WillRespondWith(&dsl.Response{
+			Status: 200,
+		})
+
+	// Verify
+	err := pact.Verify(test)
+	if err != nil {
+		log.Fatalf("Error on Verify: %v", err)
+	}
+
+  // You should now have a pact file in the file `<pact-go>/pacts/my_consumer-my_provider.json`
+}
+```
 
 ## Contact
 

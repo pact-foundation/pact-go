@@ -7,87 +7,85 @@ import (
 )
 
 // Pact is the container structure to run the Consumer Pact test cases.
-type Pact interface {
-	// Given specifies a provider state. Optional.
-	Given(string) Pact
+type Pact struct {
+	// Current server for the consumer.
+	Server *daemon.PactMockServer
 
-	// UponReceiving specifies the name of the test case. This becomes the name of
-	// the consumer/provider pair in the Pact file. Mandatory.
-	UponReceiving(string) Pact
-
-	// WillRespondWith specifies the details of the HTTP response that will be used to
-	// confirm that the Provider must satisfy. Mandatory.
-	WithRequest(Request) Pact
-
-	// WillRespondWith specifies the details of the HTTP response that will be used to
-	// confirm that the Provider must satisfy. Mandatory.
-	WillRespondWith(Response) Pact
-
-	// Verify runs the current test case against a Mock Service.
-	Verify() error
-}
-
-// PactConsumer is the main implementation of the Pact interface.
-type PactConsumer struct {
-	// Current server for the consumer
-	server *daemon.PactMockServer
-
-	// Stores the current state
-	State []string
-
-	// Port the Pact Daemon is running on
+	// Port the Pact Daemon is running on.
 	Port int
 
-	// Pact RPC Client
+	// Pact RPC Client.
 	pactClient *PactClient
+
+	// Consumer is the name of the Consumer/Client.
+	Consumer string
+
+	// Provider is the name of the Providing service.
+	Provider string
+
+	// Interactions contains all of the Mock Service Interactions to be setup.
+	Interactions []*Interaction
 }
 
-// Before starts the Pact Mock Server before each test suite.
-func (p *PactConsumer) Before() Pact {
+// AddInteraction creates a new Pact interaction, initialising all
+// required things. Will automatically start a Mock Service if none running.
+func (p *Pact) AddInteraction() *Interaction {
+	if p.Server == nil {
+		p.Setup()
+	}
+	i := &Interaction{}
+	p.Interactions = append(p.Interactions, i)
+	return i
+}
+
+// Setup starts the Pact Mock Server. This is usually called before each test
+// suite begins. AddInteraction() will automatically call this if no Mock Server
+// has been started.
+func (p *Pact) Setup() *Pact {
 	client := &PactClient{Port: p.Port}
 	p.pactClient = client
-	p.server = client.StartServer()
+	p.Server = client.StartServer()
 
 	return p
 }
 
-// After stops the Pact Mock Server after each test suite.
-func (p *PactConsumer) After() Pact {
-	p.server = p.pactClient.StopServer(p.server)
+// Teardown stops the Pact Mock Server. This usually is called on completion
+// of each test suite.
+func (p *Pact) Teardown() *Pact {
+	p.Server = p.pactClient.StopServer(p.Server)
 
-	return p
-}
-
-// Given specifies a provider state. Optional.
-func (p *PactConsumer) Given(state string) Pact {
-	fmt.Println("Pact()")
-	return p
-}
-
-// UponReceiving specifies the name of the test case. This becomes the name of
-// the consumer/provider pair in the Pact file. Mandatory.
-func (p *PactConsumer) UponReceiving(test string) Pact {
-	fmt.Println("UponReceiving()")
-	return p
-}
-
-// WithRequest specifies the details of the HTTP request that will be used to
-// confirm that the Provider provides an API listening on the given interface.
-// Mandatory.
-func (p *PactConsumer) WithRequest(request Request) Pact {
-	fmt.Println("WithRequest()")
-	return p
-}
-
-// WillRespondWith specifies the details of the HTTP response that will be used to
-// confirm that the Provider must satisfy. Mandatory.
-func (p *PactConsumer) WillRespondWith(response Response) Pact {
-	fmt.Println("RespondWith()")
 	return p
 }
 
 // Verify runs the current test case against a Mock Service.
-func (p *PactConsumer) Verify() error {
-	fmt.Println("Verify()")
-	return nil
+// Will cleanup interactions between tests within a suite.
+func (p *Pact) Verify(integrationTest func() error) error {
+	mockServer := &PactMockService{
+		BaseURL:  fmt.Sprintf("http://localhost:%d", p.Server.Port),
+		Consumer: p.Consumer,
+		Provider: p.Provider,
+	}
+
+	for _, interaction := range p.Interactions {
+		err := mockServer.AddInteraction(interaction)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Run the integration test
+	integrationTest()
+
+	// Run Verification Process
+	err := mockServer.Verify()
+	if err != nil {
+		return err
+	}
+
+	err = mockServer.WritePact()
+	if err != nil {
+		return err
+	}
+
+	return mockServer.DeleteInteractions()
 }
