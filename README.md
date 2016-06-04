@@ -48,7 +48,7 @@ running for long periods (e.g. on a CI server).
 
 ### Examples
 
-```golang
+```go
 import "github.com/mefellows/pact-go/dsl"
 import ...
 // 1. Start the daemon with `./pact-go daemon`
