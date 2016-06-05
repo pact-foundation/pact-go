@@ -5,13 +5,8 @@ import (
 	"testing"
 )
 
-func init() {
-	// Set CLI flags to simulate real
-	// os.Args = append(os.Args, "version")
-	os.Args = []string{"version"}
-}
-
 func Test_VersionCommand(t *testing.T) {
+	os.Args = []string{"version"}
 	err := versionCmd.Execute()
 	if err != nil {
 		t.Fatalf("Error: %v", err)

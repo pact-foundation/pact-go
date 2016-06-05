@@ -4,6 +4,7 @@ package daemon
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -70,7 +71,7 @@ func NewDaemon(pactMockServiceManager Service) *Daemon {
 
 // StartDaemon starts the daemon RPC server.
 func (d *Daemon) StartDaemon(port int) {
-	fmt.Println("Starting daemon on port", port)
+	log.Println("[INFO] daemon - starting daemon on port", port)
 
 	serv := rpc.NewServer()
 	serv.Register(d)
@@ -96,7 +97,7 @@ func (d *Daemon) StartDaemon(port int) {
 	// Wait for sigterm
 	signal.Notify(d.signalChan, os.Interrupt, os.Kill)
 	s := <-d.signalChan
-	fmt.Println("Got signal:", s, ". Shutting down all services")
+	log.Println("[INFO] daemon - received signal:", s, ", shutting down all services")
 
 	d.Shutdown()
 }
@@ -104,12 +105,14 @@ func (d *Daemon) StartDaemon(port int) {
 // StopDaemon allows clients to programmatically shuts down the running Daemon
 // via RPC.
 func (d *Daemon) StopDaemon(request string, reply *string) error {
+	log.Println("[DEBUG] daemon - stop daemon")
 	d.signalChan <- os.Interrupt
 	return nil
 }
 
 // Shutdown ensures all services are cleanly destroyed.
 func (d *Daemon) Shutdown() {
+	log.Println("[DEBUG] daemon - shutdown")
 	for _, s := range d.pactMockSvcManager.List() {
 		if s != nil {
 			d.pactMockSvcManager.Stop(s.Process.Pid)
@@ -120,6 +123,7 @@ func (d *Daemon) Shutdown() {
 // StartServer starts a mock server and returns a pointer to aPactMockServer
 // struct.
 func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) error {
+	log.Println("[DEBUG] daemon - starting mock server")
 	server := &PactMockServer{}
 	port, svc := d.pactMockSvcManager.NewService(request.Args)
 	server.Port = port
@@ -132,6 +136,7 @@ func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) err
 
 // ListServers returns a slice of all running PactMockServers.
 func (d *Daemon) ListServers(request PactMockServer, reply *PactListResponse) error {
+	log.Println("[DEBUG] daemon - listing mock servers")
 	var servers []*PactMockServer
 
 	for port, s := range d.pactMockSvcManager.List() {
@@ -150,6 +155,7 @@ func (d *Daemon) ListServers(request PactMockServer, reply *PactListResponse) er
 
 // StopServer stops the given mock server.
 func (d *Daemon) StopServer(request *PactMockServer, reply *PactMockServer) error {
+	log.Println("[DEBUG] daemon - stopping mock server")
 	success, err := d.pactMockSvcManager.Stop(request.Pid)
 	if success == true {
 		request.Status = 0

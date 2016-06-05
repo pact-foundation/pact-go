@@ -3,6 +3,7 @@ package daemon
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -29,6 +30,7 @@ type ServiceManager struct {
 
 // Setup the Management services.
 func (s *ServiceManager) Setup() {
+	log.Println("[DEBUG] setting up a service manager")
 	s.commandCreatedChan = make(chan *exec.Cmd)
 	s.commandCompleteChan = make(chan *exec.Cmd)
 	s.processes = make(map[int]*exec.Cmd)
@@ -40,6 +42,7 @@ func (s *ServiceManager) Setup() {
 
 // addServiceMonitor watches a channel to add services into operation.
 func (s *ServiceManager) addServiceMonitor() {
+	log.Println("[DEBUG] starting service creation monitor")
 	for {
 		select {
 		case p := <-s.commandCreatedChan:
@@ -52,6 +55,7 @@ func (s *ServiceManager) addServiceMonitor() {
 
 // removeServiceMonitor watches a channel to remove services from operation.
 func (s *ServiceManager) removeServiceMonitor() {
+	log.Println("[DEBUG] starting service removal monitor")
 	var p *exec.Cmd
 	for {
 		select {
@@ -66,6 +70,7 @@ func (s *ServiceManager) removeServiceMonitor() {
 
 // Stop a Service and returns the exit status.
 func (s *ServiceManager) Stop(pid int) (bool, error) {
+	log.Println("[DEBUG] stopping service with pid", pid)
 	cmd := s.processes[pid]
 
 	// Remove service from registry
@@ -84,43 +89,45 @@ func (s *ServiceManager) Stop(pid int) (bool, error) {
 
 // List all Service PIDs.
 func (s *ServiceManager) List() map[int]*exec.Cmd {
+	log.Println("[DEBUG] listing services")
 	return s.processes
 }
 
 // Start a Service and log its output.
 func (s *ServiceManager) Start() *exec.Cmd {
+	log.Println("[DEBUG] starting service")
 	cmd := exec.Command(s.Command, s.Args...)
 	cmd.Env = s.Env
 
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		log.Printf("[ERROR] unable to create output pipe for cmd: %s\n", err.Error())
 		os.Exit(1)
 	}
 
 	cmdReaderErr, err := cmd.StderrPipe()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		log.Printf("[ERROR] unable to create error pipe for cmd: %s\n", err.Error())
 		os.Exit(1)
 	}
 
 	scanner := bufio.NewScanner(cmdReader)
 	go func() {
 		for scanner.Scan() {
-			fmt.Printf("error: | %s\n", scanner.Text())
+			log.Printf("[ERROR] %s\n", scanner.Text())
 		}
 	}()
 
 	scanner2 := bufio.NewScanner(cmdReaderErr)
 	go func() {
 		for scanner2.Scan() {
-			fmt.Printf("mock-service:  %s\n", scanner2.Text())
+			log.Printf("[INFO] service: %s\n", scanner2.Text())
 		}
 	}()
 
 	err = cmd.Start()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
+		log.Println("[ERROR] service", err.Error())
 		os.Exit(1)
 	}
 

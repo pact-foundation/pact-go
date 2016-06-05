@@ -2,13 +2,18 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
+	"github.com/hashicorp/logutils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
+var verbose bool
+var logLevel string
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -37,8 +42,10 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports Persistent Flags, which, if defined here,
 	// will be global for your application.
-
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.pact-go.yaml)")
+	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", true, "verbose output")
+	RootCmd.PersistentFlags().StringVarP(&logLevel, "logLevel", "l", "INFO", "Set the logging level (DEBUG, INFO, ERROR)")
+
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -57,5 +64,18 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+func setLogLevel(verbose bool, level string) {
+	filter := &logutils.LevelFilter{
+		Levels:   []logutils.LogLevel{"DEBUG", "INFO", "ERROR"},
+		MinLevel: logutils.LogLevel(level),
+		Writer:   os.Stderr,
+	}
+	log.SetOutput(filter)
+
+	if !verbose {
+		log.SetOutput(ioutil.Discard)
 	}
 }

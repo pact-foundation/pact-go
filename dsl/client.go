@@ -24,6 +24,7 @@ type PactClient struct {
 }
 
 func getHTTPClient(port int) (*rpc.Client, error) {
+	log.Println("[DEBUG] creating an HTTP client")
 	err := waitForPort(port)
 	if err != nil {
 		return nil, err
@@ -34,12 +35,13 @@ func getHTTPClient(port int) (*rpc.Client, error) {
 // Use this to wait for a daemon to be running prior
 // to running tests.
 func waitForPort(port int) error {
+	log.Println("[DEBUG] waiting for port", port, "to become available")
 	timeout := time.After(timeoutDuration)
 
 	for {
 		select {
 		case <-timeout:
-			log.Printf("Expected server to start < %s", timeoutDuration)
+			log.Printf("[ERROR] Expected server to start < %s", timeoutDuration)
 			return fmt.Errorf("Expected server to start < %s", timeoutDuration)
 		case <-time.After(50 * time.Millisecond):
 			_, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
@@ -52,6 +54,7 @@ func waitForPort(port int) error {
 
 // StartServer starts a remote Pact Mock Server.
 func (p *PactClient) StartServer() *daemon.PactMockServer {
+	log.Println("[DEBUG] client: starting a server")
 	var res daemon.PactMockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
@@ -70,6 +73,7 @@ func (p *PactClient) StartServer() *daemon.PactMockServer {
 
 // ListServers starts a remote Pact Mock Server.
 func (p *PactClient) ListServers() *daemon.PactListResponse {
+	log.Println("[DEBUG] client: listing servers")
 	var res daemon.PactListResponse
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
@@ -83,6 +87,7 @@ func (p *PactClient) ListServers() *daemon.PactListResponse {
 
 // StopServer stops a remote Pact Mock Server.
 func (p *PactClient) StopServer(server *daemon.PactMockServer) *daemon.PactMockServer {
+	log.Println("[DEBUG] client: stop server")
 	var res daemon.PactMockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
@@ -96,6 +101,7 @@ func (p *PactClient) StopServer(server *daemon.PactMockServer) *daemon.PactMockS
 
 // StopDaemon remotely shuts down the Pact Daemon.
 func (p *PactClient) StopDaemon() error {
+	log.Println("[DEBUG] client: stop daemon")
 	var req, res string
 	client, err := getHTTPClient(p.Port)
 	if err == nil {

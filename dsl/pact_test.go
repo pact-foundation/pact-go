@@ -2,7 +2,10 @@ package dsl
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -18,6 +21,50 @@ func createPact() {
 func getPort(url string) int {
 	i, _ := strconv.Atoi(strings.Split(url, ":")[2])
 	return i
+}
+
+func TestPact_setupLogging(t *testing.T) {
+	res := captureOutput(func() {
+		(&Pact{LogLevel: "DEBUG"}).setupLogging()
+		log.Println("[DEBUG] this should display")
+	})
+
+	if !strings.Contains(res, "[DEBUG] this should display") {
+		t.Fatalf("Expected log message to contain '[DEBUG] this should display' but got '%s'", res)
+	}
+
+	res = captureOutput(func() {
+		(&Pact{LogLevel: "INFO"}).setupLogging()
+		log.Print("[DEBUG] this should not display")
+	})
+
+	if res != "" {
+		t.Fatalf("Expected log message to be empty but got '%s'", res)
+	}
+
+	res = captureOutput(func() {
+		(&Pact{LogLevel: "NONE"}).setupLogging()
+		log.Print("[ERROR] this should not display")
+	})
+
+	if res != "" {
+		t.Fatalf("Expected log message to be empty but got '%s'", res)
+	}
+}
+
+// Capture output from a log write
+func captureOutput(action func()) string {
+	rescueStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	action()
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stderr = rescueStderr
+
+	return strings.TrimSpace(string(out))
 }
 
 func TestPact_Verify(t *testing.T) {
@@ -136,6 +183,7 @@ func TestPact_Integration(t *testing.T) {
 		Port:     6666,
 		Consumer: "My Consumer",
 		Provider: "My Provider",
+		LogLevel: "DEBUG",
 	}
 	defer pact.Teardown()
 
