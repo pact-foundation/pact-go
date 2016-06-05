@@ -1,15 +1,6 @@
 package dsl
 
-import (
-	"fmt"
-	"html/template"
-)
-
-var funcMap = template.FuncMap{
-	"like":     Like,
-	"eachLike": EachLike,
-	"term":     Term,
-}
+import "fmt"
 
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater

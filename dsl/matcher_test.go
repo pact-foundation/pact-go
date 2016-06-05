@@ -284,11 +284,6 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
-
-}
-
-func TestMatcher_Formatter(t *testing.T) {
-
 }
 
 // Format a JSON document to make comparison easier.
