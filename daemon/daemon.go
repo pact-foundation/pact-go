@@ -12,60 +12,22 @@ import (
 	"os/signal"
 )
 
-// PactMockServer contains the RPC client interface to a Mock Server
-type PactMockServer struct {
-	Pid    int
-	Port   int
-	Status int
-	Args   []string
-}
-
-// PublishRequest contains the details required to Publish Pacts to a broker.
-type PublishRequest struct {
-	// Array of local Pact files or directories containing them. Required.
-	PactUrls []string
-
-	// URL to fetch the provider states for the given provider API. Optional.
-	PactBroker string
-
-	// Username for Pact Broker basic authentication. Optional
-	PactBrokerUsername string
-
-	// Password for Pact Broker basic authentication. Optional
-	PactBrokerPassword string
-}
-
-// Response contains the exit status and any message from the Broker.
-type Response struct {
-	// System exit code from the Publish task.
-	ExitCode int
-
-	// Error message (if any) from the publish process.
-	Message string
-}
-
-// PactListResponse contains a list of all running Servers.
-type PactListResponse struct {
-	// System exit code from the Publish task.
-	Servers []*PactMockServer
-}
-
-// VerifyRequest contains the verification params.
-type VerifyRequest struct{}
-
 // Daemon wraps the commands for the RPC server.
 type Daemon struct {
-	pactMockSvcManager Service
-	signalChan         chan os.Signal
+	pactMockSvcManager     Service
+	verificationSvcManager Service
+	signalChan             chan os.Signal
 }
 
 // NewDaemon returns a new Daemon with all instance variables initialised.
-func NewDaemon(pactMockServiceManager Service) *Daemon {
+func NewDaemon(pactMockServiceManager Service, verificationServiceManager Service) *Daemon {
 	pactMockServiceManager.Setup()
+	verificationServiceManager.Setup()
 
 	return &Daemon{
-		pactMockSvcManager: pactMockServiceManager,
-		signalChan:         make(chan os.Signal, 1),
+		pactMockSvcManager:     pactMockServiceManager,
+		verificationSvcManager: verificationServiceManager,
+		signalChan:             make(chan os.Signal, 1),
 	}
 }
 
@@ -113,7 +75,7 @@ func (d *Daemon) StopDaemon(request string, reply *string) error {
 // Shutdown ensures all services are cleanly destroyed.
 func (d *Daemon) Shutdown() {
 	log.Println("[DEBUG] daemon - shutdown")
-	for _, s := range d.pactMockSvcManager.List() {
+	for _, s := range d.verificationSvcManager.List() {
 		if s != nil {
 			d.pactMockSvcManager.Stop(s.Process.Pid)
 		}
@@ -132,6 +94,40 @@ func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) err
 	server.Pid = cmd.Process.Pid
 	*reply = *server
 	return nil
+}
+
+// VerifyProvider runs the Pact Provider Verification Process.
+func (d *Daemon) VerifyProvider(request *VerifyRequest, reply *Response) error {
+	log.Println("[DEBUG] daemon - verifying provider")
+
+	// Convert request into flags, and validate request
+	err := request.Validate()
+	if err != nil {
+		return err
+	}
+
+	_, svc := d.verificationSvcManager.NewService(request.args)
+
+	cmd := svc.Start()
+	err = cmd.Wait()
+
+	exitCode := 1
+	if cmd.ProcessState.Success() {
+		exitCode = 0
+	}
+
+	if err == nil {
+		*reply = *&Response{
+			ExitCode: exitCode,
+		}
+	} else {
+		*reply = *&Response{
+			ExitCode: exitCode,
+			Message:  err.Error(),
+		}
+	}
+
+	return err
 }
 
 // ListServers returns a slice of all running PactMockServers.

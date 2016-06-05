@@ -102,7 +102,7 @@ func createDaemon(port int) (*daemon.Daemon, *daemon.ServiceMock) {
 		}
 	}()
 
-	d := daemon.NewDaemon(svc)
+	d := daemon.NewDaemon(svc, svc)
 	go d.StartDaemon(port)
 	return d, svc
 }

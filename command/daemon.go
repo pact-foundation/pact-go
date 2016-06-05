@@ -13,9 +13,11 @@ var daemonCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel(verbose, logLevel)
 
-		svc := &daemon.PactMockService{}
-		svc.Setup()
-		daemon.NewDaemon(svc).StartDaemon(port)
+		mock := &daemon.PactMockService{}
+		mock.Setup()
+		verifier := &daemon.VerificationService{}
+		verifier.Setup()
+		daemon.NewDaemon(mock, verifier).StartDaemon(port)
 	},
 }
 

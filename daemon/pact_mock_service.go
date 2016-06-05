@@ -30,11 +30,11 @@ func (m *PactMockService) NewService(args []string) (int, Service) {
 		fmt.Sprintf("--log %s/pact.log", logDir),
 	}
 	m.Args = append(m.Args, args...)
-	m.Command = getCommandPath()
+	m.Command = getMockServiceCommandPath()
 	return port, m
 }
 
-func getCommandPath() string {
+func getMockServiceCommandPath() string {
 	dir, _ := os.Getwd()
 	return fmt.Sprintf(filepath.Join(dir, "pact-mock-service", "bin", "pact-mock-service"))
 }

@@ -19,17 +19,21 @@ import (
 //
 // Stubbing the exec.Cmd interface is hard, see fakeExec* functions for
 // the magic.
-func createMockedDaemon() (*Daemon, *ServiceMock) {
+func createMockedDaemon(success bool) (*Daemon, *ServiceMock) {
+	execFunc := fakeExecSuccessCommand
+	if !success {
+		execFunc = fakeExecFailCommand
+	}
 	svc := &ServiceMock{
 		Command:           "test",
 		Args:              []string{},
 		ServiceStopResult: true,
 		ServiceStopError:  nil,
-		ExecFunc:          fakeExecSuccessCommand,
+		ExecFunc:          execFunc,
 		ServiceList: map[int]*exec.Cmd{
-			1: fakeExecCommand("", true, ""),
-			2: fakeExecCommand("", true, ""),
-			3: fakeExecCommand("", true, ""),
+			1: fakeExecCommand("", success, ""),
+			2: fakeExecCommand("", success, ""),
+			3: fakeExecCommand("", success, ""),
 		},
 		ServiceStartCmd: nil,
 	}
@@ -46,12 +50,12 @@ func createMockedDaemon() (*Daemon, *ServiceMock) {
 		}
 	}()
 
-	return NewDaemon(svc), svc
+	return NewDaemon(svc, svc), svc
 }
 
 func TestNewDaemon(t *testing.T) {
 	var daemon interface{}
-	daemon, _ = createMockedDaemon()
+	daemon, _ = createMockedDaemon(true)
 
 	if _, ok := daemon.(*Daemon); !ok {
 		t.Fatalf("must be a Daemon")
@@ -59,7 +63,7 @@ func TestNewDaemon(t *testing.T) {
 }
 
 func TestStopDaemon(t *testing.T) {
-	d, _ := createMockedDaemon()
+	d, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	go d.StartDaemon(port)
 	connectToDaemon(port, t)
@@ -69,7 +73,7 @@ func TestStopDaemon(t *testing.T) {
 }
 
 func TestShutdownDaemon(t *testing.T) {
-	d, _ := createMockedDaemon()
+	d, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	go d.StartDaemon(port)
 	connectToDaemon(port, t)
@@ -121,14 +125,14 @@ func waitForDaemonToShutdown(port int, daemon *Daemon, t *testing.T) {
 
 func TestStartAndStopDaemon(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	daemon, _ := createMockedDaemon()
+	daemon, _ := createMockedDaemon(true)
 	defer waitForDaemonToShutdown(port, daemon, t)
 	go daemon.StartDaemon(port)
 	connectToDaemon(port, t)
 }
 
 func TestDaemonShutdown(t *testing.T) {
-	daemon, manager := createMockedDaemon()
+	daemon, manager := createMockedDaemon(true)
 	daemon.Shutdown()
 
 	if manager.ServiceStopCount != 3 {
@@ -137,7 +141,7 @@ func TestDaemonShutdown(t *testing.T) {
 }
 
 func TestStartServer(t *testing.T) {
-	daemon, _ := createMockedDaemon()
+	daemon, _ := createMockedDaemon(true)
 
 	req := PactMockServer{Pid: 1234}
 	res := PactMockServer{}
@@ -156,7 +160,7 @@ func TestStartServer(t *testing.T) {
 }
 
 func TestListServers(t *testing.T) {
-	daemon, _ := createMockedDaemon()
+	daemon, _ := createMockedDaemon(true)
 	var res PactListResponse
 	err := daemon.ListServers(PactMockServer{}, &res)
 
@@ -170,7 +174,7 @@ func TestListServers(t *testing.T) {
 }
 
 func TestStopServer(t *testing.T) {
-	daemon, manager := createMockedDaemon()
+	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
 	var res PactMockServer
 
@@ -196,7 +200,7 @@ func TestStopServer(t *testing.T) {
 }
 
 func TestStopServer_Fail(t *testing.T) {
-	daemon, manager := createMockedDaemon()
+	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
 	var res PactMockServer
 
@@ -216,7 +220,7 @@ func TestStopServer_Fail(t *testing.T) {
 }
 
 func TestStopServer_FailedStatus(t *testing.T) {
-	daemon, manager := createMockedDaemon()
+	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
 	var res PactMockServer
 
@@ -236,8 +240,78 @@ func TestStopServer_FailedStatus(t *testing.T) {
 	}
 }
 
+func TestVerifyProvider_MissingProviderBaseURL(t *testing.T) {
+	daemon, _ := createMockedDaemon(true)
+
+	req := VerifyRequest{}
+	res := Response{}
+	err := daemon.VerifyProvider(&req, &res)
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
+func TestVerifyProvider_MissingPactURLs(t *testing.T) {
+	daemon, _ := createMockedDaemon(true)
+
+	req := VerifyRequest{
+		ProviderBaseURL: "http://foo.com",
+	}
+	res := Response{}
+	err := daemon.VerifyProvider(&req, &res)
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
+func TestVerifyProvider_Valid(t *testing.T) {
+	daemon, _ := createMockedDaemon(true)
+
+	req := VerifyRequest{
+		ProviderBaseURL: "http://foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	}
+	res := Response{}
+	err := daemon.VerifyProvider(&req, &res)
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+}
+
+func TestVerifyProvider_FailedCommand(t *testing.T) {
+	daemon, _ := createMockedDaemon(false)
+
+	req := VerifyRequest{
+		ProviderBaseURL: "http://foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	}
+	res := Response{}
+	err := daemon.VerifyProvider(&req, &res)
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
+func TestVerifyProvider_ValidProviderStates(t *testing.T) {
+	daemon, _ := createMockedDaemon(true)
+
+	req := VerifyRequest{
+		ProviderBaseURL:        "http://foo.com",
+		PactURLs:               []string{"foo.json", "bar.json"},
+		BrokerUsername:         "foo",
+		BrokerPassword:         "foo",
+		ProviderStatesURL:      "http://foo/states",
+		ProviderStatesSetupURL: "http://foo/states/setup",
+	}
+	res := Response{}
+	err := daemon.VerifyProvider(&req, &res)
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+}
+
 func TestRPCClient_List(t *testing.T) {
-	daemon, _ := createMockedDaemon()
+	daemon, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
 	go daemon.StartDaemon(port)
@@ -256,7 +330,7 @@ func TestRPCClient_List(t *testing.T) {
 }
 
 func TestRPCClient_StartServer(t *testing.T) {
-	daemon, _ := createMockedDaemon()
+	daemon, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
 	go daemon.StartDaemon(port)
@@ -279,7 +353,7 @@ func TestRPCClient_StartServer(t *testing.T) {
 }
 
 func TestRPCClient_StopServer(t *testing.T) {
-	daemon, manager := createMockedDaemon()
+	daemon, manager := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
 	go daemon.StartDaemon(port)
@@ -308,8 +382,9 @@ func TestRPCClient_StopServer(t *testing.T) {
 		t.Fatalf("Expected non-zero port but got: %d", res.Port)
 	}
 }
+
 func TestRPCClient_StopDaemon(t *testing.T) {
-	daemon, _ := createMockedDaemon()
+	daemon, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
 	go daemon.StartDaemon(port)
@@ -323,6 +398,34 @@ func TestRPCClient_StopDaemon(t *testing.T) {
 	}
 
 	waitForDaemonToShutdown(port, nil, t)
+}
+
+func TestRPCClient_Verify(t *testing.T) {
+	daemon, _ := createMockedDaemon(true)
+	port, _ := utils.GetFreePort()
+	defer waitForDaemonToShutdown(port, daemon, t)
+	go daemon.StartDaemon(port)
+	connectToDaemon(port, t)
+
+	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
+	req := VerifyRequest{
+		ProviderBaseURL: "http://foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	}
+	res := Response{}
+
+	err = client.Call("Daemon.VerifyProvider", req, &res)
+	if err != nil {
+		log.Fatal("rpc error:", err)
+	}
+
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit code of zero but got: %d", res.ExitCode)
+	}
+
+	if res.Message != "" {
+		t.Fatalf("Expected empty message but got: '%s'", res.Message)
+	}
 }
 
 // Adapted from http://npf.io/2015/06/testing-exec-command/
@@ -346,7 +449,7 @@ func TestHelperProcess(t *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
 		return
 	}
-	<-time.After(30 * time.Second)
+	<-time.After(1 * time.Second)
 
 	// some code here to check arguments perhaps?
 	// Fail :(
