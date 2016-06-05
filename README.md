@@ -158,7 +158,7 @@ This example will result in a response body from the mock server that looks like
 ]
 ```
 
-See the [matcher tests](https://github.com/pact-foundation/pact-go/blob/feature/body-matching/dsl/matcher_test.go)
+See the [matcher tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)
 for more matching examples.
 
 *NOTE*: One caveat to note, is that you will need to use valid Ruby
