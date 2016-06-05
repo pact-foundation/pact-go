@@ -18,3 +18,7 @@ func TestRequest(t *testing.T) {
 		t.Fatalf("Expected method to be 'GET' but got '%s'", req.Method)
 	}
 }
+
+func TestRequest_Body(t *testing.T) {
+
+}

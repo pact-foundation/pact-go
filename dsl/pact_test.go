@@ -153,6 +153,24 @@ func TestPact_Integration(t *testing.T) {
 		return err
 	}
 
+	// Setup a complex interaction
+	body := fmt.Sprintf(`
+		{
+			"foo": %s,
+			"somethinglikeSimple": %s,
+			"somethinglikeObject": %s,
+			"items": %s,
+			"more_items": %s
+		}`,
+		Term(`bar`, `\\w`),
+		Like(`"a word"`),
+		Like(`{"baz":"bat"}`),
+		EachLike(`"this word"`, 1),
+		EachLike(36, 1),
+	)
+
+	fmt.Println(body)
+
 	// Set up our interactions. Note we have multiple in this test case!
 	pact.
 		AddInteraction().
@@ -164,6 +182,9 @@ func TestPact_Integration(t *testing.T) {
 		}).
 		WillRespondWith(&Response{
 			Status: 200,
+			Headers: map[string]string{
+				"Accept": "application/json",
+			},
 		})
 	pact.
 		AddInteraction().
@@ -175,6 +196,7 @@ func TestPact_Integration(t *testing.T) {
 		}).
 		WillRespondWith(&Response{
 			Status: 200,
+			Body:   body,
 		})
 
 	// Verify

@@ -25,6 +25,7 @@ how to get going.
 
 [![wercker status](https://app.wercker.com/status/fad2d928716c629e641cae515ac58547/s/master "wercker status")](https://app.wercker.com/project/bykey/fad2d928716c629e641cae515ac58547)
 [![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=HEAD)](https://coveralls.io/github/pact-foundation/pact-go?branch=HEAD)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
 [![Code Climate](https://codeclimate.com/github/pact-foundation/pact-go/badges/gpa.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
 [![Issue Count](https://codeclimate.com/github/pact-foundation/pact-go/badges/issue_count.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
@@ -46,25 +47,28 @@ DSLs communicate over a local (RPC) connection, and is transparent to clients.
 NOTE: The daemon is completely thread safe and it is safe to leave the daemon
 running for long periods (e.g. on a CI server).
 
-### Examples
+### Example
+1. Start the daemon with `./pact-go daemon`
+1. `cd <pact-go>/examples`
+1. `go run consumer.go`
 
 ```go
 import "github.com/pact-foundation/pact-go/dsl"
 import ...
-// 1. Start the daemon with `./pact-go daemon`
-// 2. cd <pact-go>/examples
-// 3. go run consumer.go
-func main() {
+
+func TestSomeApi(t *testing.T) {
 
 	// Create Pact connecting to local Daemon
+	// Ensure the port matches the daemon port!
 	pact := &dsl.Pact{
-		Port:     6666, // Ensure this port matches the daemon port!
+		Port:     6666, 				
 		Consumer: "My Consumer",
 		Provider: "My Provider",
 	}
+	// Shuts down Mock Service when done
 	defer pact.Teardown()
 
-	// Pass in test case
+	// Pass in your test case as a function to Verify()
 	var test = func() error {
 		_, err := http.Get(fmt.Sprintf("http://localhost:%d/", pact.Server.Port))
 		return err
@@ -86,12 +90,33 @@ func main() {
 	// Verify
 	err := pact.Verify(test)
 	if err != nil {
-		log.Fatalf("Error on Verify: %v", err)
+		t.Fatalf("Error on Verify: %v", err)
 	}
 
   // You should now have a pact file in the file `<pact-go>/pacts/my_consumer-my_provider.json`
 }
 ```
+
+### Consumer DSL
+
+
+
+### Matching
+
+In addition to verbatim value matching, you have 3 useful matching functions
+that can increase expressiveness and reduce brittle test cases.
+
+* `dsl.Term()` - tells Pact that the value should match a given regular expression.
+* `dsl.Like()` - tells Pact that the value itself is not important, as long
+as the element type itself matches.
+* `dsl.EachLike()` - tells Pact that the value should be an array type,
+consisting of elements like those passed in. `min` must be >= 1.
+
+*NOTE*: One caveat to note, is that you will need to use valid Ruby
+[regular expressions](http://ruby-doc.org/core-2.1.5/Regexp.html) and double
+escape
+
+Read more about [flexible matching](https://github.com/realestate-com-au/pact/wiki/Regular-expressions-and-type-matching-with-Pact)
 
 ## Contact
 
@@ -104,11 +129,21 @@ Additional documentation can be found at the main [Pact website](http://pact.io)
 
 ## Developing
 
-For full integration testing locally, Ruby 2.1.5 must be installed. Under the hood, Pact Go bundles the [Pact Mock Service]() and [Pact Provider Verifier]() projects to implement up to v2.0 of the Pact Specification. This is only temporary, until [Pact Reference](https://github.com/pact-foundation/pact-reference/) work is completed.
+For full integration testing locally, Ruby 2.1.5 must be installed. Under the
+hood, Pact Go bundles the
+[Pact Mock Service](https://github.com/bethesque/pact-mock_service) and
+[Pact Provider Verifier](https://github.com/pact-foundation/pact-provider-verifier)
+projects to implement up to v2.0 of the Pact Specification. This is only
+temporary, until [Pact Reference](https://github.com/pact-foundation/pact-reference/)
+work is completed.
 
 * Git clone https://github.com/pact-foundation/pact-go.git
 * Run `make dev` to build the package and setup the Ruby 'binaries' locally
 
-### Docker
+## Roadmap
 
-The current Wercker build uses this custom [Docker image](https://github.com/pact-foundation/pact-go-docker-build).
+The [roadmap](docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
+
+## Contributing
+
+See [CONTRIBUTING](CONTRIBUTING.md).
