@@ -280,7 +280,7 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 					}`, size, colour, tag),
 				1),
 			1))
-
+	fmt.Println(match)
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
