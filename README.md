@@ -26,8 +26,6 @@ how to get going.
 [![wercker status](https://app.wercker.com/status/fad2d928716c629e641cae515ac58547/s/master "wercker status")](https://app.wercker.com/project/bykey/fad2d928716c629e641cae515ac58547)
 [![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=HEAD)](https://coveralls.io/github/pact-foundation/pact-go?branch=HEAD)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
-[![Code Climate](https://codeclimate.com/github/pact-foundation/pact-go/badges/gpa.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
-[![Issue Count](https://codeclimate.com/github/pact-foundation/pact-go/badges/issue_count.svg)](https://codeclimate.com/github/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
 
 ## Installation
