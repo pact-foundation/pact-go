@@ -173,7 +173,7 @@ Pact Go uses a simple log utility ([logutils](https://github.com/hashicorp/logut
 to filter log messages. The CLI already contains flags to manage this,
 should you want to control log level in your tests, you can set it like so:
 
-```
+```go
 pact := &Pact{
   ...
 	LogLevel: "DEBUG", // One of DEBUG, INFO, ERROR, NONE
