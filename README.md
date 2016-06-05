@@ -200,6 +200,11 @@ work is completed.
 * Git clone https://github.com/pact-foundation/pact-go.git
 * Run `make dev` to build the package and setup the Ruby 'binaries' locally
 
+### Vendoring
+
+We use [Govend](https://github.com/govend/govend) to vendor packages. Please ensure
+any new packages are added to `vendor.yml` prior to patching.
+
 ## Roadmap
 
 The [roadmap](docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
