@@ -5,6 +5,9 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pact-foundation/pact-go/daemon"
@@ -23,9 +26,29 @@ type PactClient struct {
 	Port int
 }
 
+// Get a port given a URL
+func getPort(rawURL string) int {
+	parsedURL, err := url.Parse(rawURL)
+	if err == nil {
+		if len(strings.Split(parsedURL.Host, ":")) == 2 {
+			port, err := strconv.Atoi(strings.Split(parsedURL.Host, ":")[1])
+			if err == nil {
+				return port
+			}
+		}
+		if parsedURL.Scheme == "https" {
+			return 443
+		}
+		return 80
+	}
+
+	return -1
+}
+
 func getHTTPClient(port int) (*rpc.Client, error) {
 	log.Println("[DEBUG] creating an HTTP client")
-	err := waitForPort(port)
+	err := waitForPort(port, fmt.Sprintf(`Timed out waiting for Daemon on port %d - are you
+		sure it's running?`, port))
 	if err != nil {
 		return nil, err
 	}
@@ -34,15 +57,15 @@ func getHTTPClient(port int) (*rpc.Client, error) {
 
 // Use this to wait for a daemon to be running prior
 // to running tests.
-func waitForPort(port int) error {
+func waitForPort(port int, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
 	timeout := time.After(timeoutDuration)
 
 	for {
 		select {
 		case <-timeout:
-			log.Printf("[ERROR] Expected server to start < %s", timeoutDuration)
-			return fmt.Errorf("Expected server to start < %s", timeoutDuration)
+			log.Printf("[ERROR] Expected server to start < %s. %s", timeoutDuration, message)
+			return fmt.Errorf("Expected server to start < %s. %s", timeoutDuration, message)
 		case <-time.After(50 * time.Millisecond):
 			_, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
 			if err == nil {
@@ -60,12 +83,36 @@ func (p *PactClient) StartServer() *daemon.PactMockServer {
 	if err == nil {
 		err = client.Call("Daemon.StartServer", daemon.PactMockServer{}, &res)
 		if err != nil {
-			log.Fatal("rpc error:", err)
+			log.Fatal("[ERROR] rpc:", err)
 		}
 	}
 
 	if err == nil {
-		waitForPort(res.Port)
+		waitForPort(res.Port, fmt.Sprintf(`Timed out waiting for Mock Server to
+			start on port %d - are you sure it's running?`, res.Port))
+	}
+
+	return &res
+}
+
+// VerifyProvider runs the verification process against a running Provider.
+func (p *PactClient) VerifyProvider(request *daemon.VerifyRequest) *daemon.Response {
+	log.Println("[DEBUG] client: verifying a provider")
+
+	port := getPort(request.ProviderBaseURL)
+
+	waitForPort(port, fmt.Sprintf(`Timed out waiting for Provider API to start
+		 on port %d - are you sure it's running?`, port))
+
+	var res daemon.Response
+	client, err := getHTTPClient(p.Port)
+	if err == nil {
+		err = client.Call("Daemon.VerifyProvider", request, &res)
+		if err != nil {
+			res.ExitCode = 1
+			res.Message = err.Error()
+			log.Println("[ERROR] rpc: ", err.Error())
+		}
 	}
 
 	return &res
@@ -79,7 +126,7 @@ func (p *PactClient) ListServers() *daemon.PactListResponse {
 	if err == nil {
 		err = client.Call("Daemon.ListServers", daemon.PactMockServer{}, &res)
 		if err != nil {
-			log.Fatal("rpc error:", err)
+			log.Fatal("[ERROR] rpc:", err)
 		}
 	}
 	return &res
@@ -93,7 +140,7 @@ func (p *PactClient) StopServer(server *daemon.PactMockServer) *daemon.PactMockS
 	if err == nil {
 		err = client.Call("Daemon.StopServer", server, &res)
 		if err != nil {
-			log.Fatal("rpc error:", err)
+			log.Fatal("[ERROR] rpc:", err)
 		}
 	}
 	return &res
@@ -107,7 +154,7 @@ func (p *PactClient) StopDaemon() error {
 	if err == nil {
 		err = client.Call("Daemon.StopDaemon", &req, &res)
 		if err != nil {
-			log.Fatal("rpc error:", err)
+			log.Fatal("[ERROR] rpc:", err)
 		}
 	}
 	return err

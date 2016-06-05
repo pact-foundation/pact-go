@@ -110,7 +110,6 @@ func (d *Daemon) VerifyProvider(request *VerifyRequest, reply *Response) error {
 
 	cmd := svc.Start()
 	err = cmd.Wait()
-
 	exitCode := 1
 	if cmd.ProcessState.Success() {
 		exitCode = 0

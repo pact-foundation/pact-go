@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -75,17 +76,21 @@ func waitForDaemonToShutdown(port int, t *testing.T) {
 //
 // Stubbing the exec.Cmd interface is hard, see fakeExec* functions for
 // the magic.
-func createDaemon(port int) (*daemon.Daemon, *daemon.ServiceMock) {
+func createDaemon(port int, success bool) (*daemon.Daemon, *daemon.ServiceMock) {
+	execFunc := fakeExecSuccessCommand
+	if !success {
+		execFunc = fakeExecFailCommand
+	}
 	svc := &daemon.ServiceMock{
 		Command:           "test",
 		Args:              []string{},
 		ServiceStopResult: true,
 		ServiceStopError:  nil,
-		ExecFunc:          fakeExecSuccessCommand,
+		ExecFunc:          execFunc,
 		ServiceList: map[int]*exec.Cmd{
-			1: fakeExecCommand("", true, ""),
-			2: fakeExecCommand("", true, ""),
-			3: fakeExecCommand("", true, ""),
+			1: fakeExecCommand("", success, ""),
+			2: fakeExecCommand("", success, ""),
+			3: fakeExecCommand("", success, ""),
 		},
 		ServiceStartCmd: nil,
 	}
@@ -109,7 +114,7 @@ func createDaemon(port int) (*daemon.Daemon, *daemon.ServiceMock) {
 
 func TestClient_List(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	createDaemon(port)
+	createDaemon(port, true)
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
@@ -135,7 +140,7 @@ func TestClient_ListFail(t *testing.T) {
 
 func TestClient_StartServer(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	_, svc := createDaemon(port)
+	_, svc := createDaemon(port, true)
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
@@ -143,6 +148,93 @@ func TestClient_StartServer(t *testing.T) {
 	client.StartServer()
 	if svc.ServiceStartCount != 1 {
 		t.Fatalf("Expected 1 server to have been started, got %d", svc.ServiceStartCount)
+	}
+}
+
+func TestClient_getPort(t *testing.T) {
+	testCases := map[string]int{
+		"http://localhost:8000": 8000,
+		"http://localhost":      80,
+		"https://localhost":     443,
+	}
+
+	for host, port := range testCases {
+		if getPort(host) != port {
+			t.Fatalf("Expected host '%s' to return port '%d' but got '%d'", host, port, getPort(host))
+		}
+	}
+}
+
+func TestClient_VerifyProvider(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	_, svc := createDaemon(port, true)
+	waitForPortInTest(port, t)
+	defer waitForDaemonToShutdown(port, t)
+	client := &PactClient{Port: port}
+
+	ms := setupMockServer(true, t)
+	defer ms.Close()
+
+	req := &daemon.VerifyRequest{
+		ProviderBaseURL: ms.URL,
+		PactURLs:        []string{"foo.json", "bar.json"},
+		// BrokerUsername:         "foo",
+		// BrokerPassword:         "foo",
+		// ProviderStatesURL:      "http://foo/states",
+		// ProviderStatesSetupURL: "http://foo/states/setup",
+	}
+	res := client.VerifyProvider(req)
+	fmt.Println(res)
+
+	if svc.ServiceStartCount != 1 {
+		t.Fatalf("Expected 1 server to have been started, got %d", svc.ServiceStartCount)
+	}
+}
+
+func TestClient_VerifyProviderFailValidation(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+	waitForPortInTest(port, t)
+	defer waitForDaemonToShutdown(port, t)
+	client := &PactClient{Port: port}
+
+	ms := setupMockServer(true, t)
+	defer ms.Close()
+
+	req := &daemon.VerifyRequest{}
+	res := client.VerifyProvider(req)
+
+	if res.ExitCode != 1 {
+		t.Fatalf("Expected a non-zero exit code but got %d", res.ExitCode)
+	}
+
+	if !strings.Contains(res.Message, "ProviderBaseURL is mandatory") {
+		t.Fatalf("Expected a proper error message but got '%s'", res.Message)
+	}
+}
+
+func TestClient_VerifyProviderFailExecution(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port, false)
+	waitForPortInTest(port, t)
+	defer waitForDaemonToShutdown(port, t)
+	client := &PactClient{Port: port}
+
+	ms := setupMockServer(true, t)
+	defer ms.Close()
+
+	req := &daemon.VerifyRequest{
+		ProviderBaseURL: ms.URL,
+		PactURLs:        []string{"foo.json", "bar.json"},
+	}
+	res := client.VerifyProvider(req)
+
+	if res.ExitCode != 1 {
+		t.Fatalf("Expected a non-zero exit code but got %d", res.ExitCode)
+	}
+
+	if !strings.Contains(res.Message, "ProviderBaseURL is mandatory") {
+		t.Fatalf("Expected a proper error message but got '%s'", res.Message)
 	}
 }
 
@@ -161,7 +253,7 @@ func TestClient_StartServerFail(t *testing.T) {
 
 func TestClient_StopServer(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	_, svc := createDaemon(port)
+	_, svc := createDaemon(port, true)
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
@@ -185,7 +277,7 @@ func TestClient_StopServerFail(t *testing.T) {
 
 func TestClient_StopDaemon(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	createDaemon(port)
+	createDaemon(port, true)
 	waitForPortInTest(port, t)
 	client := &PactClient{Port: port}
 
@@ -210,6 +302,9 @@ func TestClient_StopDaemonFail(t *testing.T) {
 var fakeExecSuccessCommand = func() *exec.Cmd {
 	return fakeExecCommand("", true, "")
 }
+var fakeExecFailCommand = func() *exec.Cmd {
+	return fakeExecCommand("", false, "")
+}
 
 func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestHelperProcess", "--", command}
@@ -217,4 +312,20 @@ func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
 	cmd := exec.Command(os.Args[0], cs...)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=%t", success)}
 	return cmd
+}
+
+func TestHelperProcess(t *testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+	<-time.After(1 * time.Second)
+
+	// some code here to check arguments perhaps?
+	// Fail :(
+	if os.Getenv("GO_WANT_HELPER_PROCESS_TO_SUCCEED") == "false" {
+		os.Exit(1)
+	}
+
+	// Success :)
+	os.Exit(0)
 }

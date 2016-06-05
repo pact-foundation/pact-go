@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -16,11 +15,6 @@ import (
 
 func createPact() {
 
-}
-
-func getPort(url string) int {
-	i, _ := strconv.Atoi(strings.Split(url, ":")[2])
-	return i
 }
 
 func TestPact_setupLogging(t *testing.T) {
@@ -131,7 +125,7 @@ func TestPact_VerifyFail(t *testing.T) {
 
 func TestPact_Setup(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	createDaemon(port)
+	createDaemon(port, true)
 
 	pact := &Pact{Port: port}
 	pact.Setup()
@@ -142,7 +136,7 @@ func TestPact_Setup(t *testing.T) {
 
 func TestPact_Teardown(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	createDaemon(port)
+	createDaemon(port, true)
 
 	pact := &Pact{Port: port}
 	pact.Setup()
@@ -150,7 +144,6 @@ func TestPact_Teardown(t *testing.T) {
 	if pact.Server.Status != 0 {
 		t.Fatalf("Expected server exit status to be 0 but got %d", pact.Server.Status)
 	}
-
 }
 
 func TestPact_AddInteraction(t *testing.T) {
