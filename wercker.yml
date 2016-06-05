@@ -4,7 +4,8 @@ box: golang
 build:
   steps:
     - setup-go-workspace
-    - wercker/golint
+    - golint:
+        exclude: "vendor"
     - script:
         name: retrieve artifacts
         code: |
