@@ -8,6 +8,7 @@ import (
 	"net/rpc"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -214,8 +215,8 @@ func TestStopServer_Fail(t *testing.T) {
 	manager.ServiceStopError = errors.New("failed to stop server")
 
 	err := daemon.StopServer(&request, &res)
-	if err == nil {
-		t.Fatalf("Expected error but got none")
+	if err != nil {
+		t.Fatalf("Error: %v", err)
 	}
 }
 
@@ -246,8 +247,16 @@ func TestVerifyProvider_MissingProviderBaseURL(t *testing.T) {
 	req := VerifyRequest{}
 	res := Response{}
 	err := daemon.VerifyProvider(&req, &res)
-	if err == nil {
-		t.Fatalf("Expected error but got none")
+
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+	if res.ExitCode != 1 {
+		t.Fatalf("Expected non-zero exit code (1) but got: %d", res.ExitCode)
+	}
+
+	if !strings.Contains(res.Message, "ProviderBaseURL is mandatory") {
+		t.Fatalf("Expected error message but got '%s'", res.Message)
 	}
 }
 
@@ -259,8 +268,16 @@ func TestVerifyProvider_MissingPactURLs(t *testing.T) {
 	}
 	res := Response{}
 	err := daemon.VerifyProvider(&req, &res)
-	if err == nil {
-		t.Fatalf("Expected error but got none")
+
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+	if res.ExitCode != 1 {
+		t.Fatalf("Expected non-zero exit code (1) but got: %d", res.ExitCode)
+	}
+
+	if !strings.Contains(res.Message, "PactURLs is mandatory") {
+		t.Fatalf("Expected error message but got '%s'", res.Message)
 	}
 }
 
@@ -287,8 +304,15 @@ func TestVerifyProvider_FailedCommand(t *testing.T) {
 	}
 	res := Response{}
 	err := daemon.VerifyProvider(&req, &res)
-	if err == nil {
-		t.Fatalf("Expected error but got none")
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+	if res.ExitCode != 1 {
+		t.Fatalf("Expected non-zero exit code (1) but got: %d", res.ExitCode)
+	}
+
+	if !strings.Contains(res.Message, "COMMAND: oh noes!") {
+		t.Fatalf("Expected error message but got '%s'", res.Message)
 	}
 }
 
@@ -423,7 +447,7 @@ func TestRPCClient_Verify(t *testing.T) {
 		t.Fatalf("Expected exit code of zero but got: %d", res.ExitCode)
 	}
 
-	if res.Message != "" {
+	if res.Message != "COMMAND: oh yays!" {
 		t.Fatalf("Expected empty message but got: '%s'", res.Message)
 	}
 }
@@ -454,9 +478,11 @@ func TestHelperProcess(t *testing.T) {
 	// some code here to check arguments perhaps?
 	// Fail :(
 	if os.Getenv("GO_WANT_HELPER_PROCESS_TO_SUCCEED") == "false" {
+		fmt.Fprintf(os.Stdout, "COMMAND: oh noes!")
 		os.Exit(1)
 	}
 
 	// Success :)
+	fmt.Fprintf(os.Stdout, "COMMAND: oh yays!")
 	os.Exit(0)
 }

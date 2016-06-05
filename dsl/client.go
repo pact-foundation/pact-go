@@ -57,7 +57,7 @@ func getHTTPClient(port int) (*rpc.Client, error) {
 
 // Use this to wait for a daemon to be running prior
 // to running tests.
-func waitForPort(port int, message string) error {
+var waitForPort = func(port int, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
 	timeout := time.After(timeoutDuration)
 
@@ -109,8 +109,6 @@ func (p *PactClient) VerifyProvider(request *daemon.VerifyRequest) *daemon.Respo
 	if err == nil {
 		err = client.Call("Daemon.VerifyProvider", request, &res)
 		if err != nil {
-			res.ExitCode = 1
-			res.Message = err.Error()
 			log.Println("[ERROR] rpc: ", err.Error())
 		}
 	}

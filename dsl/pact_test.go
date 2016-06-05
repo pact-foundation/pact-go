@@ -127,7 +127,7 @@ func TestPact_Setup(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	createDaemon(port, true)
 
-	pact := &Pact{Port: port}
+	pact := &Pact{Port: port, LogLevel: "DEBUG"}
 	pact.Setup()
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
@@ -135,10 +135,15 @@ func TestPact_Setup(t *testing.T) {
 }
 
 func TestPact_Teardown(t *testing.T) {
+	old := waitForPort
+	defer func() { waitForPort = old }()
+	waitForPort = func(int, string) error {
+		return nil
+	}
 	port, _ := utils.GetFreePort()
 	createDaemon(port, true)
 
-	pact := &Pact{Port: port}
+	pact := &Pact{Port: port, LogLevel: "DEBUG"}
 	pact.Setup()
 	pact.Teardown()
 	if pact.Server.Status != 0 {
@@ -171,12 +176,16 @@ func TestPact_AddInteraction(t *testing.T) {
 func TestPact_Integration(t *testing.T) {
 	t.Skip() // Enable when running E2E/integration tests before a release
 
+	// Setup Provider API for verification (later...)
+	providerPort := setupProviderAPI()
+	pactDaemonPort := 6666
+
 	// Create Pact connecting to local Daemon
 	pact := &Pact{
-		Port:     6666,
+		Port:     pactDaemonPort,
 		Consumer: "My Consumer",
 		Provider: "My Provider",
-		LogLevel: "DEBUG",
+		LogLevel: "NONE",
 	}
 	defer pact.Teardown()
 
@@ -195,14 +204,17 @@ func TestPact_Integration(t *testing.T) {
 	}
 
 	// Setup a complex interaction
+	// This is currently not working as the provider verifier does not
+	// seem to support v2 matching yet! :(
+
 	body := fmt.Sprintf(`
-		{
-			"foo": %s,
-			"somethinglikeSimple": %s,
-			"somethinglikeObject": %s,
-			"items": %s,
-			"more_items": %s
-		}`,
+				{
+					"foo": %s,
+					"somethinglikeSimple": %s,
+					"somethinglikeObject": %s,
+					"items": %s,
+					"more_items": %s
+				}`,
 		Term(`bar`, `\\w`),
 		Like(`"a word"`),
 		Like(`{"baz":"bat"}`),
@@ -222,7 +234,7 @@ func TestPact_Integration(t *testing.T) {
 		WillRespondWith(&Response{
 			Status: 200,
 			Headers: map[string]string{
-				"Accept": "application/json",
+				"Content-Type": "application/json",
 			},
 		})
 	pact.
@@ -243,4 +255,59 @@ func TestPact_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
+
+	client := &PactClient{Port: pactDaemonPort}
+	response := client.VerifyProvider(&daemon.VerifyRequest{
+		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
+		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
+		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
+	})
+	fmt.Println(response.Message)
+
+}
+
+// Used as the Provider in the verification E2E steps
+func setupProviderAPI() int {
+	port, _ := utils.GetFreePort()
+	mux := http.NewServeMux()
+	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+		log.Println("[DEBUG] provider API: states setup")
+		w.Header().Add("Content-Type", "application/json")
+	})
+	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
+		log.Println("[DEBUG] provider API: states")
+		fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
+		w.Header().Add("Content-Type", "application/json")
+	})
+	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
+		log.Println("[DEBUG] provider API: /foobar")
+		w.Header().Add("Content-Type", "application/json")
+	})
+	mux.HandleFunc("/bazbat", func(w http.ResponseWriter, req *http.Request) {
+		log.Println("[DEBUG] provider API: /bazbat")
+		w.Header().Add("Content-Type", "application/json")
+		fmt.Fprintf(w, `
+			[
+			  [
+			    {
+			      "size": 10,
+			      "colour": "red",
+			      "tag": [
+			        [
+			          "jumper",
+			          "shirt"
+			        ],
+			        [
+			          "jumper",
+			          "shirt"
+			        ]
+			      ]
+			    }
+			  ]
+			]`)
+	})
+
+	go http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
+	return port
 }

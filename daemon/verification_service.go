@@ -22,7 +22,7 @@ type VerificationService struct {
 // 		--broker-username
 // 		--broker-password
 func (m *VerificationService) NewService(args []string) (int, Service) {
-	log.Printf("[DEBUG] starting mock service with args: %v\n", args)
+	log.Printf("[DEBUG] starting verification service with args: %v\n", args)
 
 	m.Args = args
 	m.Command = getVerifierCommandPath()

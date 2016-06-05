@@ -32,7 +32,7 @@ type VerifyRequest struct {
 func (v *VerifyRequest) Validate() error {
 	v.args = []string{}
 	if v.ProviderBaseURL != "" {
-		v.args = append(v.args, fmt.Sprintf("--provider-base-url %s", v.BrokerUsername))
+		v.args = append(v.args, fmt.Sprintf("--provider-base-url %s", v.ProviderBaseURL))
 	} else {
 		return fmt.Errorf("ProviderBaseURL is mandatory.")
 	}

@@ -167,7 +167,7 @@ func TestClient_getPort(t *testing.T) {
 
 func TestClient_VerifyProvider(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	_, svc := createDaemon(port, true)
+	createDaemon(port, true)
 	waitForPortInTest(port, t)
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
@@ -176,18 +176,22 @@ func TestClient_VerifyProvider(t *testing.T) {
 	defer ms.Close()
 
 	req := &daemon.VerifyRequest{
-		ProviderBaseURL: ms.URL,
-		PactURLs:        []string{"foo.json", "bar.json"},
-		// BrokerUsername:         "foo",
-		// BrokerPassword:         "foo",
-		// ProviderStatesURL:      "http://foo/states",
-		// ProviderStatesSetupURL: "http://foo/states/setup",
+		ProviderBaseURL:        ms.URL,
+		PactURLs:               []string{"foo.json", "bar.json"},
+		BrokerUsername:         "foo",
+		BrokerPassword:         "foo",
+		ProviderStatesURL:      "http://foo/states",
+		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
 	res := client.VerifyProvider(req)
 	fmt.Println(res)
 
-	if svc.ServiceStartCount != 1 {
-		t.Fatalf("Expected 1 server to have been started, got %d", svc.ServiceStartCount)
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit code of 0 but got %d", res.ExitCode)
+	}
+
+	if !strings.Contains(res.Message, "COMMAND: oh yays!") {
+		t.Fatalf("Expected a proper error message but got '%s'", res.Message)
 	}
 }
 
@@ -198,12 +202,8 @@ func TestClient_VerifyProviderFailValidation(t *testing.T) {
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	ms := setupMockServer(true, t)
-	defer ms.Close()
-
 	req := &daemon.VerifyRequest{}
 	res := client.VerifyProvider(req)
-
 	if res.ExitCode != 1 {
 		t.Fatalf("Expected a non-zero exit code but got %d", res.ExitCode)
 	}
@@ -233,7 +233,7 @@ func TestClient_VerifyProviderFailExecution(t *testing.T) {
 		t.Fatalf("Expected a non-zero exit code but got %d", res.ExitCode)
 	}
 
-	if !strings.Contains(res.Message, "ProviderBaseURL is mandatory") {
+	if !strings.Contains(res.Message, "COMMAND: oh noes!") {
 		t.Fatalf("Expected a proper error message but got '%s'", res.Message)
 	}
 }
@@ -311,6 +311,8 @@ func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=%t", success)}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd
 }
 
@@ -318,14 +320,16 @@ func TestHelperProcess(t *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
 		return
 	}
-	<-time.After(1 * time.Second)
+	<-time.After(50 * time.Millisecond)
 
 	// some code here to check arguments perhaps?
 	// Fail :(
 	if os.Getenv("GO_WANT_HELPER_PROCESS_TO_SUCCEED") == "false" {
+		fmt.Fprintf(os.Stdout, "COMMAND: oh noes!\n")
 		os.Exit(1)
 	}
 
 	// Success :)
+	fmt.Fprintf(os.Stdout, "COMMAND: oh yays!\n")
 	os.Exit(0)
 }

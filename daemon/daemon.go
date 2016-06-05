@@ -3,6 +3,7 @@ package daemon
 // Runs the RPC daemon for remote communication
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net"
@@ -99,34 +100,33 @@ func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) err
 // VerifyProvider runs the Pact Provider Verification Process.
 func (d *Daemon) VerifyProvider(request *VerifyRequest, reply *Response) error {
 	log.Println("[DEBUG] daemon - verifying provider")
+	fmt.Printf("[DEBUG] %v", request)
+	exitCode := 1
 
 	// Convert request into flags, and validate request
 	err := request.Validate()
 	if err != nil {
-		return err
-	}
-
-	_, svc := d.verificationSvcManager.NewService(request.args)
-
-	cmd := svc.Start()
-	err = cmd.Wait()
-	exitCode := 1
-	if cmd.ProcessState.Success() {
-		exitCode = 0
-	}
-
-	if err == nil {
-		*reply = *&Response{
-			ExitCode: exitCode,
-		}
-	} else {
 		*reply = *&Response{
 			ExitCode: exitCode,
 			Message:  err.Error(),
 		}
+		return nil
 	}
 
-	return err
+	var out bytes.Buffer
+	_, svc := d.verificationSvcManager.NewService(request.args)
+	cmd, err := svc.Run(&out)
+
+	if cmd.ProcessState.Success() && err == nil {
+		exitCode = 0
+	}
+
+	*reply = *&Response{
+		ExitCode: exitCode,
+		Message:  string(out.Bytes()),
+	}
+
+	return nil
 }
 
 // ListServers returns a slice of all running PactMockServers.
@@ -152,11 +152,12 @@ func (d *Daemon) ListServers(request PactMockServer, reply *PactListResponse) er
 func (d *Daemon) StopServer(request *PactMockServer, reply *PactMockServer) error {
 	log.Println("[DEBUG] daemon - stopping mock server")
 	success, err := d.pactMockSvcManager.Stop(request.Pid)
-	if success == true {
+	if success == true && err == nil {
 		request.Status = 0
 	} else {
 		request.Status = 1
 	}
 	*reply = *request
-	return err
+
+	return nil
 }

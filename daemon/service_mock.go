@@ -1,6 +1,10 @@
 package daemon
 
-import "os/exec"
+import (
+	"io"
+	"log"
+	"os/exec"
+)
 
 // ServiceMock is the mock implementation of the Service interface.
 type ServiceMock struct {
@@ -37,6 +41,18 @@ func (s *ServiceMock) Stop(pid int) (bool, error) {
 // List all Service PIDs.
 func (s *ServiceMock) List() map[int]*exec.Cmd {
 	return s.ServiceList
+}
+
+// Run runs a service synchronously and log its output to the given Pipe.
+func (s *ServiceMock) Run(w io.Writer) (*exec.Cmd, error) {
+	log.Println("[DEBUG] starting service")
+	cmd := s.ExecFunc()
+	cmd.Stdout = w
+	cmd.Stderr = w
+	// io.WriteString(w, "COMMAND: Mock Output")
+	err := cmd.Run()
+
+	return cmd, err
 }
 
 // Start a Service and log its output.
