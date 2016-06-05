@@ -217,8 +217,6 @@ func TestPact_Integration(t *testing.T) {
 		EachLike(36, 1),
 	)
 
-	fmt.Println(body)
-
 	// Set up our interactions. Note we have multiple in this test case!
 	pact.
 		AddInteraction().
