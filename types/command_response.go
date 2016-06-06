@@ -1,7 +1,8 @@
-package daemon
+package types
 
-// Response contains the exit status and any message from a Service.
-type Response struct {
+// CommandResponse contains the exit status and any message from running
+// an external command / service.
+type CommandResponse struct {
 	// System exit code from the command. Note that this will only even be 0 or 1.
 	ExitCode int
 

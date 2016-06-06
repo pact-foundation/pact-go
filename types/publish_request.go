@@ -1,4 +1,4 @@
-package daemon
+package types
 
 // PublishRequest contains the details required to Publish Pacts to a broker.
 type PublishRequest struct {

@@ -31,10 +31,6 @@ func setupMockServer(success bool, t *testing.T) *httptest.Server {
 	return ts
 }
 
-func TestMockService_call(t *testing.T) {
-	// call()
-}
-
 func TestMockService_AddInteraction(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()

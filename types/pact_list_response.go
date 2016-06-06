@@ -1,4 +1,4 @@
-package daemon
+package types
 
 // PactListResponse contains a list of all running Servers.
 type PactListResponse struct {

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
 
@@ -184,17 +185,17 @@ func TestClient_StartServerRPCError(t *testing.T) {
 		"rpc: service/method request ill-formed: failcommand": func() interface{} {
 			return client.StopDaemon().Error()
 		},
-		&daemon.PactMockServer{}: func() interface{} {
-			return client.StopServer(&daemon.PactMockServer{})
+		&types.PactMockServer{}: func() interface{} {
+			return client.StopServer(&types.PactMockServer{})
 		},
-		&daemon.PactMockServer{}: func() interface{} {
+		&types.PactMockServer{}: func() interface{} {
 			return client.StartServer()
 		},
-		&daemon.PactListResponse{}: func() interface{} {
+		&types.PactListResponse{}: func() interface{} {
 			return client.ListServers()
 		},
-		&daemon.Response{}: func() interface{} {
-			return client.VerifyProvider(&daemon.VerifyRequest{})
+		&types.CommandResponse{}: func() interface{} {
+			return client.VerifyProvider(&types.VerifyRequest{})
 		},
 	}
 
@@ -231,7 +232,7 @@ func TestClient_VerifyProvider(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	req := &daemon.VerifyRequest{
+	req := &types.VerifyRequest{
 		ProviderBaseURL:        ms.URL,
 		PactURLs:               []string{"foo.json", "bar.json"},
 		BrokerUsername:         "foo",
@@ -257,7 +258,7 @@ func TestClient_VerifyProviderFailValidation(t *testing.T) {
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	req := &daemon.VerifyRequest{}
+	req := &types.VerifyRequest{}
 	res := client.VerifyProvider(req)
 	if res.ExitCode != 1 {
 		t.Fatalf("Expected a non-zero exit code but got %d", res.ExitCode)
@@ -278,7 +279,7 @@ func TestClient_VerifyProviderFailExecution(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	req := &daemon.VerifyRequest{
+	req := &types.VerifyRequest{
 		ProviderBaseURL: ms.URL,
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
@@ -313,7 +314,7 @@ func TestClient_StopServer(t *testing.T) {
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	client.StopServer(&daemon.PactMockServer{})
+	client.StopServer(&types.PactMockServer{})
 	if svc.ServiceStopCount != 1 {
 		t.Fatalf("Expected 1 server to have been stopped, got %d", svc.ServiceStartCount)
 	}
@@ -322,8 +323,8 @@ func TestClient_StopServer(t *testing.T) {
 func TestClient_StopServerFail(t *testing.T) {
 	timeoutDuration = 50 * time.Millisecond
 	client := &PactClient{ /* don't supply port */ }
-	res := client.StopServer(&daemon.PactMockServer{})
-	should := &daemon.PactMockServer{}
+	res := client.StopServer(&types.PactMockServer{})
+	should := &types.PactMockServer{}
 	if !reflect.DeepEqual(res, should) {
 		t.Fatalf("Expected nil object but got a difference: %v != %v", res, should)
 	}

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pact-foundation/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/types"
 )
 
 var (
@@ -24,7 +24,7 @@ var (
 
 // Client is the simplified remote interface to the Pact Daemon.
 type Client interface {
-	StartServer() *daemon.PactMockServer
+	StartServer() *types.PactMockServer
 }
 
 // PactClient is the default implementation of the Client interface.
@@ -83,12 +83,12 @@ var waitForPort = func(port int, message string) error {
 }
 
 // StartServer starts a remote Pact Mock Server.
-func (p *PactClient) StartServer() *daemon.PactMockServer {
+func (p *PactClient) StartServer() *types.PactMockServer {
 	log.Println("[DEBUG] client: starting a server")
-	var res daemon.PactMockServer
+	var res types.PactMockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call(commandStartServer, daemon.PactMockServer{}, &res)
+		err = client.Call(commandStartServer, types.PactMockServer{}, &res)
 		if err != nil {
 			log.Println("[ERROR] rpc:", err.Error())
 		}
@@ -103,7 +103,7 @@ func (p *PactClient) StartServer() *daemon.PactMockServer {
 }
 
 // VerifyProvider runs the verification process against a running Provider.
-func (p *PactClient) VerifyProvider(request *daemon.VerifyRequest) *daemon.Response {
+func (p *PactClient) VerifyProvider(request *types.VerifyRequest) *types.CommandResponse {
 	log.Println("[DEBUG] client: verifying a provider")
 
 	port := getPort(request.ProviderBaseURL)
@@ -111,7 +111,7 @@ func (p *PactClient) VerifyProvider(request *daemon.VerifyRequest) *daemon.Respo
 	waitForPort(port, fmt.Sprintf(`Timed out waiting for Provider API to start
 		 on port %d - are you sure it's running?`, port))
 
-	var res daemon.Response
+	var res types.CommandResponse
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
 		err = client.Call(commandVerifyProvider, request, &res)
@@ -124,12 +124,12 @@ func (p *PactClient) VerifyProvider(request *daemon.VerifyRequest) *daemon.Respo
 }
 
 // ListServers starts a remote Pact Mock Server.
-func (p *PactClient) ListServers() *daemon.PactListResponse {
+func (p *PactClient) ListServers() *types.PactListResponse {
 	log.Println("[DEBUG] client: listing servers")
-	var res daemon.PactListResponse
+	var res types.PactListResponse
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call(commandListServers, daemon.PactMockServer{}, &res)
+		err = client.Call(commandListServers, types.PactMockServer{}, &res)
 		if err != nil {
 			log.Println("[ERROR] rpc:", err.Error())
 		}
@@ -138,9 +138,9 @@ func (p *PactClient) ListServers() *daemon.PactListResponse {
 }
 
 // StopServer stops a remote Pact Mock Server.
-func (p *PactClient) StopServer(server *daemon.PactMockServer) *daemon.PactMockServer {
+func (p *PactClient) StopServer(server *types.PactMockServer) *types.PactMockServer {
 	log.Println("[DEBUG] client: stop server")
-	var res daemon.PactMockServer
+	var res types.PactMockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
 		err = client.Call(commandStopServer, server, &res)

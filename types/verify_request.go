@@ -1,4 +1,4 @@
-package daemon
+package types
 
 import (
 	"fmt"
@@ -25,38 +25,41 @@ type VerifyRequest struct {
 	// Password when authenticating to a Pact Broker.
 	BrokerPassword string
 
-	args []string
+	// Arguments to the VerificationProvider
+	// NOTE: This will be deleted after the native library replaces Ruby deps.
+	Args []string
 }
 
 // Validate checks that the minimum fields are provided.
+// NOTE: This will be deleted after the native library replaces Ruby deps.
 func (v *VerifyRequest) Validate() error {
-	v.args = []string{}
+	v.Args = []string{}
 	if v.ProviderBaseURL != "" {
-		v.args = append(v.args, fmt.Sprintf("--provider-base-url %s", v.ProviderBaseURL))
+		v.Args = append(v.Args, fmt.Sprintf("--provider-base-url %s", v.ProviderBaseURL))
 	} else {
 		return fmt.Errorf("ProviderBaseURL is mandatory.")
 	}
 
 	if len(v.PactURLs) != 0 {
-		v.args = append(v.args, fmt.Sprintf("--pact-urls %s", strings.Join(v.PactURLs[:], ",")))
+		v.Args = append(v.Args, fmt.Sprintf("--pact-urls %s", strings.Join(v.PactURLs[:], ",")))
 	} else {
 		return fmt.Errorf("PactURLs is mandatory.")
 	}
 
 	if v.ProviderStatesSetupURL != "" {
-		v.args = append(v.args, fmt.Sprintf("--provider-states-setup-url %s", v.ProviderStatesSetupURL))
+		v.Args = append(v.Args, fmt.Sprintf("--provider-states-setup-url %s", v.ProviderStatesSetupURL))
 	}
 
 	if v.ProviderStatesURL != "" {
-		v.args = append(v.args, fmt.Sprintf("--provider-states-url %s", v.ProviderStatesURL))
+		v.Args = append(v.Args, fmt.Sprintf("--provider-states-url %s", v.ProviderStatesURL))
 	}
 
 	if v.BrokerUsername != "" {
-		v.args = append(v.args, fmt.Sprintf("--broker-username %s", v.BrokerUsername))
+		v.Args = append(v.Args, fmt.Sprintf("--broker-username %s", v.BrokerUsername))
 	}
 
 	if v.BrokerPassword != "" {
-		v.args = append(v.args, fmt.Sprintf("--broker-password %s", v.BrokerPassword))
+		v.Args = append(v.Args, fmt.Sprintf("--broker-password %s", v.BrokerPassword))
 	}
 	return nil
 }

@@ -45,7 +45,7 @@ DSLs communicate over a local (RPC) connection, and is transparent to clients.
 NOTE: The daemon is completely thread safe and it is safe to leave the daemon
 running for long periods (e.g. on a CI server).
 
-### Example
+### Example - Consumer
 1. Start the daemon with `./pact-go daemon`
 1. `cd <pact-go>/examples`
 1. `go run consumer.go`
@@ -68,7 +68,7 @@ func TestSomeApi(t *testing.T) {
 
 	// Pass in your test case as a function to Verify()
 	var test = func() error {
-		_, err := http.Get(fmt.Sprintf("http://localhost:%d/", pact.Server.Port))
+		_, err := http.Get("http://localhost:8000/")
 		return err
 	}
 
@@ -90,12 +90,69 @@ func TestSomeApi(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
-
     // You should now have a pact file in the file `<pact-go>/pacts/my_consumer-my_provider.json`
 }
 ```
 
-### Matching
+### Example - Provider
+
+Start your Provider API:
+
+```go
+mux := http.NewServeMux()
+mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+})
+mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
+	w.Header().Add("Content-Type", "application/json")
+})
+mux.HandleFunc("/someapi", func(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	fmt.Fprintf(w, `
+		[
+			[
+				{
+					"size": 10,
+					"colour": "red",
+					"tag": [
+						[
+							"jumper",
+							"shirt"
+						],
+						[
+							"jumper",
+							"shirt"
+						]
+					]
+				}
+			]
+		]`)
+})
+go http.ListenAndServe(":8000"), mux)
+```
+
+Note that the server has 2 endpoints: `/states` and `/setup` that allows the
+verifier to setup
+[provider states](http://docs.pact.io/documentation/provider_states.html) before
+each test is run.
+
+You can now tell Pact to read in your Pact files and verify that your API will
+satisy the requirements of each of your known consumers:
+
+```go
+response := pact.VerifyProvider(&types.VerifyRequest{
+	ProviderBaseURL:        "http://localhost:8000",
+	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+	ProviderStatesURL:      "http://localhost:8000/states",
+	ProviderStatesSetupURL: "http://localhost:8000/setup",
+})
+```
+
+See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
+for a more complete E2E example.
+
+### Matching (Consumer Tests)
 
 In addition to verbatim value matching, you have 3 useful matching functions
 in the `dsl` package that can increase expressiveness and reduce brittle test

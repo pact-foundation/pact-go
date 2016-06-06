@@ -11,6 +11,8 @@ import (
 	"net/rpc"
 	"os"
 	"os/signal"
+
+	"github.com/pact-foundation/pact-go/types"
 )
 
 // Daemon wraps the commands for the RPC server.
@@ -83,11 +85,11 @@ func (d *Daemon) Shutdown() {
 	}
 }
 
-// StartServer starts a mock server and returns a pointer to aPactMockServer
+// StartServer starts a mock server and returns a pointer to atypes.PactMockServer
 // struct.
-func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) error {
+func (d *Daemon) StartServer(request *types.PactMockServer, reply *types.PactMockServer) error {
 	log.Println("[DEBUG] daemon - starting mock server")
-	server := &PactMockServer{}
+	server := &types.PactMockServer{}
 	port, svc := d.pactMockSvcManager.NewService(request.Args)
 	server.Port = port
 	server.Status = -1
@@ -98,14 +100,14 @@ func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) err
 }
 
 // VerifyProvider runs the Pact Provider Verification Process.
-func (d *Daemon) VerifyProvider(request *VerifyRequest, reply *Response) error {
+func (d *Daemon) VerifyProvider(request *types.VerifyRequest, reply *types.CommandResponse) error {
 	log.Println("[DEBUG] daemon - verifying provider")
 	exitCode := 1
 
 	// Convert request into flags, and validate request
 	err := request.Validate()
 	if err != nil {
-		*reply = *&Response{
+		*reply = *&types.CommandResponse{
 			ExitCode: exitCode,
 			Message:  err.Error(),
 		}
@@ -113,14 +115,14 @@ func (d *Daemon) VerifyProvider(request *VerifyRequest, reply *Response) error {
 	}
 
 	var out bytes.Buffer
-	_, svc := d.verificationSvcManager.NewService(request.args)
+	_, svc := d.verificationSvcManager.NewService(request.Args)
 	cmd, err := svc.Run(&out)
 
 	if cmd.ProcessState.Success() && err == nil {
 		exitCode = 0
 	}
 
-	*reply = *&Response{
+	*reply = *&types.CommandResponse{
 		ExitCode: exitCode,
 		Message:  string(out.Bytes()),
 	}
@@ -128,19 +130,19 @@ func (d *Daemon) VerifyProvider(request *VerifyRequest, reply *Response) error {
 	return nil
 }
 
-// ListServers returns a slice of all running PactMockServers.
-func (d *Daemon) ListServers(request PactMockServer, reply *PactListResponse) error {
+// ListServers returns a slice of all running types.PactMockServers.
+func (d *Daemon) ListServers(request types.PactMockServer, reply *types.PactListResponse) error {
 	log.Println("[DEBUG] daemon - listing mock servers")
-	var servers []*PactMockServer
+	var servers []*types.PactMockServer
 
 	for port, s := range d.pactMockSvcManager.List() {
-		servers = append(servers, &PactMockServer{
+		servers = append(servers, &types.PactMockServer{
 			Pid:  s.Process.Pid,
 			Port: port,
 		})
 	}
 
-	*reply = *&PactListResponse{
+	*reply = *&types.PactListResponse{
 		Servers: servers,
 	}
 
@@ -148,7 +150,7 @@ func (d *Daemon) ListServers(request PactMockServer, reply *PactListResponse) er
 }
 
 // StopServer stops the given mock server.
-func (d *Daemon) StopServer(request *PactMockServer, reply *PactMockServer) error {
+func (d *Daemon) StopServer(request *types.PactMockServer, reply *types.PactMockServer) error {
 	log.Println("[DEBUG] daemon - stopping mock server")
 	success, err := d.pactMockSvcManager.Stop(request.Pid)
 	if success == true && err == nil {

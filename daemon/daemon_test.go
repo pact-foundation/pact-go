@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
 
@@ -144,8 +145,8 @@ func TestDaemonShutdown(t *testing.T) {
 func TestStartServer(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 
-	req := PactMockServer{Pid: 1234}
-	res := PactMockServer{}
+	req := types.PactMockServer{Pid: 1234}
+	res := types.PactMockServer{}
 	err := daemon.StartServer(&req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -162,8 +163,8 @@ func TestStartServer(t *testing.T) {
 
 func TestListServers(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
-	var res PactListResponse
-	err := daemon.ListServers(PactMockServer{}, &res)
+	var res types.PactListResponse
+	err := daemon.ListServers(types.PactMockServer{}, &res)
 
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -177,12 +178,12 @@ func TestListServers(t *testing.T) {
 func TestStopServer(t *testing.T) {
 	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
-	var res PactMockServer
+	var res types.PactMockServer
 
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := PactMockServer{
+	request := types.PactMockServer{
 		Pid: cmd.Process.Pid,
 	}
 
@@ -203,12 +204,12 @@ func TestStopServer(t *testing.T) {
 func TestStopServer_Fail(t *testing.T) {
 	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
-	var res PactMockServer
+	var res types.PactMockServer
 
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := PactMockServer{
+	request := types.PactMockServer{
 		Pid: cmd.Process.Pid,
 	}
 
@@ -223,12 +224,12 @@ func TestStopServer_Fail(t *testing.T) {
 func TestStopServer_FailedStatus(t *testing.T) {
 	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
-	var res PactMockServer
+	var res types.PactMockServer
 
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := PactMockServer{
+	request := types.PactMockServer{
 		Pid: cmd.Process.Pid,
 	}
 
@@ -244,8 +245,8 @@ func TestStopServer_FailedStatus(t *testing.T) {
 func TestVerifyProvider_MissingProviderBaseURL(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 
-	req := VerifyRequest{}
-	res := Response{}
+	req := types.VerifyRequest{}
+	res := types.CommandResponse{}
 	err := daemon.VerifyProvider(&req, &res)
 
 	if err != nil {
@@ -263,10 +264,10 @@ func TestVerifyProvider_MissingProviderBaseURL(t *testing.T) {
 func TestVerifyProvider_MissingPactURLs(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 
-	req := VerifyRequest{
+	req := types.VerifyRequest{
 		ProviderBaseURL: "http://foo.com",
 	}
-	res := Response{}
+	res := types.CommandResponse{}
 	err := daemon.VerifyProvider(&req, &res)
 
 	if err != nil {
@@ -284,11 +285,11 @@ func TestVerifyProvider_MissingPactURLs(t *testing.T) {
 func TestVerifyProvider_Valid(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 
-	req := VerifyRequest{
+	req := types.VerifyRequest{
 		ProviderBaseURL: "http://foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
-	res := Response{}
+	res := types.CommandResponse{}
 	err := daemon.VerifyProvider(&req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -298,11 +299,11 @@ func TestVerifyProvider_Valid(t *testing.T) {
 func TestVerifyProvider_FailedCommand(t *testing.T) {
 	daemon, _ := createMockedDaemon(false)
 
-	req := VerifyRequest{
+	req := types.VerifyRequest{
 		ProviderBaseURL: "http://foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
-	res := Response{}
+	res := types.CommandResponse{}
 	err := daemon.VerifyProvider(&req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -319,7 +320,7 @@ func TestVerifyProvider_FailedCommand(t *testing.T) {
 func TestVerifyProvider_ValidProviderStates(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 
-	req := VerifyRequest{
+	req := types.VerifyRequest{
 		ProviderBaseURL:        "http://foo.com",
 		PactURLs:               []string{"foo.json", "bar.json"},
 		BrokerUsername:         "foo",
@@ -327,7 +328,7 @@ func TestVerifyProvider_ValidProviderStates(t *testing.T) {
 		ProviderStatesURL:      "http://foo/states",
 		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
-	res := Response{}
+	res := types.CommandResponse{}
 	err := daemon.VerifyProvider(&req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -342,8 +343,8 @@ func TestRPCClient_List(t *testing.T) {
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res PactListResponse
-	err = client.Call("Daemon.ListServers", PactMockServer{}, &res)
+	var res types.PactListResponse
+	err = client.Call("Daemon.ListServers", types.PactMockServer{}, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
 	}
@@ -361,8 +362,8 @@ func TestRPCClient_StartServer(t *testing.T) {
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res PactMockServer
-	err = client.Call("Daemon.StartServer", PactMockServer{}, &res)
+	var res types.PactMockServer
+	err = client.Call("Daemon.StartServer", types.PactMockServer{}, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
 	}
@@ -387,12 +388,12 @@ func TestRPCClient_StopServer(t *testing.T) {
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := PactMockServer{
+	request := types.PactMockServer{
 		Pid: cmd.Process.Pid,
 	}
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res *PactMockServer
+	var res *types.PactMockServer
 	err = client.Call("Daemon.StopServer", request, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
@@ -432,11 +433,11 @@ func TestRPCClient_Verify(t *testing.T) {
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	req := VerifyRequest{
+	req := types.VerifyRequest{
 		ProviderBaseURL: "http://foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
-	res := Response{}
+	res := types.CommandResponse{}
 
 	err = client.Call("Daemon.VerifyProvider", req, &res)
 	if err != nil {

@@ -6,13 +6,13 @@ import (
 	"os"
 
 	"github.com/hashicorp/logutils"
-	"github.com/pact-foundation/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/types"
 )
 
 // Pact is the container structure to run the Consumer Pact test cases.
 type Pact struct {
 	// Current server for the consumer.
-	Server *daemon.PactMockServer
+	Server *types.PactMockServer
 
 	// Port the Pact Daemon is running on.
 	Port int
@@ -122,7 +122,7 @@ func (p *Pact) Verify(integrationTest func() error) error {
 
 // VerifyProvider reads the provided pact files and runs verification against
 // a running Provider API.
-func (p *Pact) VerifyProvider(request *daemon.VerifyRequest) *daemon.Response {
+func (p *Pact) VerifyProvider(request *types.VerifyRequest) *types.CommandResponse {
 	log.Printf("[DEBUG] pact provider verification")
 	return p.pactClient.VerifyProvider(request)
 }

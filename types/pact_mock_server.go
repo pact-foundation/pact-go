@@ -1,4 +1,4 @@
-package daemon
+package types
 
 // PactMockServer contains the RPC client interface to a Mock Server
 type PactMockServer struct {

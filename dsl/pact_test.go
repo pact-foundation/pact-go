@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pact-foundation/pact-go/daemon"
+	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
 
@@ -67,7 +67,7 @@ func TestPact_Verify(t *testing.T) {
 	}
 
 	pact := &Pact{
-		Server: &daemon.PactMockServer{
+		Server: &types.PactMockServer{
 			Port: getPort(ms.URL),
 		},
 		Consumer: "My Consumer",
@@ -97,7 +97,7 @@ func TestPact_VerifyFail(t *testing.T) {
 	var testFunc = func() error { return nil }
 
 	pact := &Pact{
-		Server: &daemon.PactMockServer{
+		Server: &types.PactMockServer{
 			Port: getPort(ms.URL),
 		},
 	}
@@ -159,7 +159,7 @@ func TestPact_VerifyProvider(t *testing.T) {
 	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
-	res := pact.VerifyProvider(&daemon.VerifyRequest{
+	res := pact.VerifyProvider(&types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	})
@@ -180,7 +180,7 @@ func TestPact_VerifyProviderFail(t *testing.T) {
 	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
-	res := pact.VerifyProvider(&daemon.VerifyRequest{
+	res := pact.VerifyProvider(&types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	})
@@ -296,7 +296,7 @@ func TestPact_Integration(t *testing.T) {
 		t.Fatalf("Error on Verify: %v", err)
 	}
 
-	response := pact.VerifyProvider(&daemon.VerifyRequest{
+	response := pact.VerifyProvider(&types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
 		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
