@@ -13,10 +13,6 @@ import (
 	"github.com/pact-foundation/pact-go/utils"
 )
 
-func createPact() {
-
-}
-
 func TestPact_setupLogging(t *testing.T) {
 	res := captureOutput(func() {
 		(&Pact{LogLevel: "DEBUG"}).setupLogging()
@@ -185,7 +181,7 @@ func TestPact_Integration(t *testing.T) {
 		Port:     pactDaemonPort,
 		Consumer: "My Consumer",
 		Provider: "My Provider",
-		LogLevel: "NONE",
+		LogLevel: "DEBUG",
 	}
 	defer pact.Teardown()
 
@@ -204,23 +200,24 @@ func TestPact_Integration(t *testing.T) {
 	}
 
 	// Setup a complex interaction
-	// This is currently not working as the provider verifier does not
-	// seem to support v2 matching yet! :(
+	jumper := Like(`"jumper"`)
+	shirt := Like(`"shirt"`)
+	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
+	size := Like(10)
+	colour := Term("red", "red|green|blue")
 
-	body := fmt.Sprintf(`
-				{
-					"foo": %s,
-					"somethinglikeSimple": %s,
-					"somethinglikeObject": %s,
-					"items": %s,
-					"more_items": %s
-				}`,
-		Term(`bar`, `\\w`),
-		Like(`"a word"`),
-		Like(`{"baz":"bat"}`),
-		EachLike(`"this word"`, 1),
-		EachLike(36, 1),
-	)
+	body :=
+		formatJSON(
+			EachLike(
+				EachLike(
+					fmt.Sprintf(
+						`{
+						"size": %s,
+						"colour": %s,
+						"tag": %s
+					}`, size, colour, tag),
+					1),
+				1))
 
 	// Set up our interactions. Note we have multiple in this test case!
 	pact.
@@ -256,15 +253,14 @@ func TestPact_Integration(t *testing.T) {
 		t.Fatalf("Error on Verify: %v", err)
 	}
 
-	client := &PactClient{Port: pactDaemonPort}
-	response := client.VerifyProvider(&daemon.VerifyRequest{
+	response := pact.VerifyProvider(&daemon.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
 		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
 	})
-	fmt.Println(response.Message)
 
+	fmt.Println(response.Message)
 }
 
 // Used as the Provider in the verification E2E steps

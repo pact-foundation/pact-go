@@ -119,3 +119,10 @@ func (p *Pact) Verify(integrationTest func() error) error {
 
 	return mockServer.DeleteInteractions()
 }
+
+// VerifyProvider reads the provided pact files and runs verification against
+// a running Provider API.
+func (p *Pact) VerifyProvider(request *daemon.VerifyRequest) *daemon.Response {
+	log.Printf("[DEBUG] pact provider verification")
+	return p.pactClient.VerifyProvider(request)
+}

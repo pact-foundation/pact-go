@@ -184,7 +184,6 @@ func TestClient_VerifyProvider(t *testing.T) {
 		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
 	res := client.VerifyProvider(req)
-	fmt.Println(res)
 
 	if res.ExitCode != 0 {
 		t.Fatalf("Expected exit code of 0 but got %d", res.ExitCode)

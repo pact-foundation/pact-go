@@ -25,11 +25,12 @@ type PactMockService struct {
 }
 
 // call sends a message to the Pact service
-func (m *PactMockService) call(method string, url string, object interface{}) error {
-	body, err := json.Marshal(object)
+func (m *PactMockService) call(method string, url string, content interface{}) error {
+	body, err := json.Marshal(content)
 	if err != nil {
 		return err
 	}
+
 	client := &http.Client{}
 	var req *http.Request
 	if method == "POST" {

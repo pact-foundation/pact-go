@@ -1,5 +1,10 @@
 package dsl
 
+import (
+	"encoding/json"
+	"log"
+)
+
 // Interaction is the main implementation of the Pact interface.
 type Interaction struct {
 	// Request
@@ -40,5 +45,28 @@ func (p *Interaction) WithRequest(request *Request) *Interaction {
 // confirm that the Provider must satisfy. Mandatory.
 func (p *Interaction) WillRespondWith(response *Response) *Interaction {
 	p.Response = response
+
+	// Need to fix any weird JSON marshalling issues with the body Here
+	// If body is a string, not an object, we need to put it back into an object
+	// so that it's not double encoded
+	switch content := response.Body.(type) {
+	case string:
+		p.Response.Body = toObject([]byte(content))
+	default:
+		// leave alone
+	}
+
 	return p
+}
+
+// Takes a string body and converts it to an interface{} representation.
+func toObject(content []byte) interface{} {
+	var obj interface{}
+	err := json.Unmarshal(content, &obj)
+	if err != nil {
+		log.Println("[DEBUG] interaction: error unmarshaling object into string:", err.Error())
+		return string(content)
+	}
+
+	return obj
 }
