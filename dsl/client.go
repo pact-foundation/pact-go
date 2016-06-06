@@ -13,7 +13,14 @@ import (
 	"github.com/pact-foundation/pact-go/daemon"
 )
 
-var timeoutDuration = 1 * time.Second
+var (
+	timeoutDuration       = 1 * time.Second
+	commandStartServer    = "Daemon.StartServer"
+	commandStopServer     = "Daemon.StopServer"
+	commandVerifyProvider = "Daemon.VerifyProvider"
+	commandListServers    = "Daemon.ListServers"
+	commandStopDaemon     = "Daemon.StopDaemon"
+)
 
 // Client is the simplified remote interface to the Pact Daemon.
 type Client interface {
@@ -81,9 +88,9 @@ func (p *PactClient) StartServer() *daemon.PactMockServer {
 	var res daemon.PactMockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call("Daemon.StartServer", daemon.PactMockServer{}, &res)
+		err = client.Call(commandStartServer, daemon.PactMockServer{}, &res)
 		if err != nil {
-			log.Fatal("[ERROR] rpc:", err)
+			log.Println("[ERROR] rpc:", err.Error())
 		}
 	}
 
@@ -107,7 +114,7 @@ func (p *PactClient) VerifyProvider(request *daemon.VerifyRequest) *daemon.Respo
 	var res daemon.Response
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call("Daemon.VerifyProvider", request, &res)
+		err = client.Call(commandVerifyProvider, request, &res)
 		if err != nil {
 			log.Println("[ERROR] rpc: ", err.Error())
 		}
@@ -122,9 +129,9 @@ func (p *PactClient) ListServers() *daemon.PactListResponse {
 	var res daemon.PactListResponse
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call("Daemon.ListServers", daemon.PactMockServer{}, &res)
+		err = client.Call(commandListServers, daemon.PactMockServer{}, &res)
 		if err != nil {
-			log.Fatal("[ERROR] rpc:", err)
+			log.Println("[ERROR] rpc:", err.Error())
 		}
 	}
 	return &res
@@ -136,9 +143,9 @@ func (p *PactClient) StopServer(server *daemon.PactMockServer) *daemon.PactMockS
 	var res daemon.PactMockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call("Daemon.StopServer", server, &res)
+		err = client.Call(commandStopServer, server, &res)
 		if err != nil {
-			log.Fatal("[ERROR] rpc:", err)
+			log.Println("[ERROR] rpc:", err.Error())
 		}
 	}
 	return &res
@@ -150,9 +157,9 @@ func (p *PactClient) StopDaemon() error {
 	var req, res string
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call("Daemon.StopDaemon", &req, &res)
+		err = client.Call(commandStopDaemon, &req, &res)
 		if err != nil {
-			log.Fatal("[ERROR] rpc:", err)
+			log.Println("[ERROR] rpc:", err.Error())
 		}
 	}
 	return err

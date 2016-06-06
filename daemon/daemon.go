@@ -100,7 +100,6 @@ func (d *Daemon) StartServer(request *PactMockServer, reply *PactMockServer) err
 // VerifyProvider runs the Pact Provider Verification Process.
 func (d *Daemon) VerifyProvider(request *VerifyRequest, reply *Response) error {
 	log.Println("[DEBUG] daemon - verifying provider")
-	fmt.Printf("[DEBUG] %v", request)
 	exitCode := 1
 
 	// Convert request into flags, and validate request

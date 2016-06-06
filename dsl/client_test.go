@@ -151,11 +151,67 @@ func TestClient_StartServer(t *testing.T) {
 	}
 }
 
+func TestClient_StartServerRPCError(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+
+	waitForPortInTest(port, t)
+	defer waitForDaemonToShutdown(port, t)
+
+	// Mock out the RPC client
+	oldCommandStartServer := commandStartServer
+	oldCommandStopServer := commandStopServer
+	oldCommandVerifyProvider := commandVerifyProvider
+	oldCommandListServers := commandListServers
+	oldCommandStopDaemon := commandStopDaemon
+
+	commandStartServer = "failcommand"
+	commandStopServer = "failcommand"
+	commandVerifyProvider = "failcommand"
+	commandListServers = "failcommand"
+	commandStopDaemon = "failcommand"
+
+	defer func() {
+		commandStartServer = oldCommandStartServer
+		commandStopServer = oldCommandStopServer
+		commandVerifyProvider = oldCommandVerifyProvider
+		commandListServers = oldCommandListServers
+		commandStopDaemon = oldCommandStopDaemon
+	}()
+
+	client := &PactClient{Port: port}
+	testCases := map[interface{}]func() interface{}{
+		"rpc: service/method request ill-formed: failcommand": func() interface{} {
+			return client.StopDaemon().Error()
+		},
+		&daemon.PactMockServer{}: func() interface{} {
+			return client.StopServer(&daemon.PactMockServer{})
+		},
+		&daemon.PactMockServer{}: func() interface{} {
+			return client.StartServer()
+		},
+		&daemon.PactListResponse{}: func() interface{} {
+			return client.ListServers()
+		},
+		&daemon.Response{}: func() interface{} {
+			return client.VerifyProvider(&daemon.VerifyRequest{})
+		},
+	}
+
+	for expected, testCase := range testCases {
+		res := testCase()
+		if !reflect.DeepEqual(expected, res) {
+			t.Fatalf("Expected %v but got %v", expected, res)
+		}
+	}
+}
+
 func TestClient_getPort(t *testing.T) {
 	testCases := map[string]int{
 		"http://localhost:8000": 8000,
 		"http://localhost":      80,
 		"https://localhost":     443,
+		":::::":                 -1,
 	}
 
 	for host, port := range testCases {

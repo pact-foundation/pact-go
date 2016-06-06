@@ -31,9 +31,6 @@ func (s *ServiceMock) Setup() {
 
 // Stop a Service and returns the exit status.
 func (s *ServiceMock) Stop(pid int) (bool, error) {
-	if _, ok := s.processes[pid]; ok {
-		s.processes[pid].Process.Kill()
-	}
 	s.ServiceStopCount++
 	return s.ServiceStopResult, s.ServiceStopError
 }

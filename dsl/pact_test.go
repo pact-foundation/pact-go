@@ -138,12 +138,55 @@ func TestPact_Teardown(t *testing.T) {
 	}
 	port, _ := utils.GetFreePort()
 	createDaemon(port, true)
+	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG"}
 	pact.Setup()
 	pact.Teardown()
 	if pact.Server.Status != 0 {
 		t.Fatalf("Expected server exit status to be 0 but got %d", pact.Server.Status)
+	}
+}
+
+func TestPact_VerifyProvider(t *testing.T) {
+	old := waitForPort
+	defer func() { waitForPort = old }()
+	waitForPort = func(int, string) error {
+		return nil
+	}
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+	waitForPortInTest(port, t)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
+	res := pact.VerifyProvider(&daemon.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	})
+
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit status to be 0 but got %d", res.ExitCode)
+	}
+}
+
+func TestPact_VerifyProviderFail(t *testing.T) {
+	old := waitForPort
+	defer func() { waitForPort = old }()
+	waitForPort = func(int, string) error {
+		return nil
+	}
+	port, _ := utils.GetFreePort()
+	createDaemon(port, false)
+	waitForPortInTest(port, t)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
+	res := pact.VerifyProvider(&daemon.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	})
+
+	if res.ExitCode == 0 {
+		t.Fatalf("Expected non-zero exit status but got 0")
 	}
 }
 
