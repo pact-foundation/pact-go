@@ -32,23 +32,23 @@ how to get going.
 
 * Download a [release](https://github.com/pact-foundation/pact-go/releases) for your OS.
 * Unzip the package into a known location, and add to the `PATH`.
-* Run `pact-go` to see what options are available
+* Run `pact-go` to see what options are available.
 
 ## Running
 
-Due to some design constraints, Pact Go runs a two-step process
+Due to some design constraints, Pact Go runs a two-step process:
 
 1. Run `pact-go daemon` in a separate process/shell. The Consumer and Provider
 DSLs communicate over a local (RPC) connection, and is transparent to clients.
 1. Create your Pact Consumer/Provider Tests. It defaults to run on port `6666`.
 
-NOTE: The daemon is completely thread safe and it is safe to leave the daemon
-running for long periods (e.g. on a CI server).
+*NOTE: The daemon is completely thread safe and it is normal to leave the daemon
+running for long periods (e.g. on a CI server).*
 
 ### Example - Consumer
-1. Start the daemon with `./pact-go daemon`
-1. `cd <pact-go>/examples`
-1. `go run consumer.go`
+1. Start the daemon with `./pact-go daemon`.
+1. `cd <pact-go>/examples`.
+1. `go run consumer.go`.
 
 ```go
 import "github.com/pact-foundation/pact-go/dsl"
