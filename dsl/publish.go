@@ -159,7 +159,7 @@ func (p *Publisher) Publish(request *types.PublishRequest) error {
 			return err
 		}
 
-		endpoint := fmt.Sprintf("%s/pacts/provider/%s/consumer/%s/%s", request.PactBroker, file.Provider.Name, file.Consumer.Name, request.ConsumerVersion)
+		endpoint := fmt.Sprintf("%s/pacts/provider/%s/consumer/%s/version/%s", request.PactBroker, file.Provider.Name, file.Consumer.Name, request.ConsumerVersion)
 		log.Println("[DEBUG] pact publisher: putting Pact on endpoint:", endpoint)
 		err = p.call("PUT", endpoint, data)
 		if err != nil {

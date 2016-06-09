@@ -421,10 +421,10 @@ func TestPublish_EndToEnd(t *testing.T) {
 	t.Skip()
 	p := &Publisher{}
 	err := p.Publish(&types.PublishRequest{
-		PactURLs:        []string{"../pacts/my_consumer-my_provider.json"},
-		PactBroker:      "http://somehost",
+		PactURLs:        []string{"../pacts/billy-bobby.json"},
+		PactBroker:      "http://localhost:8080",
 		ConsumerVersion: "1.0.0",
-		Tags:            []string{"latest"},
+		Tags:            []string{"latest", "foobar", "sit4"},
 	})
 
 	fmt.Println(err)
