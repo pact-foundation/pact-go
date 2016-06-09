@@ -96,7 +96,7 @@ func TestSomeApi(t *testing.T) {
 
 ### Example - Provider
 
-Start your Provider API:
+1. Start your Provider API:
 
 ```go
 mux := http.NewServeMux()
@@ -137,8 +137,10 @@ verifier to setup
 [provider states](http://docs.pact.io/documentation/provider_states.html) before
 each test is run.
 
+2. Verify provider API
+
 You can now tell Pact to read in your Pact files and verify that your API will
-satisy the requirements of each of your known consumers:
+satisfy the requirements of each of your known consumers:
 
 ```go
 response := pact.VerifyProvider(&types.VerifyRequest{
@@ -149,8 +151,50 @@ response := pact.VerifyProvider(&types.VerifyRequest{
 })
 ```
 
+Note that `PactURLs` is a list of local pact files or remote based
+urls (e.g. from a
+[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
+
+#### Using the Pact Broker with Basic authentication
+
+The following flags are required to use basic authentication when
+retrieving Pact files from a Pact Broker:
+
+* `BrokerUsername` - the username for Pact Broker basic authentication.
+* `BrokerPassword` - the password for Pact Broker basic authentication.
+
 See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
 for a more complete E2E example.
+
+### Publishing Pacts to a Broker and Tag Pacts
+
+See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
+documentation for more details on the Broker and this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
+on how to make it work for you.
+
+#### Publish from Go code
+
+```go
+pact.PublishPacts(&types.PublishRequest{
+	PactBroker:             "http://pactbroker:8000",
+	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+	ProviderStatesURL:      "http://pactbroker:8000/states",
+	ProviderStatesSetupURL: "http://pactbroker:8000/setup",
+	ConsumerVersion:        "1.0.0",
+	Tags:                   []string{"latest", "dev"},
+})
+```
+
+#### Publish from CLI
+
+Use a cURL request like the following to PUT the pact to the right location,
+specifying your consumer name, provider name and consumer version.
+
+```
+curl -v -XPUT \-H "Content-Type: application/json" \
+-d@spec/pacts/a_consumer-a_provider.json \
+http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
+```
 
 ### Matching (Consumer Tests)
 
