@@ -70,11 +70,11 @@ func (p *Publisher) validate() error {
 }
 
 // call sends a message to the Pact Broker.
-func (p *Publisher) call(url string, content []byte) error {
+func (p *Publisher) call(method string, url string, content []byte) error {
 	client := &http.Client{}
 	var req *http.Request
 	var err error
-	req, err = http.NewRequest("POST", url, bytes.NewReader(content))
+	req, err = http.NewRequest(method, url, bytes.NewReader(content))
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func (p *Publisher) readRemotePactFile(file string) (*PactFile, []byte, error) {
 	return f, data, err
 }
 
-// Publish writes the pact file to disk.
+// Publish sends the Pacts to a broker, optionally tagging them
 func (p *Publisher) Publish(request *types.PublishRequest) error {
 	log.Println("[DEBUG] pact publisher: publish pact")
 
@@ -160,8 +160,25 @@ func (p *Publisher) Publish(request *types.PublishRequest) error {
 		}
 
 		endpoint := fmt.Sprintf("%s/pacts/provider/%s/consumer/%s/%s", request.PactBroker, file.Provider.Name, file.Consumer.Name, request.ConsumerVersion)
-		log.Println("[DEBUG] pact publisher: posting Pact to endpoint:", endpoint)
-		err = p.call(endpoint, data)
+		log.Println("[DEBUG] pact publisher: putting Pact on endpoint:", endpoint)
+		err = p.call("PUT", endpoint, data)
+		if err != nil {
+			return err
+		}
+
+		p.tagRequest(file.Consumer.Name, request)
+	}
+
+	return nil
+}
+
+// tag one or more Pact files
+func (p *Publisher) tagRequest(consumerName string, request *types.PublishRequest) error {
+	log.Println("[DEBUG] pact publisher: tagging pacts...")
+	for _, tag := range request.Tags {
+		endpoint := fmt.Sprintf("%s/pacticipants/%s/versions/%s/tags/%s", request.PactBroker, consumerName, request.ConsumerVersion, tag)
+		log.Println("[DEBUG] pact publisher: tagging Pact:", endpoint)
+		err := p.call("PUT", endpoint, []byte{})
 		if err != nil {
 			return err
 		}
