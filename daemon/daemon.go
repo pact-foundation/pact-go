@@ -35,7 +35,7 @@ func NewDaemon(pactMockServiceManager Service, verificationServiceManager Servic
 }
 
 // StartDaemon starts the daemon RPC server.
-func (d *Daemon) StartDaemon(port int) {
+func (d Daemon) StartDaemon(port int) {
 	log.Println("[INFO] daemon - starting daemon on port", port)
 
 	serv := rpc.NewServer()
@@ -69,14 +69,14 @@ func (d *Daemon) StartDaemon(port int) {
 
 // StopDaemon allows clients to programmatically shuts down the running Daemon
 // via RPC.
-func (d *Daemon) StopDaemon(request string, reply *string) error {
+func (d Daemon) StopDaemon(request string, reply *string) error {
 	log.Println("[DEBUG] daemon - stop daemon")
 	d.signalChan <- os.Interrupt
 	return nil
 }
 
 // Shutdown ensures all services are cleanly destroyed.
-func (d *Daemon) Shutdown() {
+func (d Daemon) Shutdown() {
 	log.Println("[DEBUG] daemon - shutdown")
 	for _, s := range d.verificationSvcManager.List() {
 		if s != nil {
@@ -87,7 +87,7 @@ func (d *Daemon) Shutdown() {
 
 // StartServer starts a mock server and returns a pointer to atypes.PactMockServer
 // struct.
-func (d *Daemon) StartServer(request *types.PactMockServer, reply *types.PactMockServer) error {
+func (d Daemon) StartServer(request types.PactMockServer, reply *types.PactMockServer) error {
 	log.Println("[DEBUG] daemon - starting mock server")
 	server := &types.PactMockServer{}
 	port, svc := d.pactMockSvcManager.NewService(request.Args)
@@ -100,14 +100,14 @@ func (d *Daemon) StartServer(request *types.PactMockServer, reply *types.PactMoc
 }
 
 // VerifyProvider runs the Pact Provider Verification Process.
-func (d *Daemon) VerifyProvider(request *types.VerifyRequest, reply *types.CommandResponse) error {
+func (d Daemon) VerifyProvider(request types.VerifyRequest, reply *types.CommandResponse) error {
 	log.Println("[DEBUG] daemon - verifying provider")
 	exitCode := 1
 
 	// Convert request into flags, and validate request
 	err := request.Validate()
 	if err != nil {
-		*reply = *&types.CommandResponse{
+		*reply = types.CommandResponse{
 			ExitCode: exitCode,
 			Message:  err.Error(),
 		}
@@ -122,7 +122,7 @@ func (d *Daemon) VerifyProvider(request *types.VerifyRequest, reply *types.Comma
 		exitCode = 0
 	}
 
-	*reply = *&types.CommandResponse{
+	*reply = types.CommandResponse{
 		ExitCode: exitCode,
 		Message:  string(out.Bytes()),
 	}
@@ -131,7 +131,7 @@ func (d *Daemon) VerifyProvider(request *types.VerifyRequest, reply *types.Comma
 }
 
 // ListServers returns a slice of all running types.PactMockServers.
-func (d *Daemon) ListServers(request types.PactMockServer, reply *types.PactListResponse) error {
+func (d Daemon) ListServers(request types.PactMockServer, reply *types.PactListResponse) error {
 	log.Println("[DEBUG] daemon - listing mock servers")
 	var servers []*types.PactMockServer
 
@@ -142,7 +142,7 @@ func (d *Daemon) ListServers(request types.PactMockServer, reply *types.PactList
 		})
 	}
 
-	*reply = *&types.PactListResponse{
+	*reply = types.PactListResponse{
 		Servers: servers,
 	}
 
@@ -150,7 +150,7 @@ func (d *Daemon) ListServers(request types.PactMockServer, reply *types.PactList
 }
 
 // StopServer stops the given mock server.
-func (d *Daemon) StopServer(request *types.PactMockServer, reply *types.PactMockServer) error {
+func (d Daemon) StopServer(request types.PactMockServer, reply *types.PactMockServer) error {
 	log.Println("[DEBUG] daemon - stopping mock server")
 	success, err := d.pactMockSvcManager.Stop(request.Pid)
 	if success == true && err == nil {
@@ -158,7 +158,7 @@ func (d *Daemon) StopServer(request *types.PactMockServer, reply *types.PactMock
 	} else {
 		request.Status = 1
 	}
-	*reply = *request
+	*reply = request
 
 	return nil
 }

@@ -123,7 +123,7 @@ func (p *PactClient) VerifyProvider(request *types.VerifyRequest) *types.Command
 	return &res
 }
 
-// ListServers starts a remote Pact Mock Server.
+// ListServers lists all running Pact Mock Servers.
 func (p *PactClient) ListServers() *types.PactListResponse {
 	log.Println("[DEBUG] client: listing servers")
 	var res types.PactListResponse

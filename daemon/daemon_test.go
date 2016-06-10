@@ -147,7 +147,7 @@ func TestStartServer(t *testing.T) {
 
 	req := types.PactMockServer{Pid: 1234}
 	res := types.PactMockServer{}
-	err := daemon.StartServer(&req, &res)
+	err := daemon.StartServer(req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -187,7 +187,7 @@ func TestStopServer(t *testing.T) {
 		Pid: cmd.Process.Pid,
 	}
 
-	err := daemon.StopServer(&request, &res)
+	err := daemon.StopServer(request, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -215,7 +215,7 @@ func TestStopServer_Fail(t *testing.T) {
 
 	manager.ServiceStopError = errors.New("failed to stop server")
 
-	err := daemon.StopServer(&request, &res)
+	err := daemon.StopServer(request, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -235,7 +235,7 @@ func TestStopServer_FailedStatus(t *testing.T) {
 
 	manager.ServiceStopResult = false
 
-	daemon.StopServer(&request, &res)
+	daemon.StopServer(request, &res)
 
 	if res.Status != 1 {
 		t.Fatalf("Expected exit status to be 1 but got: %d", res.Status)
@@ -247,7 +247,7 @@ func TestVerifyProvider_MissingProviderBaseURL(t *testing.T) {
 
 	req := types.VerifyRequest{}
 	res := types.CommandResponse{}
-	err := daemon.VerifyProvider(&req, &res)
+	err := daemon.VerifyProvider(req, &res)
 
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -268,7 +268,7 @@ func TestVerifyProvider_MissingPactURLs(t *testing.T) {
 		ProviderBaseURL: "http://foo.com",
 	}
 	res := types.CommandResponse{}
-	err := daemon.VerifyProvider(&req, &res)
+	err := daemon.VerifyProvider(req, &res)
 
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -290,7 +290,7 @@ func TestVerifyProvider_Valid(t *testing.T) {
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
 	res := types.CommandResponse{}
-	err := daemon.VerifyProvider(&req, &res)
+	err := daemon.VerifyProvider(req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -304,7 +304,7 @@ func TestVerifyProvider_FailedCommand(t *testing.T) {
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
 	res := types.CommandResponse{}
-	err := daemon.VerifyProvider(&req, &res)
+	err := daemon.VerifyProvider(req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -329,7 +329,7 @@ func TestVerifyProvider_ValidProviderStates(t *testing.T) {
 		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
 	res := types.CommandResponse{}
-	err := daemon.VerifyProvider(&req, &res)
+	err := daemon.VerifyProvider(req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
