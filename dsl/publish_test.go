@@ -1,10 +1,12 @@
 package dsl
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +15,89 @@ import (
 	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
+
+func createMockRemoteServer(valid bool) string {
+	file := createSimplePact(valid)
+	dir := filepath.Dir(file.Name())
+	path := filepath.Base(file.Name())
+	port, _ := utils.GetFreePort()
+	go http.ListenAndServe(fmt.Sprintf(":%d", port), http.FileServer(http.Dir(dir)))
+
+	return fmt.Sprintf("http://localhost:%d/%s", port, path)
+}
+
+func createSimplePact(valid bool) *os.File {
+	var data []byte
+	if valid {
+		data = []byte(`
+    {
+      "consumer": {
+        "name": "Some Consumer"
+      },
+      "provider": {
+        "name": "Some Provider"
+      }
+    }
+  `)
+	} else {
+		data = []byte(`
+    {
+      "consumer": {
+        "name": "Some Consumer"
+      }
+    }
+  `)
+	}
+
+	tmpfile, err := ioutil.TempFile("/tmp", "pactgo")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := tmpfile.Write(data); err != nil {
+		log.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	return tmpfile
+}
+
+func createMockRemoteServerWithAuth(valid bool) *httptest.Server {
+	var checkAuth = func(w http.ResponseWriter, r *http.Request) bool {
+		s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+		if len(s) != 2 {
+			return false
+		}
+
+		b, err := base64.StdEncoding.DecodeString(s[1])
+		if err != nil {
+			return false
+		}
+
+		pair := strings.SplitN(string(b), ":", 2)
+		if len(pair) != 2 {
+			return false
+		}
+
+		return pair[0] == "foo" && pair[1] == "bar"
+
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if checkAuth(w, r) {
+			w.Write([]byte("Authenticated!"))
+			return
+		}
+
+		w.Header().Set("WWW-Authenticate", `Basic realm="MY REALM"`)
+		w.WriteHeader(401)
+		w.Write([]byte("401 Unauthorized\n"))
+	}))
+
+	return ts
+}
 
 func TestPublish_validate(t *testing.T) {
 	dir, _ := os.Getwd()
@@ -199,54 +284,6 @@ func TestPublish_readRemotePactFileFail(t *testing.T) {
 	}
 }
 
-func createMockRemoteServer(valid bool) string {
-	file := createSimplePact(valid)
-	dir := filepath.Dir(file.Name())
-	path := filepath.Base(file.Name())
-	port, _ := utils.GetFreePort()
-	go http.ListenAndServe(fmt.Sprintf(":%d", port), http.FileServer(http.Dir(dir)))
-
-	return fmt.Sprintf("http://localhost:%d/%s", port, path)
-}
-
-func createSimplePact(valid bool) *os.File {
-	var data []byte
-	if valid {
-		data = []byte(`
-    {
-      "consumer": {
-        "name": "Some Consumer"
-      },
-      "provider": {
-        "name": "Some Provider"
-      }
-    }
-  `)
-	} else {
-		data = []byte(`
-    {
-      "consumer": {
-        "name": "Some Consumer"
-      }
-    }
-  `)
-	}
-
-	tmpfile, err := ioutil.TempFile("/tmp", "pactgo")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if _, err := tmpfile.Write(data); err != nil {
-		log.Fatal(err)
-	}
-	if err := tmpfile.Close(); err != nil {
-		log.Fatal(err)
-	}
-
-	return tmpfile
-}
-
 func TestPublish_readPactFile(t *testing.T) {
 	p := &Publisher{request: &types.PublishRequest{}}
 	url := createMockRemoteServer(true)
@@ -379,6 +416,46 @@ func TestPublish_PublishWithTags(t *testing.T) {
 	}
 }
 
+func TestPublish_PublishWithAuth(t *testing.T) {
+	p := &Publisher{}
+
+	f := createSimplePact(true)
+	broker := createMockRemoteServerWithAuth(true)
+	defer broker.Close()
+
+	err := p.Publish(&types.PublishRequest{
+		PactURLs:           []string{f.Name()},
+		PactBroker:         broker.URL,
+		ConsumerVersion:    "1.0.0",
+		PactBrokerUsername: "foo",
+		PactBrokerPassword: "bar",
+	})
+
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+}
+
+func TestPublish_PublishWithAuthFail(t *testing.T) {
+	p := &Publisher{}
+
+	f := createSimplePact(true)
+	broker := createMockRemoteServerWithAuth(true)
+	defer broker.Close()
+
+	err := p.Publish(&types.PublishRequest{
+		PactURLs:           []string{f.Name()},
+		PactBroker:         broker.URL,
+		ConsumerVersion:    "1.0.0",
+		PactBrokerUsername: "foo",
+		PactBrokerPassword: "fail",
+	})
+
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
 func TestPublish_tagRequest(t *testing.T) {
 	p := &Publisher{}
 	f := createSimplePact(true)
@@ -427,6 +504,7 @@ func TestPublish_EndToEnd(t *testing.T) {
 		Tags:            []string{"latest", "foobar", "sit4"},
 	})
 
-	fmt.Println(err)
-
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
 }

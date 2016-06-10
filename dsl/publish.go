@@ -81,6 +81,10 @@ func (p *Publisher) call(method string, url string, content []byte) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
+	if p.request != nil && p.request.PactBrokerUsername != "" && p.request.PactBrokerPassword != "" {
+		req.SetBasicAuth(p.request.PactBrokerUsername, p.request.PactBrokerPassword)
+	}
+
 	res, err := client.Do(req)
 	if err != nil {
 		return err
@@ -152,6 +156,7 @@ func (p *Publisher) readRemotePactFile(file string) (*PactFile, []byte, error) {
 // Publish sends the Pacts to a broker, optionally tagging them
 func (p *Publisher) Publish(request *types.PublishRequest) error {
 	log.Println("[DEBUG] pact publisher: publish pact")
+	p.request = request
 
 	for _, url := range request.PactURLs {
 		file, data, err := p.readPactFile(url)
