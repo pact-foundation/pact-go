@@ -213,97 +213,134 @@ func TestPact_AddInteraction(t *testing.T) {
 }
 
 func TestPact_Integration(t *testing.T) {
-	t.Skip() // Enable when running E2E/integration tests before a release
+	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
+		// Enable when running E2E/integration tests before a release
 
-	// Setup Provider API for verification (later...)
-	providerPort := setupProviderAPI()
-	pactDaemonPort := 6666
+		// Setup Provider API for verification (later...)
+		providerPort := setupProviderAPI()
+		pactDaemonPort := 6666
 
-	// Create Pact connecting to local Daemon
-	pact := &Pact{
-		Port:     pactDaemonPort,
-		Consumer: "My Consumer",
-		Provider: "My Provider",
-		LogLevel: "DEBUG",
-	}
-	defer pact.Teardown()
-
-	// Pass in test case
-	var test = func() error {
-		_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port))
-		if err != nil {
-			t.Fatalf("Error sending request: %v", err)
+		// Create Pact connecting to local Daemon
+		pact := &Pact{
+			Port:     pactDaemonPort,
+			Consumer: "billy",
+			Provider: "bobby",
+			LogLevel: "DEBUG",
 		}
-		_, err = http.Get(fmt.Sprintf("http://localhost:%d/bazbat", pact.Server.Port))
-		if err != nil {
-			t.Fatalf("Error sending request: %v", err)
+		defer pact.Teardown()
+
+		// Pass in test case
+		var test = func() error {
+			_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port))
+			if err != nil {
+				t.Fatalf("Error sending request: %v", err)
+			}
+			_, err = http.Get(fmt.Sprintf("http://localhost:%d/bazbat", pact.Server.Port))
+			if err != nil {
+				t.Fatalf("Error sending request: %v", err)
+			}
+
+			return err
 		}
 
-		return err
-	}
+		// Setup a complex interaction
+		jumper := Like(`"jumper"`)
+		shirt := Like(`"shirt"`)
+		tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
+		size := Like(10)
+		colour := Term("red", "red|green|blue")
 
-	// Setup a complex interaction
-	jumper := Like(`"jumper"`)
-	shirt := Like(`"shirt"`)
-	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-	size := Like(10)
-	colour := Term("red", "red|green|blue")
-
-	body :=
-		formatJSON(
-			EachLike(
+		body :=
+			formatJSON(
 				EachLike(
-					fmt.Sprintf(
-						`{
+					EachLike(
+						fmt.Sprintf(
+							`{
 						"size": %s,
 						"colour": %s,
 						"tag": %s
 					}`, size, colour, tag),
-					1),
-				1))
+						1),
+					1))
 
-	// Set up our interactions. Note we have multiple in this test case!
-	pact.
-		AddInteraction().
-		Given("Some state").
-		UponReceiving("Some name for the test").
-		WithRequest(&Request{
-			Method: "GET",
-			Path:   "/foobar",
-		}).
-		WillRespondWith(&Response{
-			Status: 200,
-			Headers: map[string]string{
-				"Content-Type": "application/json",
-			},
-		})
-	pact.
-		AddInteraction().
-		Given("Some state2").
-		UponReceiving("Some name for the test").
-		WithRequest(&Request{
-			Method: "GET",
-			Path:   "/bazbat",
-		}).
-		WillRespondWith(&Response{
-			Status: 200,
-			Body:   body,
+		// Set up our interactions. Note we have multiple in this test case!
+		pact.
+			AddInteraction().
+			Given("Some state").
+			UponReceiving("Some name for the test").
+			WithRequest(&Request{
+				Method: "GET",
+				Path:   "/foobar",
+			}).
+			WillRespondWith(&Response{
+				Status: 200,
+				Headers: map[string]string{
+					"Content-Type": "application/json",
+				},
+			})
+		pact.
+			AddInteraction().
+			Given("Some state2").
+			UponReceiving("Some name for the test").
+			WithRequest(&Request{
+				Method: "GET",
+				Path:   "/bazbat",
+			}).
+			WillRespondWith(&Response{
+				Status: 200,
+				Body:   body,
+			})
+
+		// Verify Collaboration Test interactionns (Consumer sid)
+		err := pact.Verify(test)
+		if err != nil {
+			t.Fatalf("Error on Verify: %v", err)
+		}
+
+		// Publish the Pacts...
+		p := &Publisher{}
+		brokerHost := os.Getenv("PACT_BROKER_HOST")
+		err = p.Publish(&types.PublishRequest{
+			PactURLs:           []string{"../pacts/billy-bobby.json"},
+			PactBroker:         brokerHost,
+			ConsumerVersion:    "1.0.0",
+			Tags:               []string{"latest", "foobar", "sit4"},
+			BrokerUsername:     os.Getenv("PACT_BROKER_USERNAME"),
+			PactBrokerPassword: os.Getenv("PACT_BROKER_PASSWORD"),
 		})
 
-	// Verify
-	err := pact.Verify(test)
-	if err != nil {
-		t.Fatalf("Error on Verify: %v", err)
+		if err != nil {
+			t.Fatalf("Error: %v", err)
+		}
+
+		// Verify the Provider - local Pact Files
+		response := pact.VerifyProvider(&types.VerifyRequest{
+			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
+			PactURLs:               []string{"./pacts/billy-bobby.json"},
+			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
+			ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
+		})
+		fmt.Println(response.Message)
+
+		if response.ExitCode != 0 {
+			t.Fatalf("Expected exit code of 0, got %d", response.ExitCode)
+		}
+
+		// Verify the Provider - Published Pacts
+		response = pact.VerifyProvider(&types.VerifyRequest{
+			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
+			PactURLs:               []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
+			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
+			ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
+			BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+		})
+		fmt.Println(response.Message)
+
+		if response.ExitCode != 0 {
+			t.Fatalf("Expected exit code of 0, got %d", response.ExitCode)
+		}
 	}
-
-	response := pact.VerifyProvider(&types.VerifyRequest{
-		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
-		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
-		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
-	})
-
-	fmt.Println(response.Message)
 }
 
 // Used as the Provider in the verification E2E steps
@@ -316,7 +353,7 @@ func setupProviderAPI() int {
 	})
 	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] provider API: states")
-		fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
+		fmt.Fprintf(w, `{"billy": ["Some state", "Some state2"]}`)
 		w.Header().Add("Content-Type", "application/json")
 	})
 	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {

@@ -141,13 +141,13 @@ func TestPublish_validate(t *testing.T) {
 			PactURLs: []string{
 				testFile,
 			},
-			ConsumerVersion:    "1.0.0",
-			PactBrokerUsername: "userwithoutpass",
+			ConsumerVersion: "1.0.0",
+			BrokerUsername:  "userwithoutpass",
 		},
 	}
 
 	err = p.validate()
-	if err.Error() != "Must provide both or none of PactBrokerUsername and PactBrokerPassword" {
+	if err.Error() != "Must provide both or none of BrokerUsername and PactBrokerPassword" {
 		t.Fatalf("Expected a different error but got '%s'", err.Error())
 	}
 
@@ -163,7 +163,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	err = p.validate()
-	if err.Error() != "Must provide both or none of PactBrokerUsername and PactBrokerPassword" {
+	if err.Error() != "Must provide both or none of BrokerUsername and PactBrokerPassword" {
 		t.Fatalf("Expected a different error but got '%s'", err.Error())
 	}
 
@@ -427,7 +427,7 @@ func TestPublish_PublishWithAuth(t *testing.T) {
 		PactURLs:           []string{f.Name()},
 		PactBroker:         broker.URL,
 		ConsumerVersion:    "1.0.0",
-		PactBrokerUsername: "foo",
+		BrokerUsername:     "foo",
 		PactBrokerPassword: "bar",
 	})
 
@@ -447,7 +447,7 @@ func TestPublish_PublishWithAuthFail(t *testing.T) {
 		PactURLs:           []string{f.Name()},
 		PactBroker:         broker.URL,
 		ConsumerVersion:    "1.0.0",
-		PactBrokerUsername: "foo",
+		BrokerUsername:     "foo",
 		PactBrokerPassword: "fail",
 	})
 
@@ -491,20 +491,5 @@ func TestPublish_tagRequestFail(t *testing.T) {
 
 	if err == nil {
 		t.Fatalf("Expected error but got none")
-	}
-}
-
-func TestPublish_EndToEnd(t *testing.T) {
-	t.Skip()
-	p := &Publisher{}
-	err := p.Publish(&types.PublishRequest{
-		PactURLs:        []string{"../pacts/billy-bobby.json"},
-		PactBroker:      "http://localhost:8080",
-		ConsumerVersion: "1.0.0",
-		Tags:            []string{"latest", "foobar", "sit4"},
-	})
-
-	if err != nil {
-		t.Fatalf("Error: %v", err)
 	}
 }

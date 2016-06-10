@@ -28,6 +28,27 @@ how to get going.
 [![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
 
+## Table of Contents
+<!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:1 -->
+
+1. [Table of Contents](#table-of-contents)
+2. [Installation](#installation)
+3. [Running](#running)
+	1. [Consumer](#consumer)
+		1. [Matching (Consumer Tests)](#matching-consumer-tests)
+	2. [Provider](#provider)
+	3. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
+		1. [Publishing from Go code](#publishing-from-go-code)
+		2. [Publishing from the CLI](#publishing-from-the-cli)
+	4. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+	5. [Output Logging](#output-logging)
+4. [Contact](#contact)
+5. [Documentation](#documentation)
+6. [Roadmap](#roadmap)
+7. [Contributing](#contributing)
+
+<!-- /TOC -->
+
 ## Installation
 
 * Download a [release](https://github.com/pact-foundation/pact-go/releases) for your OS.
@@ -45,7 +66,7 @@ DSLs communicate over a local (RPC) connection, and is transparent to clients.
 *NOTE: The daemon is completely thread safe and it is normal to leave the daemon
 running for long periods (e.g. on a CI server).*
 
-### Example - Consumer
+### Consumer
 1. Start the daemon with `./pact-go daemon`.
 1. `cd <pact-go>/examples`.
 1. `go run consumer.go`.
@@ -94,109 +115,8 @@ func TestSomeApi(t *testing.T) {
 }
 ```
 
-### Example - Provider
 
-1. Start your Provider API:
-
-```go
-mux := http.NewServeMux()
-mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-})
-mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
-	w.Header().Add("Content-Type", "application/json")
-})
-mux.HandleFunc("/someapi", func(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	fmt.Fprintf(w, `
-		[
-			[
-				{
-					"size": 10,
-					"colour": "red",
-					"tag": [
-						[
-							"jumper",
-							"shirt"
-						],
-						[
-							"jumper",
-							"shirt"
-						]
-					]
-				}
-			]
-		]`)
-})
-go http.ListenAndServe(":8000"), mux)
-```
-
-Note that the server has 2 endpoints: `/states` and `/setup` that allows the
-verifier to setup
-[provider states](http://docs.pact.io/documentation/provider_states.html) before
-each test is run.
-
-2. Verify provider API
-
-You can now tell Pact to read in your Pact files and verify that your API will
-satisfy the requirements of each of your known consumers:
-
-```go
-response := pact.VerifyProvider(&types.VerifyRequest{
-	ProviderBaseURL:        "http://localhost:8000",
-	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-	ProviderStatesURL:      "http://localhost:8000/states",
-	ProviderStatesSetupURL: "http://localhost:8000/setup",
-})
-```
-
-Note that `PactURLs` is a list of local pact files or remote based
-urls (e.g. from a
-[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
-
-#### Using the Pact Broker with Basic authentication
-
-The following flags are required to use basic authentication when
-retrieving Pact files from a Pact Broker:
-
-* `BrokerUsername` - the username for Pact Broker basic authentication.
-* `BrokerPassword` - the password for Pact Broker basic authentication.
-
-See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
-for a more complete E2E example.
-
-### Publishing Pacts to a Broker and Tag Pacts
-
-See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
-documentation for more details on the Broker and this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
-on how to make it work for you.
-
-#### Publish from Go code
-
-```go
-pact.PublishPacts(&types.PublishRequest{
-	PactBroker:             "http://pactbroker:8000",
-	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-	ProviderStatesURL:      "http://pactbroker:8000/states",
-	ProviderStatesSetupURL: "http://pactbroker:8000/setup",
-	ConsumerVersion:        "1.0.0",
-	Tags:                   []string{"latest", "dev"},
-})
-```
-
-#### Publish from CLI
-
-Use a cURL request like the following to PUT the pact to the right location,
-specifying your consumer name, provider name and consumer version.
-
-```
-curl -v -XPUT \-H "Content-Type: application/json" \
--d@spec/pacts/a_consumer-a_provider.json \
-http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
-```
-
-### Matching (Consumer Tests)
+#### Matching (Consumer Tests)
 
 In addition to verbatim value matching, you have 3 useful matching functions
 in the `dsl` package that can increase expressiveness and reduce brittle test
@@ -266,6 +186,110 @@ escape backslashes.
 
 Read more about [flexible matching](https://github.com/realestate-com-au/pact/wiki/Regular-expressions-and-type-matching-with-Pact).
 
+
+### Provider
+
+1. Start your Provider API:
+
+```go
+mux := http.NewServeMux()
+mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+})
+mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
+	w.Header().Add("Content-Type", "application/json")
+})
+mux.HandleFunc("/someapi", func(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	fmt.Fprintf(w, `
+		[
+			[
+				{
+					"size": 10,
+					"colour": "red",
+					"tag": [
+						[
+							"jumper",
+							"shirt"
+						],
+						[
+							"jumper",
+							"shirt"
+						]
+					]
+				}
+			]
+		]`)
+})
+go http.ListenAndServe(":8000"), mux)
+```
+
+Note that the server has 2 endpoints: `/states` and `/setup` that allows the
+verifier to setup
+[provider states](http://docs.pact.io/documentation/provider_states.html) before
+each test is run.
+
+2. Verify provider API
+
+You can now tell Pact to read in your Pact files and verify that your API will
+satisfy the requirements of each of your known consumers:
+
+```go
+response := pact.VerifyProvider(&types.VerifyRequest{
+	ProviderBaseURL:        "http://localhost:8000",
+	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+	ProviderStatesURL:      "http://localhost:8000/states",
+	ProviderStatesSetupURL: "http://localhost:8000/setup",
+})
+```
+
+Note that `PactURLs` is a list of local pact files or remote based
+urls (e.g. from a
+[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
+
+
+See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
+for a more complete E2E example.
+
+### Publishing Pacts to a Broker and Tagging Pacts
+
+See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
+documentation for more details on the Broker and this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
+on how to make it work for you.
+
+#### Publishing from Go code
+
+```go
+pact.PublishPacts(&types.PublishRequest{
+	PactBroker:             "http://pactbroker:8000",
+	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+	ProviderStatesURL:      "http://pactbroker:8000/states",
+	ProviderStatesSetupURL: "http://pactbroker:8000/setup",
+	ConsumerVersion:        "1.0.0",
+	Tags:                   []string{"latest", "dev"},
+})
+```
+
+#### Publishing from the CLI
+
+Use a cURL request like the following to PUT the pact to the right location,
+specifying your consumer name, provider name and consumer version.
+
+```
+curl -v -XPUT \-H "Content-Type: application/json" \
+-d@spec/pacts/a_consumer-a_provider.json \
+http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
+```
+
+### Using the Pact Broker with Basic authentication
+
+The following flags are required to use basic authentication when
+publishing or retrieving Pact files to/from a Pact Broker:
+
+* `BrokerUsername` - the username for Pact Broker basic authentication.
+* `BrokerPassword` - the password for Pact Broker basic authentication.
+
 ### Output Logging
 
 Pact Go uses a simple log utility ([logutils](https://github.com/hashicorp/logutils))
@@ -283,28 +307,11 @@ pact := &Pact{
 
 * Twitter: [@pact_up](https://twitter.com/pact_up)
 * Google users group: https://groups.google.com/forum/#!forum/pact-support
+* Gitter: https://gitter.im/realestate-com-au/pact
 
 ## Documentation
 
 Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki](https://github.com/realestate-com-au/pact/wiki).
-
-## Developing
-
-For full integration testing locally, Ruby 2.1.5 must be installed. Under the
-hood, Pact Go bundles the
-[Pact Mock Service](https://github.com/bethesque/pact-mock_service) and
-[Pact Provider Verifier](https://github.com/pact-foundation/pact-provider-verifier)
-projects to implement up to v2.0 of the Pact Specification. This is only
-temporary, until [Pact Reference](https://github.com/pact-foundation/pact-reference/)
-work is completed.
-
-* Git clone https://github.com/pact-foundation/pact-go.git
-* Run `make dev` to build the package and setup the Ruby 'binaries' locally
-
-### Vendoring
-
-We use [Govend](https://github.com/govend/govend) to vendor packages. Please ensure
-any new packages are added to `vendor.yml` prior to patching.
 
 ## Roadmap
 

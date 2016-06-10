@@ -9,7 +9,7 @@ type PublishRequest struct {
 	PactBroker string
 
 	// Username for Pact Broker basic authentication. Optional
-	PactBrokerUsername string
+	BrokerUsername string
 
 	// Password for Pact Broker basic authentication. Optional
 	PactBrokerPassword string
