@@ -6,6 +6,7 @@ import (
 )
 
 var port int
+var daemonCmdInstance *daemon.Daemon
 var daemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "Creates a daemon for the Pact DSLs to communicate with",
@@ -17,11 +18,12 @@ var daemonCmd = &cobra.Command{
 		mock.Setup()
 		verifier := &daemon.VerificationService{}
 		verifier.Setup()
-		daemon.NewDaemon(mock, verifier).StartDaemon(port)
+		daemonCmdInstance = daemon.NewDaemon(mock, verifier)
+		daemonCmdInstance.StartDaemon(port)
 	},
 }
 
 func init() {
-	daemonCmd.LocalFlags().IntVarP(&port, "port", "p", 6666, "Local daemon port")
+	daemonCmd.Flags().IntVarP(&port, "port", "p", 6666, "Local daemon port")
 	RootCmd.AddCommand(daemonCmd)
 }

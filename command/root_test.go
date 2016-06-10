@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func Test_RootCommand(t *testing.T) {
+func TestRootCommand(t *testing.T) {
 	os.Args = []string{"version"}
 	err := RootCmd.Execute()
 	if err != nil {
@@ -18,7 +18,14 @@ func Test_RootCommand(t *testing.T) {
 	Execute()
 }
 
-func Test_LogLevel(t *testing.T) {
+func TestRootCommand_initConfig(t *testing.T) {
+	initConfig()
+
+	cfgFile = "/tmp/foobar.config"
+	initConfig()
+}
+
+func TestRootCommand_LogLevel(t *testing.T) {
 	res := captureOutput(func() {
 		setLogLevel(true, "DEBUG")
 		log.Println("[DEBUG] this should display")
