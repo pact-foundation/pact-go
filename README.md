@@ -191,66 +191,66 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 
 1. Start your Provider API:
 
-```go
-mux := http.NewServeMux()
-mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-})
-mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
-	w.Header().Add("Content-Type", "application/json")
-})
-mux.HandleFunc("/someapi", func(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	fmt.Fprintf(w, `
-		[
+	```go
+	mux := http.NewServeMux()
+	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+	})
+	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
+		w.Header().Add("Content-Type", "application/json")
+	})
+	mux.HandleFunc("/someapi", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		fmt.Fprintf(w, `
 			[
-				{
-					"size": 10,
-					"colour": "red",
-					"tag": [
-						[
-							"jumper",
-							"shirt"
-						],
-						[
-							"jumper",
-							"shirt"
+				[
+					{
+						"size": 10,
+						"colour": "red",
+						"tag": [
+							[
+								"jumper",
+								"shirt"
+							],
+							[
+								"jumper",
+								"shirt"
+							]
 						]
-					]
-				}
-			]
-		]`)
-})
-go http.ListenAndServe(":8000"), mux)
-```
+					}
+				]
+			]`)
+	})
+	go http.ListenAndServe(":8000"), mux)
+	```
 
-Note that the server has 2 endpoints: `/states` and `/setup` that allows the
-verifier to setup
-[provider states](http://docs.pact.io/documentation/provider_states.html) before
-each test is run.
+	Note that the server has 2 endpoints: `/states` and `/setup` that allows the
+	verifier to setup
+	[provider states](http://docs.pact.io/documentation/provider_states.html) before
+	each test is run.
 
 2. Verify provider API
 
-You can now tell Pact to read in your Pact files and verify that your API will
-satisfy the requirements of each of your known consumers:
+	You can now tell Pact to read in your Pact files and verify that your API will
+	satisfy the requirements of each of your known consumers:
 
-```go
-response := pact.VerifyProvider(&types.VerifyRequest{
-	ProviderBaseURL:        "http://localhost:8000",
-	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-	ProviderStatesURL:      "http://localhost:8000/states",
-	ProviderStatesSetupURL: "http://localhost:8000/setup",
-})
-```
+	```go
+	response := pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL:        "http://localhost:8000",
+		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+		ProviderStatesURL:      "http://localhost:8000/states",
+		ProviderStatesSetupURL: "http://localhost:8000/setup",
+	})
+	```
 
-Note that `PactURLs` is a list of local pact files or remote based
-urls (e.g. from a
-[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
+	Note that `PactURLs` is a list of local pact files or remote based
+	urls (e.g. from a
+	[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
 
 
-See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
-for a more complete E2E example.
+	See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
+	for a more complete E2E example.
 
 ### Publishing Pacts to a Broker and Tagging Pacts
 

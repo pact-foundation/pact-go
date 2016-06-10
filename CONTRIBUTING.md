@@ -45,15 +45,15 @@ we smoke test the key features against a running Daemon and Broker.
 
 1. Start daemon:
 
-```
-go build .
-./pact-go daemon
-```
+  ```
+  go build .
+  ./pact-go daemon
+  ```
 
 2. Start a broker
 
-See [Pact Broker](https://github.com/bethesque/pact_broker#usage) for details.
-Make sure you have basic auth setup so we can test authentication.
+  See [Pact Broker](https://github.com/bethesque/pact_broker#usage) for details.
+  Make sure you have basic auth setup so we can test authentication.
 
 3. Run the integrated tests
 
