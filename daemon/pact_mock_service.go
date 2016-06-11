@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/kardianos/osext"
 	"github.com/pact-foundation/pact-go/utils"
 )
 
@@ -35,6 +36,6 @@ func (m *PactMockService) NewService(args []string) (int, Service) {
 }
 
 func getMockServiceCommandPath() string {
-	dir, _ := os.Getwd()
+	dir, _ := osext.ExecutableFolder()
 	return fmt.Sprintf(filepath.Join(dir, "pact-mock-service", "bin", "pact-mock-service"))
 }

@@ -3,8 +3,9 @@ package daemon
 import (
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
+
+	"github.com/kardianos/osext"
 )
 
 // VerificationService is a wrapper for the Pact Provider Verifier Service.
@@ -30,6 +31,6 @@ func (m *VerificationService) NewService(args []string) (int, Service) {
 }
 
 func getVerifierCommandPath() string {
-	dir, _ := os.Getwd()
+	dir, _ := osext.ExecutableFolder()
 	return fmt.Sprintf(filepath.Join(dir, "pact-provider-verifier", "bin", "pact-provider-verifier"))
 }
