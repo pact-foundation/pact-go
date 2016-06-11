@@ -75,7 +75,7 @@ running for long periods (e.g. on a CI server).*
 import "github.com/pact-foundation/pact-go/dsl"
 import ...
 
-func TestSomeApi(t *testing.T) {
+func TestLogin(t *testing.T) {
 
 	// Create Pact, connecting to local Daemon
 	// Ensure the port matches the daemon port!
@@ -242,6 +242,10 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 		ProviderStatesURL:      "http://localhost:8000/states",
 		ProviderStatesSetupURL: "http://localhost:8000/setup",
 	})
+
+	if response.ExitCode != 0 {
+		t.Fatalf("Got non-zero exit code '%d', expected 0", response.ExitCode)
+	}
 	```
 
 	Note that `PactURLs` is a list of local pact files or remote based

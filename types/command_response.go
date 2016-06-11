@@ -1,3 +1,4 @@
+// Package types contains a number of structs common to the library.
 package types
 
 // CommandResponse contains the exit status and any message from running

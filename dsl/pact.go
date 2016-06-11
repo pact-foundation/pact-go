@@ -1,3 +1,7 @@
+/*
+Package dsl contains the main Pact DSL used in the Consumer
+collaboration test cases, and Provider contract test verification.
+*/
 package dsl
 
 import (
@@ -29,7 +33,7 @@ type Pact struct {
 	// Interactions contains all of the Mock Service Interactions to be setup.
 	Interactions []*Interaction
 
-	// Log levels
+	// Log levels.
 	LogLevel string
 
 	// Used to detect if logging has been configured

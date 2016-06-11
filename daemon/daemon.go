@@ -1,3 +1,14 @@
+/*
+Package daemon implements the RPC server side interface to remotely manage
+external Pact dependencies: The Pact Mock Service and Provider Verification
+"binaries."
+
+See https://github.com/pact-foundation/pact-provider-verifier and
+https://github.com/bethesque/pact-mock_service for more on the Ruby "binaries".
+
+NOTE: The ultimate goal here is to replace the Ruby dependencies with a shared
+library (Pact Reference - (https://github.com/pact-foundation/pact-reference/).
+*/
 package daemon
 
 // Runs the RPC daemon for remote communication
@@ -41,17 +52,15 @@ func (d Daemon) StartDaemon(port int) {
 	serv := rpc.NewServer()
 	serv.Register(d)
 
-	// ===== workaround ==========
+	// Workaround for multiple RPC ServeMux's
 	oldMux := http.DefaultServeMux
 	mux := http.NewServeMux()
 	http.DefaultServeMux = mux
-	// ===========================
 
 	serv.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
 
-	// ===== workaround ==========
+	// Workaround for multiple RPC ServeMux's
 	http.DefaultServeMux = oldMux
-	// ===========================
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {

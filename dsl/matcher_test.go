@@ -291,3 +291,127 @@ func formatJSON(object string) string {
 	json.Indent(&out, []byte(object), "", "\t")
 	return string(out.Bytes())
 }
+
+func ExampleLike_string() {
+	match := Like(`"myspecialvalue"`)
+	fmt.Println(formatJSON(match))
+	// Output:
+	//{
+	//	"json_class": "Pact::SomethingLike",
+	//	"contents": "myspecialvalue"
+	//}
+}
+
+func ExampleLike_object() {
+	match := Like(`{"baz":"bat"}`)
+	fmt.Println(formatJSON(match))
+	// Output:
+	//{
+	//	"json_class": "Pact::SomethingLike",
+	//	"contents": {
+	//		"baz": "bat"
+	//	}
+	//}
+}
+
+func ExampleLike_number() {
+	match := Like(37)
+	fmt.Println(formatJSON(match))
+	// Output:
+	//{
+	//	"json_class": "Pact::SomethingLike",
+	//	"contents": 37
+	//}
+}
+
+func ExampleTerm() {
+	match := Term("myawesomeword", `\\w+`)
+	fmt.Println(formatJSON(match))
+	// Output:
+	//{
+	//	"json_class": "Pact::Term",
+	//	"data": {
+	//		"generate": "myawesomeword",
+	//		"matcher": {
+	//			"json_class": "Regexp",
+	//			"o": 0,
+	//			"s": "\\w+"
+	//		}
+	//	}
+	//}
+}
+
+func ExampleEachLike() {
+	match := EachLike(`[1,2,3]`, 1)
+	fmt.Println(formatJSON(match))
+	// Output:
+	//{
+	//	"json_class": "Pact::ArrayLike",
+	//	"contents": [
+	//		1,
+	//		2,
+	//		3
+	//	],
+	//	"min": 1
+	//}
+}
+
+func ExampleEachLike_nested() {
+	jumper := Like(`"jumper"`)
+	shirt := Like(`"shirt"`)
+	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
+	size := Like(10)
+	colour := Term("red", "red|green|blue")
+
+	match := EachLike(
+		EachLike(
+			fmt.Sprintf(
+				`{
+							"size": %s,
+							"colour": %s,
+							"tag": %s
+						}`, size, colour, tag),
+			1),
+		1)
+	fmt.Println(formatJSON(match))
+	// Output:
+	//{
+	//	"json_class": "Pact::ArrayLike",
+	//	"contents": {
+	//		"json_class": "Pact::ArrayLike",
+	//		"contents": {
+	//			"size": {
+	//				"json_class": "Pact::SomethingLike",
+	//				"contents": 10
+	//			},
+	//			"colour": {
+	//				"json_class": "Pact::Term",
+	//				"data": {
+	//					"generate": "red",
+	//					"matcher": {
+	//						"json_class": "Regexp",
+	//						"o": 0,
+	//						"s": "red|green|blue"
+	//					}
+	//				}
+	//			},
+	//			"tag": {
+	//				"json_class": "Pact::ArrayLike",
+	//				"contents": [
+	//					{
+	//						"json_class": "Pact::SomethingLike",
+	//						"contents": "jumper"
+	//					},
+	//					{
+	//						"json_class": "Pact::SomethingLike",
+	//						"contents": "shirt"
+	//					}
+	//				],
+	//				"min": 2
+	//			}
+	//		},
+	//		"min": 1
+	//	},
+	//	"min": 1
+	//}
+}

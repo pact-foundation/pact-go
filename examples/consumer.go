@@ -1,3 +1,4 @@
+// Package main contains a runnable Consumer Pact test example.
 package main
 
 import (
@@ -65,4 +66,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error on Verify: %v", err)
 	}
+
+	fmt.Println("Test Passed!")
 }

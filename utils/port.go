@@ -1,3 +1,4 @@
+// Package utils contains a number of helper / utility functions.
 package utils
 
 import "net"

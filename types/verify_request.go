@@ -26,12 +26,13 @@ type VerifyRequest struct {
 	BrokerPassword string
 
 	// Arguments to the VerificationProvider
-	// NOTE: This will be deleted after the native library replaces Ruby deps.
+	// Deprecated: This will be deleted after the native library replaces Ruby deps.
 	Args []string
 }
 
 // Validate checks that the minimum fields are provided.
-// NOTE: This will be deleted after the native library replaces Ruby deps.
+// Deprecated: This map be deleted after the native library replaces Ruby deps,
+// and should not be used outside of this library.
 func (v *VerifyRequest) Validate() error {
 	v.Args = []string{}
 	if v.ProviderBaseURL != "" {
