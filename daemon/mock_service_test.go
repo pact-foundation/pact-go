@@ -2,8 +2,8 @@ package daemon
 
 import "testing"
 
-func TestPactMockService_NewService(t *testing.T) {
-	s := &PactMockService{}
+func TestMockService_NewService(t *testing.T) {
+	s := &MockService{}
 	port, svc := s.NewService([]string{"--foo bar"})
 
 	if port <= 0 {
@@ -14,7 +14,7 @@ func TestPactMockService_NewService(t *testing.T) {
 		t.Fatalf("Expected a non-nil object but got nil")
 	}
 
-	if s.Args[4] != "--foo bar" {
+	if s.Args[1] != "--foo bar" {
 		t.Fatalf("Expected '--foo bar' argument to be passed")
 	}
 }

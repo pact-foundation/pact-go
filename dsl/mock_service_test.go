@@ -35,7 +35,7 @@ func TestMockService_AddInteraction(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	mockService := &PactMockService{
+	mockService := &MockService{
 		BaseURL: ms.URL,
 	}
 	i := (&Interaction{}).
@@ -54,7 +54,7 @@ func TestMockService_AddInteractionFail(t *testing.T) {
 	ms := setupMockServer(false, t)
 	defer ms.Close()
 
-	mockService := &PactMockService{
+	mockService := &MockService{
 		BaseURL: ms.URL,
 	}
 	i := (&Interaction{}).
@@ -73,7 +73,7 @@ func TestMockService_DeleteInteractions(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	mockService := &PactMockService{
+	mockService := &MockService{
 		BaseURL: ms.URL,
 	}
 	err := mockService.DeleteInteractions()
@@ -87,7 +87,7 @@ func TestMockService_WritePact(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	mockService := &PactMockService{
+	mockService := &MockService{
 		BaseURL:  ms.URL,
 		Consumer: "Foo Consumer",
 		Provider: "Bar Provider",
@@ -104,7 +104,7 @@ func TestMockService_WritePactFail(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	mockService := &PactMockService{
+	mockService := &MockService{
 		BaseURL: ms.URL,
 	}
 
@@ -119,7 +119,7 @@ func TestMockService_Verify(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	mockService := &PactMockService{
+	mockService := &MockService{
 		BaseURL: ms.URL,
 	}
 
@@ -134,7 +134,7 @@ func TestMockService_VerifyFail(t *testing.T) {
 	ms := setupMockServer(false, t)
 	defer ms.Close()
 
-	mockService := &PactMockService{
+	mockService := &MockService{
 		BaseURL: ms.URL,
 	}
 

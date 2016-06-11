@@ -13,6 +13,10 @@ import (
 	"github.com/pact-foundation/pact-go/utils"
 )
 
+var dir, _ = os.Getwd()
+var pactDir = fmt.Sprintf("%s/../pacts", dir)
+var logDir = fmt.Sprintf("%s/../logs", dir)
+
 func TestPact_setupLogging(t *testing.T) {
 	res := captureOutput(func() {
 		(&Pact{LogLevel: "DEBUG"}).setupLogging()
@@ -67,7 +71,7 @@ func TestPact_Verify(t *testing.T) {
 	}
 
 	pact := &Pact{
-		Server: &types.PactMockServer{
+		Server: &types.MockServer{
 			Port: getPort(ms.URL),
 		},
 		Consumer: "My Consumer",
@@ -91,13 +95,49 @@ func TestPact_Verify(t *testing.T) {
 	}
 }
 
+func TestPact_WritePact(t *testing.T) {
+	ms := setupMockServer(true, t)
+	defer ms.Close()
+
+	pact := &Pact{
+		Server: &types.MockServer{
+			Port: getPort(ms.URL),
+		},
+		Consumer: "My Consumer",
+		Provider: "My Provider",
+	}
+
+	err := pact.WritePact()
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+}
+
+func TestPact_WritePactFail(t *testing.T) {
+	ms := setupMockServer(false, t)
+	defer ms.Close()
+
+	pact := &Pact{
+		Server: &types.MockServer{
+			Port: getPort(ms.URL),
+		},
+		Consumer: "My Consumer",
+		Provider: "My Provider",
+	}
+
+	err := pact.WritePact()
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
 func TestPact_VerifyFail(t *testing.T) {
 	ms := setupMockServer(false, t)
 	defer ms.Close()
 	var testFunc = func() error { return nil }
 
 	pact := &Pact{
-		Server: &types.PactMockServer{
+		Server: &types.MockServer{
 			Port: getPort(ms.URL),
 		},
 	}
@@ -226,6 +266,8 @@ func TestPact_Integration(t *testing.T) {
 			Consumer: "billy",
 			Provider: "bobby",
 			LogLevel: "DEBUG",
+			LogDir:   logDir,
+			PactDir:  pactDir,
 		}
 		defer pact.Teardown()
 
@@ -296,6 +338,9 @@ func TestPact_Integration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error on Verify: %v", err)
 		}
+
+		// Write pact to file `<pact-go>/pacts/my_consumer-my_provider.json`
+		pact.WritePact()
 
 		// Publish the Pacts...
 		p := &Publisher{}

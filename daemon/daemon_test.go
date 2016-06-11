@@ -145,8 +145,8 @@ func TestDaemonShutdown(t *testing.T) {
 func TestStartServer(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 
-	req := types.PactMockServer{Pid: 1234}
-	res := types.PactMockServer{}
+	req := types.MockServer{Pid: 1234}
+	res := types.MockServer{}
 	err := daemon.StartServer(req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -164,7 +164,7 @@ func TestStartServer(t *testing.T) {
 func TestListServers(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 	var res types.PactListResponse
-	err := daemon.ListServers(types.PactMockServer{}, &res)
+	err := daemon.ListServers(types.MockServer{}, &res)
 
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -178,12 +178,12 @@ func TestListServers(t *testing.T) {
 func TestStopServer(t *testing.T) {
 	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
-	var res types.PactMockServer
+	var res types.MockServer
 
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := types.PactMockServer{
+	request := types.MockServer{
 		Pid: cmd.Process.Pid,
 	}
 
@@ -204,12 +204,12 @@ func TestStopServer(t *testing.T) {
 func TestStopServer_Fail(t *testing.T) {
 	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
-	var res types.PactMockServer
+	var res types.MockServer
 
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := types.PactMockServer{
+	request := types.MockServer{
 		Pid: cmd.Process.Pid,
 	}
 
@@ -224,12 +224,12 @@ func TestStopServer_Fail(t *testing.T) {
 func TestStopServer_FailedStatus(t *testing.T) {
 	daemon, manager := createMockedDaemon(true)
 	var cmd *exec.Cmd
-	var res types.PactMockServer
+	var res types.MockServer
 
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := types.PactMockServer{
+	request := types.MockServer{
 		Pid: cmd.Process.Pid,
 	}
 
@@ -344,7 +344,7 @@ func TestRPCClient_List(t *testing.T) {
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
 	var res types.PactListResponse
-	err = client.Call("Daemon.ListServers", types.PactMockServer{}, &res)
+	err = client.Call("Daemon.ListServers", types.MockServer{}, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
 	}
@@ -362,8 +362,8 @@ func TestRPCClient_StartServer(t *testing.T) {
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res types.PactMockServer
-	err = client.Call("Daemon.StartServer", types.PactMockServer{}, &res)
+	var res types.MockServer
+	err = client.Call("Daemon.StartServer", types.MockServer{}, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
 	}
@@ -388,12 +388,12 @@ func TestRPCClient_StopServer(t *testing.T) {
 	for _, s := range manager.List() {
 		cmd = s
 	}
-	request := types.PactMockServer{
+	request := types.MockServer{
 		Pid: cmd.Process.Pid,
 	}
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
-	var res *types.PactMockServer
+	var res *types.MockServer
 	err = client.Call("Daemon.StopServer", request, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)

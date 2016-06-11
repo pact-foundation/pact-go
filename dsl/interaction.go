@@ -38,6 +38,17 @@ func (p *Interaction) UponReceiving(description string) *Interaction {
 // Mandatory.
 func (p *Interaction) WithRequest(request *Request) *Interaction {
 	p.Request = request
+
+	// Need to fix any weird JSON marshalling issues with the body Here
+	// If body is a string, not an object, we need to put it back into an object
+	// so that it's not double encoded
+	switch content := request.Body.(type) {
+	case string:
+		p.Request.Body = toObject([]byte(content))
+	default:
+		// leave alone
+	}
+
 	return p
 }
 

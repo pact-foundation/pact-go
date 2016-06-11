@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/types"
@@ -16,7 +17,7 @@ import (
 // Pact is the container structure to run the Consumer Pact test cases.
 type Pact struct {
 	// Current server for the consumer.
-	Server *types.PactMockServer
+	Server *types.MockServer
 
 	// Port the Pact Daemon is running on.
 	Port int
@@ -36,8 +37,20 @@ type Pact struct {
 	// Log levels.
 	LogLevel string
 
-	// Used to detect if logging has been configured
+	// Used to detect if logging has been configured.
 	logFilter *logutils.LevelFilter
+
+	// Location of Pact external service invocation output logging.
+	// Defaults to `<cwd>/logs`.
+	LogDir string
+
+	// Pact files will be saved in this folder.
+	// Defaults to `<cwd>/pacts`.
+	PactDir string
+
+	// Specify which version of the Pact Specification should be used (1 or 2).
+	// Defaults to 2.
+	SpecificationVersion int
 }
 
 // AddInteraction creates a new Pact interaction, initialising all
@@ -56,10 +69,29 @@ func (p *Pact) AddInteraction() *Interaction {
 func (p *Pact) Setup() *Pact {
 	p.setupLogging()
 	log.Printf("[DEBUG] pact setup")
+	dir, _ := os.Getwd()
+
+	if p.LogDir == "" {
+		p.LogDir = fmt.Sprintf(filepath.Join(dir, "logs"))
+	}
+
+	if p.PactDir == "" {
+		p.PactDir = fmt.Sprintf(filepath.Join(dir, "pacts"))
+	}
+
+	if p.SpecificationVersion == 0 {
+		p.SpecificationVersion = 2
+	}
+
 	if p.Server == nil {
+		args := []string{
+			fmt.Sprintf("--pact-specification-version %d", p.SpecificationVersion),
+			fmt.Sprintf("--pact-dir %s", p.PactDir),
+			fmt.Sprintf("--log %s/pact.log", p.LogDir),
+		}
 		client := &PactClient{Port: p.Port}
 		p.pactClient = client
-		p.Server = client.StartServer()
+		p.Server = client.StartServer(args)
 	}
 
 	return p
@@ -85,16 +117,18 @@ func (p *Pact) setupLogging() {
 // of each test suite.
 func (p *Pact) Teardown() *Pact {
 	log.Printf("[DEBUG] teardown")
-	p.Server = p.pactClient.StopServer(p.Server)
-
+	if p.Server != nil {
+		p.Server = p.pactClient.StopServer(p.Server)
+	}
 	return p
 }
 
 // Verify runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite.
 func (p *Pact) Verify(integrationTest func() error) error {
+	p.Setup()
 	log.Printf("[DEBUG] pact verify")
-	mockServer := &PactMockService{
+	mockServer := &MockService{
 		BaseURL:  fmt.Sprintf("http://localhost:%d", p.Server.Port),
 		Consumer: p.Consumer,
 		Provider: p.Provider,
@@ -116,17 +150,35 @@ func (p *Pact) Verify(integrationTest func() error) error {
 		return err
 	}
 
-	err = mockServer.WritePact()
+	// Clear out interations
+	p.Interactions = make([]*Interaction, 0)
+
+	return mockServer.DeleteInteractions()
+}
+
+// WritePact should be called writes when all tests have been performed for a
+// given Consumer <-> Provider pair. It will write out the Pact to the
+// configured file.
+func (p *Pact) WritePact() error {
+	p.Setup()
+	log.Printf("[DEBUG] pact write Pact file")
+	mockServer := &MockService{
+		BaseURL:  fmt.Sprintf("http://localhost:%d", p.Server.Port),
+		Consumer: p.Consumer,
+		Provider: p.Provider,
+	}
+	err := mockServer.WritePact()
 	if err != nil {
 		return err
 	}
 
-	return mockServer.DeleteInteractions()
+	return nil
 }
 
 // VerifyProvider reads the provided pact files and runs verification against
 // a running Provider API.
 func (p *Pact) VerifyProvider(request *types.VerifyRequest) *types.CommandResponse {
+	p.Setup()
 	log.Printf("[DEBUG] pact provider verification")
 	return p.pactClient.VerifyProvider(request)
 }

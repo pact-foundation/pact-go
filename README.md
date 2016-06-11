@@ -111,7 +111,9 @@ func TestLogin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
-    // You should now have a pact file in the file `<pact-go>/pacts/my_consumer-my_provider.json`
+
+	// Write pact to file `<pact-go>/pacts/my_consumer-my_provider.json`
+	pact.WritePact()
 }
 ```
 

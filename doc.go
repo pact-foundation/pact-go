@@ -52,6 +52,9 @@ A typical consumer-side test would look something like this:
 		if err != nil {
 			t.Fatalf("Error on Verify: %v", err)
 		}
+
+		// Write pact to file
+		pact.WritePact()
 	}
 
 If this test completed successfully, a Pact file should have been written to

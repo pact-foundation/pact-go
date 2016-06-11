@@ -21,6 +21,54 @@ func TestInteraction_NewInteraction(t *testing.T) {
 	}
 }
 
+func TestInteraction_WithRequest(t *testing.T) {
+	// Pass in plain string, should be left alone
+	i := (&Interaction{}).
+		Given("Some state").
+		UponReceiving("Some name for the test").
+		WithRequest(&Request{
+			Body: "somestring",
+		})
+
+	content, ok := i.Request.Body.(string)
+
+	if !ok {
+		t.Fatalf("must be a string")
+	}
+
+	if content != "somestring" {
+		t.Fatalf("Expected 'somestring' but got '%s'", content)
+	}
+
+	// structured string should be changed to an interface{}
+	i = (&Interaction{}).
+		Given("Some state").
+		UponReceiving("Some name for the test").
+		WithRequest(&Request{
+			Body: `{
+			"foo": "bar",
+			"baz": "bat"
+			}`,
+		})
+
+	obj := map[string]string{
+		"foo": "bar",
+		"baz": "bat",
+	}
+
+	var expect interface{}
+	body, _ := json.Marshal(obj)
+	json.Unmarshal(body, &expect)
+
+	if _, ok := i.Request.Body.(map[string]interface{}); !ok {
+		t.Fatalf("Expected response to be of type 'map[string]string'")
+	}
+
+	if !reflect.DeepEqual(i.Request.Body, expect) {
+		t.Fatalf("Expected response object body '%v' to match '%v'", i.Request.Body, expect)
+	}
+}
+
 func TestInteraction_WillRespondWith(t *testing.T) {
 	// Pass in plain string, should be left alone
 	i := (&Interaction{}).

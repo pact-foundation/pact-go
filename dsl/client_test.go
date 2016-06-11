@@ -130,7 +130,7 @@ func TestClient_List(t *testing.T) {
 func TestClient_ListFail(t *testing.T) {
 	timeoutDuration = 50 * time.Millisecond
 	client := &PactClient{ /* don't supply port */ }
-	client.StartServer()
+	client.StartServer([]string{})
 	list := client.ListServers()
 
 	if len(list.Servers) != 0 {
@@ -146,7 +146,7 @@ func TestClient_StartServer(t *testing.T) {
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	client.StartServer()
+	client.StartServer([]string{})
 	if svc.ServiceStartCount != 1 {
 		t.Fatalf("Expected 1 server to have been started, got %d", svc.ServiceStartCount)
 	}
@@ -185,11 +185,11 @@ func TestClient_StartServerRPCError(t *testing.T) {
 		"rpc: service/method request ill-formed: failcommand": func() interface{} {
 			return client.StopDaemon().Error()
 		},
-		&types.PactMockServer{}: func() interface{} {
-			return client.StopServer(&types.PactMockServer{})
+		&types.MockServer{}: func() interface{} {
+			return client.StopServer(&types.MockServer{})
 		},
-		&types.PactMockServer{}: func() interface{} {
-			return client.StartServer()
+		&types.MockServer{}: func() interface{} {
+			return client.StartServer([]string{})
 		},
 		&types.PactListResponse{}: func() interface{} {
 			return client.ListServers()
@@ -300,7 +300,7 @@ func TestClient_StartServerFail(t *testing.T) {
 	timeoutDuration = 50 * time.Millisecond
 
 	client := &PactClient{ /* don't supply port */ }
-	server := client.StartServer()
+	server := client.StartServer([]string{})
 	if server.Port != 0 {
 		t.Fatalf("Expected server to be empty %v", server)
 	}
@@ -314,7 +314,7 @@ func TestClient_StopServer(t *testing.T) {
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	client.StopServer(&types.PactMockServer{})
+	client.StopServer(&types.MockServer{})
 	if svc.ServiceStopCount != 1 {
 		t.Fatalf("Expected 1 server to have been stopped, got %d", svc.ServiceStartCount)
 	}
@@ -323,8 +323,8 @@ func TestClient_StopServer(t *testing.T) {
 func TestClient_StopServerFail(t *testing.T) {
 	timeoutDuration = 50 * time.Millisecond
 	client := &PactClient{ /* don't supply port */ }
-	res := client.StopServer(&types.PactMockServer{})
-	should := &types.PactMockServer{}
+	res := client.StopServer(&types.MockServer{})
+	should := &types.MockServer{}
 	if !reflect.DeepEqual(res, should) {
 		t.Fatalf("Expected nil object but got a difference: %v != %v", res, should)
 	}

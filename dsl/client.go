@@ -24,7 +24,7 @@ var (
 
 // Client is the simplified remote interface to the Pact Daemon.
 type Client interface {
-	StartServer() *types.PactMockServer
+	StartServer() *types.MockServer
 }
 
 // PactClient is the default implementation of the Client interface.
@@ -83,12 +83,12 @@ var waitForPort = func(port int, message string) error {
 }
 
 // StartServer starts a remote Pact Mock Server.
-func (p *PactClient) StartServer() *types.PactMockServer {
+func (p *PactClient) StartServer(args []string) *types.MockServer {
 	log.Println("[DEBUG] client: starting a server")
-	var res types.PactMockServer
+	var res types.MockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call(commandStartServer, types.PactMockServer{}, &res)
+		err = client.Call(commandStartServer, types.MockServer{Args: args}, &res)
 		if err != nil {
 			log.Println("[ERROR] rpc:", err.Error())
 		}
@@ -129,7 +129,7 @@ func (p *PactClient) ListServers() *types.PactListResponse {
 	var res types.PactListResponse
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
-		err = client.Call(commandListServers, types.PactMockServer{}, &res)
+		err = client.Call(commandListServers, types.MockServer{}, &res)
 		if err != nil {
 			log.Println("[ERROR] rpc:", err.Error())
 		}
@@ -138,9 +138,9 @@ func (p *PactClient) ListServers() *types.PactListResponse {
 }
 
 // StopServer stops a remote Pact Mock Server.
-func (p *PactClient) StopServer(server *types.PactMockServer) *types.PactMockServer {
+func (p *PactClient) StopServer(server *types.MockServer) *types.MockServer {
 	log.Println("[DEBUG] client: stop server")
-	var res types.PactMockServer
+	var res types.MockServer
 	client, err := getHTTPClient(p.Port)
 	if err == nil {
 		err = client.Call(commandStopServer, server, &res)

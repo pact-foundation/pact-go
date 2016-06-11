@@ -21,9 +21,9 @@ var RootCmd = &cobra.Command{
 	Use:   "pact-go",
 	Short: "Pact Go makes it easier to work with Pact with Golang projects",
 	Long: `Pact Go is a utility that wraps a number of external applications into
-		an idiomatic Golang interface and CLI, providing a mock service and DSL for
-		the consumer project, and interaction playback and verification for the
-		service provider project.`,
+an idiomatic Golang interface and CLI, providing a mock service and DSL for
+the consumer project, and interaction playback and verification for the
+service provider project.`,
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
