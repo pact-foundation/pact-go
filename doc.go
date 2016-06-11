@@ -1,6 +1,7 @@
 /*
-Package dsl contains the main Pact DSL used in the Consumer
-collaboration test cases, and Provider contract test verification.
+Pact Go enables consumer driven contract testing, providing a mock service and
+DSL for the consumer project, and interaction playback and verification
+for the service provider project.
 
 Consumer tests
 
