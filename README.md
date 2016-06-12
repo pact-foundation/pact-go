@@ -42,10 +42,11 @@ how to get going.
 		2. [Publishing from the CLI](#publishing-from-the-cli)
 	4. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
 	5. [Output Logging](#output-logging)
-4. [Contact](#contact)
-5. [Documentation](#documentation)
-6. [Roadmap](#roadmap)
-7. [Contributing](#contributing)
+4. [Examples](#examples)
+5. [Contact](#contact)
+6. [Documentation](#documentation)
+7. [Roadmap](#roadmap)
+8. [Contributing](#contributing)
 
 <!-- /TOC -->
 
@@ -308,6 +309,11 @@ pact := &Pact{
 	LogLevel: "DEBUG", // One of DEBUG, INFO, ERROR, NONE
 }
 ```
+
+## Examples
+
+* [Simple Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/consumer.go)
+* [Go Kit](https://github.com/pact-foundation/pact-go/tree/master/examples/go-kit)
 
 ## Contact
 
