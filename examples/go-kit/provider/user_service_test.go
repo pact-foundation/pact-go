@@ -53,7 +53,6 @@ func TestPact_Provider(t *testing.T) {
 	go startInstrumentedProvider()
 
 	pact := createPact()
-	defer pact.Teardown()
 
 	// Verify the Provider with local Pact Files
 	response := pact.VerifyProvider(&types.VerifyRequest{
@@ -104,8 +103,6 @@ func startInstrumentedProvider() {
 
 	// Bolt on 2 extra endpoints to configure Provider states
 	// http://docs.pact.io/documentation/provider_states.html
-	//
-	// This is
 	router.Methods("POST").Path("/setup").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		logger.Log("[DEBUG] provider API: states setup")
 		w.Header().Add("Content-Type", "application/json")
