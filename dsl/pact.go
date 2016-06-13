@@ -88,6 +88,8 @@ func (p *Pact) Setup() *Pact {
 			fmt.Sprintf("--pact-specification-version %d", p.SpecificationVersion),
 			fmt.Sprintf("--pact-dir %s", p.PactDir),
 			fmt.Sprintf("--log %s/pact.log", p.LogDir),
+			fmt.Sprintf("--consumer %s", p.Consumer),
+			fmt.Sprintf("--provider %s", p.Provider),
 		}
 		client := &PactClient{Port: p.Port}
 		p.pactClient = client
