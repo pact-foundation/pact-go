@@ -29,6 +29,7 @@ how to get going.
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
 
 ## Table of Contents
+
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:1 -->
 
 1. [Table of Contents](#table-of-contents)
@@ -37,11 +38,12 @@ how to get going.
 	1. [Consumer](#consumer)
 		1. [Matching (Consumer Tests)](#matching-consumer-tests)
 	2. [Provider](#provider)
-	3. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
+	3. [Provider States](#provider-states)
+	4. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
 		1. [Publishing from Go code](#publishing-from-go-code)
 		2. [Publishing from the CLI](#publishing-from-the-cli)
-	4. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-	5. [Output Logging](#output-logging)
+	5. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+	6. [Output Logging](#output-logging)
 4. [Examples](#examples)
 5. [Contact](#contact)
 6. [Documentation](#documentation)
@@ -259,6 +261,74 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
 	for a more complete E2E example.
 
+### Provider States
+
+Each interaction in a pact should be verified in isolation, with no context
+maintained from the previous interactions. So how do you test a request that
+requires data to exist on the provider? Provider states are how you achieve
+this using Pact.
+
+Provider states also allow the consumer to make the same request with different
+expected responses (e.g. different response codes, or the same resource with a
+different subset of data).
+
+States are configured on the consumer side when you issue a dsl.Given() clause
+with a corresponding request/response pair.
+
+Configuring the provider is a little more involved, and (currently) requires 2
+running API endpoints to retrieve and configure available states during the
+verification process. The two options you must provide to the dsl.VerifyRequest
+are:
+
+```go
+ProviderStatesURL: 			 GET URL to fetch all available states (see types.ProviderStates)
+ProviderStatesSetupURL: 	POST URL to set the provider state (see types.ProviderState)
+```
+
+Example routes using the standard Go http package might look like this:
+
+```go
+// Return known provider states to the verifier (ProviderStatesURL):
+mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
+	states :=
+	`{
+		"My Front end consumer": [
+			"User A exists",
+			"User A does not exist"
+		],
+		"My api friend": [
+			"User A exists",
+			"User A does not exist"
+		]
+	}`
+		fmt.Fprintf(w, states)
+		w.Header().Add("Content-Type", "application/json")
+})
+
+// Handle a request from the verifier to configure a provider state (ProviderStatesSetupURL)
+mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
+	// Retrieve the Provider State
+	var state types.ProviderState
+
+	body, _ := ioutil.ReadAll(req.Body)
+	req.Body.Close()
+	json.Unmarshal(body, &state)
+
+	// Setup database for different states
+	if state.State == "User A exists" {
+		svc.userDatabase = aExists
+	} else if state.State == "User A is unauthorized" {
+		svc.userDatabase = aUnauthorized
+	} else {
+		svc.userDatabase = aDoesNotExist
+	}
+})
+```
+
+See the examples or read more at http://docs.pact.io/documentation/provider_states.html.
+
 ### Publishing Pacts to a Broker and Tagging Pacts
 
 See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
@@ -271,8 +341,6 @@ on how to make it work for you.
 pact.PublishPacts(&types.PublishRequest{
 	PactBroker:             "http://pactbroker:8000",
 	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-	ProviderStatesURL:      "http://pactbroker:8000/states",
-	ProviderStatesSetupURL: "http://pactbroker:8000/setup",
 	ConsumerVersion:        "1.0.0",
 	Tags:                   []string{"latest", "dev"},
 })

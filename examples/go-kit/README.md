@@ -6,7 +6,7 @@ microservices.
 The following example is a simple User Service using JSON over HTTP. It currently
 exposes a single `Login` endpoint at `POST /users/login`.
 
-We test 3 scenarios, highlighting
+We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):
 
 1. When the user "Billy" exists, and we perform a login, we expect an HTTP `200`
 1. When the user "Billy" does not exists, and we perform a login, we expect an HTTP `404`
@@ -28,7 +28,7 @@ The "Consumer" is currently just a test case - there is no actual client (yet):
 
 ```
 cd consumer
-go test .
+go test -v .
 ```
 
 This will generate a Pact file in `./pacts/billy-bobby.json`.
@@ -38,8 +38,12 @@ This will generate a Pact file in `./pacts/billy-bobby.json`.
 The "Provider" is a real Go Kit Endpoint (following the Profile Service [example](https://github.com/go-kit/kit/tree/master/examples/profilesvc)).
 
 ```
+cd provider
 go test -v .
 ```
+
+This will spin up the Provider API with extra routes added for the handling of
+provider states, run the verification process and report back success/failure.
 
 ### Running the Provider
 

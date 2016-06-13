@@ -151,6 +151,71 @@ NOTE: You will need to use valid Ruby regular expressions
 
 Read more about flexible matching (https://github.com/realestate-com-au/pact/wiki/Regular-expressions-and-type-matching-with-Pact.
 
+Provider States
+
+Each interaction in a pact should be verified in isolation, with no context
+maintained from the previous interactions. So how do you test a request that
+requires data to exist on the provider? Provider states are how you achieve
+this using Pact.
+
+Provider states also allow the consumer to make the same request with different
+expected responses (e.g. different response codes, or the same resource with a
+different subset of data).
+
+States are configured on the consumer side when you issue a dsl.Given() clause
+with a corresponding request/response pair.
+
+Configuring the provider is a little more involved, and (currently) requires 2
+running API endpoints to retrieve and configure available states during the
+verification process. The two options you must provide to the dsl.VerifyRequest
+are:
+
+	ProviderStatesURL:	GET URL to fetch all available states (see types.ProviderStates)
+	ProviderStatesSetupURL:	POST URL to set the provider state (see types.ProviderState)
+
+Example routes using the standard http package might look like this:
+
+	// Return known provider states to the verifier (ProviderStatesURL):
+	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
+		var states types.ProviderStates
+		states =
+		`{
+			"My Front end consumer": [
+				"User A exists",
+				"User A does not exist"
+			],
+			"My api friend": [
+				"User A exists",
+				"User A does not exist"
+			]
+		}`
+		fmt.Fprintf(w, states)
+		w.Header().Add("Content-Type", "application/json")
+	})
+
+	// Handle a request from the verifier to configure a provider state (ProviderStatesSetupURL)
+	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+
+		// Retrieve the Provider State
+		var state types.ProviderState
+
+		body, _ := ioutil.ReadAll(req.Body)
+		req.Body.Close()
+		json.Unmarshal(body, &state)
+
+		// Setup database for different states
+		if state.State == "User A exists" {
+			svc.userDatabase = aExists
+		} else if state.State == "User A is unauthorized" {
+			svc.userDatabase = aUnauthorized
+		} else {
+			svc.userDatabase = aDoesNotExist
+		}
+	})
+
+See the examples or read more at http://docs.pact.io/documentation/provider_states.html.
+
 Publishing Pacts to a Broker and Tagging Pacts
 
 See the Pact Broker (http://docs.pact.io/documentation/sharings_pacts.html)
@@ -158,13 +223,31 @@ documentation for more details on the Broker and this article
 (http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
 on how to make it work for you.
 
+Publishing using Go code:
+
+	pact.PublishPacts(&types.PublishRequest{
+		PactBroker:             "http://pactbroker:8000",
+		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+		ConsumerVersion:        "1.0.0",
+		Tags:                   []string{"latest", "dev"},
+	})
+
+Publishing from the CLI:
+
+Use a cURL request like the following to PUT the pact to the right location,
+specifying your consumer name, provider name and consumer version.
+
+	curl -v -XPUT \-H "Content-Type: application/json" \
+	-d@spec/pacts/a_consumer-a_provider.json \
+	http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
+
 Using the Pact Broker with Basic authentication
 
 The following flags are required to use basic authentication when
 publishing or retrieving Pact files to/from a Pact Broker:
 
-	BrokerUsername	the username for Pact Broker basic authentication.
-	BrokerPassword	the password for Pact Broker basic authentication.
+	BrokerUsername	uername for Pact Broker basic authentication
+	BrokerPassword	password for Pact Broker basic authentication
 
 Output Logging
 
