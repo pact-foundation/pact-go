@@ -66,7 +66,7 @@ func (c *Client) loginHandler(w http.ResponseWriter, r *http.Request) {
 // Show the current user if logged in, otherwise display a login form.
 func (c *Client) viewHandler(w http.ResponseWriter, r *http.Request) {
 	if c.user != nil {
-		fmt.Fprintf(w, "<h1>Hello %s</h1>", c.user.Name)
+		fmt.Fprintf(w, "<h1>Welcome back, %s</h1>", c.user.Name)
 	} else {
 		fmt.Fprintf(w, "<h1>Login to my awesome website:</h1>"+
 			"<form action=\"/login\" method=\"POST\">"+

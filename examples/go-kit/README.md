@@ -3,8 +3,11 @@
 [Go Kit](https://github.com/go-kit/kit) is an excellent framework for building
 microservices.
 
-The following example is a simple User Service using JSON over HTTP. It currently
-exposes a single `Login` endpoint at `POST /users/login`.
+The following example is a simple Login UI ([Consumer](#consumer)) that calls a
+User Service ([Provider](#provider)) using JSON over HTTP.
+
+The API currently exposes a single `Login` endpoint at `POST /users/login`, which
+the Consumer uses to authenticate a User.
 
 We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):
 
@@ -22,20 +25,11 @@ go get ./...
 <path to>/pact-go daemon
 ```
 
-## Consumer
-
-The "Consumer" is currently just a test case - there is no actual client (yet):
-
-```
-cd consumer
-go test -v .
-```
-
-This will generate a Pact file in `./pacts/billy-bobby.json`.
 
 ## Provider
 
-The "Provider" is a real Go Kit Endpoint (following the Profile Service [example](https://github.com/go-kit/kit/tree/master/examples/profilesvc)).
+The "Provider" is a real Go Kit Endpoint (following the Profile Service [example](https://github.com/go-kit/kit/tree/master/examples/profilesvc)),
+exposing a single `/users/login` API call:
 
 ```
 cd provider
@@ -70,3 +64,26 @@ curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache"
   "password":"issilly"
 }' "http://localhost:8080/users/login"
 ```
+
+## Consumer
+
+The "Consumer" is a very simple web application exposing a login form and an
+authenticated page. In this example it is helpful to assume that the UI (Consumer)
+and the API (Provider) are in separated code bases, maintained by separate teams.
+
+Note that in the Pact testing, we test the `loginHandler` function (an `http.HandlerFunc`)
+to test the remote interface and we don't just test the remote interface with
+raw http calls. This is important as it means we are testing the remote interface
+to our collaborator, not something completely synthetic.
+
+```
+cd consumer
+go test -v .
+```
+
+This will generate a Pact file in `./pacts/billy-bobby.json`.
+
+### Running the Consumer
+
+Before you can run the consumer make sure the provider is
+[running](#running-the-provider).
