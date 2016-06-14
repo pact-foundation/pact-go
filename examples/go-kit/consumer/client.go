@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 
@@ -20,6 +21,12 @@ type Client struct {
 type loginResponse struct {
 	User provider.User `json:"user"`
 }
+
+type templateData struct {
+	User *provider.User
+}
+
+var templates = template.Must(template.ParseFiles("../../login.html"))
 
 // Login handles the login API call to the User Service.
 func (c *Client) login(username string, password string) (*provider.User, error) {
@@ -63,19 +70,20 @@ func (c *Client) loginHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func renderTemplate(w http.ResponseWriter, tmpl string, u templateData) {
+
+	err := templates.ExecuteTemplate(w, tmpl+".html", u)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 // Show the current user if logged in, otherwise display a login form.
 func (c *Client) viewHandler(w http.ResponseWriter, r *http.Request) {
-	if c.user != nil {
-		fmt.Fprintf(w, "<h1>Welcome back, %s</h1>", c.user.Name)
-	} else {
-		fmt.Fprintf(w, "<h1>Login to my awesome website:</h1>"+
-			"<form action=\"/login\" method=\"POST\">"+
-			"<input type=\"text\" name=\"username\">"+
-			"<input type=\"password\" name=\"password\">"+
-			"<input type=\"submit\" value=\"login\">"+
-			"</form>")
-
+	data := templateData{
+		User: c.user,
 	}
+	renderTemplate(w, "login", data)
 }
 
 // Run the web application.
