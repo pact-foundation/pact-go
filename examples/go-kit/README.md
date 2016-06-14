@@ -87,3 +87,10 @@ This will generate a Pact file in `./pacts/billy-bobby.json`.
 
 Before you can run the consumer make sure the provider is
 [running](#running-the-provider).
+
+```
+go run cmd/usersvc/main.go
+```
+
+Hit http://localhost:8081/ in your browser. You can use the username/password of
+"billy" / "issilly" to authenticate.
