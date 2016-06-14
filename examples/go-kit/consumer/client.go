@@ -15,6 +15,7 @@ import (
 type Client struct {
 	user *provider.User
 	Host string
+	err  error
 }
 
 // Marshalling format for Users.
@@ -23,7 +24,8 @@ type loginResponse struct {
 }
 
 type templateData struct {
-	User *provider.User
+	User  *provider.User
+	Error error
 }
 
 var templates = template.Must(template.ParseFiles("../../login.html"))
@@ -38,7 +40,7 @@ func (c *Client) login(username string, password string) (*provider.User, error)
 
 	res, err := http.Post(fmt.Sprintf("%s/users/login", c.Host), "application/json", bytes.NewReader([]byte(loginRequest)))
 	if res.StatusCode != 200 || err != nil {
-		return nil, err
+		return nil, fmt.Errorf("login failed")
 	}
 
 	data, err := ioutil.ReadAll(res.Body)
@@ -61,11 +63,13 @@ func (c *Client) loginHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	user, err := c.login(username, password)
-	if err == nil {
+	if err == nil && user != nil {
 		c.user = user
+		c.err = nil
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
+	c.err = fmt.Errorf("Invalid username/password")
 	http.Redirect(w, r, "/", http.StatusFound)
 	return
 }
@@ -81,7 +85,8 @@ func renderTemplate(w http.ResponseWriter, tmpl string, u templateData) {
 // Show the current user if logged in, otherwise display a login form.
 func (c *Client) viewHandler(w http.ResponseWriter, r *http.Request) {
 	data := templateData{
-		User: c.user,
+		User:  c.user,
+		Error: c.err,
 	}
 	renderTemplate(w, "login", data)
 }

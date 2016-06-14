@@ -12,6 +12,13 @@
   <body>
     <div class="jumbotron">
       <div class="container">
+        {{if .Error}}
+        <div class="alert alert-danger" role="alert">
+          <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+          <span class="sr-only">Error:</span>
+          {{.Error}}
+        </div>
+        {{- end}}
         {{if .User}}
           <p>Welcome back, {{.User.Name}}
             <div class="row">
