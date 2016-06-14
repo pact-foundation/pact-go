@@ -38,12 +38,12 @@ how to get going.
 	1. [Consumer](#consumer)
 		1. [Matching (Consumer Tests)](#matching-consumer-tests)
 	2. [Provider](#provider)
-	3. [Provider States](#provider-states)
-	4. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
+		1. [Provider States](#provider-states)
+	3. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
 		1. [Publishing from Go code](#publishing-from-go-code)
 		2. [Publishing from the CLI](#publishing-from-the-cli)
-	5. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-	6. [Output Logging](#output-logging)
+	4. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+	5. [Output Logging](#output-logging)
 4. [Examples](#examples)
 5. [Contact](#contact)
 6. [Documentation](#documentation)
@@ -261,7 +261,7 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
 	for a more complete E2E example.
 
-### Provider States
+#### Provider States
 
 Each interaction in a pact should be verified in isolation, with no context
 maintained from the previous interactions. So how do you test a request that
