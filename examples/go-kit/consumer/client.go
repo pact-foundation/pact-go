@@ -74,6 +74,14 @@ func (c *Client) loginHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Deal with the logout request.
+func (c *Client) logoutHandler(w http.ResponseWriter, r *http.Request) {
+	c.user = nil
+	c.err = nil
+	http.Redirect(w, r, "/", http.StatusFound)
+	return
+}
+
 func renderTemplate(w http.ResponseWriter, tmpl string, u templateData) {
 
 	err := templates.ExecuteTemplate(w, tmpl+".html", u)
@@ -94,6 +102,7 @@ func (c *Client) viewHandler(w http.ResponseWriter, r *http.Request) {
 // Run the web application.
 func (c *Client) Run() {
 	http.HandleFunc("/login", c.loginHandler)
+	http.HandleFunc("/logout", c.logoutHandler)
 	http.HandleFunc("/", c.viewHandler)
 	http.ListenAndServe(":8081", nil)
 }

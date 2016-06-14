@@ -19,8 +19,9 @@
           {{.Error}}
         </div>
         {{- end}}
+
         {{if .User}}
-          <p>Welcome back, {{.User.Name}}
+          <p>Welcome back, {{.User.Name}}! [<a href="/logout" class="navbar-link">logout</a>]
             <div class="row">
               <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
@@ -67,6 +68,7 @@
             <button type="submit" class="btn btn-default">Login</button>
           </form>
         {{- end}}
+
       </div>
     </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
