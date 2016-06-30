@@ -33,58 +33,67 @@ type HalDoc struct {
 
 // findConsumers navigates a Pact Broker's HAL system to find consumers
 // based on the latest Pacts or using tags.
+//
+// There are 2 Scenarios:
+//
+//   1. Ask for all 'latest' consumers
+//   2. Pass a set of tags (e.g. 'latest' and 'prod') and find all consumers
+//      that match
 func findConsumers(provider string, request *types.VerifyRequest) error {
-	log.Println("findConsumers")
-
-	// Check for Broker-based requests and if so, fetch from Broker before
-	// verifying.
-
-	// 2 Scenarios:
-	//   1. Ask for all 'latest' consumers.
-	//   2. Pass a set of tags (e.g. 'latest' and 'prod') and find all consumers that match.
-
-	// 1. Find all consumers
-	// 2. Construct all URLs with relevent tags
-	// 3. Populate 'PactURLs'
-	// 4. Send off to Daemon
+	log.Println("[DEBUG] broker - find consumers for provider:", provider)
 
 	client := &http.Client{}
-	var url string
+	var urls []string
+	pactURLs := make(map[string]string)
+
 	if len(request.Tags) > 0 {
-		url = fmt.Sprintf(pactURLPatternWithTag, request.BrokerURL, provider, "dev")
+		for _, tag := range request.Tags {
+			urls = append(urls, fmt.Sprintf(pactURLPatternWithTag, request.BrokerURL, provider, tag))
+		}
 	} else {
-		url = fmt.Sprintf(pactURLPattern, request.BrokerURL, provider)
-	}
-	var req *http.Request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
+		urls = append(urls, fmt.Sprintf(pactURLPattern, request.BrokerURL, provider))
 	}
 
-	req.Header.Set("Accept", "application/hal+json")
+	for _, url := range urls {
+		var req *http.Request
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return err
+		}
 
-	res, err := client.Do(req)
-	if err != nil {
-		return err
+		req.Header.Set("Accept", "application/hal+json")
+
+		if request != nil && request.BrokerUsername != "" && request.BrokerPassword != "" {
+			req.SetBasicAuth(request.BrokerUsername, request.BrokerPassword)
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+
+		responseBody, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		log.Printf("[DEBUG] pact broker response Body: %s\n", responseBody)
+
+		var doc HalDoc
+		err = json.Unmarshal(responseBody, &doc)
+		if err != nil {
+			return err
+		}
+
+		if res.StatusCode < 200 || res.StatusCode >= 300 {
+			return errors.New(string(responseBody))
+		}
+
+		for _, p := range doc.Links.Pacts {
+			pactURLs[p.Title] = p.Href
+		}
 	}
 
-	responseBody, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	log.Printf("[DEBUG] pact broker response Body: %s\n", responseBody)
-
-	var doc HalDoc
-	err = json.Unmarshal(responseBody, &doc)
-
-	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return errors.New(string(responseBody))
-	}
-
-	if err != nil {
-		return err
-	}
-
-	for _, p := range doc.Links.Pacts {
-		request.PactURLs = append(request.PactURLs, p.Href)
+	// Scrub out duplicate pacts across tags (e.g. 'latest' may equal 'prod' pact)
+	for _, p := range pactURLs {
+		request.PactURLs = append(request.PactURLs, p)
 	}
 
 	return nil

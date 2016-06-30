@@ -62,8 +62,8 @@ func (p *Publisher) validate() error {
 		return errors.New("ConsumerVersion is mandatory")
 	}
 
-	if (p.request.BrokerUsername != "" && p.request.PactBrokerPassword == "") || (p.request.BrokerUsername == "" && p.request.PactBrokerPassword != "") {
-		return errors.New("Must provide both or none of BrokerUsername and PactBrokerPassword")
+	if (p.request.BrokerUsername != "" && p.request.BrokerPassword == "") || (p.request.BrokerUsername == "" && p.request.BrokerPassword != "") {
+		return errors.New("Must provide both or none of BrokerUsername and BrokerPassword")
 	}
 
 	return nil
@@ -81,8 +81,8 @@ func (p *Publisher) call(method string, url string, content []byte) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	if p.request != nil && p.request.BrokerUsername != "" && p.request.PactBrokerPassword != "" {
-		req.SetBasicAuth(p.request.BrokerUsername, p.request.PactBrokerPassword)
+	if p.request != nil && p.request.BrokerUsername != "" && p.request.BrokerPassword != "" {
+		req.SetBasicAuth(p.request.BrokerUsername, p.request.BrokerPassword)
 	}
 
 	res, err := client.Do(req)

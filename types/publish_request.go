@@ -12,7 +12,7 @@ type PublishRequest struct {
 	BrokerUsername string
 
 	// Password for Pact Broker basic authentication. Optional
-	PactBrokerPassword string
+	BrokerPassword string
 
 	// ConsumerVersion is the semantical version of the consumer API.
 	ConsumerVersion string

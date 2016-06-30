@@ -209,6 +209,28 @@ func TestPact_VerifyProvider(t *testing.T) {
 	}
 }
 
+func TestPact_VerifyProviderBroker(t *testing.T) {
+	brokerPort := setupMockBroker()
+	old := waitForPort
+	defer func() { waitForPort = old }()
+	waitForPort = func(int, string) error {
+		return nil
+	}
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+	waitForPortInTest(port, t)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
+	res := pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		BrokerURL:       fmt.Sprintf("http://localhost:%d", brokerPort),
+	})
+
+	if res.ExitCode != 0 {
+		t.Fatalf("Expected exit status to be 0 but got %d", res.ExitCode)
+	}
+}
+
 func TestPact_VerifyProviderFail(t *testing.T) {
 	old := waitForPort
 	defer func() { waitForPort = old }()
@@ -346,12 +368,12 @@ func TestPact_Integration(t *testing.T) {
 		p := &Publisher{}
 		brokerHost := os.Getenv("PACT_BROKER_HOST")
 		err = p.Publish(&types.PublishRequest{
-			PactURLs:           []string{"../pacts/billy-bobby.json"},
-			PactBroker:         brokerHost,
-			ConsumerVersion:    "1.0.0",
-			Tags:               []string{"latest", "foobar", "sit4"},
-			BrokerUsername:     os.Getenv("PACT_BROKER_USERNAME"),
-			PactBrokerPassword: os.Getenv("PACT_BROKER_PASSWORD"),
+			PactURLs:        []string{"../pacts/billy-bobby.json"},
+			PactBroker:      brokerHost,
+			ConsumerVersion: "1.0.0",
+			Tags:            []string{"latest", "foobar", "sit4"},
+			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
 		})
 
 		if err != nil {

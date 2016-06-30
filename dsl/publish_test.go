@@ -147,7 +147,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	err = p.validate()
-	if err.Error() != "Must provide both or none of BrokerUsername and PactBrokerPassword" {
+	if err.Error() != "Must provide both or none of BrokerUsername and BrokerPassword" {
 		t.Fatalf("Expected a different error but got '%s'", err.Error())
 	}
 
@@ -158,12 +158,12 @@ func TestPublish_validate(t *testing.T) {
 				testFile,
 			},
 			ConsumerVersion:    "1.0.0",
-			PactBrokerPassword: "passwithoutuser",
+			BrokerPassword: "passwithoutuser",
 		},
 	}
 
 	err = p.validate()
-	if err.Error() != "Must provide both or none of BrokerUsername and PactBrokerPassword" {
+	if err.Error() != "Must provide both or none of BrokerUsername and BrokerPassword" {
 		t.Fatalf("Expected a different error but got '%s'", err.Error())
 	}
 
@@ -428,7 +428,7 @@ func TestPublish_PublishWithAuth(t *testing.T) {
 		PactBroker:         broker.URL,
 		ConsumerVersion:    "1.0.0",
 		BrokerUsername:     "foo",
-		PactBrokerPassword: "bar",
+		BrokerPassword: "bar",
 	})
 
 	if err != nil {
@@ -448,7 +448,7 @@ func TestPublish_PublishWithAuthFail(t *testing.T) {
 		PactBroker:         broker.URL,
 		ConsumerVersion:    "1.0.0",
 		BrokerUsername:     "foo",
-		PactBrokerPassword: "fail",
+		BrokerPassword: "fail",
 	})
 
 	if err == nil {
