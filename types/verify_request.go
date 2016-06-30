@@ -13,6 +13,12 @@ type VerifyRequest struct {
 	// Local/HTTP paths to Pact files.
 	PactURLs []string
 
+	// Pact Broker URL for broker-based verification
+	BrokerURL string
+
+	// Tags to find in Broker for matrix-based testing
+	Tags []string
+
 	// URL to retrieve valid Provider States.
 	ProviderStatesURL string
 
