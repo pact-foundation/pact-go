@@ -406,7 +406,7 @@ func TestPact_Integration(t *testing.T) {
 			PactURLs:        []string{"../pacts/billy-bobby.json"},
 			PactBroker:      brokerHost,
 			ConsumerVersion: "1.0.0",
-			Tags:            []string{"latest", "foobar", "sit4"},
+			Tags:            []string{"latest", "sit4"},
 			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
 		})
@@ -428,10 +428,41 @@ func TestPact_Integration(t *testing.T) {
 			t.Fatalf("Expected exit code of 0, got %d", response.ExitCode)
 		}
 
-		// Verify the Provider - Published Pacts
+		// Verify the Provider - Specific Published Pacts
 		response = pact.VerifyProvider(&types.VerifyRequest{
 			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
 			PactURLs:               []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
+			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
+			ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
+			BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+		})
+		fmt.Println(response.Message)
+
+		if response.ExitCode != 0 {
+			t.Fatalf("Expected exit code of 0, got %d", response.ExitCode)
+		}
+
+		// Verify the Provider - Latest Published Pacts for any known consumers
+		response = pact.VerifyProvider(&types.VerifyRequest{
+			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
+			BrokerURL:              brokerHost,
+			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
+			ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
+			BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+		})
+		fmt.Println(response.Message)
+
+		if response.ExitCode != 0 {
+			t.Fatalf("Expected exit code of 0, got %d", response.ExitCode)
+		}
+
+		// Verify the Provider - Tag-based Published Pacts for any known consumers
+		response = pact.VerifyProvider(&types.VerifyRequest{
+			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
+			BrokerURL:              brokerHost,
+			Tags:                   []string{"latest", "sit4"},
 			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
 			ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
