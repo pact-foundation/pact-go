@@ -181,6 +181,20 @@ func (p *Pact) WritePact() error {
 // a running Provider API.
 func (p *Pact) VerifyProvider(request *types.VerifyRequest) *types.CommandResponse {
 	p.Setup()
+
+	// If we provide a Broker, we go to it to find consumers
+	if request.BrokerURL != "" {
+		log.Printf("[DEBUG] pact provider verification - finding all consumers from broker: %s", request.BrokerURL)
+		err := findConsumers(p.Provider, request)
+		if err != nil {
+			return &types.CommandResponse{
+				Message:  err.Error(),
+				ExitCode: 1,
+			}
+		}
+	}
+
 	log.Printf("[DEBUG] pact provider verification")
+
 	return p.pactClient.VerifyProvider(request)
 }

@@ -261,6 +261,55 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
 	for a more complete E2E example.
 
+#### Provider Verification
+
+When validating a Provider, you have 3 options to provide the Pact files:
+
+1. Use `PactURLs` to specify the exact set of pacts to be replayed:
+
+	```go
+	response = pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL:        "http://myproviderhost",
+		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
+		ProviderStatesURL:      "http://myproviderhost/states",
+		ProviderStatesSetupURL: "http://myproviderhost/setup",
+		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	})
+	```
+1. Use `PactBroker` to automatically find all of the latest consumers:
+
+	```go
+	response = pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL:        "http://myproviderhost",
+		BrokerURL:              "http://brokerHost",
+		ProviderStatesURL:      "http://myproviderhost/states",
+		ProviderStatesSetupURL: "http://myproviderhost/setup",
+		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	})
+	```
+1. Use `PactBroker` and `Tags` to automatically find all of the latest consumers:
+
+	```go
+	response = pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL:        "http://myproviderhost",
+		BrokerURL:              "http://brokerHost",
+		Tags:                   []string{"latest", "sit4"},
+		ProviderStatesURL:      "http://myproviderhost/states",
+		ProviderStatesSetupURL: "http://myproviderhost/setup",
+		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	})
+	```
+
+Options 2 and 3 are particularly useful when you want to validate that your
+Provider is able to meet the contracts of what's in Production and also the latest
+in development.
+
+See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
+for more on this strategy.
+
 #### Provider States
 
 Each interaction in a pact should be verified in isolation, with no context

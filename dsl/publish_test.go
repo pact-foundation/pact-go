@@ -64,27 +64,26 @@ func createSimplePact(valid bool) *os.File {
 	return tmpfile
 }
 
-func createMockRemoteServerWithAuth(valid bool) *httptest.Server {
-	var checkAuth = func(w http.ResponseWriter, r *http.Request) bool {
-		s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-		if len(s) != 2 {
-			return false
-		}
-
-		b, err := base64.StdEncoding.DecodeString(s[1])
-		if err != nil {
-			return false
-		}
-
-		pair := strings.SplitN(string(b), ":", 2)
-		if len(pair) != 2 {
-			return false
-		}
-
-		return pair[0] == "foo" && pair[1] == "bar"
-
+var checkAuth = func(w http.ResponseWriter, r *http.Request) bool {
+	s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+	if len(s) != 2 {
+		return false
 	}
 
+	b, err := base64.StdEncoding.DecodeString(s[1])
+	if err != nil {
+		return false
+	}
+
+	pair := strings.SplitN(string(b), ":", 2)
+	if len(pair) != 2 {
+		return false
+	}
+
+	return pair[0] == "foo" && pair[1] == "bar"
+}
+
+func createMockRemoteServerWithAuth(valid bool) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if checkAuth(w, r) {
 			w.Write([]byte("Authenticated!"))
@@ -147,7 +146,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	err = p.validate()
-	if err.Error() != "Must provide both or none of BrokerUsername and PactBrokerPassword" {
+	if err.Error() != "Must provide both or none of BrokerUsername and BrokerPassword" {
 		t.Fatalf("Expected a different error but got '%s'", err.Error())
 	}
 
@@ -157,13 +156,13 @@ func TestPublish_validate(t *testing.T) {
 			PactURLs: []string{
 				testFile,
 			},
-			ConsumerVersion:    "1.0.0",
-			PactBrokerPassword: "passwithoutuser",
+			ConsumerVersion: "1.0.0",
+			BrokerPassword:  "passwithoutuser",
 		},
 	}
 
 	err = p.validate()
-	if err.Error() != "Must provide both or none of BrokerUsername and PactBrokerPassword" {
+	if err.Error() != "Must provide both or none of BrokerUsername and BrokerPassword" {
 		t.Fatalf("Expected a different error but got '%s'", err.Error())
 	}
 
@@ -397,6 +396,24 @@ func TestPublish_PublishFail(t *testing.T) {
 	}
 }
 
+func TestPublish_callFail(t *testing.T) {
+	p := &Publisher{}
+	err := p.call("GET", "%%%", nil)
+
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
+func TestPublish_callFailNoBroker(t *testing.T) {
+	p := &Publisher{}
+	port, _ := utils.GetFreePort()
+	err := p.call("GET", fmt.Sprintf("http://localhost:%d/", port), nil)
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
 func TestPublish_PublishWithTags(t *testing.T) {
 	p := &Publisher{}
 
@@ -424,11 +441,11 @@ func TestPublish_PublishWithAuth(t *testing.T) {
 	defer broker.Close()
 
 	err := p.Publish(&types.PublishRequest{
-		PactURLs:           []string{f.Name()},
-		PactBroker:         broker.URL,
-		ConsumerVersion:    "1.0.0",
-		BrokerUsername:     "foo",
-		PactBrokerPassword: "bar",
+		PactURLs:        []string{f.Name()},
+		PactBroker:      broker.URL,
+		ConsumerVersion: "1.0.0",
+		BrokerUsername:  "foo",
+		BrokerPassword:  "bar",
 	})
 
 	if err != nil {
@@ -444,11 +461,11 @@ func TestPublish_PublishWithAuthFail(t *testing.T) {
 	defer broker.Close()
 
 	err := p.Publish(&types.PublishRequest{
-		PactURLs:           []string{f.Name()},
-		PactBroker:         broker.URL,
-		ConsumerVersion:    "1.0.0",
-		BrokerUsername:     "foo",
-		PactBrokerPassword: "fail",
+		PactURLs:        []string{f.Name()},
+		PactBroker:      broker.URL,
+		ConsumerVersion: "1.0.0",
+		BrokerUsername:  "foo",
+		BrokerPassword:  "fail",
 	})
 
 	if err == nil {
