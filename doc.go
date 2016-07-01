@@ -3,7 +3,7 @@ Pact Go enables consumer driven contract testing, providing a mock service and
 DSL for the consumer project, and interaction playback and verification
 for the service provider project.
 
-Consumer tests
+Consumer Tests
 
 Consumer side Pact testing is an isolated test that ensures a given component
 is able to collaborate with another (remote) component. Pact will automatically
@@ -61,37 +61,7 @@ If this test completed successfully, a Pact file should have been written to
 ./pacts/my_consumer-my_provider.json containing all of the interactions
 expected to occur between the Consumer and Provider.
 
-Provider tests
-
-Provider side Pact testing, involves verifying that the contract - the Pact file
-- can be satisfied by the Provider.
-
-A typical Provider side test would like something like:
-
-	func TestProvider_PactContract(t *testing.T) {
-		go startMyAPI("http://localhost:8000")
-
-		response := pact.VerifyProvider(&types.VerifyRequest{
-			ProviderBaseURL:        "http://localhost:8000",
-			PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-			ProviderStatesURL:      "http://localhost:8000/states",
-			ProviderStatesSetupURL: "http://localhost:8000/setup",
-		})
-
-		if response.ExitCode != 0 {
-			t.Fatalf("Got non-zero exit code '%d', expected 0", response.ExitCode)
-		}
-	}
-
-Note that `PactURLs` can be a list of local pact files or remote based
-urls (possibly from a Pact Broker
-- http://docs.pact.io/documentation/sharings_pacts.html).
-
-Pact reads the specified pact files (from remote or local sources) and replays
-the interactions against a running Provider. If all of the interactions are met
-we can say that both sides of the contract are satisfied and the test passes.
-
-Matching - Consumer Tests
+Matching
 
 In addition to verbatim value matching, you have 3 useful matching functions
 in the `dsl` package that can increase expressiveness and reduce brittle test
@@ -150,6 +120,81 @@ NOTE: You will need to use valid Ruby regular expressions
 (http://ruby-doc.org/core-2.1.5/Regexp.html) and double escape backslashes.
 
 Read more about flexible matching (https://github.com/realestate-com-au/pact/wiki/Regular-expressions-and-type-matching-with-Pact.
+
+Provider Tests
+
+Provider side Pact testing, involves verifying that the contract - the Pact file
+- can be satisfied by the Provider.
+
+A typical Provider side test would like something like:
+
+	func TestProvider_PactContract(t *testing.T) {
+		go startMyAPI("http://localhost:8000")
+
+		response := pact.VerifyProvider(&types.VerifyRequest{
+			ProviderBaseURL:        "http://localhost:8000",
+			PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
+			ProviderStatesURL:      "http://localhost:8000/states",
+			ProviderStatesSetupURL: "http://localhost:8000/setup",
+		})
+
+		if response.ExitCode != 0 {
+			t.Fatalf("Got non-zero exit code '%d', expected 0", response.ExitCode)
+		}
+	}
+
+Note that `PactURLs` can be a list of local pact files or remote based
+urls (possibly from a Pact Broker
+- http://docs.pact.io/documentation/sharings_pacts.html).
+
+Pact reads the specified pact files (from remote or local sources) and replays
+the interactions against a running Provider. If all of the interactions are met
+we can say that both sides of the contract are satisfied and the test passes.
+
+Provider Verification
+
+When validating a Provider, you have 3 options to provide the Pact files:
+
+1. Use "PactURLs" to specify the exact set of pacts to be replayed:
+
+	response = pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL:        "http://myproviderhost",
+		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
+		ProviderStatesURL:      "http://myproviderhost/states",
+		ProviderStatesSetupURL: "http://myproviderhost/setup",
+		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	})
+
+2. Use "PactBroker" to automatically find all of the latest consumers:
+
+	response = pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL:        "http://myproviderhost",
+		BrokerURL:              brokerHost,
+		ProviderStatesURL:      "http://myproviderhost/states",
+		ProviderStatesSetupURL: "http://myproviderhost/setup",
+		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	})
+
+3. Use "PactBroker" and "Tags" to automatically find all of the latest consumers:
+
+	response = pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL:        "http://myproviderhost",
+		BrokerURL:              brokerHost,
+		Tags:                   []string{"latest", "sit4"},
+		ProviderStatesURL:      "http://myproviderhost/states",
+		ProviderStatesSetupURL: "http://myproviderhost/setup",
+		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	})
+
+Options 2 and 3 are particularly useful when you want to validate that your
+Provider is able to meet the contracts of what's in Production and also the latest
+in development.
+
+See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
+for more on this strategy.
 
 Provider States
 
