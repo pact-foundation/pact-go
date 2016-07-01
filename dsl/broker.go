@@ -11,8 +11,16 @@ import (
 	"github.com/pact-foundation/pact-go/types"
 )
 
-var pactURLPattern = "%s/pacts/provider/%s/latest"
-var pactURLPatternWithTag = "%s/pacts/provider/%s/latest/%s"
+var (
+	pactURLPattern        = "%s/pacts/provider/%s/latest"
+	pactURLPatternWithTag = "%s/pacts/provider/%s/latest/%s"
+
+	// ErrNoConsumers is returned when no consumer are not found for a provider.
+	ErrNoConsumers = errors.New("no consumers found")
+
+	// ErrUnauthorized represents a Forbidden (403).
+	ErrUnauthorized = errors.New("unauthorized")
+)
 
 // PactLink represents the Pact object in the HAL response.
 type PactLink struct {
@@ -72,18 +80,25 @@ func findConsumers(provider string, request *types.VerifyRequest) error {
 			return err
 		}
 
+		switch res.StatusCode {
+		case 401:
+			return ErrUnauthorized
+		case 404:
+			return ErrNoConsumers
+		}
+
 		responseBody, err := ioutil.ReadAll(res.Body)
 		res.Body.Close()
 		log.Printf("[DEBUG] pact broker response Body: %s\n", responseBody)
+
+		if res.StatusCode < 200 || res.StatusCode >= 300 {
+			return errors.New(string(responseBody))
+		}
 
 		var doc HalDoc
 		err = json.Unmarshal(responseBody, &doc)
 		if err != nil {
 			return err
-		}
-
-		if res.StatusCode < 200 || res.StatusCode >= 300 {
-			return errors.New(string(responseBody))
 		}
 
 		for _, p := range doc.Links.Pacts {

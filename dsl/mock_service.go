@@ -28,6 +28,7 @@ type MockService struct {
 func (m *MockService) call(method string, url string, content interface{}) error {
 	body, err := json.Marshal(content)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 

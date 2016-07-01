@@ -188,7 +188,8 @@ func (p *Pact) VerifyProvider(request *types.VerifyRequest) *types.CommandRespon
 		err := findConsumers(p.Provider, request)
 		if err != nil {
 			return &types.CommandResponse{
-				Message: err.Error(),
+				Message:  err.Error(),
+				ExitCode: 1,
 			}
 		}
 	}

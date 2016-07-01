@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 // Simple mock server for testing. This is getting confusing...
@@ -139,6 +142,37 @@ func TestMockService_VerifyFail(t *testing.T) {
 	}
 
 	err := mockService.Verify()
+
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
+func TestMockService_callBadMethod(t *testing.T) {
+	mockService := &MockService{}
+
+	err := mockService.call("BADVERB", "%%", nil)
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
+func TestMockService_callNoBroker(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	mockService := &MockService{}
+
+	err := mockService.call("GET", fmt.Sprintf("http://localhost:%d/", port), nil)
+
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
+func TestMockService_callInvalidObject(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	mockService := &MockService{}
+
+	err := mockService.call("GET", fmt.Sprintf("http://localhost:%d/", port), math.Inf(-1))
 
 	if err == nil {
 		t.Fatalf("Expected error but got none")

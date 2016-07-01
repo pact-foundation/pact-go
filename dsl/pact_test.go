@@ -95,6 +95,19 @@ func TestPact_Verify(t *testing.T) {
 	}
 }
 
+func TestPact_VerifyMockServerFail(t *testing.T) {
+	ms := setupMockServer(true, t)
+	defer ms.Close()
+	var testFunc = func() error { return nil }
+
+	pact := &Pact{Server: &types.MockServer{Port: 1}}
+	err := pact.Verify(testFunc)
+
+	if err == nil {
+		t.Fatalf("Expected error but got none")
+	}
+}
+
 func TestPact_WritePact(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
@@ -210,7 +223,7 @@ func TestPact_VerifyProvider(t *testing.T) {
 }
 
 func TestPact_VerifyProviderBroker(t *testing.T) {
-	brokerPort := setupMockBroker()
+	brokerPort := setupMockBroker(false)
 	old := waitForPort
 	defer func() { waitForPort = old }()
 	waitForPort = func(int, string) error {
@@ -220,14 +233,36 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 	createDaemon(port, true)
 	waitForPortInTest(port, t)
 
-	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
+	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "bobby"}
 	res := pact.VerifyProvider(&types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		BrokerURL:       fmt.Sprintf("http://localhost:%d", brokerPort),
 	})
 
 	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit status to be 0 but got %d", res.ExitCode)
+		t.Fatalf("Expected exit status to be 0 but got '%d' with message '%s'", res.ExitCode, res.Message)
+	}
+}
+
+func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
+	brokerPort := setupMockBroker(false)
+	old := waitForPort
+	defer func() { waitForPort = old }()
+	waitForPort = func(int, string) error {
+		return nil
+	}
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+	waitForPortInTest(port, t)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "providernotexist"}
+	res := pact.VerifyProvider(&types.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		BrokerURL:       fmt.Sprintf("http://localhost:%d", brokerPort),
+	})
+
+	if res.ExitCode != 1 {
+		t.Fatalf("Expected exit status to be 1 but got '%d'", res.ExitCode)
 	}
 }
 
