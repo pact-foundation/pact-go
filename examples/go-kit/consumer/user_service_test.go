@@ -17,7 +17,7 @@ import (
 var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
 var logDir = fmt.Sprintf("%s/log", dir)
-var pact *dsl.Pact
+var pact dsl.Pact
 var loginRequest = ` { "username":"billy", "password": "issilly" }`
 var form url.Values
 var rr http.ResponseWriter
@@ -57,9 +57,9 @@ func setup() {
 }
 
 // Create Pact connecting to local Daemon
-func createPact() *dsl.Pact {
+func createPact() dsl.Pact {
 	pactDaemonPort := 6666
-	return &dsl.Pact{
+	return dsl.Pact{
 		Port:     pactDaemonPort,
 		Consumer: "billy",
 		Provider: "bobby",
@@ -90,12 +90,12 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 		AddInteraction().
 		Given("User billy exists").
 		UponReceiving("A request to login with user 'billy'").
-		WithRequest(&dsl.Request{
+		WithRequest(dsl.Request{
 			Method: "POST",
 			Path:   "/users/login",
 			Body:   loginRequest,
 		}).
-		WillRespondWith(&dsl.Response{
+		WillRespondWith(dsl.Response{
 			Status: 200,
 			Headers: map[string]string{
 				"Content-Type": "application/json",
@@ -133,12 +133,12 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 		AddInteraction().
 		Given("User billy does not exist").
 		UponReceiving("A request to login with user 'billy'").
-		WithRequest(&dsl.Request{
+		WithRequest(dsl.Request{
 			Method: "POST",
 			Path:   "/users/login",
 			Body:   loginRequest,
 		}).
-		WillRespondWith(&dsl.Response{
+		WillRespondWith(dsl.Response{
 			Status: 404,
 			Headers: map[string]string{
 				"Content-Type": "application/json",
@@ -169,12 +169,12 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 		AddInteraction().
 		Given("User billy is unauthorized").
 		UponReceiving("A request to login with user 'billy'").
-		WithRequest(&dsl.Request{
+		WithRequest(dsl.Request{
 			Method: "POST",
 			Path:   "/users/login",
 			Body:   loginRequest,
 		}).
-		WillRespondWith(&dsl.Response{
+		WillRespondWith(dsl.Response{
 			Status: 403,
 			Headers: map[string]string{
 				"Content-Type": "application/json",

@@ -31,7 +31,7 @@ type PactName struct {
 
 // Publisher is the API to send Pact files to a Pact Broker.
 type Publisher struct {
-	request *types.PublishRequest
+	request types.PublishRequest
 }
 
 // validate the publish requests.
@@ -81,7 +81,7 @@ func (p *Publisher) call(method string, url string, content []byte) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	if p.request != nil && p.request.BrokerUsername != "" && p.request.BrokerPassword != "" {
+	if p.request.BrokerUsername != "" && p.request.BrokerPassword != "" {
 		req.SetBasicAuth(p.request.BrokerUsername, p.request.BrokerPassword)
 	}
 
@@ -154,7 +154,7 @@ func (p *Publisher) readRemotePactFile(file string) (*PactFile, []byte, error) {
 }
 
 // Publish sends the Pacts to a broker, optionally tagging them
-func (p *Publisher) Publish(request *types.PublishRequest) error {
+func (p *Publisher) Publish(request types.PublishRequest) error {
 	log.Println("[DEBUG] pact publisher: publish pact")
 	p.request = request
 
@@ -178,7 +178,7 @@ func (p *Publisher) Publish(request *types.PublishRequest) error {
 }
 
 // tag one or more Pact files
-func (p *Publisher) tagRequest(consumerName string, request *types.PublishRequest) error {
+func (p *Publisher) tagRequest(consumerName string, request types.PublishRequest) error {
 	log.Println("[DEBUG] pact publisher: tagging pacts...")
 	for _, tag := range request.Tags {
 		endpoint := fmt.Sprintf("%s/pacticipants/%s/versions/%s/tags/%s", request.PactBroker, consumerName, request.ConsumerVersion, tag)

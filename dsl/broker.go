@@ -71,7 +71,7 @@ func findConsumers(provider string, request *types.VerifyRequest) error {
 
 		req.Header.Set("Accept", "application/hal+json")
 
-		if request != nil && request.BrokerUsername != "" && request.BrokerPassword != "" {
+		if request.BrokerUsername != "" && request.BrokerPassword != "" {
 			req.SetBasicAuth(request.BrokerUsername, request.BrokerPassword)
 		}
 

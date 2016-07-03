@@ -42,22 +42,22 @@ func main() {
 		AddInteraction().
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&dsl.Request{
+		WithRequest(dsl.Request{
 			Method: "GET",
 			Path:   "/foobar",
 		}).
-		WillRespondWith(&dsl.Response{
+		WillRespondWith(dsl.Response{
 			Status: 200,
 		})
 	pact.
 		AddInteraction().
 		Given("Some state2").
 		UponReceiving("Some name for the test").
-		WithRequest(&dsl.Request{
+		WithRequest(dsl.Request{
 			Method: "GET",
 			Path:   "/bazbat",
 		}).
-		WillRespondWith(&dsl.Response{
+		WillRespondWith(dsl.Response{
 			Status: 200,
 		})
 

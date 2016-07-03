@@ -44,8 +44,8 @@ func TestMockService_AddInteraction(t *testing.T) {
 	i := (&Interaction{}).
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&Request{}).
-		WillRespondWith(&Response{})
+		WithRequest(Request{}).
+		WillRespondWith(Response{})
 	err := mockService.AddInteraction(i)
 
 	if err != nil {
@@ -63,8 +63,8 @@ func TestMockService_AddInteractionFail(t *testing.T) {
 	i := (&Interaction{}).
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&Request{}).
-		WillRespondWith(&Response{})
+		WithRequest(Request{}).
+		WillRespondWith(Response{})
 	err := mockService.AddInteraction(i)
 
 	if err == nil {

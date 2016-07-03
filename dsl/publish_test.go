@@ -103,7 +103,7 @@ func TestPublish_validate(t *testing.T) {
 	testFile := fmt.Sprintf(filepath.Join(dir, "publish_test.go"))
 
 	p := &Publisher{
-		request: &types.PublishRequest{},
+		request: types.PublishRequest{},
 	}
 
 	err := p.validate()
@@ -112,7 +112,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	p = &Publisher{
-		request: &types.PublishRequest{
+		request: types.PublishRequest{
 			PactURLs: []string{testFile},
 		},
 	}
@@ -123,7 +123,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	p = &Publisher{
-		request: &types.PublishRequest{
+		request: types.PublishRequest{
 			PactBroker: "http://foo.com",
 			PactURLs:   []string{testFile},
 		},
@@ -135,7 +135,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	p = &Publisher{
-		request: &types.PublishRequest{
+		request: types.PublishRequest{
 			PactBroker: "http://foo.com",
 			PactURLs: []string{
 				testFile,
@@ -151,7 +151,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	p = &Publisher{
-		request: &types.PublishRequest{
+		request: types.PublishRequest{
 			PactBroker: "http://foo.com",
 			PactURLs: []string{
 				testFile,
@@ -167,7 +167,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	p = &Publisher{
-		request: &types.PublishRequest{
+		request: types.PublishRequest{
 			PactURLs: []string{
 				"aoeuaoeu",
 			},
@@ -180,7 +180,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	p = &Publisher{
-		request: &types.PublishRequest{
+		request: types.PublishRequest{
 			PactBroker: "http://foo.com",
 			PactURLs: []string{
 				testFile,
@@ -195,7 +195,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	p = &Publisher{
-		request: &types.PublishRequest{
+		request: types.PublishRequest{
 			PactBroker: "http://foo.com",
 			PactURLs: []string{
 				testFile,
@@ -213,7 +213,7 @@ func TestPublish_validate(t *testing.T) {
 func TestPublish_readLocalPactFile(t *testing.T) {
 	file := createSimplePact(true)
 	defer os.Remove(file.Name())
-	p := &Publisher{request: &types.PublishRequest{}}
+	p := &Publisher{request: types.PublishRequest{}}
 
 	f, _, err := p.readLocalPactFile(file.Name())
 
@@ -231,7 +231,7 @@ func TestPublish_readLocalPactFile(t *testing.T) {
 }
 
 func TestPublish_readLocalPactFileFail(t *testing.T) {
-	p := &Publisher{request: &types.PublishRequest{}}
+	p := &Publisher{request: types.PublishRequest{}}
 	_, _, err := p.readLocalPactFile("thisfileprobablydoesntexist")
 
 	if err == nil {
@@ -249,7 +249,7 @@ func TestPublish_readLocalPactFileFail(t *testing.T) {
 }
 
 func TestPublish_readRemotePactFile(t *testing.T) {
-	p := &Publisher{request: &types.PublishRequest{}}
+	p := &Publisher{request: types.PublishRequest{}}
 	url := createMockRemoteServer(true)
 
 	f, _, err := p.readRemotePactFile(url)
@@ -268,7 +268,7 @@ func TestPublish_readRemotePactFile(t *testing.T) {
 }
 
 func TestPublish_readRemotePactFileFail(t *testing.T) {
-	p := &Publisher{request: &types.PublishRequest{}}
+	p := &Publisher{request: types.PublishRequest{}}
 	url := createMockRemoteServer(false)
 
 	_, _, err := p.readRemotePactFile(url)
@@ -284,7 +284,7 @@ func TestPublish_readRemotePactFileFail(t *testing.T) {
 }
 
 func TestPublish_readPactFile(t *testing.T) {
-	p := &Publisher{request: &types.PublishRequest{}}
+	p := &Publisher{request: types.PublishRequest{}}
 	url := createMockRemoteServer(true)
 
 	f, _, err := p.readPactFile(url)
@@ -318,7 +318,7 @@ func TestPublish_readPactFile(t *testing.T) {
 }
 
 func TestPublish_readPactFileFail(t *testing.T) {
-	p := &Publisher{request: &types.PublishRequest{}}
+	p := &Publisher{request: types.PublishRequest{}}
 	url := createMockRemoteServer(false)
 
 	_, _, err := p.readPactFile(url)
@@ -340,7 +340,7 @@ func TestPublish_Publish(t *testing.T) {
 	broker := setupMockServer(true, t)
 	defer broker.Close()
 
-	err := p.Publish(&types.PublishRequest{
+	err := p.Publish(types.PublishRequest{
 		PactURLs:        []string{f.Name()},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",
@@ -357,7 +357,7 @@ func TestPublish_PublishFail(t *testing.T) {
 	broker := setupMockServer(true, t)
 	defer broker.Close()
 
-	err := p.Publish(&types.PublishRequest{
+	err := p.Publish(types.PublishRequest{
 		PactURLs:        []string{"aoeuaoeuaoeu"},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",
@@ -367,7 +367,7 @@ func TestPublish_PublishFail(t *testing.T) {
 		t.Fatalf("Expected error but got none")
 	}
 
-	err = p.Publish(&types.PublishRequest{
+	err = p.Publish(types.PublishRequest{
 		PactURLs:        []string{"http://localhost:1234/foo/bar"},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",
@@ -381,7 +381,7 @@ func TestPublish_PublishFail(t *testing.T) {
 	f := createSimplePact(true)
 	brokenBroker := setupMockServer(false, t)
 	defer broker.Close()
-	err = p.Publish(&types.PublishRequest{
+	err = p.Publish(types.PublishRequest{
 		PactURLs:        []string{f.Name()},
 		PactBroker:      brokenBroker.URL,
 		ConsumerVersion: "1.0.0",
@@ -421,7 +421,7 @@ func TestPublish_PublishWithTags(t *testing.T) {
 	broker := setupMockServer(true, t)
 	defer broker.Close()
 
-	err := p.Publish(&types.PublishRequest{
+	err := p.Publish(types.PublishRequest{
 		PactURLs:        []string{f.Name()},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",
@@ -440,7 +440,7 @@ func TestPublish_PublishWithAuth(t *testing.T) {
 	broker := createMockRemoteServerWithAuth(true)
 	defer broker.Close()
 
-	err := p.Publish(&types.PublishRequest{
+	err := p.Publish(types.PublishRequest{
 		PactURLs:        []string{f.Name()},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",
@@ -460,7 +460,7 @@ func TestPublish_PublishWithAuthFail(t *testing.T) {
 	broker := createMockRemoteServerWithAuth(true)
 	defer broker.Close()
 
-	err := p.Publish(&types.PublishRequest{
+	err := p.Publish(types.PublishRequest{
 		PactURLs:        []string{f.Name()},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",
@@ -480,7 +480,7 @@ func TestPublish_tagRequest(t *testing.T) {
 	broker := setupMockServer(true, t)
 	defer broker.Close()
 
-	err := p.tagRequest("Some Consumer", &types.PublishRequest{
+	err := p.tagRequest("Some Consumer", types.PublishRequest{
 		PactURLs:        []string{f.Name()},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",
@@ -499,7 +499,7 @@ func TestPublish_tagRequestFail(t *testing.T) {
 	broker := setupMockServer(false, t)
 	defer broker.Close()
 
-	err := p.tagRequest("Some Consumer", &types.PublishRequest{
+	err := p.tagRequest("Some Consumer", types.PublishRequest{
 		PactURLs:        []string{f.Name()},
 		PactBroker:      broker.URL,
 		ConsumerVersion: "1.0.0",

@@ -164,7 +164,7 @@ func (p *Pact) Verify(integrationTest func() error) error {
 func (p *Pact) WritePact() error {
 	p.Setup()
 	log.Printf("[DEBUG] pact write Pact file")
-	mockServer := &MockService{
+	mockServer := MockService{
 		BaseURL:  fmt.Sprintf("http://localhost:%d", p.Server.Port),
 		Consumer: p.Consumer,
 		Provider: p.Provider,
@@ -179,22 +179,24 @@ func (p *Pact) WritePact() error {
 
 // VerifyProvider reads the provided pact files and runs verification against
 // a running Provider API.
-func (p *Pact) VerifyProvider(request *types.VerifyRequest) *types.CommandResponse {
+func (p *Pact) VerifyProvider(request types.VerifyRequest) error {
 	p.Setup()
 
 	// If we provide a Broker, we go to it to find consumers
 	if request.BrokerURL != "" {
 		log.Printf("[DEBUG] pact provider verification - finding all consumers from broker: %s", request.BrokerURL)
-		err := findConsumers(p.Provider, request)
+		err := findConsumers(p.Provider, &request)
 		if err != nil {
-			return &types.CommandResponse{
-				Message:  err.Error(),
-				ExitCode: 1,
-			}
+			return err
 		}
 	}
 
 	log.Printf("[DEBUG] pact provider verification")
 
-	return p.pactClient.VerifyProvider(request)
+	content, err := p.pactClient.VerifyProvider(request)
+
+	// Output test result to screen
+	log.Println(content)
+
+	return err
 }

@@ -20,7 +20,7 @@ A typical consumer-side test would look something like this:
 
 		// Create Pact, connecting to local Daemon
 		// Ensure the port matches the daemon port!
-		pact := &Pact{
+		pact := Pact{
 			Port:     6666,
 			Consumer: "My Consumer",
 			Provider: "My Provider",
@@ -39,11 +39,11 @@ A typical consumer-side test would look something like this:
 			AddInteraction().
 			Given("User Matt exists"). // Provider State
 			UponReceiving("A request to login"). // Test Case Name
-			WithRequest(&Request{
+			WithRequest(Request{
 				Method: "GET",
 				Path:   "/login",
 			}).
-			WillRespondWith(&Response{
+			WillRespondWith(Response{
 				Status: 200,
 			})
 
@@ -131,15 +131,15 @@ A typical Provider side test would like something like:
 	func TestProvider_PactContract(t *testing.T) {
 		go startMyAPI("http://localhost:8000")
 
-		response := pact.VerifyProvider(&types.VerifyRequest{
+		response := pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        "http://localhost:8000",
 			PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 			ProviderStatesURL:      "http://localhost:8000/states",
 			ProviderStatesSetupURL: "http://localhost:8000/setup",
 		})
 
-		if response.ExitCode != 0 {
-			t.Fatalf("Got non-zero exit code '%d', expected 0", response.ExitCode)
+		if err != nil {
+			t.Fatal("Error:", err)
 		}
 	}
 
@@ -157,7 +157,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 
 1. Use "PactURLs" to specify the exact set of pacts to be replayed:
 
-	response = pact.VerifyProvider(&types.VerifyRequest{
+	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
 		ProviderStatesURL:      "http://myproviderhost/states",
@@ -168,7 +168,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 
 2. Use "PactBroker" to automatically find all of the latest consumers:
 
-	response = pact.VerifyProvider(&types.VerifyRequest{
+	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              brokerHost,
 		ProviderStatesURL:      "http://myproviderhost/states",
@@ -179,7 +179,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 
 3. Use "PactBroker" and "Tags" to automatically find all of the latest consumers:
 
-	response = pact.VerifyProvider(&types.VerifyRequest{
+	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              brokerHost,
 		Tags:                   []string{"latest", "sit4"},
@@ -270,7 +270,7 @@ on how to make it work for you.
 
 Publishing using Go code:
 
-	pact.PublishPacts(&types.PublishRequest{
+	pact.PublishPacts(types.PublishRequest{
 		PactBroker:             "http://pactbroker:8000",
 		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 		ConsumerVersion:        "1.0.0",
@@ -300,7 +300,7 @@ Pact Go uses a simple log utility (logutils - https://github.com/hashicorp/logut
 to filter log messages. The CLI already contains flags to manage this,
 should you want to control log level in your tests, you can set it like so:
 
-	pact := &Pact{
+	pact := Pact{
 	  ...
 		LogLevel: "DEBUG", // One of DEBUG, INFO, ERROR, NONE
 	}

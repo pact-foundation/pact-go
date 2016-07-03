@@ -8,10 +8,10 @@ import (
 // Interaction is the main implementation of the Pact interface.
 type Interaction struct {
 	// Request
-	Request *Request `json:"request"`
+	Request Request `json:"request"`
 
 	// Response
-	Response *Response `json:"response"`
+	Response Response `json:"response"`
 
 	// Description to be written into the Pact file
 	Description string `json:"description"`
@@ -36,7 +36,7 @@ func (p *Interaction) UponReceiving(description string) *Interaction {
 // WithRequest specifies the details of the HTTP request that will be used to
 // confirm that the Provider provides an API listening on the given interface.
 // Mandatory.
-func (p *Interaction) WithRequest(request *Request) *Interaction {
+func (p *Interaction) WithRequest(request Request) *Interaction {
 	p.Request = request
 
 	// Need to fix any weird JSON marshalling issues with the body Here
@@ -54,7 +54,7 @@ func (p *Interaction) WithRequest(request *Request) *Interaction {
 
 // WillRespondWith specifies the details of the HTTP response that will be used to
 // confirm that the Provider must satisfy. Mandatory.
-func (p *Interaction) WillRespondWith(response *Response) *Interaction {
+func (p *Interaction) WillRespondWith(response Response) *Interaction {
 	p.Response = response
 
 	// Need to fix any weird JSON marshalling issues with the body Here
