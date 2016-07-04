@@ -1,4 +1,4 @@
-package consumer
+package goconsumer
 
 import (
 	"bytes"
@@ -7,24 +7,29 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/pact-foundation/pact-go/examples/go-kit/provider"
 )
+
+// User is a representation of a User. Dah.
+type User struct {
+	Name     string `json:"name"`
+	username string
+	password string
+}
 
 // Client is a UI for the User Service.
 type Client struct {
-	user *provider.User
+	user *User
 	Host string
 	err  error
 }
 
 // Marshalling format for Users.
 type loginResponse struct {
-	User provider.User `json:"user"`
+	User User `json:"user"`
 }
 
 type templateData struct {
-	User  *provider.User
+	User  *User
 	Error error
 }
 
@@ -32,7 +37,7 @@ var loginTemplatePath = "login.html"
 var templates = template.Must(template.ParseFiles(loginTemplatePath))
 
 // Login handles the login API call to the User Service.
-func (c *Client) login(username string, password string) (*provider.User, error) {
+func (c *Client) login(username string, password string) (*User, error) {
 	loginRequest := fmt.Sprintf(`
     {
       "username":"%s",

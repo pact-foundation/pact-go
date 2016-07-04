@@ -50,12 +50,12 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 		encodeError(ctx, e.error(), w)
 		return nil
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return json.NewEncoder(w).Encode(response)
 }
 
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(codeFrom(err))
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"error": err.Error(),
@@ -68,7 +68,7 @@ func codeFrom(err error) int {
 		case ErrNotFound:
 			return http.StatusNotFound
 		case ErrUnauthorized:
-			return http.StatusForbidden
+			return http.StatusUnauthorized
 		}
 		switch e.Domain {
 		case httptransport.DomainDecode:

@@ -21,7 +21,7 @@ import (
 )
 
 var dir, _ = os.Getwd()
-var pactDir = fmt.Sprintf("%s/../pacts", dir)
+var pactDir = fmt.Sprintf("%s/../../pacts", dir)
 var logDir = fmt.Sprintf("%s/log", dir)
 var port, _ = utils.GetFreePort()
 

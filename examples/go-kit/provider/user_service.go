@@ -13,7 +13,7 @@ var (
 	// ErrNotFound represents a resource not found (404)
 	ErrNotFound = errors.New("not found")
 
-	// ErrUnauthorized represents a Forbidden (403)
+	// ErrUnauthorized represents a Unauthorized (401)
 	ErrUnauthorized = errors.New("unauthorized")
 
 	// ErrEmpty is returned when input string is empty

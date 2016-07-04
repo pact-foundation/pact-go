@@ -47,50 +47,20 @@ The provider can be run as a standalone service:
 go run cmd/usersvc/main.go
 
 # 200
-curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Postman-Token: 86f8923a-2139-9223-06f5-6d154006ac42" -d '{
+curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"billy",
   "password":"issilly"
 }' "http://localhost:8080/users/login"
 
 # 403
-curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Postman-Token: 86f8923a-2139-9223-06f5-6d154006ac42" -d '{
+curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"billy",
   "password":"issilly"
 }' "http://localhost:8080/users/login"
 
 # 404
-curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -H "Postman-Token: 86f8923a-2139-9223-06f5-6d154006ac42" -d '{
+curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"someoneelse",
   "password":"issilly"
 }' "http://localhost:8080/users/login"
 ```
-
-## Consumer
-
-The "Consumer" is a very simple web application exposing a login form and an
-authenticated page. In this example it is helpful to assume that the UI (Consumer)
-and the API (Provider) are in separated code bases, maintained by separate teams.
-
-Note that in the Pact testing, we test the `loginHandler` function (an `http.HandlerFunc`)
-to test the remote interface and we don't just test the remote interface with
-raw http calls. This is important as it means we are testing the remote interface
-to our collaborator, not something completely synthetic.
-
-```
-cd consumer
-go test -v .
-```
-
-This will generate a Pact file in `./pacts/billy-bobby.json`.
-
-### Running the Consumer
-
-Before you can run the consumer make sure the provider is
-[running](#running-the-provider).
-
-```
-go run cmd/web/main.go
-```
-
-Hit http://localhost:8081/ in your browser. You can use the username/password of
-"billy" / "issilly" to authenticate.

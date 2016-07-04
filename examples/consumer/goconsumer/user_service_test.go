@@ -1,4 +1,4 @@
-package consumer
+package goconsumer
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ import (
 
 // Common test data
 var dir, _ = os.Getwd()
-var pactDir = fmt.Sprintf("%s/../pacts", dir)
+var pactDir = fmt.Sprintf("%s/../../pacts", dir)
 var logDir = fmt.Sprintf("%s/log", dir)
 var pact dsl.Pact
 var loginRequest = ` { "username":"billy", "password": "issilly" }`
@@ -98,7 +98,7 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 		WillRespondWith(dsl.Response{
 			Status: 200,
 			Headers: map[string]string{
-				"Content-Type": "application/json",
+				"Content-Type": "application/json; charset=utf-8",
 			},
 			Body: `
 				{
@@ -141,7 +141,7 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 		WillRespondWith(dsl.Response{
 			Status: 404,
 			Headers: map[string]string{
-				"Content-Type": "application/json",
+				"Content-Type": "application/json; charset=utf-8",
 			},
 		})
 
@@ -175,9 +175,9 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 			Body:   loginRequest,
 		}).
 		WillRespondWith(dsl.Response{
-			Status: 403,
+			Status: 401,
 			Headers: map[string]string{
-				"Content-Type": "application/json",
+				"Content-Type": "application/json; charset=utf-8",
 			},
 		})
 
