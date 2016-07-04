@@ -25,7 +25,7 @@ go get ./...
 ## Providers
 
 1. [Go-Kit](go-kit)
-2. [Gin][gin]
+2. [Gin](gin)
 
 ## Consumer
 

@@ -1,6 +1,6 @@
 # Example - Gin
 
-[Gin](https://github.com/go-kit/kit) is an excellent framework for building
+[Gin](https://github.com/gin-gonic/gin) is an excellent framework for building
 RESTful APIs.
 
 The following example is a simple Login UI ([Consumer](#consumer)) that calls a

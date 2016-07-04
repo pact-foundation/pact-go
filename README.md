@@ -429,8 +429,9 @@ pact := Pact{
 
 ## Examples
 
-* [Simple Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/consumer.go)
+* [API Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/)
 * [Go Kit](https://github.com/pact-foundation/pact-go/tree/master/examples/go-kit)
+* [Gin](https://github.com/pact-foundation/pact-go/tree/master/examples/gin)
 
 ## Contact
 
