@@ -55,24 +55,23 @@ func TestPact_Provider(t *testing.T) {
 	pact := createPact()
 
 	// Verify the Provider with local Pact Files
-	response := pact.VerifyProvider(&types.VerifyRequest{
+	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
 		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", port),
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
-	fmt.Println(response.Message)
 
-	if response.ExitCode != 0 {
-		t.Fatalf("Expected exit code of 0, got %d", response.ExitCode)
+	if err != nil {
+		t.Fatal("Error:", err)
 	}
 }
 
 // Setup the Pact client.
-func createPact() *dsl.Pact {
+func createPact() dsl.Pact {
 	// Create Pact connecting to local Daemon
 	pactDaemonPort := 6666
-	return &dsl.Pact{
+	return dsl.Pact{
 		Port:     pactDaemonPort,
 		Consumer: "billy",
 		Provider: "bobby",

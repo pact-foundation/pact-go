@@ -4,14 +4,14 @@ import "testing"
 
 func TestRequest_Interface(t *testing.T) {
 	var req interface{}
-	req = &Request{}
-	if _, ok := req.(*Request); !ok {
+	req = Request{}
+	if _, ok := req.(Request); !ok {
 		t.Fatalf("Must be a *Request")
 	}
 }
 
 func TestRequest(t *testing.T) {
-	req := &Request{
+	req := Request{
 		Method: "GET",
 	}
 	if req.Method != "GET" {

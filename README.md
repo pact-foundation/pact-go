@@ -82,7 +82,7 @@ func TestLogin(t *testing.T) {
 
 	// Create Pact, connecting to local Daemon
 	// Ensure the port matches the daemon port!
-	pact := &dsl.Pact{
+	pact := dsl.Pact{
 		Port:     6666, 				
 		Consumer: "My Consumer",
 		Provider: "My Provider",
@@ -101,11 +101,11 @@ func TestLogin(t *testing.T) {
 		AddInteraction().
 		Given("User Matt exists"). // Provider State
 		UponReceiving("A request to login"). // Test Case Name
-		WithRequest(&dsl.Request{
+		WithRequest(dsl.Request{
 			Method: "GET",
 			Path:   "/login",
 		}).
-		WillRespondWith(&dsl.Response{
+		WillRespondWith(dsl.Response{
 			Status: 200,
 		})
 
@@ -241,15 +241,15 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	satisfy the requirements of each of your known consumers:
 
 	```go
-	response := pact.VerifyProvider(&types.VerifyRequest{
+	response := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://localhost:8000",
 		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 		ProviderStatesURL:      "http://localhost:8000/states",
 		ProviderStatesSetupURL: "http://localhost:8000/setup",
 	})
 
-	if response.ExitCode != 0 {
-		t.Fatalf("Got non-zero exit code '%d', expected 0", response.ExitCode)
+	if err != nil {
+		t.Fatal("Error:", err)
 	}
 	```
 
@@ -268,7 +268,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 1. Use `PactURLs` to specify the exact set of pacts to be replayed:
 
 	```go
-	response = pact.VerifyProvider(&types.VerifyRequest{
+	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
 		ProviderStatesURL:      "http://myproviderhost/states",
@@ -280,7 +280,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 1. Use `PactBroker` to automatically find all of the latest consumers:
 
 	```go
-	response = pact.VerifyProvider(&types.VerifyRequest{
+	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              "http://brokerHost",
 		ProviderStatesURL:      "http://myproviderhost/states",
@@ -292,7 +292,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 1. Use `PactBroker` and `Tags` to automatically find all of the latest consumers:
 
 	```go
-	response = pact.VerifyProvider(&types.VerifyRequest{
+	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              "http://brokerHost",
 		Tags:                   []string{"latest", "sit4"},
@@ -387,7 +387,7 @@ on how to make it work for you.
 #### Publishing from Go code
 
 ```go
-pact.PublishPacts(&types.PublishRequest{
+pact.PublishPacts(types.PublishRequest{
 	PactBroker:             "http://pactbroker:8000",
 	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 	ConsumerVersion:        "1.0.0",
@@ -421,7 +421,7 @@ to filter log messages. The CLI already contains flags to manage this,
 should you want to control log level in your tests, you can set it like so:
 
 ```go
-pact := &Pact{
+pact := Pact{
   ...
 	LogLevel: "DEBUG", // One of DEBUG, INFO, ERROR, NONE
 }

@@ -10,8 +10,8 @@ func TestInteraction_NewInteraction(t *testing.T) {
 	i := (&Interaction{}).
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&Request{}).
-		WillRespondWith(&Response{})
+		WithRequest(Request{}).
+		WillRespondWith(Response{})
 
 	if i.State != "Some state" {
 		t.Fatalf("Expected 'Some state' but got '%s'", i.State)
@@ -26,7 +26,7 @@ func TestInteraction_WithRequest(t *testing.T) {
 	i := (&Interaction{}).
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&Request{
+		WithRequest(Request{
 			Body: "somestring",
 		})
 
@@ -44,7 +44,7 @@ func TestInteraction_WithRequest(t *testing.T) {
 	i = (&Interaction{}).
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&Request{
+		WithRequest(Request{
 			Body: `{
 			"foo": "bar",
 			"baz": "bat"
@@ -74,8 +74,8 @@ func TestInteraction_WillRespondWith(t *testing.T) {
 	i := (&Interaction{}).
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&Request{}).
-		WillRespondWith(&Response{
+		WithRequest(Request{}).
+		WillRespondWith(Response{
 			Body: "somestring",
 		})
 
@@ -93,8 +93,8 @@ func TestInteraction_WillRespondWith(t *testing.T) {
 	i = (&Interaction{}).
 		Given("Some state").
 		UponReceiving("Some name for the test").
-		WithRequest(&Request{}).
-		WillRespondWith(&Response{
+		WithRequest(Request{}).
+		WillRespondWith(Response{
 			Body: `{
 				"foo": "bar",
 				"baz": "bat"

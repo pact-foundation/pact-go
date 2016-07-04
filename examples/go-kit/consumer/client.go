@@ -28,7 +28,8 @@ type templateData struct {
 	Error error
 }
 
-var templates = template.Must(template.ParseFiles("../../login.html"))
+var loginTemplatePath = "login.html"
+var templates = template.Must(template.ParseFiles(loginTemplatePath))
 
 // Login handles the login API call to the User Service.
 func (c *Client) login(username string, password string) (*provider.User, error) {
@@ -104,5 +105,6 @@ func (c *Client) Run() {
 	http.HandleFunc("/login", c.loginHandler)
 	http.HandleFunc("/logout", c.logoutHandler)
 	http.HandleFunc("/", c.viewHandler)
+	fmt.Println("User svc client running on port 8081")
 	http.ListenAndServe(":8081", nil)
 }

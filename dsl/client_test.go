@@ -168,7 +168,7 @@ func TestClient_StartServerRPCError(t *testing.T) {
 
 	commandStartServer = "failcommand"
 	commandStopServer = "failcommand"
-	commandVerifyProvider = "failcommand"
+	commandVerifyProvider = "failverifycommand"
 	commandListServers = "failcommand"
 	commandStopDaemon = "failcommand"
 
@@ -194,15 +194,16 @@ func TestClient_StartServerRPCError(t *testing.T) {
 		&types.PactListResponse{}: func() interface{} {
 			return client.ListServers()
 		},
-		&types.CommandResponse{}: func() interface{} {
-			return client.VerifyProvider(&types.VerifyRequest{})
+		"rpc: service/method request ill-formed: failverifycommand": func() interface{} {
+			_, err := client.VerifyProvider(types.VerifyRequest{})
+			return err.Error()
 		},
 	}
 
 	for expected, testCase := range testCases {
 		res := testCase()
 		if !reflect.DeepEqual(expected, res) {
-			t.Fatalf("Expected %v but got %v", expected, res)
+			t.Fatalf("Expected '%v' but got '%v'", expected, res)
 		}
 	}
 }
@@ -232,7 +233,7 @@ func TestClient_VerifyProvider(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	req := &types.VerifyRequest{
+	req := types.VerifyRequest{
 		ProviderBaseURL:        ms.URL,
 		PactURLs:               []string{"foo.json", "bar.json"},
 		BrokerUsername:         "foo",
@@ -240,14 +241,10 @@ func TestClient_VerifyProvider(t *testing.T) {
 		ProviderStatesURL:      "http://foo/states",
 		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
-	res := client.VerifyProvider(req)
+	_, err := client.VerifyProvider(req)
 
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code of 0 but got %d", res.ExitCode)
-	}
-
-	if !strings.Contains(res.Message, "COMMAND: oh yays!") {
-		t.Fatalf("Expected a proper error message but got '%s'", res.Message)
+	if err != nil {
+		t.Fatal("Error: ", err)
 	}
 }
 
@@ -258,14 +255,15 @@ func TestClient_VerifyProviderFailValidation(t *testing.T) {
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	req := &types.VerifyRequest{}
-	res := client.VerifyProvider(req)
-	if res.ExitCode != 1 {
-		t.Fatalf("Expected a non-zero exit code but got %d", res.ExitCode)
+	req := types.VerifyRequest{}
+	_, err := client.VerifyProvider(req)
+
+	if err == nil {
+		t.Fatal("Expected a error but got none")
 	}
 
-	if !strings.Contains(res.Message, "ProviderBaseURL is mandatory") {
-		t.Fatalf("Expected a proper error message but got '%s'", res.Message)
+	if !strings.Contains(err.Error(), "ProviderBaseURL is mandatory") {
+		t.Fatalf("Expected a proper error message but got '%s'", err.Error())
 	}
 }
 
@@ -279,18 +277,18 @@ func TestClient_VerifyProviderFailExecution(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
 
-	req := &types.VerifyRequest{
+	req := types.VerifyRequest{
 		ProviderBaseURL: ms.URL,
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
-	res := client.VerifyProvider(req)
+	_, err := client.VerifyProvider(req)
 
-	if res.ExitCode != 1 {
-		t.Fatalf("Expected a non-zero exit code but got %d", res.ExitCode)
+	if err == nil {
+		t.Fatal("Expected a error but got none")
 	}
 
-	if !strings.Contains(res.Message, "COMMAND: oh noes!") {
-		t.Fatalf("Expected a proper error message but got '%s'", res.Message)
+	if !strings.Contains(err.Error(), "COMMAND: oh noes!") {
+		t.Fatalf("Expected a proper error message but got '%s'", err.Error())
 	}
 }
 

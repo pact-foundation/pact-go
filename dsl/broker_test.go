@@ -12,10 +12,10 @@ import (
 
 func TestPact_findConsumersNoTags(t *testing.T) {
 	port := setupMockBroker(false)
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		BrokerURL: fmt.Sprintf("http://localhost:%d", port),
 	}
-	err := findConsumers("bobby", request)
+	err := findConsumers("bobby", &request)
 	if err != nil {
 		t.Fatalf("Error: %s", err.Error())
 	}
@@ -32,11 +32,11 @@ func TestPact_findConsumersNoTags(t *testing.T) {
 
 func TestPact_findConsumersWithTags(t *testing.T) {
 	port := setupMockBroker(false)
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		Tags:      []string{"dev", "prod"},
 		BrokerURL: fmt.Sprintf("http://localhost:%d", port),
 	}
-	err := findConsumers("bobby", request)
+	err := findConsumers("bobby", &request)
 	if err != nil {
 		t.Fatalf("Error: %s", err.Error())
 	}
@@ -53,11 +53,11 @@ func TestPact_findConsumersWithTags(t *testing.T) {
 
 func TestPact_findConsumersBrokerDown(t *testing.T) {
 	port, _ := utils.GetFreePort()
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		Tags:      []string{"dev", "prod"},
 		BrokerURL: fmt.Sprintf("http://localhost:%d", port),
 	}
-	err := findConsumers("idontexist", request)
+	err := findConsumers("idontexist", &request)
 
 	if err == nil {
 		t.Fatalf("Expected error but got none")
@@ -66,11 +66,11 @@ func TestPact_findConsumersBrokerDown(t *testing.T) {
 
 func TestPact_findConsumersInvalidResponse(t *testing.T) {
 	port := setupMockBroker(false)
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		Tags:      []string{"broken"},
 		BrokerURL: fmt.Sprintf("http://localhost:%d", port),
 	}
-	err := findConsumers("bobby", request)
+	err := findConsumers("bobby", &request)
 
 	if err == nil {
 		t.Fatalf("Expected error but got none")
@@ -78,10 +78,10 @@ func TestPact_findConsumersInvalidResponse(t *testing.T) {
 }
 
 func TestPact_findConsumersInvalidURL(t *testing.T) {
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		BrokerURL: "%%%",
 	}
-	err := findConsumers("broken", request)
+	err := findConsumers("broken", &request)
 
 	if err == nil {
 		t.Fatalf("Expected error but got none")
@@ -90,11 +90,11 @@ func TestPact_findConsumersInvalidURL(t *testing.T) {
 
 func TestPact_findConsumersErrorResponse(t *testing.T) {
 	port := setupMockBroker(false)
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		Tags:      []string{"dev"},
 		BrokerURL: fmt.Sprintf("http://localhost:%d", port),
 	}
-	err := findConsumers("broken", request)
+	err := findConsumers("broken", &request)
 
 	if err == nil {
 		t.Fatalf("Expected error but got none")
@@ -103,11 +103,11 @@ func TestPact_findConsumersErrorResponse(t *testing.T) {
 
 func TestPact_findConsumersNoConsumers(t *testing.T) {
 	port := setupMockBroker(false)
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		Tags:      []string{"dev", "prod"},
 		BrokerURL: fmt.Sprintf("http://localhost:%d", port),
 	}
-	err := findConsumers("idontexist", request)
+	err := findConsumers("idontexist", &request)
 	if err == nil {
 		t.Fatalf("Expected error but got none")
 	}
@@ -115,13 +115,13 @@ func TestPact_findConsumersNoConsumers(t *testing.T) {
 
 func TestPact_findConsumersAuthenticated(t *testing.T) {
 	port := setupMockBroker(true)
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		Tags:           []string{"dev", "prod"},
 		BrokerURL:      fmt.Sprintf("http://localhost:%d", port),
 		BrokerUsername: "foo",
 		BrokerPassword: "bar",
 	}
-	err := findConsumers("bobby", request)
+	err := findConsumers("bobby", &request)
 	if err != nil {
 		t.Fatalf("Error: %s", err)
 	}
@@ -129,11 +129,11 @@ func TestPact_findConsumersAuthenticated(t *testing.T) {
 
 func TestPact_findConsumersAuthenticatedFail(t *testing.T) {
 	port := setupMockBroker(true)
-	request := &types.VerifyRequest{
+	request := types.VerifyRequest{
 		Tags:      []string{"dev", "prod"},
 		BrokerURL: fmt.Sprintf("http://localhost:%d", port),
 	}
-	err := findConsumers("bobby", request)
+	err := findConsumers("bobby", &request)
 
 	switch err {
 	case ErrUnauthorized:
