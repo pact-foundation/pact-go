@@ -49,13 +49,10 @@ func providerStateSetup(c *gin.Context) {
 	if c.BindJSON(&state) == nil {
 		// Setup database for different states
 		if state.State == "User billy exists" {
-			fmt.Println("User repostiroy billy exists!")
 			userRepository = billyExists
 		} else if state.State == "User billy is unauthorized" {
-			fmt.Println("User repostiroy billy unauth")
 			userRepository = billyUnauthorized
 		} else {
-			fmt.Println("User repostiroy billy NOT exists!!")
 			userRepository = billyDoesNotExist
 		}
 	}
@@ -108,7 +105,6 @@ func createPact() dsl.Pact {
 		Port:     pactDaemonPort,
 		Consumer: "billy",
 		Provider: "bobby",
-		LogLevel: "DEBUG",
 		LogDir:   logDir,
 		PactDir:  pactDir,
 	}

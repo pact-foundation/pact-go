@@ -63,7 +63,6 @@ func createPact() dsl.Pact {
 		Port:     pactDaemonPort,
 		Consumer: "billy",
 		Provider: "bobby",
-		LogLevel: "DEBUG",
 		LogDir:   logDir,
 		PactDir:  pactDir,
 	}
