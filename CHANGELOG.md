@@ -1,6 +1,6 @@
 Do this to generate your change history
 
-  git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' vX.Y.Z..HEAD | grep -v wip
+    git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' vX.Y.Z..HEAD | grep -v wip
 
 ### 0.0.2 (1 July 2016)
 
