@@ -72,34 +72,42 @@ running for long periods (e.g. on a CI server).*
 ### Consumer
 1. Start the daemon with `./pact-go daemon`.
 1. `cd <pact-go>/examples`.
-1. `go run consumer.go`.
+1. `go run -v consumer.go`.
+
+Here is a simple example (`consumer_test.go`) you can run with `go test -v .`:
 
 ```go
-import "github.com/pact-foundation/pact-go/dsl"
-import ...
+package somepackage
+
+import (
+	"fmt"
+	"github.com/pact-foundation/pact-go/dsl"
+	"net/http"
+	"testing"
+)
 
 func TestLogin(t *testing.T) {
 
 	// Create Pact, connecting to local Daemon
 	// Ensure the port matches the daemon port!
 	pact := dsl.Pact{
-		Port:     6666, 				
-		Consumer: "My Consumer",
-		Provider: "My Provider",
+		Port:     6666,
+		Consumer: "MyConsumer",
+		Provider: "MyProvider",
 	}
 	// Shuts down Mock Service when done
 	defer pact.Teardown()
 
 	// Pass in your test case as a function to Verify()
 	var test = func() error {
-		_, err := http.Get("http://localhost:8000/")
+		_, err := http.Get(fmt.Sprintf("http://localhost:%d/login", pact.Server.Port))
 		return err
 	}
 
 	// Set up our interactions. Note we have multiple in this test case!
 	pact.
 		AddInteraction().
-		Given("User Matt exists"). // Provider State
+		Given("User Matt exists").           // Provider State
 		UponReceiving("A request to login"). // Test Case Name
 		WithRequest(dsl.Request{
 			Method: "GET",
@@ -118,6 +126,7 @@ func TestLogin(t *testing.T) {
 	// Write pact to file `<pact-go>/pacts/my_consumer-my_provider.json`
 	pact.WritePact()
 }
+
 ```
 
 

@@ -18,8 +18,8 @@ func main() {
 	// Create Pact connecting to local Daemon
 	pact := &dsl.Pact{
 		Port:     6666, // Ensure this port matches the daemon port!
-		Consumer: "My Consumer",
-		Provider: "My Provider",
+		Consumer: "MyConsumer",
+		Provider: "MyProvider",
 	}
 	defer pact.Teardown()
 
