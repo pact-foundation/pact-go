@@ -3,7 +3,7 @@
 set -e
 
 export PACT_MOCK_SERVICE_VERSION=0.8.2
-export PACT_PROVIDER_VERIFIER_VERSION=0.0.11
+export PACT_PROVIDER_VERIFIER_VERSION=0.0.12
 
 # Create the OS specific versions of the mock service and verifier
 echo "==> Building Ruby Binaries..."
