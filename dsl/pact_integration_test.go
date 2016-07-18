@@ -124,7 +124,7 @@ func TestPact_Integration(t *testing.T) {
 		// Verify the Provider - local Pact Files
 		err = pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
-			PactURLs:               []string{"./pacts/billy-bobby.json"},
+			PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
 			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
 			ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", providerPort),
 		})
