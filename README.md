@@ -58,6 +58,10 @@ how to get going.
 * Unzip the package into a known location, and add to the `PATH`.
 * Run `pact-go` to see what options are available.
 
+*NOTE*: Don't despair! We are [working](https://github.com/pact-foundation/pact-go/tree/feature/native) 
+on a pure Go implementation that won't require this install step - please be
+patient or help us implement the [roadmap](https://github.com/pact-foundation/pact-go/wiki/Native-implementation-roadmap).
+
 ## Running
 
 Due to some design constraints, Pact Go runs a two-step process:
@@ -455,6 +459,8 @@ Additional documentation can be found at the main [Pact website](http://pact.io)
 ## Roadmap
 
 The [roadmap](docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
+Detail on the native Go implementation can be found [here](https://github.com/pact-foundation/pact-go/wiki/Native-implementation-roadmap).
+
 
 ## Contributing
 
