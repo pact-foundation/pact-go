@@ -33,8 +33,8 @@ build:
           if [ -d "$WERCKER_CACHE_DIR/output" ]; then rm -rf $WERCKER_CACHE_DIR/output; fi
           cp -r build $WERCKER_CACHE_DIR/build
           cp -r output $WERCKER_CACHE_DIR/output
-          ls -larth build
-          ls -larth output
+          ls -larth $WERCKER_CACHE_DIR
+          ls -larth $WERCKER_CACHE_DIR
 
 package:
   box: ruby:2.1
@@ -42,10 +42,10 @@ package:
     - script:
         name: retrieve artifacts
         code: |
-          cp -r $WERCKER_CACHE_DIR/build build
-          cp -r $WERCKER_CACHE_DIR/output output
-          ls -larth build
-          ls -larth output
+          ls -larth $WERCKER_CACHE_DIR
+          ls -larth $WERCKER_CACHE_DIR
+          if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build build; ls -larth build; fi
+          if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output output; ls -larth output; fi
     - script:
         name: package
         code: |
