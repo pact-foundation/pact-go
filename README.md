@@ -116,15 +116,31 @@ func TestLogin(t *testing.T) {
 		WithRequest(dsl.Request{
 			Method: "GET",
 			Path:   "/login",
+			Body: `{"username":"matt"}`
 		}).
 		WillRespondWith(dsl.Response{
 			Status: 200,
+			Body: `{"username":"matt", "id":1234}`
 		})
 
 	// Run the test and verify the interactions.
-	err := pact.Verify(test)
-	if err != nil {
-		t.Fatalf("Error on Verify: %v", err)
+	if err := pact.Verify(func() error {
+		u := fmt.Sprintf("http://localhost:%d/login", pact.Server.Port)
+		req, err := http.NewRequest("GET", u, strings.NewReader(`{"username":"matt"}`))
+		
+		// NOTE: by default, request bodies are expected to be sent with a Content-Type
+		// of application/json. If you don't explicitly set the content-type, you
+		// will get a mismatch during Verification.
+		req.Header.Set("Content-Type", "application/json")
+		if err != nil {
+			return err
+		}
+		if _, err = http.DefaultClient.Do(req); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
 	}
 
 	// Write pact to file `<pact-go>/pacts/my_consumer-my_provider.json`

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/pact-foundation/pact-go/dsl"
 )
@@ -25,10 +26,16 @@ func main() {
 
 	// Pass in test case
 	var test = func() error {
-		_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port))
+		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
+		req, err := http.NewRequest("GET", u, strings.NewReader(`{"s":"foo"}`))
+		req.Header.Set("Content-Type", "application/json")
 		if err != nil {
-			log.Fatalf("Error sending request: %v", err)
+			return err
 		}
+		if _, err = http.DefaultClient.Do(req); err != nil {
+			return err
+		}
+
 		_, err = http.Get(fmt.Sprintf("http://localhost:%d/bazbat", pact.Server.Port))
 		if err != nil {
 			log.Fatalf("Error sending request: %v", err)
@@ -45,9 +52,17 @@ func main() {
 		WithRequest(dsl.Request{
 			Method: "GET",
 			Path:   "/foobar",
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+			Body: `{"s":"foo"}`,
 		}).
 		WillRespondWith(dsl.Response{
 			Status: 200,
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+			Body: `{"s":"bar"}`,
 		})
 	pact.
 		AddInteraction().
@@ -62,8 +77,7 @@ func main() {
 		})
 
 	// Verify
-	err := pact.Verify(test)
-	if err != nil {
+	if err := pact.Verify(test); err != nil {
 		log.Fatalf("Error on Verify: %v", err)
 	}
 
