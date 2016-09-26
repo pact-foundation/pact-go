@@ -58,7 +58,7 @@ how to get going.
 * Unzip the package into a known location, and add to the `PATH`.
 * Run `pact-go` to see what options are available.
 
-*NOTE*: Don't despair! We are [working](https://github.com/pact-foundation/pact-go/tree/feature/native) 
+*NOTE*: Don't despair! We are [working](https://github.com/pact-foundation/pact-go/tree/feature/native)
 on a pure Go implementation that won't require this install step - please be
 patient or help us implement the [roadmap](https://github.com/pact-foundation/pact-go/wiki/Native-implementation-roadmap).
 
@@ -363,7 +363,8 @@ ProviderStatesURL: 			 GET URL to fetch all available states (see types.Provider
 ProviderStatesSetupURL: 	POST URL to set the provider state (see types.ProviderState)
 ```
 
-Example routes using the standard Go http package might look like this:
+Example routes using the standard Go http package might look like this, note 
+the `/states` endpoint returns a list of available states for each known consumer:
 
 ```go
 // Return known provider states to the verifier (ProviderStatesURL):
@@ -459,6 +460,7 @@ pact := Pact{
 ## Examples
 
 * [API Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/)
+* [Golang ServeMux](https://github.com/pact-foundation/pact-go/tree/master/examples/mux)
 * [Go Kit](https://github.com/pact-foundation/pact-go/tree/master/examples/go-kit)
 * [Gin](https://github.com/pact-foundation/pact-go/tree/master/examples/gin)
 

@@ -1,12 +1,15 @@
 package provider
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
 	"os"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/pact-foundation/pact-go/dsl"
 	examples "github.com/pact-foundation/pact-go/examples/types"
 	"github.com/pact-foundation/pact-go/types"
@@ -35,26 +38,55 @@ func TestPact_Provider(t *testing.T) {
 // Starts the provider API with hooks for provider states.
 // This essentially mirrors the main.go file, with extra routes added.
 func startInstrumentedProvider() {
-	router := gin.Default()
-	router.POST("/users/login", UserLogin)
-	router.GET("/states", providerStates)
-	router.POST("/setup", providerStateSetup)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/users/login", UserLogin)
+	mux.HandleFunc("/setup", providerStateSetupFunc)
+	mux.HandleFunc("/states", providerStatesFunc)
 
-	router.Run(fmt.Sprintf(":%d", port))
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ln.Close()
+
+	log.Printf("API starting: port %d (%s)", port, ln.Addr())
+	log.Printf("API terminating: %v", http.Serve(ln, mux))
+
+}
+
+// Get all states route.
+var providerStatesFunc = func(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	body, _ := json.Marshal(providerStates)
+	w.Write(body)
 }
 
 // Set current provider state route.
-func providerStateSetup(c *gin.Context) {
+var providerStateSetupFunc = func(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	var state types.ProviderState
-	if c.BindJSON(&state) == nil {
-		// Setup database for different states
-		if state.State == "User billy exists" {
-			userRepository = billyExists
-		} else if state.State == "User billy is unauthorized" {
-			userRepository = billyUnauthorized
-		} else {
-			userRepository = billyDoesNotExist
-		}
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
+	err = json.Unmarshal(body, &state)
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
+	// Setup database for different states
+	if state.State == "User billy exists" {
+		userRepository = billyExists
+	} else if state.State == "User billy is unauthorized" {
+		userRepository = billyUnauthorized
+	} else {
+		userRepository = billyDoesNotExist
 	}
 }
 
@@ -63,13 +95,11 @@ func providerStateSetup(c *gin.Context) {
 // The values should match a Given("...") block in the Interaction. Essentially,
 // this broadcasts the allowed states of the provider for verification, it is not
 // necessary for all consumers to use all states.
-func providerStates(c *gin.Context) {
-	c.JSON(http.StatusOK, map[string][]string{
-		"billy": []string{
-			"User billy exists",
-			"User billy does not exist",
-			"User billy is unauthorized"},
-	})
+var providerStates = map[string][]string{
+	"billy": []string{
+		"User billy exists",
+		"User billy does not exist",
+		"User billy is unauthorized"},
 }
 
 // Configuration / Test Data

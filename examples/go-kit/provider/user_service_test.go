@@ -130,7 +130,11 @@ func startInstrumentedProvider() {
 		logger.Log("[DEBUG] configured provider state: ", state.State)
 	})
 
-	// This path returns all states available for
+	// This path returns all states available for the onsumer 'billy'
+	// Note that the key for the array is the onsumer name (in this case, 'billy')
+	// The values should match a Given("...") block in the Interaction. Essentially,
+	// this broadcasts the allowed states of the provider for verification, it is not
+	// necessary for all consumers to use all states.
 	router.Methods("GET").Path("/states").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		logger.Log("[DEBUG] returning available provider states")
 		w.Header().Add("Content-Type", "application/json")

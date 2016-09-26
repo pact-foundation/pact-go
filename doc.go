@@ -129,9 +129,14 @@ Provider side Pact testing, involves verifying that the contract - the Pact file
 A typical Provider side test would like something like:
 
 	func TestProvider_PactContract(t *testing.T) {
+	// Create Pact, connecting to local Daemon
+	// Ensure the port matches the daemon port!
+		pact := Pact{
+			Port: 6666,
+		}
 		go startMyAPI("http://localhost:8000")
 
-		response := pact.VerifyProvider(types.VerifyRequest{
+		err := pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        "http://localhost:8000",
 			PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 			ProviderStatesURL:      "http://localhost:8000/states",
@@ -218,7 +223,8 @@ are:
 	ProviderStatesURL:	GET URL to fetch all available states (see types.ProviderStates)
 	ProviderStatesSetupURL:	POST URL to set the provider state (see types.ProviderState)
 
-Example routes using the standard http package might look like this:
+Example routes using the standard Go http package might look like this, note
+the `/states` endpoint returns a list of available states for each known consumer:
 
 	// Return known provider states to the verifier (ProviderStatesURL):
 	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
