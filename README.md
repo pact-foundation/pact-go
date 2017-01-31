@@ -467,6 +467,7 @@ pact := Pact{
 ## Contact
 
 * Twitter: [@pact_up](https://twitter.com/pact_up)
+* Gophers #pact [Slack channel](https://gophers.slack.com/messages/pact/)
 * Google users group: https://groups.google.com/forum/#!forum/pact-support
 * Gitter: https://gitter.im/realestate-com-au/pact
 
