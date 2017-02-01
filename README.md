@@ -6,18 +6,15 @@ DSL for the consumer project, and interaction playback and verification for the 
 Implements [Pact Specification v2](https://github.com/pact-foundation/pact-specification/tree/version-2),
 including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
-From the [Ruby Pact website](https://github.com/realestate-com-au/pact):
+From the [Pact website](http://docs.pact.io/):
 
-> Define a pact between service consumers and providers, enabling "consumer driven contract" testing.
->
->Pact provides an RSpec DSL for service consumers to define the HTTP requests they will make to a service provider and the HTTP responses they expect back.
->These expectations are used in the consumers specs to provide a mock service provider. The interactions are recorded, and played back in the service provider
->specs to ensure the service provider actually does provide the response the consumer expects.
->
->This allows testing of both sides of an integration point using fast unit tests.
->
->This gem is inspired by the concept of "Consumer driven contracts". See http://martinfowler.com/articles/consumerDrivenContracts.html for more information.
+>The Pact family of frameworks provide support for [Consumer Driven Contracts](http://martinfowler.com/articles/consumerDrivenContracts.html) testing.
 
+>A Contract is a collection of agreements between a client (Consumer) and an API (Provider) that describes the interactions that can take place between them.
+
+>Consumer Driven Contracts is a pattern that drives the development of the Provider from its Consumers point of view.
+
+>Pact is a testing tool that guarantees those Contracts are satisfied.
 
 Read [Getting started with Pact](http://dius.com.au/2016/02/03/microservices-pact/) for more information on
 how to get going.
