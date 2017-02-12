@@ -18,13 +18,6 @@ func TestRootCommand(t *testing.T) {
 	Execute()
 }
 
-func TestRootCommand_initConfig(t *testing.T) {
-	initConfig()
-
-	cfgFile = "/tmp/foobar.config"
-	initConfig()
-}
-
 func TestRootCommand_LogLevel(t *testing.T) {
 	res := captureOutput(func() {
 		setLogLevel(true, "DEBUG")

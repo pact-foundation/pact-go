@@ -128,7 +128,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error)
 }
 
 // ListServers lists all running Pact Mock Servers.
-func (p *PactClient) ListServers() types.PactListResponse {
+func (p *PactClient) ListServers() *types.PactListResponse {
 	log.Println("[DEBUG] client: listing servers")
 	var res types.PactListResponse
 	client, err := getHTTPClient(p.Port)
@@ -138,7 +138,7 @@ func (p *PactClient) ListServers() types.PactListResponse {
 			log.Println("[ERROR] rpc:", err.Error())
 		}
 	}
-	return res
+	return &res
 }
 
 // StopServer stops a remote Pact Mock Server.

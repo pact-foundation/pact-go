@@ -152,7 +152,7 @@ func TestClient_StartServer(t *testing.T) {
 	}
 }
 
-func TestClient_StartServerRPCError(t *testing.T) {
+func TestClient_RPCErrors(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	createDaemon(port, true)
 

@@ -9,10 +9,8 @@ import (
 
 	"github.com/hashicorp/logutils"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-var cfgFile string
 var verbose bool
 var logLevel string
 
@@ -36,32 +34,15 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
 	// Here you will define your flags and configuration settings.
 	// Cobra supports Persistent Flags, which, if defined here,
 	// will be global for your application.
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.pact-go.yaml)")
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", true, "verbose output")
 	RootCmd.PersistentFlags().StringVarP(&logLevel, "logLevel", "l", "INFO", "Set the logging level (DEBUG, INFO, ERROR)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" { // enable ability to specify config file via flag
-		viper.SetConfigFile(cfgFile)
-	}
-
-	viper.SetConfigName(".pact-go") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")    // adding home directory as first search path
-	viper.AutomaticEnv()            // read in environment variables that match
-
-	// If a config file is found, read it in.
-	viper.ReadInConfig()
 }
 
 func setLogLevel(verbose bool, level string) {
