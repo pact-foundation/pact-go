@@ -181,7 +181,7 @@ func TestPact_Setup(t *testing.T) {
 func TestPact_Teardown(t *testing.T) {
 	old := waitForPort
 	defer func() { waitForPort = old }()
-	waitForPort = func(int, string) error {
+	waitForPort = func(int, string, string, string) error {
 		return nil
 	}
 	port, _ := utils.GetFreePort()
@@ -199,7 +199,7 @@ func TestPact_Teardown(t *testing.T) {
 func TestPact_VerifyProvider(t *testing.T) {
 	old := waitForPort
 	defer func() { waitForPort = old }()
-	waitForPort = func(int, string) error {
+	waitForPort = func(int, string, string, string) error {
 		return nil
 	}
 	port, _ := utils.GetFreePort()
@@ -221,7 +221,7 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 	brokerPort := setupMockBroker(false)
 	old := waitForPort
 	defer func() { waitForPort = old }()
-	waitForPort = func(int, string) error {
+	waitForPort = func(int, string, string, string) error {
 		return nil
 	}
 	port, _ := utils.GetFreePort()
@@ -243,7 +243,7 @@ func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 	brokerPort := setupMockBroker(false)
 	old := waitForPort
 	defer func() { waitForPort = old }()
-	waitForPort = func(int, string) error {
+	waitForPort = func(int, string, string, string) error {
 		return nil
 	}
 	port, _ := utils.GetFreePort()
@@ -264,7 +264,7 @@ func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 func TestPact_VerifyProviderFail(t *testing.T) {
 	old := waitForPort
 	defer func() { waitForPort = old }()
-	waitForPort = func(int, string) error {
+	waitForPort = func(int, string, string, string) error {
 		return nil
 	}
 	port, _ := utils.GetFreePort()

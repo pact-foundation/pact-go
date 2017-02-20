@@ -31,6 +31,12 @@ type Client interface {
 type PactClient struct {
 	// Port the daemon is running on.
 	Port int
+
+	// Network Daemon is listening on
+	Network string
+
+	// Address the Daemon is listening on
+	Address string
 }
 
 // Get a port given a URL
@@ -52,19 +58,19 @@ func getPort(rawURL string) int {
 	return -1
 }
 
-func getHTTPClient(port int) (*rpc.Client, error) {
+func getHTTPClient(port int, network string, address string) (*rpc.Client, error) {
 	log.Println("[DEBUG] creating an HTTP client")
-	err := waitForPort(port, fmt.Sprintf(`Timed out waiting for Daemon on port %d - are you
+	err := waitForPort(port, network, address, fmt.Sprintf(`Timed out waiting for Daemon on port %d - are you
 		sure it's running?`, port))
 	if err != nil {
 		return nil, err
 	}
-	return rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
+	return rpc.DialHTTP(network, fmt.Sprintf("%s:%d", address, port))
 }
 
 // Use this to wait for a daemon to be running prior
 // to running tests.
-var waitForPort = func(port int, message string) error {
+var waitForPort = func(port int, network string, address string, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
 	timeout := time.After(timeoutDuration)
 
@@ -74,7 +80,7 @@ var waitForPort = func(port int, message string) error {
 			log.Printf("[ERROR] Expected server to start < %s. %s", timeoutDuration, message)
 			return fmt.Errorf("Expected server to start < %s. %s", timeoutDuration, message)
 		case <-time.After(50 * time.Millisecond):
-			_, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
+			_, err := net.Dial(network, fmt.Sprintf("%s:%d", address, port))
 			if err == nil {
 				return nil
 			}
@@ -86,7 +92,7 @@ var waitForPort = func(port int, message string) error {
 func (p *PactClient) StartServer(args []string) *types.MockServer {
 	log.Println("[DEBUG] client: starting a server")
 	var res types.MockServer
-	client, err := getHTTPClient(p.Port)
+	client, err := getHTTPClient(p.Port, p.getNetworkInterface(), p.Address)
 	if err == nil {
 		err = client.Call(commandStartServer, types.MockServer{Args: args}, &res)
 		if err != nil {
@@ -95,7 +101,7 @@ func (p *PactClient) StartServer(args []string) *types.MockServer {
 	}
 
 	if err == nil {
-		waitForPort(res.Port, fmt.Sprintf(`Timed out waiting for Mock Server to
+		waitForPort(res.Port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Mock Server to
 			start on port %d - are you sure it's running?`, res.Port))
 	}
 
@@ -108,11 +114,11 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error)
 
 	port := getPort(request.ProviderBaseURL)
 
-	waitForPort(port, fmt.Sprintf(`Timed out waiting for Provider API to start
+	waitForPort(port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Provider API to start
 		 on port %d - are you sure it's running?`, port))
 
 	var res types.CommandResponse
-	client, err := getHTTPClient(p.Port)
+	client, err := getHTTPClient(p.Port, p.getNetworkInterface(), p.Address)
 	if err == nil {
 		err = client.Call(commandVerifyProvider, request, &res)
 		if err != nil {
@@ -131,7 +137,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error)
 func (p *PactClient) ListServers() *types.PactListResponse {
 	log.Println("[DEBUG] client: listing servers")
 	var res types.PactListResponse
-	client, err := getHTTPClient(p.Port)
+	client, err := getHTTPClient(p.Port, p.getNetworkInterface(), p.Address)
 	if err == nil {
 		err = client.Call(commandListServers, types.MockServer{}, &res)
 		if err != nil {
@@ -145,7 +151,7 @@ func (p *PactClient) ListServers() *types.PactListResponse {
 func (p *PactClient) StopServer(server *types.MockServer) *types.MockServer {
 	log.Println("[DEBUG] client: stop server")
 	var res types.MockServer
-	client, err := getHTTPClient(p.Port)
+	client, err := getHTTPClient(p.Port, p.getNetworkInterface(), p.Address)
 	if err == nil {
 		err = client.Call(commandStopServer, server, &res)
 		if err != nil {
@@ -159,7 +165,7 @@ func (p *PactClient) StopServer(server *types.MockServer) *types.MockServer {
 func (p *PactClient) StopDaemon() error {
 	log.Println("[DEBUG] client: stop daemon")
 	var req, res string
-	client, err := getHTTPClient(p.Port)
+	client, err := getHTTPClient(p.Port, p.getNetworkInterface(), p.Address)
 	if err == nil {
 		err = client.Call(commandStopDaemon, &req, &res)
 		if err != nil {
@@ -167,4 +173,13 @@ func (p *PactClient) StopDaemon() error {
 		}
 	}
 	return err
+}
+
+// getNetworkInterface returns a default interface to communicate to the Daemon
+// if none specified
+func (p *PactClient) getNetworkInterface() string {
+	if p.Network == "" {
+		return "tcp"
+	}
+	return p.Network
 }
