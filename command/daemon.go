@@ -27,7 +27,7 @@ var daemonCmd = &cobra.Command{
 
 func init() {
 	daemonCmd.Flags().IntVarP(&port, "port", "p", 6666, "Local daemon port to listen on")
-	daemonCmd.Flags().StringVarP(&network, "network", "n", "", "Local network interface to listen on ('tcp', 'tcp4', 'tcp6')")
+	daemonCmd.Flags().StringVarP(&network, "network", "n", "tcp", "Local network interface to listen on ('tcp', 'tcp4', 'tcp6')")
 	daemonCmd.Flags().StringVarP(&address, "address", "a", "", "Local network address to listen on (e.g. '', '127.0.0.1', '[::1]' etc.)")
 	RootCmd.AddCommand(daemonCmd)
 }
