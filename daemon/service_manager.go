@@ -2,11 +2,11 @@ package daemon
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
+	"time"
 )
 
 // ServiceManager is the default implementation of the Service interface.
@@ -60,6 +60,7 @@ func (s *ServiceManager) removeServiceMonitor() {
 }
 
 // Stop a Service and returns the exit status.
+// Stop a Service and returns the exit status.
 func (s *ServiceManager) Stop(pid int) (bool, error) {
 	log.Println("[DEBUG] stopping service with pid", pid)
 	cmd := s.processes[pid]
@@ -68,11 +69,26 @@ func (s *ServiceManager) Stop(pid int) (bool, error) {
 	go func() {
 		s.commandCompleteChan <- cmd
 	}()
+	var err error
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
 
-	err := cmd.Wait()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
-		return false, err
+	select {
+	case <-time.After(3 * time.Second):
+		if err = cmd.Process.Kill(); err != nil {
+			log.Println("failed to kill: ", err)
+			return false, err
+		}
+		log.Println("process killed as timeout reached")
+	case err = <-done:
+		if err != nil {
+			log.Printf("process done with error = %v", err)
+
+		} else {
+			log.Print("process done gracefully without error")
+		}
 	}
 
 	return cmd.ProcessState.Success(), nil
