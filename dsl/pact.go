@@ -86,8 +86,8 @@ func (p *Pact) Setup() *Pact {
 	if p.Server == nil {
 		args := []string{
 			fmt.Sprintf("--pact-specification-version %d", p.SpecificationVersion),
-			fmt.Sprintf("--pact-dir %s", p.PactDir),
-			fmt.Sprintf("--log %s/pact.log", p.LogDir),
+			fmt.Sprintf("--pact-dir %s", filepath.FromSlash(p.PactDir)),
+			fmt.Sprintf("--log %s/pact.log", filepath.FromSlash(p.LogDir+"/"+"pact.log")),
 			fmt.Sprintf("--consumer %s", p.Consumer),
 			fmt.Sprintf("--provider %s", p.Provider),
 		}
