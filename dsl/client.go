@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	timeoutDuration       = 1 * time.Second
+	timeoutDuration       = 10 * time.Second
 	commandStartServer    = "Daemon.StartServer"
 	commandStopServer     = "Daemon.StopServer"
 	commandVerifyProvider = "Daemon.VerifyProvider"

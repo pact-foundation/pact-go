@@ -21,6 +21,7 @@ func main() {
 		Port:     6666, // Ensure this port matches the daemon port!
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
+		LogLevel: "DEBUG",
 	}
 	defer pact.Teardown()
 
