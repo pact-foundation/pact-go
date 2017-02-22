@@ -22,6 +22,7 @@ func main() {
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
 		LogLevel: "DEBUG",
+		Host:     "localhost",
 	}
 	defer pact.Teardown()
 

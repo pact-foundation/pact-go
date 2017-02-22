@@ -6,6 +6,8 @@ import (
 )
 
 var port int
+var network string
+var address string
 var daemonCmdInstance *daemon.Daemon
 var daemonCmd = &cobra.Command{
 	Use:   "daemon",
@@ -19,11 +21,13 @@ var daemonCmd = &cobra.Command{
 		verifier := &daemon.VerificationService{}
 		verifier.Setup()
 		daemonCmdInstance = daemon.NewDaemon(mock, verifier)
-		daemonCmdInstance.StartDaemon(port)
+		daemonCmdInstance.StartDaemon(port, network, address)
 	},
 }
 
 func init() {
-	daemonCmd.Flags().IntVarP(&port, "port", "p", 6666, "Local daemon port")
+	daemonCmd.Flags().IntVarP(&port, "port", "p", 6666, "Local daemon port to listen on")
+	daemonCmd.Flags().StringVarP(&network, "network", "n", "tcp", "Local network interface to listen on ('tcp', 'tcp4', 'tcp6')")
+	daemonCmd.Flags().StringVarP(&address, "address", "a", "", "Local network address to listen on (e.g. '', '127.0.0.1', '[::1]' etc.)")
 	RootCmd.AddCommand(daemonCmd)
 }

@@ -67,7 +67,7 @@ func TestNewDaemon(t *testing.T) {
 func TestStopDaemon(t *testing.T) {
 	d, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
-	go d.StartDaemon(port)
+	go d.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 	var res string
 	d.StopDaemon("", &res)
@@ -77,7 +77,7 @@ func TestStopDaemon(t *testing.T) {
 func TestShutdownDaemon(t *testing.T) {
 	d, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
-	go d.StartDaemon(port)
+	go d.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 	d.Shutdown()
 }
@@ -129,7 +129,7 @@ func TestStartAndStopDaemon(t *testing.T) {
 	port, _ := utils.GetFreePort()
 	daemon, _ := createMockedDaemon(true)
 	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
+	go daemon.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 }
 
@@ -339,7 +339,7 @@ func TestRPCClient_List(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
+	go daemon.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
@@ -358,7 +358,7 @@ func TestRPCClient_StartServer(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
+	go daemon.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
@@ -381,7 +381,7 @@ func TestRPCClient_StopServer(t *testing.T) {
 	daemon, manager := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
+	go daemon.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 
 	var cmd *exec.Cmd
@@ -412,7 +412,7 @@ func TestRPCClient_StopDaemon(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
+	go daemon.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
@@ -429,7 +429,7 @@ func TestRPCClient_Verify(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 	port, _ := utils.GetFreePort()
 	defer waitForDaemonToShutdown(port, daemon, t)
-	go daemon.StartDaemon(port)
+	go daemon.StartDaemon(port, "tcp", "")
 	connectToDaemon(port, t)
 
 	client, err := rpc.DialHTTP("tcp", fmt.Sprintf(":%d", port))
