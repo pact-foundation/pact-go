@@ -69,6 +69,8 @@ func (s *ServiceManager) Stop(pid int) (bool, error) {
 	go func() {
 		s.commandCompleteChan <- cmd
 	}()
+
+	// Wait for error, kill if it takes too long
 	var err error
 	done := make(chan error, 1)
 	go func() {
@@ -78,20 +80,18 @@ func (s *ServiceManager) Stop(pid int) (bool, error) {
 	select {
 	case <-time.After(3 * time.Second):
 		if err = cmd.Process.Kill(); err != nil {
-			log.Println("failed to kill: ", err)
+			log.Println("[ERROR] timeout reached, killing pid", pid)
+
 			return false, err
 		}
-		log.Println("process killed as timeout reached")
 	case err = <-done:
 		if err != nil {
-			log.Printf("process done with error = %v", err)
-
-		} else {
-			log.Print("process done gracefully without error")
+			log.Println("[ERROR] error waiting for process to complete", err)
+			return false, err
 		}
 	}
 
-	return cmd.ProcessState.Success(), nil
+	return true, nil
 }
 
 // List all Service PIDs.
