@@ -42,31 +42,37 @@ type VerifyRequest struct {
 func (v *VerifyRequest) Validate() error {
 	v.Args = []string{}
 	if v.ProviderBaseURL != "" {
-		v.Args = append(v.Args, fmt.Sprintf("--provider-base-url %s", v.ProviderBaseURL))
+		v.Args = append(v.Args, "--provider-base-url")
+		v.Args = append(v.Args, v.ProviderBaseURL)
 	} else {
 		return fmt.Errorf("ProviderBaseURL is mandatory.")
 	}
 
 	if len(v.PactURLs) != 0 {
-		v.Args = append(v.Args, fmt.Sprintf("--pact-urls %s", strings.Join(v.PactURLs[:], ",")))
+		v.Args = append(v.Args, "--pact-urls")
+		v.Args = append(v.Args, strings.Join(v.PactURLs[:], ","))
 	} else {
 		return fmt.Errorf("PactURLs is mandatory.")
 	}
 
 	if v.ProviderStatesSetupURL != "" {
-		v.Args = append(v.Args, fmt.Sprintf("--provider-states-setup-url %s", v.ProviderStatesSetupURL))
+		v.Args = append(v.Args, "--provider-states-setup-url")
+		v.Args = append(v.Args, v.ProviderStatesSetupURL)
 	}
 
 	if v.ProviderStatesURL != "" {
-		v.Args = append(v.Args, fmt.Sprintf("--provider-states-url %s", v.ProviderStatesURL))
+		v.Args = append(v.Args, "--provider-states-url")
+		v.Args = append(v.Args, v.ProviderStatesURL)
 	}
 
 	if v.BrokerUsername != "" {
-		v.Args = append(v.Args, fmt.Sprintf("--broker-username %s", v.BrokerUsername))
+		v.Args = append(v.Args, "--broker-username")
+		v.Args = append(v.Args, v.BrokerUsername)
 	}
 
 	if v.BrokerPassword != "" {
-		v.Args = append(v.Args, fmt.Sprintf("--broker-password %s", v.BrokerPassword))
+		v.Args = append(v.Args, "--broker-password")
+		v.Args = append(v.Args, v.BrokerPassword)
 	}
 	return nil
 }

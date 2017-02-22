@@ -46,8 +46,8 @@ func NewDaemon(MockServiceManager Service, verificationServiceManager Service) *
 }
 
 // StartDaemon starts the daemon RPC server.
-func (d Daemon) StartDaemon(port int) {
-	log.Println("[INFO] daemon - starting daemon on port", port)
+func (d Daemon) StartDaemon(port int, network string, address string) {
+	log.Println("[INFO] daemon - starting daemon on network:", network, "address:", address, "port:", port)
 
 	serv := rpc.NewServer()
 	serv.Register(d)
@@ -62,7 +62,7 @@ func (d Daemon) StartDaemon(port int) {
 	// Workaround for multiple RPC ServeMux's
 	http.DefaultServeMux = oldMux
 
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	l, err := net.Listen(network, fmt.Sprintf("%s:%d", address, port))
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +97,7 @@ func (d Daemon) Shutdown() {
 // StartServer starts a mock server and returns a pointer to atypes.MockServer
 // struct.
 func (d Daemon) StartServer(request types.MockServer, reply *types.MockServer) error {
-	log.Println("[DEBUG] daemon - starting mock server")
+	log.Println("[DEBUG] daemon - starting mock server with args:", request.Args)
 	server := &types.MockServer{}
 	port, svc := d.pactMockSvcManager.NewService(request.Args)
 	server.Port = port

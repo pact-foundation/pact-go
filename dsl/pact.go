@@ -51,6 +51,16 @@ type Pact struct {
 	// Specify which version of the Pact Specification should be used (1 or 2).
 	// Defaults to 2.
 	SpecificationVersion int
+
+	// Host is the address of the Daemon, Mock and Verification Service runs on
+	// Examples include 'localhost', '127.0.0.1', '[::1]'
+	// Defaults to 'localhost'
+	Host string
+
+	// Network is the network of the Daemon, Mock and Verification Service
+	// Examples include 'tcp', 'tcp4', 'tcp6'
+	// Defaults to 'tcp'
+	Network string
 }
 
 // AddInteraction creates a new Pact interaction, initialising all
@@ -71,6 +81,14 @@ func (p *Pact) Setup() *Pact {
 	log.Printf("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
 
+	if p.Network == "" {
+		p.Network = "tcp"
+	}
+
+	if p.Host == "" {
+		p.Host = "localhost"
+	}
+
 	if p.LogDir == "" {
 		p.LogDir = fmt.Sprintf(filepath.Join(dir, "logs"))
 	}
@@ -85,13 +103,18 @@ func (p *Pact) Setup() *Pact {
 
 	if p.Server == nil {
 		args := []string{
-			fmt.Sprintf("--pact-specification-version %d", p.SpecificationVersion),
-			fmt.Sprintf("--pact-dir %s", p.PactDir),
-			fmt.Sprintf("--log %s/pact.log", p.LogDir),
-			fmt.Sprintf("--consumer %s", p.Consumer),
-			fmt.Sprintf("--provider %s", p.Provider),
+			"--pact-specification-version",
+			fmt.Sprintf("%d", p.SpecificationVersion),
+			"--pact-dir",
+			filepath.FromSlash(p.PactDir),
+			"--log",
+			filepath.FromSlash(p.LogDir + "/" + "pact.log"),
+			"--consumer",
+			p.Consumer,
+			"--provider",
+			p.Provider,
 		}
-		client := &PactClient{Port: p.Port}
+		client := &PactClient{Port: p.Port, Network: p.Network, Address: p.Host}
 		p.pactClient = client
 		p.Server = client.StartServer(args)
 	}
@@ -131,7 +154,7 @@ func (p *Pact) Verify(integrationTest func() error) error {
 	p.Setup()
 	log.Printf("[DEBUG] pact verify")
 	mockServer := &MockService{
-		BaseURL:  fmt.Sprintf("http://localhost:%d", p.Server.Port),
+		BaseURL:  fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
 		Consumer: p.Consumer,
 		Provider: p.Provider,
 	}
@@ -165,7 +188,7 @@ func (p *Pact) WritePact() error {
 	p.Setup()
 	log.Printf("[DEBUG] pact write Pact file")
 	mockServer := MockService{
-		BaseURL:  fmt.Sprintf("http://localhost:%d", p.Server.Port),
+		BaseURL:  fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
 		Consumer: p.Consumer,
 		Provider: p.Provider,
 	}

@@ -30,6 +30,7 @@ func TestDaemonCommand(t *testing.T) {
 	args := []string{"daemon"}
 	p, _ := utils.GetFreePort()
 	port = p
+	network = "tcp"
 	go daemonCmd.Run(nil, args)
 
 	waitForPortInTest(port, t)
