@@ -124,7 +124,7 @@ func TestLogin(t *testing.T) {
 	if err := pact.Verify(func() error {
 		u := fmt.Sprintf("http://localhost:%d/login", pact.Server.Port)
 		req, err := http.NewRequest("GET", u, strings.NewReader(`{"username":"matt"}`))
-		
+
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
 		// of application/json. If you don't explicitly set the content-type, you
 		// will get a mismatch during Verification.
@@ -359,7 +359,7 @@ ProviderStatesURL: 			 GET URL to fetch all available states (see types.Provider
 ProviderStatesSetupURL: 	POST URL to set the provider state (see types.ProviderState)
 ```
 
-Example routes using the standard Go http package might look like this, note 
+Example routes using the standard Go http package might look like this, note
 the `/states` endpoint returns a list of available states for each known consumer:
 
 ```go
@@ -470,6 +470,10 @@ pact := Pact{
 ## Documentation
 
 Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki](https://github.com/realestate-com-au/pact/wiki).
+
+## Troubleshooting
+
+See [TROUBLESHOOTING](/pact-foundation/pact-go/wiki/Troubleshooting) for some helpful tips/tricks.
 
 ## Roadmap
 
