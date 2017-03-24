@@ -79,17 +79,16 @@ Here is a complex example that shows how all 3 terms can be used together:
 	size := Like(10)
 	colour := Term("red", "red|green|blue")
 
-	match := formatJSON(
-		EachLike(
-			EachLike(
-				fmt.Sprintf(
-					`{
-						"size": %s,
-						"colour": %s,
-						"tag": %s
-					}`, size, colour, tag),
-				1),
-			1))
+	match := EachLike(
+				EachLike(
+					fmt.Sprintf(
+						`{
+							"size": %s,
+							"colour": %s,
+							"tag": %s
+						}`, size, colour, tag),
+					1),
+				1))
 
 
 This example will result in a response body from the mock server that looks like:
