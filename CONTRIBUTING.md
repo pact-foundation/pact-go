@@ -59,5 +59,5 @@ we smoke test the key features against a running Daemon and Broker.
 
 ```
 cd dsl
-PACT_INTEGRATED_TESTS=1 PACT_BROKER_USERNAME="pactuser" PACT_BROKER_PASSWORD="pactpassword" PACT_BROKER_HOST="http://pactbroker" go test -run TestPact_Integration
+PACT_INTEGRATED_TESTS=1 PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M" PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1" PACT_BROKER_HOST="https://test.pact.dius.com.au" go test -run TestPact_Integration
 ```

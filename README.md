@@ -455,6 +455,19 @@ pact := Pact{
 
 ## Examples
 
+There is a single file, end-to-end integration test we use as a smoke test before releasing a new binary, including publishing to a broker, you can run it (after starting the daemon) as follows:
+
+```sh
+cd dsl
+export PACT_INTEGRATED_TESTS=1
+export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
+export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
+export PACT_BROKER_HOST="https://test.pact.dius.com.au"
+go test -run TestPact_Integration
+```
+
+*Other examples:*
+
 * [API Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/)
 * [Golang ServeMux](https://github.com/pact-foundation/pact-go/tree/master/examples/mux)
 * [Go Kit](https://github.com/pact-foundation/pact-go/tree/master/examples/go-kit)
