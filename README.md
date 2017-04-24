@@ -99,12 +99,6 @@ func TestLogin(t *testing.T) {
 	// Shuts down Mock Service when done
 	defer pact.Teardown()
 
-	// Pass in your test case as a function to Verify()
-	var test = func() error {
-		_, err := http.Get(fmt.Sprintf("http://localhost:%d/login", pact.Server.Port))
-		return err
-	}
-
 	// Set up our interactions. Note we have multiple in this test case!
 	pact.
 		AddInteraction().
