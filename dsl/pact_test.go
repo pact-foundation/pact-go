@@ -172,9 +172,15 @@ func TestPact_Setup(t *testing.T) {
 	createDaemon(port, true)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG"}
-	pact.Setup()
+	pact.Setup(true)
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
+	}
+
+	pact = &Pact{Port: port, LogLevel: "DEBUG"}
+	pact.Setup(false)
+	if pact.Server != nil {
+		t.Fatalf("Expected server to be nil")
 	}
 }
 
@@ -189,7 +195,7 @@ func TestPact_Teardown(t *testing.T) {
 	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG"}
-	pact.Setup()
+	pact.Setup(true)
 	pact.Teardown()
 	if pact.Server.Status != 0 {
 		t.Fatalf("Expected server exit status to be 0 but got %d", pact.Server.Status)

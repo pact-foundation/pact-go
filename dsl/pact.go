@@ -66,7 +66,7 @@ type Pact struct {
 // AddInteraction creates a new Pact interaction, initialising all
 // required things. Will automatically start a Mock Service if none running.
 func (p *Pact) AddInteraction() *Interaction {
-	p.Setup()
+	p.Setup(true)
 	log.Printf("[DEBUG] pact add interaction")
 	i := &Interaction{}
 	p.Interactions = append(p.Interactions, i)
@@ -76,7 +76,7 @@ func (p *Pact) AddInteraction() *Interaction {
 // Setup starts the Pact Mock Server. This is usually called before each test
 // suite begins. AddInteraction() will automatically call this if no Mock Server
 // has been started.
-func (p *Pact) Setup() *Pact {
+func (p *Pact) Setup(startMockServer bool) *Pact {
 	p.setupLogging()
 	log.Printf("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
@@ -101,7 +101,7 @@ func (p *Pact) Setup() *Pact {
 		p.SpecificationVersion = 2
 	}
 
-	if p.Server == nil {
+	if p.Server == nil && startMockServer {
 		args := []string{
 			"--pact-specification-version",
 			fmt.Sprintf("%d", p.SpecificationVersion),
@@ -151,7 +151,7 @@ func (p *Pact) Teardown() *Pact {
 // Verify runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite.
 func (p *Pact) Verify(integrationTest func() error) error {
-	p.Setup()
+	p.Setup(true)
 	log.Printf("[DEBUG] pact verify")
 	mockServer := &MockService{
 		BaseURL:  fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
@@ -185,7 +185,7 @@ func (p *Pact) Verify(integrationTest func() error) error {
 // given Consumer <-> Provider pair. It will write out the Pact to the
 // configured file.
 func (p *Pact) WritePact() error {
-	p.Setup()
+	p.Setup(true)
 	log.Printf("[DEBUG] pact write Pact file")
 	mockServer := MockService{
 		BaseURL:  fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
@@ -203,7 +203,7 @@ func (p *Pact) WritePact() error {
 // VerifyProvider reads the provided pact files and runs verification against
 // a running Provider API.
 func (p *Pact) VerifyProvider(request types.VerifyRequest) error {
-	p.Setup()
+	p.Setup(false)
 
 	// If we provide a Broker, we go to it to find consumers
 	if request.BrokerURL != "" {
