@@ -37,7 +37,7 @@ build:
           ls -larth $WERCKER_CACHE_DIR
 
 package:
-  box: ruby:2.1
+  box: ruby:2.2
   steps:
     - script:
         name: retrieve artifacts
