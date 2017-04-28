@@ -20,7 +20,7 @@ fi
 
 # Mock Service
 if [ ! -d "pact-mock_service-${PACT_MOCK_SERVICE_VERSION}" ]; then
-  wget https://github.com/mefellows/pact-mock_service/archive/v${PACT_MOCK_SERVICE_VERSION}.zip -O temp.zip
+  wget https://github.com/bethesque/pact-mock_service/archive/v${PACT_MOCK_SERVICE_VERSION}.zip -O temp.zip
   unzip temp.zip
   rm temp.zip
   cd pact-mock_service-${PACT_MOCK_SERVICE_VERSION}

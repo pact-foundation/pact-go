@@ -2,8 +2,8 @@
 
 set -e
 
-export PACT_MOCK_SERVICE_VERSION=0.8.2-golang # Forked mock service with pinned deps.
-export PACT_PROVIDER_VERIFIER_VERSION=0.0.12
+export PACT_MOCK_SERVICE_VERSION=2.0.0 # Seg faults...
+export PACT_PROVIDER_VERIFIER_VERSION=0.0.13
 
 # Create the OS specific versions of the mock service and verifier
 echo "==> Building Ruby Binaries..."
