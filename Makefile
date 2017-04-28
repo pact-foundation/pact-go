@@ -14,6 +14,9 @@ dev:
 test:
 	"$(CURDIR)/scripts/test.sh"
 
+pact:
+	"$(CURDIR)/scripts/pact.sh"
+
 testrace:
 	go test -race $(TEST) $(TESTARGS)
 

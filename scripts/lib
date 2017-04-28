@@ -1,0 +1,21 @@
+function step {
+  echo ""
+  echo " -----> $1"
+}
+
+function log {
+  echo "        $1"
+}
+
+function detect_os {
+  platform='unknown'
+  unamestr=`uname`
+  if [[ "$unamestr" == 'Linux' ]]; then
+    platform='linux'
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    platform='darwin'  
+  elif [[ "$unamestr" == 'FreeBSD' ]]; then
+    platform='freebsd'
+  fi
+  echo $platform
+}

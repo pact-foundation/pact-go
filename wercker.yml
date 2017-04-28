@@ -61,6 +61,25 @@ package:
           ls -larth build
           ls -larth output
 
+integration:
+  steps:
+    - setup-go-workspace
+    - golint:
+        exclude: "vendor"
+    - script:
+        name: retrieve artifacts
+        code: |
+          mkdir -p output
+          mkdir -p build
+          if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build .; fi
+          if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output .; fi
+          ls -larth build
+          ls -larth output
+    - script:
+        name: pact
+        code: |
+          make pact
+
 # TODO: Get tokens for Pact foundation
 deploy:
     steps:
