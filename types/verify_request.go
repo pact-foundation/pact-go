@@ -31,6 +31,9 @@ type VerifyRequest struct {
 	// Password when authenticating to a Pact Broker.
 	BrokerPassword string
 
+	// Verbose increases verbosity of output
+	Verbose bool
+
 	// Arguments to the VerificationProvider
 	// Deprecated: This will be deleted after the native library replaces Ruby deps.
 	Args []string
@@ -73,6 +76,11 @@ func (v *VerifyRequest) Validate() error {
 	if v.BrokerPassword != "" {
 		v.Args = append(v.Args, "--broker-password")
 		v.Args = append(v.Args, v.BrokerPassword)
+	}
+
+	if v.Verbose {
+		v.Args = append(v.Args, "--verbose")
+		v.Args = append(v.Args, fmt.Sprintf("%v", v.Verbose))
 	}
 	return nil
 }
