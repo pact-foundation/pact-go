@@ -78,7 +78,7 @@ integration:
     - script:
         name: pact
         code: |
-          make pact
+          ./scripts/pact.sh
 
 # TODO: Get tokens for Pact foundation
 deploy:
