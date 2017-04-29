@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash +e
 
 ############################################################
 ##        Start and stop the Pact Mock Server daemon      ## 
@@ -12,7 +12,7 @@ CUR_DIR=$(pwd)
 function shutdown() {
     step "Shutting down stub server"
     log "Finding Pact daemon PID"
-    PID=$(ps -ef | grep pact-go | awk -F" " '{print $2}' | head -n 1)
+    PID=$(ps -ef | grep "pact-go daemon"| grep -v grep | awk -F" " '{print $2}' | head -n 1)
     if [ "${PID}" != "" ]; then
       log "Killing ${PID}"
       kill $PID
@@ -20,7 +20,6 @@ function shutdown() {
     cd $CUR_DIR
 }
 
-# mkdir -p bin
 if [ ! -f "dist/pact-go" ]; then
     cd dist
     platform=$(detect_os)
@@ -63,9 +62,6 @@ SCRIPT_STATUS=$?
 cd ..
 
 shutdown
-
-# step "Stopping Metrics API"
-# make stop
 
 if [ "${SCRIPT_STATUS}" = "0" ]; then
   step "Integration testing succeeded!"
