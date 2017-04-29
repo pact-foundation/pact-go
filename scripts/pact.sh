@@ -59,7 +59,7 @@ export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 export PACT_BROKER_PASSWORD="JN4kVfO5AIZWxelWbLvqMd8PkAVycBJh2Psyg11wtkubJC4xlOH5GmIfwO9gWe"
 cd dsl
 go test -run TestPact_Integration
-EXIT_CODE=$?
+SCRIPT_STATUS=$?
 cd ..
 
 shutdown
@@ -67,10 +67,10 @@ shutdown
 # step "Stopping Metrics API"
 # make stop
 
-if [ "${EXIT_CODE}" = "0" ]; then
+if [ "${SCRIPT_STATUS}" = "0" ]; then
   step "Integration testing succeeded!"
 else
   step "Integration testing failed, see stack trace above"
 fi
 
-exit $EXIT_CODE
+exit $SCRIPT_STATUS
