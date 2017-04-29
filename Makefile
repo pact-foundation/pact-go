@@ -23,4 +23,4 @@ testrace:
 updatedeps:
 	go get -d -v -p 2 ./...
 
-.PHONY: bin default dev test updatedeps
+.PHONY: bin default dev test pact updatedeps
