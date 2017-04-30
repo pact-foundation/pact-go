@@ -387,3 +387,19 @@ func TestHelperProcess(t *testing.T) {
 	fmt.Fprintf(os.Stdout, "COMMAND: oh yays!\n")
 	os.Exit(0)
 }
+
+func Test_sanitiseRubyResponse(t *testing.T) {
+	var tests = map[string]string{
+		"this is a sentence with a hash # so it should be in tact":                                           "this is a sentence with a hash # so it should be in tact",
+		"this is a sentence with a hash and newline\n#so it should not be in tact":                           "this is a sentence with a hash and newline",
+		"this is a sentence with a ruby statement bundle exec rake pact:verify so it should not be in tact":  "",
+		"this is a sentence with a ruby statement\nbundle exec rake pact:verify so it should not be in tact": "this is a sentence with a ruby statement",
+		"this is a sentence with multiple new lines \n\n\n\n\nit should not be in tact":                      "this is a sentence with multiple new lines \nit should not be in tact",
+	}
+	for k, v := range tests {
+		test := sanitiseRubyResponse(k)
+		if !strings.EqualFold(strings.TrimSpace(test), strings.TrimSpace(v)) {
+			log.Fatalf("Got `%s', Expected `%s`", strings.TrimSpace(test), strings.TrimSpace(v))
+		}
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/rpc"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -127,10 +128,25 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error)
 	}
 
 	if res.ExitCode > 0 {
-		return "", fmt.Errorf("provider verification failed: %s", res.Message)
+		return "", fmt.Errorf("provider verification failed: %s", sanitiseRubyResponse(res.Message))
 	}
 
 	return res.Message, err
+}
+
+// sanitiseRubyResponse removes Ruby-isms from the response content
+// making the output much more human readable
+func sanitiseRubyResponse(response string) string {
+	r := regexp.MustCompile("(?m)^\\s*#.*$")
+	s := r.ReplaceAllString(response, "")
+
+	r = regexp.MustCompile("(?m).*bundle exec rake pact:verify.*$")
+	s = r.ReplaceAllString(s, "")
+
+	r = regexp.MustCompile("\\n+")
+	s = r.ReplaceAllString(s, "\n")
+
+	return s
 }
 
 // ListServers lists all running Pact Mock Servers.

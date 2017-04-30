@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash +e
 
 ############################################################
 ##        Start and stop the Pact Mock Server daemon      ## 
@@ -12,7 +12,7 @@ CUR_DIR=$(pwd)
 function shutdown() {
     step "Shutting down stub server"
     log "Finding Pact daemon PID"
-    PID=$(ps -ef | grep pact-go | awk -F" " '{print $2}' | head -n 1)
+    PID=$(ps -ef | grep "pact-go daemon"| grep -v grep | awk -F" " '{print $2}' | head -n 1)
     if [ "${PID}" != "" ]; then
       log "Killing ${PID}"
       kill $PID
@@ -20,7 +20,6 @@ function shutdown() {
     cd $CUR_DIR
 }
 
-# mkdir -p bin
 if [ ! -f "dist/pact-go" ]; then
     cd dist
     platform=$(detect_os)
@@ -49,8 +48,8 @@ if [ ! -f "dist/pact-go" ]; then
 fi
 
 step "Starting Daemon"
-mkdir -p ./logs
-./dist/pact-go daemon -v -l DEBUG > logs/daemon.log 2>&1 &
+mkdir -p ./log
+./dist/pact-go daemon -v -l DEBUG > log/daemon.log 2>&1 &
 
 step "Running integration tests"
 export PACT_INTEGRATED_TESTS=1
@@ -58,14 +57,11 @@ export PACT_BROKER_HOST="https://test.pact.dius.com.au"
 export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 export PACT_BROKER_PASSWORD="JN4kVfO5AIZWxelWbLvqMd8PkAVycBJh2Psyg11wtkubJC4xlOH5GmIfwO9gWe"
 cd dsl
-go test -run TestPact_Integration
+go test -v -run TestPact_Integration
 SCRIPT_STATUS=$?
 cd ..
 
 shutdown
-
-# step "Stopping Metrics API"
-# make stop
 
 if [ "${SCRIPT_STATUS}" = "0" ]; then
   step "Integration testing succeeded!"
