@@ -202,7 +202,7 @@ func setupProviderAPI() int {
 			[
 			  [
 			    {
-            "size": 10,
+                  "size": 10,
 			      "colour": "red",
 			      "tag": [
 			        [
