@@ -87,7 +87,7 @@ func TestShutdownDaemon(t *testing.T) {
 func connectToDaemon(port int, t *testing.T) {
 	for {
 		select {
-		case <-time.After(1 * time.Second):
+		case <-time.After(250 * time.Millisecond):
 			t.Fatalf("Expected server to start < 1s.")
 		case <-time.After(50 * time.Millisecond):
 			_, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
@@ -104,7 +104,7 @@ func waitForDaemonToShutdown(port int, daemon *Daemon, t *testing.T) {
 		daemon.signalChan <- os.Interrupt
 	}
 	t.Logf("Waiting for deamon to shutdown before next test")
-	timeout := time.After(1 * time.Second)
+	timeout := time.After(250 * time.Millisecond)
 	for {
 		select {
 		case <-timeout:
@@ -474,7 +474,7 @@ func TestHelperProcess(t *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
 		return
 	}
-	<-time.After(1 * time.Second)
+	<-time.After(250 * time.Millisecond)
 
 	// some code here to check arguments perhaps?
 	// Fail :(
