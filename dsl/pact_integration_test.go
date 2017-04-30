@@ -13,7 +13,7 @@ import (
 
 var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
-var logDir = fmt.Sprintf("%s/../logs", dir)
+var logDir = fmt.Sprintf("%s/../log", dir)
 
 func TestPact_Integration(t *testing.T) {
 	// Enable when running E2E/integration tests before a release
@@ -202,7 +202,7 @@ func setupProviderAPI() int {
 			[
 			  [
 			    {
-			      "size": 10,
+            "size": 10,
 			      "colour": "red",
 			      "tag": [
 			        [
