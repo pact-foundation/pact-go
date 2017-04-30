@@ -60,7 +60,6 @@ func (s *ServiceManager) removeServiceMonitor() {
 }
 
 // Stop a Service and returns the exit status.
-// Stop a Service and returns the exit status.
 func (s *ServiceManager) Stop(pid int) (bool, error) {
 	log.Println("[DEBUG] stopping service with pid", pid)
 	cmd := s.processes[pid]
