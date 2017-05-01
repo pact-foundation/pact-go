@@ -101,8 +101,10 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 		p.SpecificationVersion = 2
 	}
 
-	client := &PactClient{Port: p.Port, Network: p.Network, Address: p.Host}
-	p.pactClient = client
+	if p.pactClient == nil {
+		client := &PactClient{Port: p.Port, Network: p.Network, Address: p.Host}
+		p.pactClient = client
+	}
 
 	if p.Server == nil && startMockServer {
 		args := []string{
@@ -117,7 +119,8 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 			"--provider",
 			p.Provider,
 		}
-		p.Server = client.StartServer(args)
+
+		p.Server = p.pactClient.StartServer(args)
 	}
 
 	return p

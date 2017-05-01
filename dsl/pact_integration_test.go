@@ -24,7 +24,7 @@ func TestPact_Integration(t *testing.T) {
 		pactDaemonPort := 6666
 
 		// Create Pact connecting to local Daemon
-		pact := Pact{
+		consumerPact := Pact{
 			Port:     pactDaemonPort,
 			Consumer: "billy",
 			Provider: "bobby",
@@ -32,15 +32,15 @@ func TestPact_Integration(t *testing.T) {
 			LogDir:   logDir,
 			PactDir:  pactDir,
 		}
-		defer pact.Teardown()
+		defer consumerPact.Teardown()
 
 		// Pass in test case
 		var test = func() error {
-			_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port))
+			_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", consumerPact.Server.Port))
 			if err != nil {
 				t.Fatalf("Error sending request: %v", err)
 			}
-			_, err = http.Get(fmt.Sprintf("http://localhost:%d/bazbat", pact.Server.Port))
+			_, err = http.Get(fmt.Sprintf("http://localhost:%d/bazbat", consumerPact.Server.Port))
 			if err != nil {
 				t.Fatalf("Error sending request: %v", err)
 			}
@@ -69,7 +69,7 @@ func TestPact_Integration(t *testing.T) {
 					1))
 
 		// Set up our interactions. Note we have multiple in this test case!
-		pact.
+		consumerPact.
 			AddInteraction().
 			Given("Some state").
 			UponReceiving("Some name for the test").
@@ -83,7 +83,7 @@ func TestPact_Integration(t *testing.T) {
 					"Content-Type": "application/json",
 				},
 			})
-		pact.
+		consumerPact.
 			AddInteraction().
 			Given("Some state2").
 			UponReceiving("Some name for the test").
@@ -97,13 +97,13 @@ func TestPact_Integration(t *testing.T) {
 			})
 
 		// Verify Collaboration Test interactionns (Consumer sid)
-		err := pact.Verify(test)
+		err := consumerPact.Verify(test)
 		if err != nil {
 			t.Fatalf("Error on Verify: %v", err)
 		}
 
 		// Write pact to file `<pact-go>/pacts/my_consumer-my_provider.json`
-		pact.WritePact()
+		consumerPact.WritePact()
 
 		// Publish the Pacts...
 		p := Publisher{}
@@ -122,7 +122,15 @@ func TestPact_Integration(t *testing.T) {
 		}
 
 		// Verify the Provider - local Pact Files
-		err = pact.VerifyProvider(types.VerifyRequest{
+		providerPact := Pact{
+			Port:     pactDaemonPort,
+			Consumer: "billy",
+			Provider: "bobby",
+			LogLevel: "ERROR",
+			LogDir:   logDir,
+			PactDir:  pactDir,
+		}
+		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
 			PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
 			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
@@ -134,7 +142,7 @@ func TestPact_Integration(t *testing.T) {
 		}
 
 		// Verify the Provider - Specific Published Pacts
-		err = pact.VerifyProvider(types.VerifyRequest{
+		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
 			PactURLs:               []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
 			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
@@ -148,7 +156,7 @@ func TestPact_Integration(t *testing.T) {
 		}
 
 		// Verify the Provider - Latest Published Pacts for any known consumers
-		err = pact.VerifyProvider(types.VerifyRequest{
+		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
 			BrokerURL:              brokerHost,
 			ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", providerPort),
@@ -162,7 +170,7 @@ func TestPact_Integration(t *testing.T) {
 		}
 
 		// Verify the Provider - Tag-based Published Pacts for any known consumers
-		err = pact.VerifyProvider(types.VerifyRequest{
+		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", providerPort),
 			BrokerURL:              brokerHost,
 			Tags:                   []string{"latest", "sit4"},
