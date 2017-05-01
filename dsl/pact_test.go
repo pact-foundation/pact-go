@@ -182,6 +182,9 @@ func TestPact_Setup(t *testing.T) {
 	if pact.Server != nil {
 		t.Fatalf("Expected server to be nil")
 	}
+	if pact.pactClient == nil {
+		t.Fatalf("Needed to still have a client")
+	}
 }
 
 func TestPact_Teardown(t *testing.T) {
