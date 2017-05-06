@@ -168,15 +168,14 @@ size := Like(10)
 colour := Term("red", "red|green|blue")
 
 match := EachLike(
-			EachLike(
-				fmt.Sprintf(
-					`{
-						"size": %s,
-						"colour": %s,
-						"tag": %s
-					}`, size, colour, tag),
-				1),
-			1))
+              EachLike(
+                         fmt.Sprintf(`{
+                             "size": %s,
+                             "colour": %s,
+                             "tag": %s
+                         }`, size, colour, tag), 
+              1),
+         1))
 ```
 
 This example will result in a response body from the mock server that looks like:
