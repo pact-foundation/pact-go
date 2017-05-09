@@ -239,8 +239,10 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "bobby"}
 	err := pact.VerifyProvider(types.VerifyRequest{
-		ProviderBaseURL: "http://www.foo.com",
-		BrokerURL:       fmt.Sprintf("http://localhost:%d", brokerPort),
+		ProviderBaseURL:            "http://www.foo.com",
+		BrokerURL:                  fmt.Sprintf("http://localhost:%d", brokerPort),
+		PublishVerificationResults: true,
+		ProviderVersion:            "1.0.0",
 	})
 
 	if err != nil {
