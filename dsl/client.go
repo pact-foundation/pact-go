@@ -137,7 +137,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error)
 // sanitiseRubyResponse removes Ruby-isms from the response content
 // making the output much more human readable
 func sanitiseRubyResponse(response string) string {
-	log.Println("[TRACE] response from Ruby process, pre sanitised:", response)
+	log.Println("[TRACE] response from Ruby process pre-sanitisation:", response)
 
 	r := regexp.MustCompile("(?m)^\\s*#.*$")
 	s := r.ReplaceAllString(response, "")

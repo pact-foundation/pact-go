@@ -42,10 +42,12 @@ package:
     - script:
         name: retrieve artifacts
         code: |
-          ls -larth $WERCKER_CACHE_DIR
-          ls -larth $WERCKER_CACHE_DIR
+          mkdir -p output
+          mkdir -p build
           if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build build; ls -larth build; fi
           if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output output; ls -larth output; fi
+          ls -larth $WERCKER_CACHE_DIR/build
+          ls -larth $WERCKER_CACHE_DIR/output
     - script:
         name: package
         code: |
@@ -56,10 +58,13 @@ package:
         code: |
           if [ -d "$WERCKER_CACHE_DIR/build" ]; then rm -rf $WERCKER_CACHE_DIR/build; fi
           if [ -d "$WERCKER_CACHE_DIR/output" ]; then rm -rf $WERCKER_CACHE_DIR/output; fi
+          if [ -d "$WERCKER_CACHE_DIR/dist" ]; then rm -rf $WERCKER_CACHE_DIR/dist; fi
           cp -r build $WERCKER_CACHE_DIR/build
           cp -r output $WERCKER_CACHE_DIR/output
+          cp -r dist $WERCKER_CACHE_DIR/dist
           ls -larth build
           ls -larth output
+          ls -larth dist
 
 integration:
   steps:
@@ -71,10 +76,13 @@ integration:
         code: |
           mkdir -p output
           mkdir -p build
+          mkdir -p dist
           if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build .; fi
           if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output .; fi
+          if [ -d "$WERCKER_CACHE_DIR/dist" ]; then cp -r $WERCKER_CACHE_DIR/dist .; fi
           ls -larth build
           ls -larth output
+          ls -larth dist
     - script:
         name: pact
         code: |
