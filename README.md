@@ -39,7 +39,7 @@ how to get going.
 	3. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
 		1. [Publishing from Go code](#publishing-from-go-code)
 		2. [Publishing from the CLI](#publishing-from-the-cli)
-  4. [Publishing Verification Results to a Pact Broker](#publishing-verification-results-to-a-pact-broker)
+        4. [Publishing Verification Results to a Pact Broker](#publishing-verification-results-to-a-pact-broker)
 	5. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
 	6. [Output Logging](#output-logging)
 4. [Examples](#examples)
@@ -404,11 +404,15 @@ If you're using a Pact Broker (e.g. a hosted one at pact.dius.com.au), you can
 publish your verification results so that consumers can query if they are safe
 to release.
 
+It looks like this:
+
+![screenshot of verification result](https://cloud.githubusercontent.com/assets/53900/25884085/2066d98e-3593-11e7-82af-3b41a20af8e5.png)
+
 You need to specify the following:
 
 ```go
-			PublishVerificationResults: true,
-			ProviderVersion:            "1.0.0",
+PublishVerificationResults: true,
+ProviderVersion:            "1.0.0",
 ```
 
 _NOTE_: You need to be already pulling pacts from the broker for this feature to work.
