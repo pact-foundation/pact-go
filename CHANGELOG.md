@@ -2,6 +2,31 @@ Do this to generate your change history
 
     git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' vX.Y.Z..HEAD | egrep -v "wip(:|\()" | grep -v "docs(" | grep -v "chore(" | grep -v Merge | grep -v "test("
 
+### 0.0.5 (10th May 2017)
+
+  * [ee36bff](https://github.com/pact-foundation/pact-go/commit/ee36bff) - feat(verification): publish verification results to broker (Matt Fellows, Tue May 9 15:02:05 2017 +1000)
+
+### 0.0.4 (2nd May 2017)
+
+  * [e89585e](https://github.com/pact-foundation/pact-go/commit/e89585e) - fix(verify) prevent crash when calling VerifyProvider() (Timothy Jones, Mon May 1 17:46:13 2017 +1000)
+  * [8819608](https://github.com/pact-foundation/pact-go/commit/8819608) - feat(ruby): clean ruby stack trace in pact provider verification failures #19 (Matt Fellows, Sun Apr 30 14:25:55 2017 +1000)
+  * [483d134](https://github.com/pact-foundation/pact-go/commit/483d134) - feat(verify): allow user to increase verbosity of verification process (Matt Fellows, Fri Apr 28 18:49:01 2017 +1000)
+  * [c8f8c1b](https://github.com/pact-foundation/pact-go/commit/c8f8c1b) - feat(ruby): update to latest ruby dependencies 2.0.0 and 0.0.13 respectively (Matt Fellows, Fri Apr 28 18:44:53 2017 +1000)
+  * [f1ee33c](https://github.com/pact-foundation/pact-go/commit/f1ee33c) - feat(e2e): run e2e tests in wercker builds. Fixes #20 (Matt Fellows, Fri Apr 28 18:43:53 2017 +1000)
+  * [33a0434](https://github.com/pact-foundation/pact-go/commit/33a0434) - feat(fix): don't start mock server if not required. Fixes #21 (Matt Fellows, Fri Apr 28 17:07:39 2017 +1000)
+  * [cb4d811](https://github.com/pact-foundation/pact-go/commit/cb4d811) - fix(windows): cleanup logging for windows service manager (Matt Fellows, Wed Feb 22 21:52:42 2017 +1100)
+  * [d214c54](https://github.com/pact-foundation/pact-go/commit/d214c54) - fix: increased timeout to reduce likelihood of intermittent failure #11 (Matt Fellows, Tue Feb 21 21:42:36 2017 +1100)
+  * [0bcca95](https://github.com/pact-foundation/pact-go/commit/0bcca95) - fix(windows): ability to pass in network and address into Pact DSL (Matt Fellows, Tue Feb 21 18:33:00 2017 +1100)
+  * [e97226d](https://github.com/pact-foundation/pact-go/commit/e97226d) - fix(windows): windows leaves persistent connection open to Ruby, forcibly close 3s after interrupt  #9 (Matt Fellows, Tue Feb 21 00:17:46 2017 +1100)
+  * [3616976](https://github.com/pact-foundation/pact-go/commit/3616976) - fix(windows): split pact verification CLI arg tuples into individual elements #9 (Matt Fellows, Mon Feb 20 18:12:04 2017 +1100)
+  * [0dad9cc](https://github.com/pact-foundation/pact-go/commit/0dad9cc) - fix(windows): split mock service CLI arg tuples into individual elements #9 (Matt Fellows, Mon Feb 20 18:04:27 2017 +1100)
+  * [2c6c84d](https://github.com/pact-foundation/pact-go/commit/2c6c84d) - fix(windows): update default pact output path (Matt Fellows, Mon Feb 20 17:53:04 2017 +1100)
+  * [a963058](https://github.com/pact-foundation/pact-go/commit/a963058) - fix(windows): set default network to 'tcp' #9 (Matt Fellows, Mon Feb 20 17:49:39 2017 +1100)
+  * [c84afad](https://github.com/pact-foundation/pact-go/commit/c84afad) - fix(windows): make log/pact output paths os-specific #9 (Matt Fellows, Mon Feb 20 17:47:58 2017 +1100)
+  * [e586b1d](https://github.com/pact-foundation/pact-go/commit/e586b1d) - fix(windows): allow pact client to specify the network and address of daemon #9 (Matt Fellows, Mon Feb 20 17:46:54 2017 +1100)
+  * [5c89b30](https://github.com/pact-foundation/pact-go/commit/5c89b30) - feat(daemon): allow user to specify network listen details for daemon (Matt Fellows, Mon Feb 20 08:59:49 2017 +1100)
+  * [52b7e19](https://github.com/pact-foundation/pact-go/commit/52b7e19) - feat(examples): add vanilla golang ServeMux, update docs (Matt Fellows, Mon Sep 26 22:09:45 2016 +1000)
+
 ### 0.0.3 (30 April 2017)
 
   * [8819608](https://github.com/pact-foundation/pact-go/commit/8819608) - feat(ruby): clean ruby stack trace in pact provider verification failures #19 (Matt Fellows, Sun Apr 30 14:25:55 2017 +1000)
