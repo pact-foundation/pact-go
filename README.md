@@ -39,8 +39,9 @@ how to get going.
 	3. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
 		1. [Publishing from Go code](#publishing-from-go-code)
 		2. [Publishing from the CLI](#publishing-from-the-cli)
-	4. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-	5. [Output Logging](#output-logging)
+  4. [Publishing Verification Results to a Pact Broker](#publishing-verification-results-to-a-pact-broker)
+	5. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+	6. [Output Logging](#output-logging)
 4. [Examples](#examples)
 5. [Contact](#contact)
 6. [Documentation](#documentation)
@@ -397,6 +398,20 @@ mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
 
 See the examples or read more at http://docs.pact.io/documentation/provider_states.html.
 
+#### Publishing Verification Results to a Pact Broker
+
+If you're using a Pact Broker (e.g. a hosted one at pact.dius.com.au), you can
+publish your verification results so that consumers can query if they are safe
+to release.
+
+You need to specify the following:
+
+```go
+			PublishVerificationResults: true,
+			ProviderVersion:            "1.0.0",
+```
+
+_NOTE_: You need to be already pulling pacts from the broker for this feature to work.
 ### Publishing Pacts to a Broker and Tagging Pacts
 
 See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
