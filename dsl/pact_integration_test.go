@@ -130,17 +130,17 @@ func TestPact_Integration(t *testing.T) {
 			LogDir:   logDir,
 			PactDir:  pactDir,
 		}
-		err = providerPact.VerifyProvider(types.VerifyRequest{
-			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
-			PactURLs:                   []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
-			ProviderStatesURL:          fmt.Sprintf("http://localhost:%d/states", providerPort),
-			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
-			PublishVerificationResults: false, // No HAL links in local pacts
-		})
+		// err = providerPact.VerifyProvider(types.VerifyRequest{
+		// 	ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
+		// 	PactURLs:                   []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
+		// 	ProviderStatesURL:          fmt.Sprintf("http://localhost:%d/states", providerPort),
+		// 	ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
+		// 	PublishVerificationResults: false, // No HAL links in local pacts
+		// })
 
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
+		// if err != nil {
+		// 	t.Fatal("Error:", err)
+		// }
 
 		// Verify the Provider - Specific Published Pacts
 		err = providerPact.VerifyProvider(types.VerifyRequest{
