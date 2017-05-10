@@ -36,10 +36,10 @@ if [ ! -f "dist/pact-go" ]; then
     log "Expanding archive"
     if [[ $platform == 'linux' ]]; then
       tar -xf $archive
-      mv pact-go_linux_amd64 pact-go
+      cp pact-go_linux_amd64 pact-go
     elif [[ $platform == 'darwin' ]]; then
       tar -xf $archive
-      mv pact-go_darwin_amd64 pact-go
+      cp pact-go_darwin_amd64 pact-go
     else
       log "Unsupported platform ${platform}"
       exit 1
