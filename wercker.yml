@@ -13,7 +13,9 @@ build:
           mkdir -p build
           if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build .; fi
           if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output .; fi
+          echo "listing build:"
           ls -larth build
+          echo "listing output:"
           ls -larth output
     - script:
         name: build
@@ -42,12 +44,12 @@ package:
     - script:
         name: retrieve artifacts
         code: |
-          mkdir -p output
-          mkdir -p build
-          if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build build; ls -larth build; fi
-          if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output output; ls -larth output; fi
-          ls -larth $WERCKER_CACHE_DIR/build
-          ls -larth $WERCKER_CACHE_DIR/output
+          if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build .; ls -larth build; fi
+          if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output .; ls -larth output; fi
+          echo "listing build:"
+          ls -larth build
+          echo "listing output:"
+          ls -larth output
     - script:
         name: package
         code: |
@@ -62,8 +64,11 @@ package:
           cp -r build $WERCKER_CACHE_DIR/build
           cp -r output $WERCKER_CACHE_DIR/output
           cp -r dist $WERCKER_CACHE_DIR/dist
+          echo "listing build:"
           ls -larth build
+          echo "listing output:"
           ls -larth output
+          echo "listing dist:"
           ls -larth dist
 
 integration:
@@ -80,8 +85,11 @@ integration:
           if [ -d "$WERCKER_CACHE_DIR/build" ]; then cp -r $WERCKER_CACHE_DIR/build .; fi
           if [ -d "$WERCKER_CACHE_DIR/output" ]; then cp -r $WERCKER_CACHE_DIR/output .; fi
           if [ -d "$WERCKER_CACHE_DIR/dist" ]; then cp -r $WERCKER_CACHE_DIR/dist .; fi
+          echo "listing build:"
           ls -larth build
+          echo "listing output:"
           ls -larth output
+          echo "listing dist:"
           ls -larth dist
     - script:
         name: pact
