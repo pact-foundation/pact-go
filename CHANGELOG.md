@@ -14,7 +14,6 @@ Do this to generate your change history
   * [3616976](https://github.com/pact-foundation/pact-go/commit/3616976) - fix(windows): split pact verification CLI arg tuples into individual elements #9 (Matt Fellows, Mon Feb 20 18:12:04 2017 +1100)
   * [0dad9cc](https://github.com/pact-foundation/pact-go/commit/0dad9cc) - fix(windows): split mock service CLI arg tuples into individual elements #9 (Matt Fellows, Mon Feb 20 18:04:27 2017 +1100)
   * [2c6c84d](https://github.com/pact-foundation/pact-go/commit/2c6c84d) - fix(windows): update default pact output path (Matt Fellows, Mon Feb 20 17:53:04 2017 +1100)
-  * [ac57322](https://github.com/pact-foundation/pact-go/commit/ac57322) - chore(logging): add mock server args to debug output in daemon (Matt Fellows, Mon Feb 20 17:52:46 2017 +1100)
   * [a963058](https://github.com/pact-foundation/pact-go/commit/a963058) - fix(windows): set default network to 'tcp' #9 (Matt Fellows, Mon Feb 20 17:49:39 2017 +1100)
   * [c84afad](https://github.com/pact-foundation/pact-go/commit/c84afad) - fix(windows): make log/pact output paths os-specific #9 (Matt Fellows, Mon Feb 20 17:47:58 2017 +1100)
   * [e586b1d](https://github.com/pact-foundation/pact-go/commit/e586b1d) - fix(windows): allow pact client to specify the network and address of daemon #9 (Matt Fellows, Mon Feb 20 17:46:54 2017 +1100)

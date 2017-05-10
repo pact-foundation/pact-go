@@ -127,7 +127,7 @@ func (d Daemon) VerifyProvider(request types.VerifyRequest, reply *types.Command
 	_, svc := d.verificationSvcManager.NewService(request.Args)
 	cmd, err := svc.Run(&out)
 
-	if cmd.ProcessState.Success() && err == nil {
+	if err == nil && cmd.ProcessState != nil && cmd.ProcessState.Success() {
 		exitCode = 0
 	}
 
