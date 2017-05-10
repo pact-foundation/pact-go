@@ -28,7 +28,7 @@ func TestPact_Integration(t *testing.T) {
 			Port:     pactDaemonPort,
 			Consumer: "billy",
 			Provider: "bobby",
-			LogLevel: "DEBUG",
+			LogLevel: "TRACE",
 			LogDir:   logDir,
 			PactDir:  pactDir,
 		}
@@ -126,7 +126,7 @@ func TestPact_Integration(t *testing.T) {
 			Port:     pactDaemonPort,
 			Consumer: "billy",
 			Provider: "bobby",
-			LogLevel: "DEBUG",
+			LogLevel: "TRACE",
 			LogDir:   logDir,
 			PactDir:  pactDir,
 		}
@@ -217,7 +217,7 @@ func setupProviderAPI() int {
 			[
 			  [
 			    {
-                  "size": 10,
+            "size": 10,
 			      "colour": "red",
 			      "tag": [
 			        [
