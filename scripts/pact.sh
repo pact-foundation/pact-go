@@ -18,6 +18,8 @@ function shutdown() {
       kill $PID
     fi
     cd $CUR_DIR
+    log "Reviewing log output: "
+    cat log/*
 }
 
 if [ ! -f "dist/pact-go" ]; then

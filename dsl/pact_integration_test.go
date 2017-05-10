@@ -28,7 +28,7 @@ func TestPact_Integration(t *testing.T) {
 			Port:     pactDaemonPort,
 			Consumer: "billy",
 			Provider: "bobby",
-			LogLevel: "ERROR",
+			LogLevel: "DEBUG",
 			LogDir:   logDir,
 			PactDir:  pactDir,
 		}
@@ -126,7 +126,7 @@ func TestPact_Integration(t *testing.T) {
 			Port:     pactDaemonPort,
 			Consumer: "billy",
 			Provider: "bobby",
-			LogLevel: "ERROR",
+			LogLevel: "DEBUG",
 			LogDir:   logDir,
 			PactDir:  pactDir,
 		}
