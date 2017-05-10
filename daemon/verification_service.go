@@ -22,6 +22,8 @@ type VerificationService struct {
 // 		--provider-states-setup-url
 // 		--broker-username
 // 		--broker-password
+//    --publish_verification_results
+//    --provider_app_version
 func (m *VerificationService) NewService(args []string) (int, Service) {
 	log.Printf("[DEBUG] starting verification service with args: %v\n", args)
 

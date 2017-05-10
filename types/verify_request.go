@@ -31,6 +31,12 @@ type VerifyRequest struct {
 	// Password when authenticating to a Pact Broker.
 	BrokerPassword string
 
+	// PublishVerificationResults to the Pact Broker.
+	PublishVerificationResults bool
+
+	// ProviderVersion is the semantical version of the Provider API.
+	ProviderVersion string
+
 	// Verbose increases verbosity of output
 	Verbose bool
 
@@ -76,6 +82,16 @@ func (v *VerifyRequest) Validate() error {
 	if v.BrokerPassword != "" {
 		v.Args = append(v.Args, "--broker-password")
 		v.Args = append(v.Args, v.BrokerPassword)
+	}
+
+	if v.ProviderVersion != "" {
+		v.Args = append(v.Args, "--provider_app_version")
+		v.Args = append(v.Args, v.ProviderVersion)
+	}
+
+	if v.PublishVerificationResults {
+		v.Args = append(v.Args, "--publish_verification_results")
+		v.Args = append(v.Args, "true")
 	}
 
 	if v.Verbose {
