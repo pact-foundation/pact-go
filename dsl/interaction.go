@@ -17,7 +17,7 @@ type Interaction struct {
 	Description string `json:"description"`
 
 	// Provider state to be written into the Pact file
-	State string `json:"provider_state,omitempty"`
+	State string `json:"providerState,omitempty"`
 }
 
 // Given specifies a provider state. Optional.
