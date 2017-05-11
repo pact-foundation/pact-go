@@ -2,7 +2,7 @@
 
 set -e
 
-export PACT_MOCK_SERVICE_VERSION=2.0.0 # Seg faults...
+export PACT_MOCK_SERVICE_VERSION=2.0.1 # Seg faults...
 export PACT_PROVIDER_VERIFIER_VERSION=1.0.1
 
 # Create the OS specific versions of the mock service and verifier
