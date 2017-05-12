@@ -452,6 +452,26 @@ publishing or retrieving Pact files to/from a Pact Broker:
 * `BrokerUsername` - the username for Pact Broker basic authentication.
 * `BrokerPassword` - the password for Pact Broker basic authentication.
 
+### Splitting tests across multiple files
+
+Pact tests tend to be quite long, due to the need to be specific about request/response payloads. Often times it is nicer to be able to split your tests across multiple files for manageability.
+
+You have two options to achieve this feat:
+
+1. Set `PactFileWriteMode` to `"update"` when creating a `Pact` struct:
+
+    This will allow you to have multiple independent tests for a given Consumer-Provider pair, without it clobbering previous interactions.
+
+    See this [PR](https://github.com/pact-foundation/pact-js/pull/48) for background.
+
+    _NOTE_: If using this approach, you *must* be careful to clear out existing pact files (e.g. `rm ./pacts/*.json`) before you run tests to ensure you don't have left over requests that are no longer relevent.
+
+1. Create a Pact test helper to orchestrate the setup and teardown of the mock service for multiple tests.
+
+    In larger test bases, this can reduce test suite time and the amount of code you have to manage.
+
+    See the JS [example](https://github.com/tarciosaraiva/pact-melbjs/blob/master/helper.js) and related [issue](https://github.com/pact-foundation/pact-js/issues/11) for more.
+
 ### Output Logging
 
 Pact Go uses a simple log utility ([logutils](https://github.com/hashicorp/logutils))

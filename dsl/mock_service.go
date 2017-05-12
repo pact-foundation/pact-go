@@ -22,6 +22,14 @@ type MockService struct {
 
 	// Provider name.
 	Provider string
+
+	// PactFileWriteMode specifies how to write to the Pact file, for the life
+	// of a Mock Service.
+	// "overwrite" will always truncate and replace the pact after each run
+	// "update" will append to the pact file, which is useful if your tests
+	// are split over multiple files and instantiations of a Mock Server
+	// See https://github.com/realestate-com-au/pact/blob/master/documentation/configuration.md#pactfile_write_mode
+	PactFileWriteMode string
 }
 
 // call sends a message to the Pact service
@@ -84,16 +92,22 @@ func (m *MockService) Verify() error {
 // WritePact writes the pact file to disk.
 func (m *MockService) WritePact() error {
 	log.Println("[DEBUG] mock service write pact")
+
 	if m.Consumer == "" || m.Provider == "" {
 		return errors.New("Consumer and Provider name need to be provided")
 	}
-	pact := map[string]map[string]string{
+	if m.PactFileWriteMode == "" {
+		m.PactFileWriteMode = "overwrite"
+	}
+
+	pact := map[string]interface{}{
 		"consumer": map[string]string{
 			"name": m.Consumer,
 		},
 		"provider": map[string]string{
 			"name": m.Provider,
 		},
+		"pactFileWriteMode": m.PactFileWriteMode,
 	}
 
 	url := fmt.Sprintf("%s/pact", m.BaseURL)
