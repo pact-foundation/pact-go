@@ -35,8 +35,8 @@ build:
           if [ -d "$WERCKER_CACHE_DIR/output" ]; then rm -rf $WERCKER_CACHE_DIR/output; fi
           cp -r build $WERCKER_CACHE_DIR/build
           cp -r output $WERCKER_CACHE_DIR/output
-          ls -larth $WERCKER_CACHE_DIR
-          ls -larth $WERCKER_CACHE_DIR
+          ls -larth $WERCKER_CACHE_DIR/build
+          ls -larth $WERCKER_CACHE_DIR/output
 
 package:
   box: ruby:2.2
