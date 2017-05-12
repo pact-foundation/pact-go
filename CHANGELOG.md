@@ -2,6 +2,11 @@ Do this to generate your change history
 
     git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' vX.Y.Z..HEAD | egrep -v "wip(:|\()" | grep -v "docs(" | grep -v "chore(" | grep -v Merge | grep -v "test("
 
+### 0.0.6 (12th May 2017)
+
+  * [9f2c7fe](https://github.com/pact-foundation/pact-go/commit/9f2c7fe) - feat(pactwritemode): allow user to set pact write mode.Fixes #30 (Matt Fellows, Fri May 12 10:53:32 2017 +1000)
+  * [50d6b90](https://github.com/pact-foundation/pact-go/commit/50d6b90) - fix(providerstate): make provider state serialisation spec compliant #16 (Matt Fellows, Thu May 11 20:46:22 2017 +1000)
+
 ### 0.0.5 (10th May 2017)
 
   * [ee36bff](https://github.com/pact-foundation/pact-go/commit/ee36bff) - feat(verification): publish verification results to broker (Matt Fellows, Tue May 9 15:02:05 2017 +1000)
