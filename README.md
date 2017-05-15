@@ -108,11 +108,11 @@ func TestLogin(t *testing.T) {
 		WithRequest(dsl.Request{
 			Method: "GET",
 			Path:   "/login",
-			Body: `{"username":"matt"}`
+			Body: `{"username":"matt"}`,
 		}).
 		WillRespondWith(dsl.Response{
 			Status: 200,
-			Body: `{"username":"matt", "id":1234}`
+			Body: `{"username":"matt", "id":1234}`,
 		})
 
 	// Run the test and verify the interactions.
