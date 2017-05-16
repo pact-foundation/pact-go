@@ -425,11 +425,12 @@ on how to make it work for you.
 #### Publishing from Go code
 
 ```go
-pact.PublishPacts(types.PublishRequest{
-	PactBroker:             "http://pactbroker:8000",
-	PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-	ConsumerVersion:        "1.0.0",
-	Tags:                   []string{"latest", "dev"},
+p := Publisher{}
+err := p.Publish(types.PublishRequest{
+	PactURLs:	[]string{"./pacts/my_consumer-my_provider.json"},
+	PactBroker:	"http://pactbroker:8000",
+	ConsumerVersion: "1.0.0",
+	Tags:		[]string{"latest", "dev"},
 })
 ```
 
