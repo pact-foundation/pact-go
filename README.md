@@ -519,7 +519,7 @@ Additional documentation can be found at the main [Pact website](http://pact.io)
 
 ## Troubleshooting
 
-See [TROUBLESHOOTING](/pact-foundation/pact-go/wiki/Troubleshooting) for some helpful tips/tricks.
+See [TROUBLESHOOTING](https://github.com/pact-foundation/pact-go/wiki/Troubleshooting) for some helpful tips/tricks.
 
 ## Roadmap
 
