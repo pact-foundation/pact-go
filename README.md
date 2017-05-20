@@ -509,9 +509,9 @@ go test -run TestPact_Integration
 ## Contact
 
 * Twitter: [@pact_up](https://twitter.com/pact_up)
-* Gophers #pact [Slack channel](https://gophers.slack.com/messages/pact/)
-* Google users group: https://groups.google.com/forum/#!forum/pact-support
+* Stack Overflow: stackoverflow.com/questions/tagged/pact
 * Gitter: https://gitter.im/realestate-com-au/pact
+* Gophers #pact [Slack channel](https://gophers.slack.com/messages/pact/)
 
 ## Documentation
 
