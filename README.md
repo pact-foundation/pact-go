@@ -3,8 +3,12 @@
 Golang version of [Pact](http://pact.io). Enables consumer driven contract testing, providing a mock service and
 DSL for the consumer project, and interaction playback and verification for the service Provider project.
 
-Implements [Pact Specification v2](https://github.com/pact-foundation/pact-specification/tree/version-2),
-including [flexible matching](http://docs.pact.io/documentation/matching.html).
+[![wercker status](https://app.wercker.com/status/fad2d928716c629e641cae515ac58547/s/master "wercker status")](https://app.wercker.com/project/bykey/fad2d928716c629e641cae515ac58547)
+[![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=HEAD)](https://coveralls.io/github/pact-foundation/pact-go?branch=HEAD)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
+[![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
+
+## Introduction
 
 From the [Pact website](http://docs.pact.io/):
 
@@ -19,11 +23,10 @@ From the [Pact website](http://docs.pact.io/):
 Read [Getting started with Pact](http://dius.com.au/2016/02/03/microservices-pact/) for more information on
 how to get going.
 
+Pact Go implements [Pact Specification v2](https://github.com/pact-foundation/pact-specification/tree/version-2),
+including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
-[![wercker status](https://app.wercker.com/status/fad2d928716c629e641cae515ac58547/s/master "wercker status")](https://app.wercker.com/project/bykey/fad2d928716c629e641cae515ac58547)
-[![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=HEAD)](https://coveralls.io/github/pact-foundation/pact-go?branch=HEAD)
-[![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
-[![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
+[![asciicast](https://asciinema.org/a/bfvme7zhf0617ib6d9nvr9ldf.png)](https://asciinema.org/a/bfvme7zhf0617ib6d9nvr9ldf)
 
 ## Table of Contents
 
