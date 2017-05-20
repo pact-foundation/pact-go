@@ -26,7 +26,7 @@ how to get going.
 Pact Go implements [Pact Specification v2](https://github.com/pact-foundation/pact-specification/tree/version-2),
 including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
-[![asciicast](https://asciinema.org/a/bfvme7zhf0617ib6d9nvr9ldf.png)](https://asciinema.org/a/bfvme7zhf0617ib6d9nvr9ldf)
+[![asciicast](https://asciinema.org/a/121445.png)](https://asciinema.org/a/121445)
 
 ## Table of Contents
 
