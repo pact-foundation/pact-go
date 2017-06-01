@@ -20,6 +20,7 @@ type VerifyRequest struct {
 	Tags []string
 
 	// URL to retrieve valid Provider States.
+	// Deprecation notice: no longer valid/required
 	ProviderStatesURL string
 
 	// URL to post currentp provider state to on the Provider API.
@@ -69,6 +70,7 @@ func (v *VerifyRequest) Validate() error {
 		v.Args = append(v.Args, v.ProviderStatesSetupURL)
 	}
 
+	// Field is deprecated, leave here to see deprecation notice
 	if v.ProviderStatesURL != "" {
 		v.Args = append(v.Args, "--provider-states-url")
 		v.Args = append(v.Args, v.ProviderStatesURL)

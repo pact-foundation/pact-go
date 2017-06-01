@@ -26,7 +26,6 @@ func TestPact_Provider(t *testing.T) {
 	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
-		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", port),
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
 
@@ -41,7 +40,6 @@ func startInstrumentedProvider() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/users/login", UserLogin)
 	mux.HandleFunc("/setup", providerStateSetupFunc)
-	mux.HandleFunc("/states", providerStatesFunc)
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
@@ -52,13 +50,6 @@ func startInstrumentedProvider() {
 	log.Printf("API starting: port %d (%s)", port, ln.Addr())
 	log.Printf("API terminating: %v", http.Serve(ln, mux))
 
-}
-
-// Get all states route.
-var providerStatesFunc = func(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	body, _ := json.Marshal(providerStates)
-	w.Write(body)
 }
 
 // Set current provider state route.
@@ -88,18 +79,6 @@ var providerStateSetupFunc = func(w http.ResponseWriter, r *http.Request) {
 	} else {
 		userRepository = billyDoesNotExist
 	}
-}
-
-// This path returns all states available for the consumer 'billy'
-// Note that the key for the array is the consumer name (in this case, 'billy')
-// The values should match a Given("...") block in the Interaction. Essentially,
-// this broadcasts the allowed states of the provider for verification, it is not
-// necessary for all consumers to use all states.
-var providerStates = map[string][]string{
-	"billy": []string{
-		"User billy exists",
-		"User billy does not exist",
-		"User billy is unauthorized"},
 }
 
 // Configuration / Test Data

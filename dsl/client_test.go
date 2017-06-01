@@ -238,7 +238,6 @@ func TestClient_VerifyProvider(t *testing.T) {
 		PactURLs:               []string{"foo.json", "bar.json"},
 		BrokerUsername:         "foo",
 		BrokerPassword:         "foo",
-		ProviderStatesURL:      "http://foo/states",
 		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
 	_, err := client.VerifyProvider(req)

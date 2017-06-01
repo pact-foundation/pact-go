@@ -133,7 +133,6 @@ func TestPact_Integration(t *testing.T) {
 		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
 			PactURLs:                   []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
-			ProviderStatesURL:          fmt.Sprintf("http://localhost:%d/states", providerPort),
 			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			PublishVerificationResults: false, // No HAL links in local pacts
 		})
@@ -146,7 +145,6 @@ func TestPact_Integration(t *testing.T) {
 		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
 			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
-			ProviderStatesURL:          fmt.Sprintf("http://localhost:%d/states", providerPort),
 			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
@@ -162,7 +160,6 @@ func TestPact_Integration(t *testing.T) {
 		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
 			BrokerURL:                  brokerHost,
-			ProviderStatesURL:          fmt.Sprintf("http://localhost:%d/states", providerPort),
 			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
@@ -177,10 +174,9 @@ func TestPact_Integration(t *testing.T) {
 		// Verify the Provider - Tag-based Published Pacts for any known consumers
 		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
+			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			BrokerURL:                  brokerHost,
 			Tags:                       []string{"latest", "sit4"},
-			ProviderStatesURL:          fmt.Sprintf("http://localhost:%d/states", providerPort),
-			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
@@ -199,11 +195,6 @@ func setupProviderAPI() int {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] provider API: states setup")
-		w.Header().Add("Content-Type", "application/json")
-	})
-	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
-		log.Println("[DEBUG] provider API: states")
-		fmt.Fprintf(w, `{"billy": ["Some state", "Some state2"]}`)
 		w.Header().Add("Content-Type", "application/json")
 	})
 	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {

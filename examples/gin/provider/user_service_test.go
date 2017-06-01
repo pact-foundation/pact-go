@@ -2,7 +2,6 @@ package provider
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
@@ -23,7 +22,6 @@ func TestPact_Provider(t *testing.T) {
 	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
-		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", port),
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
 
@@ -37,7 +35,6 @@ func TestPact_Provider(t *testing.T) {
 func startInstrumentedProvider() {
 	router := gin.Default()
 	router.POST("/users/login", UserLogin)
-	router.GET("/states", providerStates)
 	router.POST("/setup", providerStateSetup)
 
 	router.Run(fmt.Sprintf(":%d", port))
@@ -56,20 +53,6 @@ func providerStateSetup(c *gin.Context) {
 			userRepository = billyDoesNotExist
 		}
 	}
-}
-
-// This path returns all states available for the consumer 'billy'
-// Note that the key for the array is the consumer name (in this case, 'billy')
-// The values should match a Given("...") block in the Interaction. Essentially,
-// this broadcasts the allowed states of the provider for verification, it is not
-// necessary for all consumers to use all states.
-func providerStates(c *gin.Context) {
-	c.JSON(http.StatusOK, map[string][]string{
-		"billy": []string{
-			"User billy exists",
-			"User billy does not exist",
-			"User billy is unauthorized"},
-	})
 }
 
 // Configuration / Test Data

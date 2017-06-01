@@ -138,7 +138,6 @@ A typical Provider side test would like something like:
 		err := pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        "http://localhost:8000",
 			PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
-			ProviderStatesURL:      "http://localhost:8000/states",
 			ProviderStatesSetupURL: "http://localhost:8000/setup",
 		})
 
@@ -164,7 +163,6 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
-		ProviderStatesURL:      "http://myproviderhost/states",
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -175,7 +173,6 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	response = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              brokerHost,
-		ProviderStatesURL:      "http://myproviderhost/states",
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -187,7 +184,6 @@ When validating a Provider, you have 3 options to provide the Pact files:
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              brokerHost,
 		Tags:                   []string{"latest", "sit4"},
-		ProviderStatesURL:      "http://myproviderhost/states",
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -216,32 +212,12 @@ with a corresponding request/response pair.
 
 Configuring the provider is a little more involved, and (currently) requires 2
 running API endpoints to retrieve and configure available states during the
-verification process. The two options you must provide to the dsl.VerifyRequest
+verification process. The option you must provide to the dsl.VerifyRequest
 are:
 
-	ProviderStatesURL:	GET URL to fetch all available states (see types.ProviderStates)
 	ProviderStatesSetupURL:	POST URL to set the provider state (see types.ProviderState)
 
-Example routes using the standard Go http package might look like this, note
-the `/states` endpoint returns a list of available states for each known consumer:
-
-	// Return known provider states to the verifier (ProviderStatesURL):
-	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
-		var states types.ProviderStates
-		states =
-		`{
-			"My Front end consumer": [
-				"User A exists",
-				"User A does not exist"
-			],
-			"My api friend": [
-				"User A exists",
-				"User A does not exist"
-			]
-		}`
-		fmt.Fprintf(w, states)
-		w.Header().Add("Content-Type", "application/json")
-	})
+Example routes using the standard Go http package might look like this:
 
 	// Handle a request from the verifier to configure a provider state (ProviderStatesSetupURL)
 	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {

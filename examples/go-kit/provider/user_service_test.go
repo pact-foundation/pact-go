@@ -58,7 +58,6 @@ func TestPact_Provider(t *testing.T) {
 	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
-		ProviderStatesURL:      fmt.Sprintf("http://localhost:%d/states", port),
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
 
@@ -128,25 +127,6 @@ func startInstrumentedProvider() {
 		}
 
 		logger.Log("[DEBUG] configured provider state: ", state.State)
-	})
-
-	// This path returns all states available for the onsumer 'billy'
-	// Note that the key for the array is the onsumer name (in this case, 'billy')
-	// The values should match a Given("...") block in the Interaction. Essentially,
-	// this broadcasts the allowed states of the provider for verification, it is not
-	// necessary for all consumers to use all states.
-	router.Methods("GET").Path("/states").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		logger.Log("[DEBUG] returning available provider states")
-		w.Header().Add("Content-Type", "application/json")
-		var states types.ProviderStates
-		states = map[string][]string{
-			"billy": []string{
-				"User billy exists",
-				"User billy does not exist",
-				"User billy is unauthorized"},
-		}
-		data, _ := json.Marshal(states)
-		fmt.Fprintf(w, string(data))
 	})
 
 	errs := make(chan error)
