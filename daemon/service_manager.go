@@ -132,14 +132,14 @@ func (s *ServiceManager) Start() *exec.Cmd {
 	scanner := bufio.NewScanner(cmdReader)
 	go func() {
 		for scanner.Scan() {
-			log.Printf("[ERROR] %s\n", scanner.Text())
+			log.Printf("[INFO] %s\n", scanner.Text())
 		}
 	}()
 
 	scanner2 := bufio.NewScanner(cmdReaderErr)
 	go func() {
 		for scanner2.Scan() {
-			log.Printf("[INFO] service: %s\n", scanner2.Text())
+			log.Printf("[ERROR] service: %s\n", scanner2.Text())
 		}
 	}()
 
