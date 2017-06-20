@@ -179,10 +179,13 @@ func (p *Pact) Verify(integrationTest func() error) error {
 	}
 
 	// Run the integration test
-	integrationTest()
+	err := integrationTest()
+	if err != nil {
+		return err
+	}
 
 	// Run Verification Process
-	err := mockServer.Verify()
+	err = mockServer.Verify()
 	if err != nil {
 		return err
 	}

@@ -249,7 +249,7 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 				]
 			]`)
 	})
-	go http.ListenAndServe(":8000"), mux)
+	go http.ListenAndServe(":8000", mux)
 	```
 
 	Note that the server has 2 endpoints: `/states` and `/setup` that allows the
