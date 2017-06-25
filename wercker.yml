@@ -1,5 +1,6 @@
 # The container definition we want to use for developing our app
-box: golang
+# box: golang
+box: mefellows/pact-go-docker-build
 
 build:
   steps:
@@ -17,28 +18,24 @@ build:
     - script:
         name: Publish Coveralls
         code: goveralls -service="wercker.com" -coverprofile=profile.cov -repotoken $COVERALLS_TOKEN
-
-package:
-  box: ruby:2.2
-  steps:
     - script:
         name: package
         code: |
-          apt-get update && apt-get install -y unzip zip wget
+          . /etc/profile.d/rvm.sh
           make package
-
-integration:
-  steps:
-    - setup-go-workspace
-    - golint:
-        exclude: "vendor"
     - script:
         name: pact
         code: |
           ./scripts/pact.sh
+    - script:
+        name: Cache artifacts for release
+        code: |
+          if [ -d "$WERCKER_CACHE_DIR/dist" ]; then rm -rf ${WERCKER_OUTPUT_DIR}/dist; fi
+          cp -r dist ${WERCKER_OUTPUT_DIR}/dist
 
 # TODO: Get tokens for Pact foundation
 deploy:
+    box: golang
     steps:
         - tcnksm/ghr:
             token: $GITHUB_TOKEN
