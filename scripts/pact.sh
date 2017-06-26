@@ -18,8 +18,11 @@ function shutdown() {
       kill $PID
     fi
     cd $CUR_DIR
-    log "Reviewing log output: "
-    cat log/*
+    
+    if [ "${SCRIPT_STATUS}" != "0" ]; then
+      log "Reviewing log output: "
+      cat logs/*
+    fi
 }
 
 if [ ! -f "dist/pact-go" ]; then
@@ -50,8 +53,8 @@ if [ ! -f "dist/pact-go" ]; then
 fi
 
 step "Starting Daemon"
-mkdir -p ./log
-./dist/pact-go daemon -v -l DEBUG > log/daemon.log 2>&1 &
+mkdir -p ./logs
+./dist/pact-go daemon -v -l DEBUG > logs/daemon.log 2>&1 &
 
 step "Running integration tests"
 export PACT_INTEGRATED_TESTS=1
