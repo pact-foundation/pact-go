@@ -43,6 +43,10 @@ any new packages are added to `vendor.yml` prior to patching.
 Before releasing a new version, in addition to the standard (isolated) tests
 we smoke test the key features against a running Daemon and Broker.
 
+Running `make pact` is a good starting point. 
+
+You can also:
+
 1. Start daemon:
 
   ```
