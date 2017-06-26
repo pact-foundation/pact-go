@@ -61,6 +61,7 @@ func TestPact_Integration(t *testing.T) {
 					EachLike(
 						fmt.Sprintf(
 							`{
+            "name": "Jean-Marie de La Beaujardière😀😍",
 						"size": %s,
 						"colour": %s,
 						"tag": %s
@@ -208,6 +209,7 @@ func setupProviderAPI() int {
 			[
 			  [
 			    {
+            "name": "Jean-Marie de La Baujardière😀😍",
             "size": 10,
 			      "colour": "red",
 			      "tag": [
