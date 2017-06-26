@@ -7,6 +7,8 @@ import (
 	"os"
 	"testing"
 
+	"bytes"
+
 	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
@@ -14,6 +16,7 @@ import (
 var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
 var logDir = fmt.Sprintf("%s/../log", dir)
+var name = "Jean-Marie de La Beaujardière😀😍"
 
 func TestPact_Integration(t *testing.T) {
 	// Enable when running E2E/integration tests before a release
@@ -36,11 +39,15 @@ func TestPact_Integration(t *testing.T) {
 
 		// Pass in test case
 		var test = func() error {
+			// Get request /foobar
 			_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", consumerPact.Server.Port))
 			if err != nil {
 				t.Fatalf("Error sending request: %v", err)
 			}
-			_, err = http.Get(fmt.Sprintf("http://localhost:%d/bazbat", consumerPact.Server.Port))
+
+			// Post request /bazbat
+			bodyRequest := bytes.NewBufferString(fmt.Sprintf(`{"name": "%s"}`, name))
+			_, err = http.Post(fmt.Sprintf("http://localhost:%d/bazbat", consumerPact.Server.Port), "application/json", bodyRequest)
 			if err != nil {
 				t.Fatalf("Error sending request: %v", err)
 			}
@@ -61,11 +68,11 @@ func TestPact_Integration(t *testing.T) {
 					EachLike(
 						fmt.Sprintf(
 							`{
-            "name": "Jean-Marie de La Beaujardière😀😍",
+            "name": "%s",
 						"size": %s,
 						"colour": %s,
 						"tag": %s
-					}`, size, colour, tag),
+					}`, name, size, colour, tag),
 						1),
 					1))
 
@@ -89,8 +96,12 @@ func TestPact_Integration(t *testing.T) {
 			Given("Some state2").
 			UponReceiving("Some name for the test").
 			WithRequest(Request{
-				Method: "GET",
+				Method: "POST",
 				Path:   "/bazbat",
+				Body: fmt.Sprintf(`
+          {
+            "name": "%s"
+          }`, name),
 			}).
 			WillRespondWith(Response{
 				Status: 200,
@@ -209,7 +220,7 @@ func setupProviderAPI() int {
 			[
 			  [
 			    {
-            "name": "Jean-Marie de La Baujardière😀😍",
+            "name": "%s",
             "size": 10,
 			      "colour": "red",
 			      "tag": [
@@ -224,7 +235,7 @@ func setupProviderAPI() int {
 			      ]
 			    }
 			  ]
-			]`)
+			]`, name)
 	})
 
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
