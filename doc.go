@@ -210,35 +210,35 @@ different subset of data).
 States are configured on the consumer side when you issue a dsl.Given() clause
 with a corresponding request/response pair.
 
-Configuring the provider is a little more involved, and (currently) requires 2
-running API endpoints to retrieve and configure available states during the
+Configuring the provider is a little more involved, and (currently) requires
+running an API endpoint to configure any [provider states](http://docs.pact.io/documentation/provider_states.html) during the
 verification process. The option you must provide to the dsl.VerifyRequest
-are:
+is:
 
-	ProviderStatesSetupURL:	POST URL to set the provider state (see types.ProviderState)
+  ProviderStatesSetupURL: 	POST URL to set the provider state (see types.ProviderState)
 
-Example routes using the standard Go http package might look like this:
+An example route using the standard Go http package might look like this:
 
-	// Handle a request from the verifier to configure a provider state (ProviderStatesSetupURL)
-	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
+  // Handle a request from the verifier to configure a provider state (ProviderStatesSetupURL)
+  mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+    w.Header().Add("Content-Type", "application/json")
 
-		// Retrieve the Provider State
-		var state types.ProviderState
+    // Retrieve the Provider State
+    var state types.ProviderState
 
-		body, _ := ioutil.ReadAll(req.Body)
-		req.Body.Close()
-		json.Unmarshal(body, &state)
+    body, _ := ioutil.ReadAll(req.Body)
+    req.Body.Close()
+    json.Unmarshal(body, &state)
 
-		// Setup database for different states
-		if state.State == "User A exists" {
-			svc.userDatabase = aExists
-		} else if state.State == "User A is unauthorized" {
-			svc.userDatabase = aUnauthorized
-		} else {
-			svc.userDatabase = aDoesNotExist
-		}
-	})
+    // Configure database for different states
+    if state.State == "User A exists" {
+      svc.userDatabase = aExists
+    } else if state.State == "User A is unauthorized" {
+      svc.userDatabase = aUnauthorized
+    } else {
+      svc.userDatabase = aDoesNotExist
+    }
+  })
 
 See the examples or read more at http://docs.pact.io/documentation/provider_states.html.
 

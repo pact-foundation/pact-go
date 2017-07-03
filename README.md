@@ -223,10 +223,6 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 	})
-	mux.HandleFunc("/states", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, `{"My Consumer": ["Some state", "Some state2"]}`)
-		w.Header().Add("Content-Type", "application/json")
-	})
 	mux.HandleFunc("/someapi", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		fmt.Fprintf(w, `
@@ -252,8 +248,8 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	go http.ListenAndServe(":8000", mux)
 	```
 
-	Note that the server has 2 endpoints: `/states` and `/setup` that allows the
-	verifier to setup
+	Note that the server has and endpoint:  `/setup` that allows the
+	verifier to setup any 
 	[provider states](http://docs.pact.io/documentation/provider_states.html) before
 	each test is run.
 
@@ -342,8 +338,8 @@ different subset of data).
 States are configured on the consumer side when you issue a dsl.Given() clause
 with a corresponding request/response pair.
 
-Configuring the provider is a little more involved, and (currently) requires 2
-running API endpoints to retrieve and configure available states during the
+Configuring the provider is a little more involved, and (currently) requires
+running an API endpoint to configure any [provider states](http://docs.pact.io/documentation/provider_states.html) during the
 verification process. The option you must provide to the dsl.VerifyRequest
 is:
 
@@ -351,8 +347,7 @@ is:
 ProviderStatesSetupURL: 	POST URL to set the provider state (see types.ProviderState)
 ```
 
-Example routes using the standard Go http package might look like this, note
-the `/states` endpoint returns a list of available states for each known consumer:
+An example route using the standard Go http package might look like this:
 
 ```go
 // Handle a request from the verifier to configure a provider state (ProviderStatesSetupURL)
@@ -366,7 +361,7 @@ mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
 	req.Body.Close()
 	json.Unmarshal(body, &state)
 
-	// Setup database for different states
+	// Configure database for different states
 	if state.State == "User A exists" {
 		svc.userDatabase = aExists
 	} else if state.State == "User A is unauthorized" {
