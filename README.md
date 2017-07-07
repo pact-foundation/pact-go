@@ -56,8 +56,9 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 ## Installation
 
 * Download a [release](https://github.com/pact-foundation/pact-go/releases) for your OS.
-* Unzip the package into a known location, and add to the `PATH`.
+* Unzip the package into a known location, and rename `pact-go_<os/arch>` to `pact-go` and ensuring it is on the `PATH`.
 * Run `pact-go` to see what options are available.
+* Run `go get github.com/pact-foundation/pact-go` to install the source packages
 
 *NOTE*: Don't despair! We are [working](https://github.com/pact-foundation/pact-go/tree/feature/native)
 on a pure Go implementation that won't require this install step - please be
@@ -76,6 +77,8 @@ running for long periods (e.g. on a CI server).*
 
 ### Consumer
 1. Start the daemon with `./pact-go daemon`.
+1. go get github.com/pact-foundation/pact-go
+1. cd $GOPATH/src/github.com/pact-foundation/pact-go/examples
 1. `cd <pact-go>/examples`.
 1. `go run -v consumer.go`.
 
