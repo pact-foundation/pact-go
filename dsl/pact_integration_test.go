@@ -71,7 +71,8 @@ func TestPact_Integration(t *testing.T) {
             "name": "%s",
 						"size": %s,
 						"colour": %s,
-						"tag": %s
+            "tag": %s,
+            "price": 1.07
 					}`, name, size, colour, tag),
 						1),
 					1))
@@ -222,7 +223,8 @@ func setupProviderAPI() int {
 			    {
             "name": "%s",
             "size": 10,
-			      "colour": "red",
+            "colour": "red",
+            "price": 17.01,
 			      "tag": [
 			        [
 			          "jumper",

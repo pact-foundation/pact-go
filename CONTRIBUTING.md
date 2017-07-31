@@ -22,7 +22,7 @@ npm i -g cz-conventional-changelog
 
 ## Developing
 
-For full integration testing locally, Ruby 2.1.5 must be installed. Under the
+For full integration testing locally, Ruby 2.2.0 must be installed. Under the
 hood, Pact Go bundles the
 [Pact Mock Service](https://github.com/bethesque/pact-mock_service) and
 [Pact Provider Verifier](https://github.com/pact-foundation/pact-provider-verifier)
