@@ -2,6 +2,21 @@ Do this to generate your change history
 
     git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' vX.Y.Z..HEAD | egrep -v "wip(:|\()" | grep -v "docs(" | grep -v "chore(" | grep -v Merge | grep -v "test("
 
+### 0.0.8 (15th July 2017)
+
+  * [e1aaa4f](https://github.com/pact-foundation/pact-go/commit/e1aaa4f) - fix(test): add consumer test for #36 (Matt Fellows, Mon Jun 26 18:46:24 2017 +1000)
+  * [cf10aa6](https://github.com/pact-foundation/pact-go/commit/cf10aa6) - fix: allow test within pact.Verify() to fail build (Matt Fellows, Wed Jun 21 00:02:44 2017 +1000)
+  * [5a6855a](https://github.com/pact-foundation/pact-go/commit/5a6855a) - feat(upgrade): upgrade to provider verifier v1.1.2 (Matt Fellows, Mon Jun 12 21:31:58 2017 +1000)
+  * [bcdf7b2](https://github.com/pact-foundation/pact-go/commit/bcdf7b2) - fix(log): incorrectly writing stderr to INFO and vice versa. Fixes #10 (Matt Fellows, Fri Jun 2 13:04:24 2017 +1000)
+  * [4d838dc](https://github.com/pact-foundation/pact-go/commit/4d838dc) - feat(upgrade): upgrade to provider verifier v1.1.1 (Matt Fellows, Thu Jun 1 14:38:21 2017 +1000)
+  * [05b3e65](https://github.com/pact-foundation/pact-go/commit/05b3e65) - feat(verification): remove ProviderStatesURL during verification (Matt Fellows, Thu Jun 1 13:43:36 2017 +1000)
+  * [9002469](https://github.com/pact-foundation/pact-go/commit/9002469) - feat(upgrade): upgrade mock service to 2.1.0 (Matt Fellows, Mon May 15 08:57:36 2017 +1000)
+
+### 0.0.7 (20th May 2017)
+
+  * [9f2c7fe](https://github.com/pact-foundation/pact-go/commit/9f2c7fe) - feat(pactwritemode): allow user to set pact write mode.Fixes #30 (Matt Fellows, Fri May 12 10:53:32 2017 +1000)
+  * [50d6b90](https://github.com/pact-foundation/pact-go/commit/50d6b90) - fix(providerstate): make provider state serialisation spec compliant #16 (Matt Fellows, Thu May 11 20:46:22 2017 +1000)
+
 ### 0.0.6 (12th May 2017)
 
   * [9f2c7fe](https://github.com/pact-foundation/pact-go/commit/9f2c7fe) - feat(pactwritemode): allow user to set pact write mode.Fixes #30 (Matt Fellows, Fri May 12 10:53:32 2017 +1000)
