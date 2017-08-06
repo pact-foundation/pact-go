@@ -175,7 +175,7 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	err = p.validate()
-	if err != nil {
+	if err == nil {
 		t.Fatal("Expected error but got none")
 	}
 

@@ -20,6 +20,7 @@ func (m *MockService) NewService(args []string) (int, Service) {
 	log.Println("[DEBUG] starting mock service on port:", port)
 
 	m.Args = []string{
+		"service",
 		"--port",
 		fmt.Sprintf("%d", port),
 	}
