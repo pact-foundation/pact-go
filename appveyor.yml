@@ -9,10 +9,11 @@ clone_folder: c:\gopath\src\github.com\pact-foundation\pact-go
 
 # Build host
 
+
 environment:
   GOPATH: c:\gopath
   GOVERSION: 1.8
-  # PACT_INTEGRATED_TESTS: 0
+  PACT_INTEGRATED_TESTS: 1
   PACT_BROKER_HOST: "https://test.pact.dius.com.au"
   PACT_BROKER_USERNAME: "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
   PACT_BROKER_PASSWORD: "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
@@ -38,4 +39,4 @@ deploy: false
 
 test_script:
   - go build -o /tmp/pact-go github.com/pact-foundation/pact-go
-  - for /f "" %%G in ('go list github.com/pact-foundation/pact-go/... ^| find /i /v "/vendor/" ^| find /i /v "examples"') do ( go test -v %%G & IF ERRORLEVEL == 1 EXIT 1)
+  - c:\gopath\src\github.com\pact-foundation\pact-go\scripts\pact.ps1

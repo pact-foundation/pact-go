@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"context"
+
 	"github.com/go-kit/kit/log"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"golang.org/x/net/context"
 )
 
 // Request // Response types
@@ -31,7 +32,6 @@ func MakeHTTPHandler(ctx context.Context, s Service, logger log.Logger) http.Han
 	e := MakeServerEndpoints(s)
 
 	r.Methods("POST").Path("/users/login").Handler(httptransport.NewServer(
-		ctx,
 		e.LoginEndpoint,
 		decodeUserRequest,
 		encodeResponse,
@@ -63,21 +63,26 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 }
 
 func codeFrom(err error) int {
-	if e, ok := err.(httptransport.Error); ok {
-		switch e.Err {
-		case ErrNotFound:
-			return http.StatusNotFound
-		case ErrUnauthorized:
-			return http.StatusUnauthorized
-		}
-		switch e.Domain {
-		case httptransport.DomainDecode:
-			return http.StatusBadRequest
-		case httptransport.DomainDo:
-			return http.StatusServiceUnavailable
-		default:
-			return http.StatusInternalServerError
-		}
+	switch err {
+	case ErrNotFound:
+		return http.StatusNotFound
+	case ErrNotFound:
+		return http.StatusNotFound
+	case ErrUnauthorized:
+		return http.StatusUnauthorized
+	default:
+		return http.StatusInternalServerError
 	}
-	return http.StatusInternalServerError
+	// if e, ok := err.(httptransport.Error); ok {
+	// 	switch e.Err {domaind
+	// 	switch e.Domain {
+	// 	case httptransport.DomainDecode:
+	// 		return http.StatusBadRequest
+	// 	case httptransport.DomainDo:
+	// 		return http.StatusServiceUnavailable
+	// 	default:
+	// 		return http.StatusInternalServerError
+	// 	}
+	// }
+	// return http.StatusInternalServerError
 }

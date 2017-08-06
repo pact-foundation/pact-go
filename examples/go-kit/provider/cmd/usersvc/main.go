@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 
-	"golang.org/x/net/context"
+	"context"
 
 	usersvc "github.com/pact-foundation/pact-go/examples/go-kit/provider"
 )
@@ -24,8 +24,7 @@ func main() {
 	var logger log.Logger
 	{
 		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewContext(logger).With("ts", log.DefaultTimestampUTC)
-		logger = log.NewContext(logger).With("caller", log.DefaultCaller)
+		logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 	}
 
 	var ctx context.Context
@@ -41,7 +40,7 @@ func main() {
 
 	var h http.Handler
 	{
-		h = usersvc.MakeHTTPHandler(ctx, s, log.NewContext(logger).With("component", "HTTP"))
+		h = usersvc.MakeHTTPHandler(ctx, s, log.With(logger, "component", "HTTP"))
 	}
 
 	errs := make(chan error)

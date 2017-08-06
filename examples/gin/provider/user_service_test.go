@@ -3,6 +3,7 @@ package provider
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,7 @@ func TestPact_Provider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
-		PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
+		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
 

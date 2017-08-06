@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"testing"
 
 	"github.com/go-kit/kit/log"
 
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/gorilla/mux"
 	"github.com/pact-foundation/pact-go/dsl"
@@ -57,7 +58,7 @@ func TestPact_Provider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
-		PactURLs:               []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
+		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
 
@@ -86,8 +87,7 @@ func startInstrumentedProvider() {
 	var logger log.Logger
 	{
 		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewContext(logger).With("ts", log.DefaultTimestampUTC)
-		logger = log.NewContext(logger).With("caller", log.DefaultCaller)
+		logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 	}
 	var s Service
 	{
