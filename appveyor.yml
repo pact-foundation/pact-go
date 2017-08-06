@@ -11,8 +11,11 @@ clone_folder: c:\gopath\src\github.com\pact-foundation\pact-go
 
 environment:
   GOPATH: c:\gopath
-  DEPTESTBYPASS501: 1
   GOVERSION: 1.8
+  # PACT_INTEGRATED_TESTS: 0
+  PACT_BROKER_HOST: "https://test.pact.dius.com.au"
+  PACT_BROKER_USERNAME: "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
+  PACT_BROKER_PASSWORD: "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
 
 init:
   - git config --global core.autocrlf input
@@ -23,6 +26,7 @@ install:
   # Install the specific Go version.
   - rmdir c:\go /s /q
   - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.msi
+  # Download the latest pact standalone
   - msiexec /i go%GOVERSION%.windows-amd64.msi /q
   - choco install bzr
   - set Path=c:\go\bin;c:\gopath\bin;C:\Program Files (x86)\Bazaar\;C:\Program Files\Mercurial\%Path%
@@ -33,5 +37,5 @@ build: false
 deploy: false
 
 test_script:
-  - go build github.com/pact-foundation/pact-go
-  - for /f "" %%G in ('go list github.com/pact-foundation/pact-go/... ^| find /i /v "/vendor/"') do ( go test -v %%G & IF ERRORLEVEL == 1 EXIT 1)
+  - go build -o /tmp/pact-go github.com/pact-foundation/pact-go
+  - for /f "" %%G in ('go list github.com/pact-foundation/pact-go/... ^| find /i /v "/vendor/" ^| find /i /v "examples"') do ( go test -v %%G & IF ERRORLEVEL == 1 EXIT 1)

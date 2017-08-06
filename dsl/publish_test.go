@@ -49,7 +49,7 @@ func createSimplePact(valid bool) *os.File {
   `)
 	}
 
-	tmpfile, err := ioutil.TempFile("/tmp", "pactgo")
+	tmpfile, err := ioutil.TempFile("", "pactgo")
 	if err != nil {
 		log.Fatal(err)
 	}
