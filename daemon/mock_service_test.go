@@ -14,7 +14,7 @@ func TestMockService_NewService(t *testing.T) {
 		t.Fatalf("Expected a non-nil object but got nil")
 	}
 
-	if s.Args[2] != "--foo" {
+	if s.Args[3] != "--foo" {
 		t.Fatalf("Expected '--foo' argument to be passed")
 	}
 }
