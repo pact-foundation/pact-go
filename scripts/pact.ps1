@@ -1,6 +1,18 @@
 $pactDir = "$env:TEMP\pact"
 $exitCode = 0
-#rmdir -Recurse -Force $pactDir
+
+# Set environment
+if (!($env:GOPATH)) {
+  $env:GOPATH = "c:\go"
+}
+$env:PACT_BROKER_HOST = "https://test.pact.dius.com.au"
+$env:PACT_BROKER_USERNAME = "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
+$env:PACT_BROKER_PASSWORD = "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
+
+if (Test-Path "$pactDir") {
+  Write-Verbose "-> Deleting old pact directory"
+  rmdir -Recurse -Force $pactDir
+}
 
 Write-Verbose "--> Creating ${pactDir}"
 New-Item -Force -ItemType Directory $pactDir
@@ -78,7 +90,6 @@ cd $curDir
 Write-Verbose "    Shutting down pact processes :)"
 Stop-Process -Name ruby
 Stop-Process -Name pact-go
-
 
 Write-Verbose "    Done!"
 if ($exitCode -ne 0) {
