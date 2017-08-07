@@ -1,4 +1,5 @@
 $pactDir="$env:TEMP\pact"
+
 #rmdir -Recurse -Force $pactDir
 
 Write-Verbose "--> Creating ${pactDir}"
@@ -30,6 +31,8 @@ mv $downloadDirMockService/pact/* $pactDir/pact-mock-service/
 mv $downloadDirPRoviderVerifier/pact/* $pactDir/pact-provider-verifier/
 Get-ChildItem $pactDir
 
+# Time to ensure we fast-fail if a test fails!
+$ErrorActionPreference = "Stop"
 
 Write-Verbose "--> Running tests"
 # $env:PACT_BROKER_HOST="https://test.pact.dius.com.au"
@@ -52,7 +55,6 @@ go test -v -run TestPact_Integration
 Write-Verbose "Stop Pact..."
 Stop-Process -Name ruby
 Stop-Process -Name pact-go
-
 
 Write-Verbose "--> Testing examples"
 Write-Verbose "    Starting pact daemon in background"

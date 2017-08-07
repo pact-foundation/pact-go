@@ -40,3 +40,6 @@ deploy: false
 test_script:
   - go build -o /tmp/pact-go github.com/pact-foundation/pact-go
   - ps: c:\gopath\src\github.com\pact-foundation\pact-go\scripts\pact.ps1
+
+artifacts:
+- path: '**\*.log'
