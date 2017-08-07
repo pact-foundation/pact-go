@@ -39,4 +39,4 @@ deploy: false
 
 test_script:
   - go build -o /tmp/pact-go github.com/pact-foundation/pact-go
-  - c:\gopath\src\github.com\pact-foundation\pact-go\scripts\pact.ps1
+  - ps: c:\gopath\src\github.com\pact-foundation\pact-go\scripts\pact.ps1
