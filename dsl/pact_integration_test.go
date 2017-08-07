@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"bytes"
@@ -145,7 +146,7 @@ func TestPact_Integration(t *testing.T) {
 		}
 		err = providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
-			PactURLs:                   []string{fmt.Sprintf("%s/billy-bobby.json", pactDir)},
+			PactURLs:                   []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			PublishVerificationResults: false, // No HAL links in local pacts
 		})

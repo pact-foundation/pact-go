@@ -41,7 +41,7 @@ $env:PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 $env:PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
 go test github.com/pact-foundation/pact-go
 
-$packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'vendor'}
+$packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
 $curDir=$pwd
 foreach ($package in $packages) {
  Write-Verbose "Running tests for $package"
