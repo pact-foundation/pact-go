@@ -60,7 +60,7 @@ Write-Verbose "--> Testing E2E"
 Write-Verbose "    Starting pact daemon in background"
 Start-Process -FilePath "$pactDir\pact-go.exe" -ArgumentList "daemon -v -l DEBUG"  -RedirectStandardOutput "pact.log" -RedirectStandardError "pact-error.log"
 $env:PACT_INTEGRATED_TESTS=1
-cd "$env:GOPATH\github.com\pact-foundation\pact-go\dsl"
+cd "$env:GOPATH\src\github.com\pact-foundation\pact-go\dsl"
 go test -v -run TestPact_Integration
 if ($LastExitCode -ne 0) {
   Write-Verbose "    ERROR: Test failed, logging failure"
