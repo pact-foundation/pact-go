@@ -3,6 +3,7 @@ package dsl
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"bytes"
 
 	"github.com/pact-foundation/pact-go/types"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 var dir, _ = os.Getwd()
@@ -23,7 +25,8 @@ func TestPact_Integration(t *testing.T) {
 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
 
 		// Setup Provider API for verification (later...)
-		providerPort := setupProviderAPI()
+		providerPort, _ := utils.GetFreePort()
+		go setupProviderAPI(providerPort)
 		pactDaemonPort := 6666
 
 		// Create Pact connecting to local Daemon
@@ -109,7 +112,7 @@ func TestPact_Integration(t *testing.T) {
 				Body:   body,
 			})
 
-		// Verify Collaboration Test interactionns (Consumer sid)
+		// Verify Collaboration Test interactions (Consumer side)
 		err := consumerPact.Verify(test)
 		if err != nil {
 			t.Fatalf("Error on Verify: %v", err)
@@ -209,10 +212,9 @@ func TestPact_Integration(t *testing.T) {
 }
 
 // Used as the Provider in the verification E2E steps
-func setupProviderAPI() int {
-	// port, _ := utils.GetFreePort()
-	port := 8123
+func setupProviderAPI(port int) {
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] provider API: states setup")
 		w.Header().Add("Content-Type", "application/json")
@@ -247,6 +249,12 @@ func setupProviderAPI() int {
 			]`, name)
 	})
 
-	go http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
-	return port
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ln.Close()
+
+	log.Printf("API starting: port %d (%s)", port, ln.Addr())
+	log.Printf("API terminating: %v", http.Serve(ln, mux))
 }
