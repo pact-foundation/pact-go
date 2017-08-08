@@ -11,7 +11,6 @@ import (
 	"bytes"
 
 	"github.com/pact-foundation/pact-go/types"
-	"github.com/pact-foundation/pact-go/utils"
 )
 
 var dir, _ = os.Getwd()
@@ -152,6 +151,7 @@ func TestPact_Integration(t *testing.T) {
 			PactURLs:                   []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
 			PublishVerificationResults: false, // No HAL links in local pacts
+			Verbose:                    true,
 		})
 
 		if err != nil {
@@ -167,6 +167,7 @@ func TestPact_Integration(t *testing.T) {
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
 			ProviderVersion:            "1.0.0",
+			Verbose:                    true,
 		})
 
 		if err != nil {
@@ -182,6 +183,7 @@ func TestPact_Integration(t *testing.T) {
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
 			ProviderVersion:            "1.0.0",
+			Verbose:                    true,
 		})
 
 		if err != nil {
@@ -208,7 +210,8 @@ func TestPact_Integration(t *testing.T) {
 
 // Used as the Provider in the verification E2E steps
 func setupProviderAPI() int {
-	port, _ := utils.GetFreePort()
+	// port, _ := utils.GetFreePort()
+	port := 8123
 	mux := http.NewServeMux()
 	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] provider API: states setup")
