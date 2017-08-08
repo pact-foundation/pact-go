@@ -19,17 +19,13 @@ var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
 var logDir = fmt.Sprintf("%s/../log", dir)
 
-var name = "Jean-Marie de La Beaujardière😀😍"
+// var name = "Jean-Marie de La Beaujardière😀😍"
+var name = "billy"
 
-// var name = "boring names"
-
-func TestPact_Integration(t *testing.T) {
+func TestPactIntegration_Consumer(t *testing.T) {
 	// Enable when running E2E/integration tests before a release
 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
 
-		// Setup Provider API for verification (later...)
-		providerPort, _ := utils.GetFreePort()
-		go setupProviderAPI(providerPort)
 		pactDaemonPort := 6666
 
 		// Create Pact connecting to local Daemon
@@ -135,13 +131,20 @@ func TestPact_Integration(t *testing.T) {
 			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
 		})
+	}
+}
+
+func TestPactIntegration_Provider(t *testing.T) {
+	// Enable when running E2E/integration tests before a release
+	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
+
+		// Setup Provider API for verification (later...)
+		providerPort, _ := utils.GetFreePort()
+		go setupProviderAPI(providerPort)
+		pactDaemonPort := 6666
 
 		// Wait for Provider to come up
 		waitForPortInTest(providerPort, t)
-
-		if err != nil {
-			t.Fatalf("Error: %v", err)
-		}
 
 		// Verify the Provider - local Pact Files
 		providerPact := Pact{
@@ -152,7 +155,7 @@ func TestPact_Integration(t *testing.T) {
 			LogDir:   logDir,
 			PactDir:  pactDir,
 		}
-		err = providerPact.VerifyProvider(types.VerifyRequest{
+		err := providerPact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
 			PactURLs:                   []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
@@ -163,54 +166,56 @@ func TestPact_Integration(t *testing.T) {
 		if err != nil {
 			t.Fatal("Error:", err)
 		}
+		/*
+		   		// Verify the Provider - Specific Published Pacts
+		   		err = providerPact.VerifyProvider(types.VerifyRequest{
+		   			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
+		   			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
+		   			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
+		   			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+		   			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+		   			PublishVerificationResults: true,
+		   			ProviderVersion:            "1.0.0",
+		   			Verbose:                    true,
+		   		})
 
-		// Verify the Provider - Specific Published Pacts
-		err = providerPact.VerifyProvider(types.VerifyRequest{
-			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
-			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
-			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
-			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
-			PublishVerificationResults: true,
-			ProviderVersion:            "1.0.0",
-			Verbose:                    true,
-		})
+		   		if err != nil {
+		   			t.Fatal("Error:", err)
+		   		}
 
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
+		   		// Verify the Provider - Latest Published Pacts for any known consumers
+		   		err = providerPact.VerifyProvider(types.VerifyRequest{
+		   			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
+		   			BrokerURL:                  brokerHost,
+		   			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
+		   			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+		   			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+		   			PublishVerificationResults: true,
+		   			ProviderVersion:            "1.0.0",
+		   			Verbose:                    true,
+		   		})
 
-		// Verify the Provider - Latest Published Pacts for any known consumers
-		err = providerPact.VerifyProvider(types.VerifyRequest{
-			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
-			BrokerURL:                  brokerHost,
-			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
-			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
-			PublishVerificationResults: true,
-			ProviderVersion:            "1.0.0",
-			Verbose:                    true,
-		})
+		   		if err != nil {
+		   			t.Fatal("Error:", err)
+		   		}
 
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
+		   		// Verify the Provider - Tag-based Published Pacts for any known consumers
+		   		err = providerPact.VerifyProvider(types.VerifyRequest{
+		   			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
+		   			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
+		   			BrokerURL:                  brokerHost,
+		   			Tags:                       []string{"latest", "sit4"},
+		   			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+		   			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+		   			PublishVerificationResults: true,
+		   			ProviderVersion:            "1.0.0",
+		   		})
 
-		// Verify the Provider - Tag-based Published Pacts for any known consumers
-		err = providerPact.VerifyProvider(types.VerifyRequest{
-			ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", providerPort),
-			ProviderStatesSetupURL:     fmt.Sprintf("http://localhost:%d/setup", providerPort),
-			BrokerURL:                  brokerHost,
-			Tags:                       []string{"latest", "sit4"},
-			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
-			PublishVerificationResults: true,
-			ProviderVersion:            "1.0.0",
-		})
-
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
+		   		if err != nil {
+		   			t.Fatal("Error:", err)
+		   		}
+		     }
+		*/
 	}
 }
 
