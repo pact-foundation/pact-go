@@ -24,7 +24,7 @@ Write-Verbose "--> Creating pact daemon (downloading Ruby binaries)"
 $downloadDir = $env:TEMP
 $downloadDirMockService = "$pactDir\pact-mock-service"
 $downloadDirPRoviderVerifier = "$pactDir\pact-provider-verifier"
-$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.2.5/pact-1.2.5-win32.zip"
+$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.3.1/pact-1.3.1-win32.zip"
 
 Write-Verbose "    Downloading $url"
 $zip = "$downloadDir\pact.zip"
