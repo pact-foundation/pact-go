@@ -28,7 +28,7 @@ function shutdown() {
 if [ ! -f "dist/pact-go" ]; then
     cd dist
     platform=$(detect_os)
-    archive="${platform}-amd64.tar.gz"
+    archive="pact-go_${platform}_amd64.tar.gz"
     step "Installing Pact Go for ${platform}"
 
     if [ ! -f "${archive}" ]; then
@@ -39,10 +39,8 @@ if [ ! -f "dist/pact-go" ]; then
     log "Expanding archive"
     if [[ $platform == 'linux' ]]; then
       tar -xf $archive
-      cp pact-go_linux_amd64 pact-go
     elif [[ $platform == 'darwin' ]]; then
       tar -xf $archive
-      cp pact-go_darwin_amd64 pact-go
     else
       log "Unsupported platform ${platform}"
       exit 1

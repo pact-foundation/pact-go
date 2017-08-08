@@ -1,6 +1,10 @@
 $pactDir = "$env:TEMP\pact"
 $exitCode = 0
 
+if ($env:PACT_INTEGRATED_TESTS) {
+  Remove-Item env:\PACT_INTEGRATED_TESTS
+}
+
 # Set environment
 if (!($env:GOPATH)) {
   $env:GOPATH = "c:\go"
