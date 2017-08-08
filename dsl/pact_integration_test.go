@@ -131,6 +131,9 @@ func TestPact_Integration(t *testing.T) {
 			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
 		})
 
+		// Wait for Provider to come up
+		waitForPortInTest(providerPort, t)
+
 		if err != nil {
 			t.Fatalf("Error: %v", err)
 		}
