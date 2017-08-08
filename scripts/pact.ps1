@@ -1,4 +1,5 @@
-$pactDir = "$env:TEMP\pact"
+$pactDir = "$env:APPVEYOR_BUILD_FOLDER\pact"
+# $pactDir = "$env:TEMP\pact"
 $exitCode = 0
 
 if ($env:PACT_INTEGRATED_TESTS) {
@@ -26,8 +27,6 @@ go build -o "$pactDir\pact-go.exe" "github.com\pact-foundation\pact-go"
 
 Write-Verbose "--> Creating pact daemon (downloading Ruby binaries)"
 $downloadDir = $env:TEMP
-$downloadDirMockService = "$pactDir\pact-mock-service"
-$downloadDirPRoviderVerifier = "$pactDir\pact-provider-verifier"
 $url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.3.1/pact-1.3.1-win32.zip"
 
 Write-Verbose "    Downloading $url"
@@ -39,13 +38,11 @@ if (!(Test-Path "$zip")) {
 
 Write-Verbose "    Extracting $zip"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::ExtractToDirectory("$zip", $downloadDirMockService)
-[System.IO.Compression.ZipFile]::ExtractToDirectory("$zip", $downloadDirPRoviderVerifier)
+[System.IO.Compression.ZipFile]::ExtractToDirectory("$zip", $pactDir)
 
 Write-Verbose "    Moving binaries into position"
-mv $downloadDirMockService/pact/* $pactDir/pact-mock-service/
-mv $downloadDirPRoviderVerifier/pact/* $pactDir/pact-provider-verifier/
 Get-ChildItem $pactDir
+Get-ChildItem $pactDir/pact
 
 Write-Verbose "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}

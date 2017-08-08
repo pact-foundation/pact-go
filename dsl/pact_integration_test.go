@@ -18,7 +18,10 @@ import (
 var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
 var logDir = fmt.Sprintf("%s/../log", dir)
+
 var name = "Jean-Marie de La Beaujardière😀😍"
+
+// var name = "boring names"
 
 func TestPact_Integration(t *testing.T) {
 	// Enable when running E2E/integration tests before a release
