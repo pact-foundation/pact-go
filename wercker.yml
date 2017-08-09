@@ -31,7 +31,8 @@ build:
         name: Cache artifacts for release
         code: |
           if [ -d "$WERCKER_CACHE_DIR/dist" ]; then rm -rf ${WERCKER_OUTPUT_DIR}/dist; fi
-          cp -r dist ${WERCKER_OUTPUT_DIR}/dist
+          mkdir ${WERCKER_OUTPUT_DIR}/dist
+          cp -r dist/*.* ${WERCKER_OUTPUT_DIR}/dist/
 
 # TODO: Get tokens for Pact foundation
 deploy:
