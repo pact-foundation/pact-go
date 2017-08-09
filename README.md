@@ -55,10 +55,10 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 ## Installation
 
-* Download a [release](https://github.com/pact-foundation/pact-go/releases) for your OS.
+* Download one of the zipped [release](https://github.com/pact-foundation/pact-go/releases) distributions for your OS.
 * Unzip the package into a known location, and rename `pact-go_<os/arch>` to `pact-go` and ensuring it is on the `PATH`.
 * Run `pact-go` to see what options are available.
-* Run `go get github.com/pact-foundation/pact-go` to install the source packages
+* Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
 
 *NOTE*: Don't despair! We are [working](https://github.com/pact-foundation/pact-go/tree/feature/native)
 on a pure Go implementation that won't require this install step - please be
@@ -326,53 +326,7 @@ in development.
 
 See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
 for more on this strategy.
-
-#### Provider States
-
-Each interaction in a pact should be verified in isolation, with no context
-maintained from the previous interactions. So how do you test a request that
-requires data to exist on the provider? Provider states are how you achieve
-this using Pact.
-
-Provider states also allow the consumer to make the same request with different
-expected responses (e.g. different response codes, or the same resource with a
-different subset of data).
-
-States are configured on the consumer side when you issue a dsl.Given() clause
-with a corresponding request/response pair.
-
-Configuring the provider is a little more involved, and (currently) requires
-running an API endpoint to configure any [provider states](http://docs.pact.io/documentation/provider_states.html) during the
-verification process. The option you must provide to the dsl.VerifyRequest
-is:
-
-```go
-ProviderStatesSetupURL: 	POST URL to set the provider state (see types.ProviderState)
-```
-
-An example route using the standard Go http package might look like this:
-
-```go
-// Handle a request from the verifier to configure a provider state (ProviderStatesSetupURL)
-mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
-	// Retrieve the Provider State
-	var state types.ProviderState
-
-	body, _ := ioutil.ReadAll(req.Body)
-	req.Body.Close()
-	json.Unmarshal(body, &state)
-
-	// Configure database for different states
-	if state.State == "User A exists" {
-		svc.userDatabase = aExists
-	} else if state.State == "User A is unauthorized" {
-		svc.userDatabase = aUnauthorized
-	} else {
-		svc.userDatabase = aDoesNotExist
-	}
-})
+e
 ```
 
 See the examples or read more at http://docs.pact.io/documentation/provider_states.html.
