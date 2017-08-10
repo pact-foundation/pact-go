@@ -60,19 +60,15 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 * Run `pact-go` to see what options are available.
 * Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
 
-*NOTE*: Don't despair! We are [working](https://github.com/pact-foundation/pact-go/tree/feature/native)
-on a pure Go implementation that won't require this install step - please be
-patient or help us implement the [roadmap](https://github.com/pact-foundation/pact-go/wiki/Native-implementation-roadmap).
-
 ## Running
 
-Due to some design constraints, Pact Go runs a two-step process:
+Pact Go runs a two-step process:
 
 1. Run `pact-go daemon` in a separate process/shell. The Consumer and Provider
 DSLs communicate over a local (RPC) connection, and is transparent to clients.
 1. Create your Pact Consumer/Provider Tests. It defaults to run on port `6666`.
 
-*NOTE: The daemon is completely thread safe and it is normal to leave the daemon
+*NOTE: The daemon is thread safe and it is normal to leave it
 running for long periods (e.g. on a CI server).*
 
 ### Consumer
