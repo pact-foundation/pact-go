@@ -33,6 +33,7 @@ var billyExists = &UserRepository{
 			Name:     "billy",
 			username: "billy",
 			password: "issilly",
+			Type:     "admin",
 		},
 	},
 }
@@ -45,6 +46,7 @@ var billyUnauthorized = &UserRepository{
 			Name:     "billy",
 			username: "billy",
 			password: "issilly1",
+			Type:     "blocked",
 		},
 	},
 }
@@ -64,6 +66,61 @@ func TestPact_Provider(t *testing.T) {
 
 	if err != nil {
 		t.Fatal("Error:", err)
+	}
+
+	// Pull from pact broker, used in e2e/integrated tests for pact-go release
+	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
+		var brokerHost = os.Getenv("PACT_BROKER_HOST")
+
+		// Verify the Provider - Specific Published Pacts
+		err = pact.VerifyProvider(types.VerifyRequest{
+			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
+			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
+			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
+			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+			PublishVerificationResults: true,
+			ProviderVersion:            "1.0.0",
+			Verbose:                    true,
+		})
+
+		if err != nil {
+			t.Fatal("Error:", err)
+		}
+
+		// Verify the Provider - Latest Published Pacts for any known consumers
+		err = pact.VerifyProvider(types.VerifyRequest{
+			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
+			BrokerURL:                  brokerHost,
+			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
+			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+			PublishVerificationResults: true,
+			ProviderVersion:            "1.0.0",
+			Verbose:                    true,
+		})
+
+		if err != nil {
+			t.Fatal("Error:", err)
+		}
+
+		// Verify the Provider - Tag-based Published Pacts for any known consumers
+		err = pact.VerifyProvider(types.VerifyRequest{
+			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
+			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
+			BrokerURL:                  brokerHost,
+			Tags:                       []string{"latest", "sit4"},
+			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+			PublishVerificationResults: true,
+			ProviderVersion:            "1.0.0",
+		})
+
+		if err != nil {
+			t.Fatal("Error:", err)
+		}
+	} else {
+		t.Log("Skipping pulling from broker as PACT_INTEGRATED_TESTS is not set")
 	}
 }
 

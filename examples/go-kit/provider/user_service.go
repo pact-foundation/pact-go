@@ -7,6 +7,7 @@ type User struct {
 	Name     string `json:"name"`
 	username string
 	password string
+	Type     string `json:"type"`
 }
 
 var (
@@ -38,6 +39,7 @@ func NewInmemService() Service {
 					Name:     "billy",
 					username: "billy",
 					password: "issilly",
+					Type:     "admin",
 				},
 			},
 		},

@@ -165,19 +165,15 @@ be a valid JSON value: e.g. strings, numbers and objects.
 Here is a complex example that shows how all 3 terms can be used together:
 
 ```go
-jumper := Like(`"jumper"`)
-shirt := Like(`"shirt"`)
-tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-size := Like(10)
 colour := Term("red", "red|green|blue")
 
 match := EachLike(
               EachLike(
                          fmt.Sprintf(`{
-                             "size": %s,
+                             "size": 10,
                              "colour": %s,
-                             "tag": %s
-                         }`, size, colour, tag), 
+                             "tag": [["jumper", "shirt]]
+                         }`, colour)
               1),
          1))
 ```

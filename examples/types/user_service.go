@@ -7,6 +7,7 @@ type User struct {
 	Name     string `json:"name"`
 	Username string
 	Password string
+	Type     string `json:"type"`
 }
 
 var (
