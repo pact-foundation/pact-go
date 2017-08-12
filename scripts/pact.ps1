@@ -57,20 +57,11 @@ foreach ($package in $packages) {
   }
 }
 
-Write-Verbose "--> Testing E2E"
+Write-Verbose "--> Testing E2E examples"
 Write-Verbose "    Starting pact daemon in background"
 Start-Process -FilePath "$pactDir\pact-go.exe" -ArgumentList "daemon -v -l DEBUG"  -RedirectStandardOutput "pacte-2e.log" -RedirectStandardError "pact-e2e-error.log"
-$env:PACT_INTEGRATED_TESTS=1
-cd "$env:GOPATH\src\github.com\pact-foundation\pact-go\dsl"
-go test -v -run TestPactIntegration_Consumer
-go test -v -run TestPactIntegration_Provider
-if ($LastExitCode -ne 0) {
-  Write-Verbose "    ERROR: Test failed, logging failure"
-  $exitCode=1
-}
 
-Write-Verbose "--> Testing examples"
-$examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider")
+$examples=@("github.com/pact-foundation/pact-go/examples/e2e", "github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider")
 foreach ($example in $examples) {
   Write-Verbose "    Installing dependencies for example: $example"
   cd "$env:GOPATH\src\$example"

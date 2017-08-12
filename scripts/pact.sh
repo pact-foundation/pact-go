@@ -69,7 +69,7 @@ if [ $? -ne 0 ]; then
 fi
 
 step "Running example projects"
-examples=("github.com/pact-foundation/pact-go/examples/consumer/goconsumer" "github.com/pact-foundation/pact-go/examples/go-kit/provider" "github.com/pact-foundation/pact-go/examples/mux/provider" "github.com/pact-foundation/pact-go/examples/gin/provider")
+examples=("github.com/pact-foundation/pact-go/examples/e2e" "github.com/pact-foundation/pact-go/examples/consumer/goconsumer" "github.com/pact-foundation/pact-go/examples/go-kit/provider" "github.com/pact-foundation/pact-go/examples/mux/provider" "github.com/pact-foundation/pact-go/examples/gin/provider")
 
 for example in "${examples[@]}"
 do
