@@ -24,6 +24,7 @@ func TestPact_Provider(t *testing.T) {
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
+		Verbose:                true,
 	})
 
 	if err != nil {
