@@ -68,13 +68,8 @@ if ($LastExitCode -ne 0) {
   Write-Verbose "    ERROR: Test failed, logging failure"
   $exitCode=1
 }
-Write-Verbose "Stop Pact..."
-Stop-Process -Name ruby
-Stop-Process -Name pact-go
 
 Write-Verbose "--> Testing examples"
-Write-Verbose "    Starting pact daemon in background"
-Start-Process -FilePath "$pactDir\pact-go.exe" -ArgumentList "daemon -v -l DEBUG"  -RedirectStandardOutput "pact-examples.log" -RedirectStandardError "pact-examples-error.log"
 $examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider")
 foreach ($example in $examples) {
   Write-Verbose "    Installing dependencies for example: $example"
