@@ -21,7 +21,7 @@ function shutdown() {
     fi
     cd $CUR_DIR
     
-    if [ "${SCRIPT_STATUS}" != "0" ]; then
+    if [ "${exitCode}" != "0" ]; then
       log "Reviewing log output: "
       cat logs/*
     fi
@@ -55,20 +55,12 @@ step "Starting Daemon"
 mkdir -p ./logs
 ./dist/pact-go daemon -v -l DEBUG > logs/daemon.log 2>&1 &
 
-step "Running E2E regression tests"
 export PACT_INTEGRATED_TESTS=1
 export PACT_BROKER_HOST="https://test.pact.dius.com.au"
 export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
-cd "${GOPATH}/src/github.com/pact-foundation/pact-go/dsl"
-go test -v -run TestPactIntegration_Consumer
-go test -v -run TestPactIntegration_Provider
-if [ $? -ne 0 ]; then
-  log "ERROR: Test failed, logging failure"
-  exitCode=1
-fi
 
-step "Running example projects"
+step "Running E2E regression and example projects"
 examples=("github.com/pact-foundation/pact-go/examples/e2e" "github.com/pact-foundation/pact-go/examples/consumer/goconsumer" "github.com/pact-foundation/pact-go/examples/go-kit/provider" "github.com/pact-foundation/pact-go/examples/mux/provider" "github.com/pact-foundation/pact-go/examples/gin/provider")
 
 for example in "${examples[@]}"
