@@ -3,6 +3,7 @@ package goconsumer
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -46,6 +47,28 @@ func TestMain(m *testing.M) {
 	// Shutdown the Mock Service and Write pact files to disk
 	pact.WritePact()
 	pact.Teardown()
+
+	// Enable when running E2E/integration tests before a release
+	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
+		var brokerHost = os.Getenv("PACT_BROKER_HOST")
+
+		// Publish the Pacts...
+		p := dsl.Publisher{}
+		err := p.Publish(types.PublishRequest{
+			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
+			PactBroker:      brokerHost,
+			ConsumerVersion: "1.0.0",
+			Tags:            []string{"latest", "sit4"},
+			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
+		})
+
+		if err != nil {
+			log.Println("ERROR: ", err)
+		}
+	} else {
+		log.Println("Skipping publishing")
+	}
 
 	os.Exit(code)
 }
@@ -193,29 +216,5 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 	err := pact.Verify(testBillyUnauthorized)
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
-	}
-}
-
-func TestPactConsumerLoginHandler_Publish(t *testing.T) {
-	// Enable when running E2E/integration tests before a release
-	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
-		var brokerHost = os.Getenv("PACT_BROKER_HOST")
-
-		// Publish the Pacts...
-		p := dsl.Publisher{}
-		err := p.Publish(types.PublishRequest{
-			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
-			PactBroker:      brokerHost,
-			ConsumerVersion: "1.0.0",
-			Tags:            []string{"latest", "sit4"},
-			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
-		})
-
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
-	} else {
-		t.Skip()
 	}
 }
