@@ -14,11 +14,12 @@ import (
 
 	"github.com/pact-foundation/pact-go/dsl"
 	"github.com/pact-foundation/pact-go/types"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 var dir, _ = os.Getwd()
 var brokerHost = os.Getenv("PACT_BROKER_HOST")
-var pactDir = fmt.Sprintf("%s/../pacts", dir)
+var pactDir = fmt.Sprintf("%s/../../pacts", dir)
 var logDir = fmt.Sprintf("%s/../log", dir)
 
 // var name = "Jean-Marie de La Beaujardière😀😍"
@@ -45,14 +46,14 @@ func TestPactIntegration_Consumer(t *testing.T) {
 	// Pass in test case
 	var test = func() error {
 		// Get request /foobar
-		_, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/foobar", consumerPact.Server.Port))
-		if err != nil {
-			t.Fatalf("Error sending request: %v", err)
-		}
+		// _, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/foobar", consumerPact.Server.Port))
+		// if err != nil {
+		// 	t.Fatalf("Error sending request: %v", err)
+		// }
 
 		// Post request /bazbat
 		bodyRequest := bytes.NewBufferString(fmt.Sprintf(`{"name": "%s"}`, name))
-		_, err = http.Post(fmt.Sprintf("http://127.0.0.1:%d/bazbat", consumerPact.Server.Port), "application/json", bodyRequest)
+		_, err := http.Post(fmt.Sprintf("http://127.0.0.1:%d/bazbat", consumerPact.Server.Port), "application/json", bodyRequest)
 		if err != nil {
 			t.Fatalf("Error sending request: %v", err)
 		}
@@ -76,20 +77,20 @@ func TestPactIntegration_Consumer(t *testing.T) {
 			1)
 
 	// Set up our interactions. Note we have multiple in this test case!
-	consumerPact.
-		AddInteraction().
-		Given("Some state").
-		UponReceiving("Some name for the test").
-		WithRequest(dsl.Request{
-			Method: "GET",
-			Path:   "/foobar",
-		}).
-		WillRespondWith(dsl.Response{
-			Status: 200,
-			Headers: map[string]string{
-				"Content-Type": "application/json",
-			},
-		})
+	// consumerPact.
+	// 	AddInteraction().
+	// 	Given("Some state").
+	// 	UponReceiving("Some name for the test").
+	// 	WithRequest(dsl.Request{
+	// 		Method: "GET",
+	// 		Path:   "/foobar",
+	// 	}).
+	// 	WillRespondWith(dsl.Response{
+	// 		Status: 200,
+	// 		Headers: map[string]string{
+	// 			"Content-Type": "application/json",
+	// 		},
+	// 	})
 	consumerPact.
 		AddInteraction().
 		Given("Some state2").
@@ -122,7 +123,7 @@ func TestPactIntegration_Publish(t *testing.T) {
 	// Publish the Pacts...
 	p := dsl.Publisher{}
 	err := p.Publish(types.PublishRequest{
-		PactURLs:        []string{"../pacts/billy-bobby.json"},
+		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 		PactBroker:      brokerHost,
 		ConsumerVersion: "1.0.0",
 		Tags:            []string{"latest", "sit4"},
@@ -137,8 +138,7 @@ func TestPactIntegration_Publish(t *testing.T) {
 
 func TestPactIntegration_Provider(t *testing.T) {
 	// Setup Provider API for verification (later...)
-	//providerPort, _ := utils.GetFreePort()
-	providerPort := 80
+	providerPort, _ := utils.GetFreePort()
 	go setupProviderAPI(providerPort)
 	pactDaemonPort := 6666
 
