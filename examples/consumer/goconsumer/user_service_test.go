@@ -204,7 +204,7 @@ func TestPactConsumerLoginHandler_Publish(t *testing.T) {
 		// Publish the Pacts...
 		p := dsl.Publisher{}
 		err := p.Publish(types.PublishRequest{
-			PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
+			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 			PactBroker:      brokerHost,
 			ConsumerVersion: "1.0.0",
 			Tags:            []string{"latest", "sit4"},
