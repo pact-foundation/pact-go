@@ -50,6 +50,7 @@ if [ ! -f "dist/pact-go" ]; then
 
     log "Done!"
 fi
+cd $CUR_DIR
 
 step "Starting Daemon"
 mkdir -p ./logs
