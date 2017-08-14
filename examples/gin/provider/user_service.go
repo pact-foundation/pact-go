@@ -19,6 +19,7 @@ var userRepository = &types.UserRepository{
 			Name:     "billy",
 			Username: "billy",
 			Password: "issilly",
+			Type:     "admin",
 		},
 	},
 }

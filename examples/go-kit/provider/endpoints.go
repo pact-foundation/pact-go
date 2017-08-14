@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"context"
+
 	"github.com/go-kit/kit/endpoint"
-	"golang.org/x/net/context"
 )
 
 // Endpoints is a container to hold all of our Transport routes (HTTP, RPC etc.).

@@ -20,6 +20,7 @@ func (m *MockService) NewService(args []string) (int, Service) {
 	log.Println("[DEBUG] starting mock service on port:", port)
 
 	m.Args = []string{
+		"service",
 		"--port",
 		fmt.Sprintf("%d", port),
 	}
@@ -31,5 +32,5 @@ func (m *MockService) NewService(args []string) (int, Service) {
 
 func getMockServiceCommandPath() string {
 	dir, _ := osext.ExecutableFolder()
-	return fmt.Sprintf(filepath.Join(dir, "pact-mock-service", "bin", "pact-mock-service"))
+	return fmt.Sprintf(filepath.Join(dir, "pact", "bin", "pact-mock-service"))
 }

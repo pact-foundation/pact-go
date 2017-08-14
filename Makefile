@@ -8,6 +8,9 @@ package:
 bin:
 	@sh -c "$(CURDIR)/scripts/build.sh"
 
+clean:
+	@sh -c "$(CURDIR)/scripts/clean.sh"
+
 dev:
 	@TF_DEV=1 sh -c "$(CURDIR)/scripts/dev.sh"
 
@@ -23,4 +26,4 @@ testrace:
 updatedeps:
 	go get -d -v -p 2 ./...
 
-.PHONY: bin default dev test pact updatedeps
+.PHONY: bin default dev test pact updatedeps clean

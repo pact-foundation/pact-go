@@ -49,7 +49,7 @@ func createSimplePact(valid bool) *os.File {
   `)
 	}
 
-	tmpfile, err := ioutil.TempFile("/tmp", "pactgo")
+	tmpfile, err := ioutil.TempFile("", "pactgo")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -175,8 +175,8 @@ func TestPublish_validate(t *testing.T) {
 	}
 
 	err = p.validate()
-	if !strings.Contains(err.Error(), "no such file or directory") {
-		t.Fatalf("Expected a different error but got '%s'", err.Error())
+	if err == nil {
+		t.Fatal("Expected error but got none")
 	}
 
 	p = &Publisher{

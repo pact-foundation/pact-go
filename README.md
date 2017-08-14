@@ -7,6 +7,7 @@ DSL for the consumer project, and interaction playback and verification for the 
 [![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=HEAD)](https://coveralls.io/github/pact-foundation/pact-go?branch=HEAD)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
+[![Build status](https://ci.appveyor.com/api/projects/status/lg02mfcmvr3e8w5n?svg=true)](https://ci.appveyor.com/project/mefellows/pact-go)
 
 ## Introduction
 
@@ -164,19 +165,15 @@ be a valid JSON value: e.g. strings, numbers and objects.
 Here is a complex example that shows how all 3 terms can be used together:
 
 ```go
-jumper := Like(`"jumper"`)
-shirt := Like(`"shirt"`)
-tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-size := Like(10)
 colour := Term("red", "red|green|blue")
 
 match := EachLike(
               EachLike(
                          fmt.Sprintf(`{
-                             "size": %s,
+                             "size": 10,
                              "colour": %s,
-                             "tag": %s
-                         }`, size, colour, tag), 
+                             "tag": [["jumper", "shirt]]
+                         }`, colour)
               1),
          1))
 ```

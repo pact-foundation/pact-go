@@ -41,3 +41,6 @@ _*
 pact-go
 pacts
 logs
+
+# IDE
+.vscode

@@ -73,22 +73,17 @@ cases.
 
 Here is a complex example that shows how all 3 terms can be used together:
 
-	jumper := Like(`"jumper"`)
-	shirt := Like(`"shirt"`)
-	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-	size := Like(10)
-	colour := Term("red", "red|green|blue")
+colour := Term("red", "red|green|blue")
 
-	match := EachLike(
-				EachLike(
-					fmt.Sprintf(
-						`{
-							"size": %s,
-							"colour": %s,
-							"tag": %s
-						}`, size, colour, tag),
-					1),
-				1))
+match := EachLike(
+              EachLike(
+                         fmt.Sprintf(`{
+                             "size": 10,
+                             "colour": %s,
+                             "tag": [["jumper", "shirt]]
+                         }`, colour)
+              1),
+         1))
 
 
 This example will result in a response body from the mock server that looks like:

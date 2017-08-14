@@ -34,5 +34,5 @@ func (m *VerificationService) NewService(args []string) (int, Service) {
 
 func getVerifierCommandPath() string {
 	dir, _ := osext.ExecutableFolder()
-	return fmt.Sprintf(filepath.Join(dir, "pact-provider-verifier", "bin", "pact-provider-verifier"))
+	return fmt.Sprintf(filepath.Join(dir, "pact", "bin", "pact-provider-verifier"))
 }

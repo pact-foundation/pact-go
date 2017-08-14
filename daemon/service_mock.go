@@ -46,7 +46,6 @@ func (s *ServiceMock) Run(w io.Writer) (*exec.Cmd, error) {
 	cmd := s.ExecFunc()
 	cmd.Stdout = w
 	cmd.Stderr = w
-	// io.WriteString(w, "COMMAND: Mock Output")
 	err := cmd.Run()
 
 	return cmd, err
