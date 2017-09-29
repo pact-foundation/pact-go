@@ -90,20 +90,22 @@ var waitForPort = func(port int, network string, address string, message string)
 }
 
 // StartServer starts a remote Pact Mock Server.
-func (p *PactClient) StartServer(args []string) *types.MockServer {
+func (p *PactClient) StartServer(args []string, port int) *types.MockServer {
 	log.Println("[DEBUG] client: starting a server")
 	var res types.MockServer
 	client, err := getHTTPClient(p.Port, p.getNetworkInterface(), p.Address)
 	if err == nil {
+		args = append(args, []string{"--port", strconv.Itoa(port)}...)
 		err = client.Call(commandStartServer, types.MockServer{Args: args}, &res)
+		res.Port = port
 		if err != nil {
 			log.Println("[ERROR] rpc:", err.Error())
 		}
 	}
 
 	if err == nil {
-		waitForPort(res.Port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Mock Server to
-			start on port %d - are you sure it's running?`, res.Port))
+		waitForPort(port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Mock Server to
+			start on port %d - are you sure it's running?`, port))
 	}
 
 	return &res

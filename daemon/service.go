@@ -13,5 +13,5 @@ type Service interface {
 	List() map[int]*exec.Cmd
 	Start() *exec.Cmd
 	Run(io.Writer) (*exec.Cmd, error)
-	NewService(args []string) (int, Service)
+	NewService(args []string) Service
 }
