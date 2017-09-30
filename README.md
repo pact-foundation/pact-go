@@ -449,7 +449,7 @@ See [TROUBLESHOOTING](https://github.com/pact-foundation/pact-go/wiki/Troublesho
 
 ## Roadmap
 
-The [roadmap](docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
+The [roadmap](https://docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
 Detail on the native Go implementation can be found [here](https://github.com/pact-foundation/pact-go/wiki/Native-implementation-roadmap).
 
 
