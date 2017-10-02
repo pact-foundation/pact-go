@@ -12,11 +12,19 @@ import (
 // MockService is a wrapper for the Pact Mock Service.
 type MockService struct {
 	ServiceManager
+
+	// Extra field for only MockService
+	Port int
 }
 
 // NewService creates a new MockService with default settings.
 func (m *MockService) NewService(args []string) (int, Service) {
-	port, _ := utils.GetFreePort()
+	var port int
+	if m.Port != 0 {
+		port = m.Port
+	} else {
+		port, _ = utils.GetFreePort()
+	}
 	log.Println("[DEBUG] starting mock service on port:", port)
 
 	m.Args = []string{
