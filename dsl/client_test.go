@@ -130,7 +130,7 @@ func TestClient_List(t *testing.T) {
 func TestClient_ListFail(t *testing.T) {
 	timeoutDuration = 50 * time.Millisecond
 	client := &PactClient{ /* don't supply port */ }
-	client.StartServer([]string{})
+	client.StartServer([]string{}, 0)
 	list := client.ListServers()
 
 	if len(list.Servers) != 0 {
@@ -146,7 +146,8 @@ func TestClient_StartServer(t *testing.T) {
 	defer waitForDaemonToShutdown(port, t)
 	client := &PactClient{Port: port}
 
-	client.StartServer([]string{})
+	mport, _ := utils.GetFreePort()
+	client.StartServer([]string{}, mport)
 	if svc.ServiceStartCount != 1 {
 		t.Fatalf("Expected 1 server to have been started, got %d", svc.ServiceStartCount)
 	}
@@ -189,7 +190,7 @@ func TestClient_RPCErrors(t *testing.T) {
 			return client.StopServer(&types.MockServer{})
 		},
 		&types.MockServer{}: func() interface{} {
-			return client.StartServer([]string{})
+			return client.StartServer([]string{}, 0)
 		},
 		&types.PactListResponse{}: func() interface{} {
 			return client.ListServers()
@@ -297,7 +298,7 @@ func TestClient_StartServerFail(t *testing.T) {
 	timeoutDuration = 50 * time.Millisecond
 
 	client := &PactClient{ /* don't supply port */ }
-	server := client.StartServer([]string{})
+	server := client.StartServer([]string{}, 0)
 	if server.Port != 0 {
 		t.Fatalf("Expected server to be empty %v", server)
 	}

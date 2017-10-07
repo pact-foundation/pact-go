@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/types"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 // Pact is the container structure to run the Consumer Pact test cases.
@@ -69,6 +70,10 @@ type Pact struct {
 	// Examples include 'tcp', 'tcp4', 'tcp6'
 	// Defaults to 'tcp'
 	Network string
+
+	// Ports MockServer can be deployed to, can be CSV or Range with a dash
+	// Example "1234", "12324,5667", "1234-5667"
+	AllowedMockServerPorts string
 }
 
 // AddInteraction creates a new Pact interaction, initialising all
@@ -114,6 +119,19 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 		p.pactClient = client
 	}
 
+	// Need to predefine due to scoping
+	var port int
+	var perr error
+	if p.AllowedMockServerPorts != "" {
+		port, perr = utils.FindPortInRange(p.AllowedMockServerPorts)
+	} else {
+		port, perr = utils.GetFreePort()
+	}
+	if perr != nil {
+		log.Println("[ERROR] unable to find free port, mockserver will fail to start")
+	}
+	log.Println("[DEBUG] starting mock service on port:", port)
+
 	if p.Server == nil && startMockServer {
 		args := []string{
 			"--pact-specification-version",
@@ -128,7 +146,7 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 			p.Provider,
 		}
 
-		p.Server = p.pactClient.StartServer(args)
+		p.Server = p.pactClient.StartServer(args, port)
 	}
 
 	return p

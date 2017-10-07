@@ -66,6 +66,6 @@ func (s *ServiceMock) Start() *exec.Cmd {
 }
 
 // NewService creates a new MockService with default settings.
-func (s *ServiceMock) NewService(args []string) (int, Service) {
-	return s.ServicePort, s
+func (s *ServiceMock) NewService(args []string) Service {
+	return s
 }

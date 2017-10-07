@@ -99,8 +99,7 @@ func (d Daemon) Shutdown() {
 func (d Daemon) StartServer(request types.MockServer, reply *types.MockServer) error {
 	log.Println("[DEBUG] daemon - starting mock server with args:", request.Args)
 	server := &types.MockServer{}
-	port, svc := d.pactMockSvcManager.NewService(request.Args)
-	server.Port = port
+	svc := d.pactMockSvcManager.NewService(request.Args)
 	server.Status = -1
 	cmd := svc.Start()
 	server.Pid = cmd.Process.Pid
@@ -124,7 +123,7 @@ func (d Daemon) VerifyProvider(request types.VerifyRequest, reply *types.Command
 	}
 
 	var out bytes.Buffer
-	_, svc := d.verificationSvcManager.NewService(request.Args)
+	svc := d.verificationSvcManager.NewService(request.Args)
 	cmd, err := svc.Run(&out)
 
 	if err == nil && cmd.ProcessState != nil && cmd.ProcessState.Success() {

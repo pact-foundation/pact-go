@@ -24,12 +24,12 @@ type VerificationService struct {
 // 		--broker-password
 //    --publish_verification_results
 //    --provider_app_version
-func (m *VerificationService) NewService(args []string) (int, Service) {
+func (m *VerificationService) NewService(args []string) Service {
 	log.Printf("[DEBUG] starting verification service with args: %v\n", args)
 
 	m.Args = args
 	m.Command = getVerifierCommandPath()
-	return -1, m
+	return m
 }
 
 func getVerifierCommandPath() string {

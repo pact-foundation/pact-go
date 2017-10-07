@@ -2,11 +2,9 @@ package daemon
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 
 	"github.com/kardianos/osext"
-	"github.com/pact-foundation/pact-go/utils"
 )
 
 // MockService is a wrapper for the Pact Mock Service.
@@ -15,19 +13,14 @@ type MockService struct {
 }
 
 // NewService creates a new MockService with default settings.
-func (m *MockService) NewService(args []string) (int, Service) {
-	port, _ := utils.GetFreePort()
-	log.Println("[DEBUG] starting mock service on port:", port)
-
+func (m *MockService) NewService(args []string) Service {
 	m.Args = []string{
 		"service",
-		"--port",
-		fmt.Sprintf("%d", port),
 	}
 	m.Args = append(m.Args, args...)
 
 	m.Command = getMockServiceCommandPath()
-	return port, m
+	return m
 }
 
 func getMockServiceCommandPath() string {

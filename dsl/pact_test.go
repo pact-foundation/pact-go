@@ -168,6 +168,7 @@ func TestPact_VerifyFail(t *testing.T) {
 }
 
 func TestPact_Setup(t *testing.T) {
+	t.Log("testing pact setup")
 	port, _ := utils.GetFreePort()
 	createDaemon(port, true)
 
@@ -176,14 +177,69 @@ func TestPact_Setup(t *testing.T) {
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
 	}
-
-	pact = &Pact{Port: port, LogLevel: "DEBUG"}
-	pact.Setup(false)
-	if pact.Server != nil {
+	pact2 := &Pact{Port: port, LogLevel: "DEBUG"}
+	pact2.Setup(false)
+	if pact2.Server != nil {
 		t.Fatalf("Expected server to be nil")
 	}
-	if pact.pactClient == nil {
+	if pact2.pactClient == nil {
 		t.Fatalf("Needed to still have a client")
+	}
+}
+
+func TestPact_SetupWithMockServerPort(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "32768"}
+	pact.Setup(true)
+	if pact.Server == nil {
+		t.Fatalf("Expected server to be created")
+	}
+	if pact.Server.Port != 32768 {
+		t.Fatalf("Expected mock daemon to be started on specific port")
+	}
+}
+
+func TestPact_SetupWithMockServerPortCSV(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "32768,32769"}
+	pact.Setup(true)
+	if pact.Server == nil {
+		t.Fatalf("Expected server to be created")
+	}
+	if pact.Server.Port != 32768 {
+		t.Fatalf("Expected mock daemon to be started on specific port")
+	}
+}
+
+func TestPact_SetupWithMockServerPortRange(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "32768-32770"}
+	pact.Setup(true)
+	if pact.Server == nil {
+		t.Fatalf("Expected server to be created")
+	}
+	if pact.Server.Port != 32768 {
+		t.Fatalf("Expected mock daemon to be started on specific port")
+	}
+}
+
+func TestPact_Invalidrange(t *testing.T) {
+	port, _ := utils.GetFreePort()
+	createDaemon(port, true)
+
+	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "abc-32770"}
+	pact.Setup(true)
+	if pact.Server == nil {
+		t.Fatalf("Expected server to be created")
+	}
+	if pact.Server.Port != 0 {
+		t.Fatalf("Expected mock daemon to be started on specific port")
 	}
 }
 
