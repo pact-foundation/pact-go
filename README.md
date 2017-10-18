@@ -320,7 +320,7 @@ in development.
 See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
 for more on this strategy.
 e
-```
+
 
 See the examples or read more at http://docs.pact.io/documentation/provider_states.html.
 
