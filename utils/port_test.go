@@ -121,7 +121,7 @@ func Test_FindPortInRangeWithUsedPorts(t *testing.T) {
 
 			l, err := net.ListenTCP("tcp", addr)
 			if err != nil {
-				t.Fatalf("Could not bind to port in test", s)
+				t.Fatalf("Could not bind to port %s in test", s)
 			}
 			defer l.Close()
 			p, err := FindPortInRange(c.s)
