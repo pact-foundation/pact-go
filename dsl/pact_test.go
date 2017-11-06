@@ -1,7 +1,6 @@
 package dsl
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -283,7 +282,8 @@ func TestPact_VerifyProvider(t *testing.T) {
 }
 
 func TestPact_VerifyProviderBroker(t *testing.T) {
-	brokerPort := setupMockBroker(false)
+	s := setupMockBroker(false)
+	defer s.Close()
 	old := waitForPort
 	defer func() { waitForPort = old }()
 	waitForPort = func(int, string, string, string) error {
@@ -296,7 +296,7 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "bobby"}
 	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:            "http://www.foo.com",
-		BrokerURL:                  fmt.Sprintf("http://localhost:%d", brokerPort),
+		BrokerURL:                  s.URL,
 		PublishVerificationResults: true,
 		ProviderVersion:            "1.0.0",
 	})
@@ -307,7 +307,8 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 }
 
 func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
-	brokerPort := setupMockBroker(false)
+	s := setupMockBroker(false)
+	defer s.Close()
 	old := waitForPort
 	defer func() { waitForPort = old }()
 	waitForPort = func(int, string, string, string) error {
@@ -320,7 +321,7 @@ func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "providernotexist"}
 	err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
-		BrokerURL:       fmt.Sprintf("http://localhost:%d", brokerPort),
+		BrokerURL:       s.URL,
 	})
 
 	if err == nil {
