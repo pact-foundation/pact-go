@@ -16,14 +16,13 @@ import (
 	"github.com/pact-foundation/pact-go/utils"
 )
 
-func createMockRemoteServer(valid bool) string {
+func createMockRemoteServer(valid bool) (*httptest.Server, string) {
 	file := createSimplePact(valid)
 	dir := filepath.Dir(file.Name())
 	path := filepath.Base(file.Name())
-	port, _ := utils.GetFreePort()
-	go http.ListenAndServe(fmt.Sprintf(":%d", port), http.FileServer(http.Dir(dir)))
+	server := httptest.NewServer(http.FileServer(http.Dir(dir)))
 
-	return fmt.Sprintf("http://localhost:%d/%s", port, path)
+	return server, fmt.Sprintf("%s/%s", server.URL, path)
 }
 
 func createSimplePact(valid bool) *os.File {
@@ -250,7 +249,8 @@ func TestPublish_readLocalPactFileFail(t *testing.T) {
 
 func TestPublish_readRemotePactFile(t *testing.T) {
 	p := &Publisher{request: types.PublishRequest{}}
-	url := createMockRemoteServer(true)
+	s, url := createMockRemoteServer(true)
+	defer s.Close()
 
 	f, _, err := p.readRemotePactFile(url)
 
@@ -269,7 +269,8 @@ func TestPublish_readRemotePactFile(t *testing.T) {
 
 func TestPublish_readRemotePactFileFail(t *testing.T) {
 	p := &Publisher{request: types.PublishRequest{}}
-	url := createMockRemoteServer(false)
+	s, url := createMockRemoteServer(false)
+	defer s.Close()
 
 	_, _, err := p.readRemotePactFile(url)
 
@@ -285,7 +286,8 @@ func TestPublish_readRemotePactFileFail(t *testing.T) {
 
 func TestPublish_readPactFile(t *testing.T) {
 	p := &Publisher{request: types.PublishRequest{}}
-	url := createMockRemoteServer(true)
+	s, url := createMockRemoteServer(true)
+	defer s.Close()
 
 	f, _, err := p.readPactFile(url)
 
@@ -319,7 +321,8 @@ func TestPublish_readPactFile(t *testing.T) {
 
 func TestPublish_readPactFileFail(t *testing.T) {
 	p := &Publisher{request: types.PublishRequest{}}
-	url := createMockRemoteServer(false)
+	s, url := createMockRemoteServer(false)
+	defer s.Close()
 
 	_, _, err := p.readPactFile(url)
 
