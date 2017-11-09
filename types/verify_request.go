@@ -51,18 +51,20 @@ type VerifyRequest struct {
 // and should not be used outside of this library.
 func (v *VerifyRequest) Validate() error {
 	v.Args = []string{}
+
+	if len(v.PactURLs) != 0 {
+		v.Args = append(v.Args, strings.Join(v.PactURLs, " "))
+	} else {
+		return fmt.Errorf("PactURLs is mandatory.")
+	}
+
+	v.Args = append(v.Args, "--format", "json")
+
 	if v.ProviderBaseURL != "" {
 		v.Args = append(v.Args, "--provider-base-url")
 		v.Args = append(v.Args, v.ProviderBaseURL)
 	} else {
 		return fmt.Errorf("ProviderBaseURL is mandatory.")
-	}
-
-	if len(v.PactURLs) != 0 {
-		v.Args = append(v.Args, "--pact-urls")
-		v.Args = append(v.Args, strings.Join(v.PactURLs[:], ","))
-	} else {
-		return fmt.Errorf("PactURLs is mandatory.")
 	}
 
 	if v.ProviderStatesSetupURL != "" {

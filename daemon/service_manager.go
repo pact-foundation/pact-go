@@ -6,12 +6,13 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
 // ServiceManager is the default implementation of the Service interface.
 type ServiceManager struct {
-	Command             string
+	Cmd                 string
 	processes           map[int]*exec.Cmd
 	Args                []string
 	Env                 []string
@@ -102,7 +103,8 @@ func (s *ServiceManager) List() map[int]*exec.Cmd {
 // Run runs a service synchronously and log its output to the given Pipe.
 func (s *ServiceManager) Run(w io.Writer) (*exec.Cmd, error) {
 	log.Println("[DEBUG] starting service")
-	cmd := exec.Command(s.Command, s.Args...)
+	log.Printf("[DEBUG] %s %s\n", s.Cmd, strings.Join(s.Args, " "))
+	cmd := exec.Command(s.Cmd, s.Args...)
 	cmd.Env = s.Env
 	cmd.Stdout = w
 	cmd.Stderr = w
@@ -111,10 +113,16 @@ func (s *ServiceManager) Run(w io.Writer) (*exec.Cmd, error) {
 	return cmd, err
 }
 
+func (s *ServiceManager) Command() *exec.Cmd {
+	cmd := exec.Command(s.Cmd, s.Args...)
+	cmd.Env = s.Env
+	return cmd
+}
+
 // Start a Service and log its output.
 func (s *ServiceManager) Start() *exec.Cmd {
 	log.Println("[DEBUG] starting service")
-	cmd := exec.Command(s.Command, s.Args...)
+	cmd := exec.Command(s.Cmd, s.Args...)
 	cmd.Env = s.Env
 
 	cmdReader, err := cmd.StdoutPipe()

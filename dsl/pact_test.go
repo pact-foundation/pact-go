@@ -271,7 +271,7 @@ func TestPact_VerifyProvider(t *testing.T) {
 	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
-	err := pact.VerifyProvider(types.VerifyRequest{
+	_, err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	})
@@ -294,7 +294,7 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "bobby"}
-	err := pact.VerifyProvider(types.VerifyRequest{
+	_, err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:            "http://www.foo.com",
 		BrokerURL:                  s.URL,
 		PublishVerificationResults: true,
@@ -319,7 +319,7 @@ func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "providernotexist"}
-	err := pact.VerifyProvider(types.VerifyRequest{
+	_, err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		BrokerURL:       s.URL,
 	})
@@ -340,7 +340,7 @@ func TestPact_VerifyProviderFail(t *testing.T) {
 	waitForPortInTest(port, t)
 
 	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
-	err := pact.VerifyProvider(types.VerifyRequest{
+	_, err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	})

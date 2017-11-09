@@ -23,7 +23,7 @@ osarchs=(osx win32 linux-x86 linux-x86_64)
 
 echo "--> Packaging distributions"
 mkdir -p ../dist
-for os in "${osarchs[@]}" 
+for os in "${osarchs[@]}"
 do
   echo "Building ${os}"
   osarch=""
@@ -50,5 +50,3 @@ do
     cp pact-$PACT_STANDALONE_VERSION-$os.tar.gz ../dist/pact-go_$osarch.tar.gz
   fi
 done
-
- 

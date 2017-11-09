@@ -19,7 +19,7 @@ func (m *MockService) NewService(args []string) Service {
 	}
 	m.Args = append(m.Args, args...)
 
-	m.Command = getMockServiceCommandPath()
+	m.Cmd = getMockServiceCommandPath()
 	return m
 }
 

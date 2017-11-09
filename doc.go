@@ -130,7 +130,7 @@ A typical Provider side test would like something like:
 		}
 		go startMyAPI("http://localhost:8000")
 
-		err := pact.VerifyProvider(types.VerifyRequest{
+		response, err := pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        "http://localhost:8000",
 			PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 			ProviderStatesSetupURL: "http://localhost:8000/setup",
@@ -138,6 +138,12 @@ A typical Provider side test would like something like:
 
 		if err != nil {
 			t.Fatal("Error:", err)
+		}
+
+		for _, example := range response.Examples {
+			if example.Status != "passed" {
+				t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+			}
 		}
 	}
 
@@ -155,7 +161,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 
 1. Use "PactURLs" to specify the exact set of pacts to be replayed:
 
-	response = pact.VerifyProvider(types.VerifyRequest{
+	response, err = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
@@ -165,7 +171,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 
 2. Use "PactBroker" to automatically find all of the latest consumers:
 
-	response = pact.VerifyProvider(types.VerifyRequest{
+	response, err = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              brokerHost,
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
@@ -175,7 +181,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 
 3. Use "PactBroker" and "Tags" to automatically find all of the latest consumers:
 
-	response = pact.VerifyProvider(types.VerifyRequest{
+	response, err = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              brokerHost,
 		Tags:                   []string{"latest", "sit4"},

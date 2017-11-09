@@ -236,7 +236,7 @@ func (p *Pact) WritePact() error {
 
 // VerifyProvider reads the provided pact files and runs verification against
 // a running Provider API.
-func (p *Pact) VerifyProvider(request types.VerifyRequest) error {
+func (p *Pact) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	p.Setup(false)
 
 	// If we provide a Broker, we go to it to find consumers
@@ -244,16 +244,11 @@ func (p *Pact) VerifyProvider(request types.VerifyRequest) error {
 		log.Printf("[DEBUG] pact provider verification - finding all consumers from broker: %s", request.BrokerURL)
 		err := findConsumers(p.Provider, &request)
 		if err != nil {
-			return err
+			return types.ProviderVerifierResponse{}, err
 		}
 	}
 
 	log.Printf("[DEBUG] pact provider verification")
 
-	content, err := p.pactClient.VerifyProvider(request)
-
-	// Output test result to screen
-	log.Println(content)
-
-	return err
+	return p.pactClient.VerifyProvider(request)
 }
