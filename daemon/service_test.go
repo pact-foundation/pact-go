@@ -15,9 +15,9 @@ func createServiceManager() *ServiceManager {
 	cs := []string{"-test.run=TestHelperProcess", "--", os.Args[0]}
 	env := []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=true")}
 	mgr := &ServiceManager{
-		Command: os.Args[0],
-		Args:    cs,
-		Env:     env,
+		Cmd:  os.Args[0],
+		Args: cs,
+		Env:  env,
 	}
 	mgr.Setup()
 	return mgr

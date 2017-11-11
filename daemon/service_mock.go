@@ -8,7 +8,7 @@ import (
 
 // ServiceMock is the mock implementation of the Service interface.
 type ServiceMock struct {
-	Command             string
+	Cmd                 string
 	processes           map[int]*exec.Cmd
 	Args                []string
 	ServiceStopResult   bool
@@ -63,6 +63,10 @@ func (s *ServiceMock) Start() *exec.Cmd {
 	s.processes[cmd.Process.Pid] = cmd
 
 	return cmd
+}
+
+func (s *ServiceMock) Command() *exec.Cmd {
+	return s.ExecFunc()
 }
 
 // NewService creates a new MockService with default settings.

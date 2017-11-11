@@ -112,7 +112,7 @@ func (p *PactClient) StartServer(args []string, port int) *types.MockServer {
 }
 
 // VerifyProvider runs the verification process against a running Provider.
-func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error) {
+func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	log.Println("[DEBUG] client: verifying a provider")
 
 	port := getPort(request.ProviderBaseURL)
@@ -120,7 +120,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error)
 	waitForPort(port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Provider API to start
 		 on port %d - are you sure it's running?`, port))
 
-	var res types.CommandResponse
+	var res types.ProviderVerifierResponse
 	client, err := getHTTPClient(p.Port, p.getNetworkInterface(), p.Address)
 	if err == nil {
 		err = client.Call(commandVerifyProvider, request, &res)
@@ -129,11 +129,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (string, error)
 		}
 	}
 
-	if res.ExitCode > 0 {
-		return "", fmt.Errorf("provider verification failed: %s", sanitiseRubyResponse(res.Message))
-	}
-
-	return res.Message, err
+	return res, err
 }
 
 // sanitiseRubyResponse removes Ruby-isms from the response content

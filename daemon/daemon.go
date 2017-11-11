@@ -15,7 +15,9 @@ package daemon
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -108,34 +110,61 @@ func (d Daemon) StartServer(request types.MockServer, reply *types.MockServer) e
 }
 
 // VerifyProvider runs the Pact Provider Verification Process.
-func (d Daemon) VerifyProvider(request types.VerifyRequest, reply *types.CommandResponse) error {
+func (d Daemon) VerifyProvider(request types.VerifyRequest, reply *types.ProviderVerifierResponse) error {
 	log.Println("[DEBUG] daemon - verifying provider")
-	exitCode := 1
 
 	// Convert request into flags, and validate request
 	err := request.Validate()
 	if err != nil {
-		*reply = types.CommandResponse{
-			ExitCode: exitCode,
-			Message:  err.Error(),
-		}
+		return err
+	}
+
+	// Run command, splitting out stderr and stdout. The command can fail for
+	// several reasons:
+	// 1. Command is unable to run at all.
+	// 2. Command runs, but fails for unknown reason.
+	// 3. Command runs, and returns exit status 1 because the tests fail.
+	//
+	// First, attempt to decode the response of the stdout.
+	// If that is successful, we are at case 3. Return stdout as message, no error.
+	// Else, return an error, include stderr and stdout in both the error and message.
+	svc := d.verificationSvcManager.NewService(request.Args)
+	cmd := svc.Command()
+
+	stdOutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stdErrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+	stdOut, err := ioutil.ReadAll(stdOutPipe)
+	if err != nil {
+		return err
+	}
+	stdErr, err := ioutil.ReadAll(stdErrPipe)
+	if err != nil {
+		return err
+	}
+
+	err = cmd.Wait()
+
+	decoder := json.NewDecoder(bytes.NewReader(stdOut))
+	dErr := decoder.Decode(&reply)
+	if dErr == nil {
 		return nil
 	}
 
-	var out bytes.Buffer
-	svc := d.verificationSvcManager.NewService(request.Args)
-	cmd, err := svc.Run(&out)
-
-	if err == nil && cmd.ProcessState != nil && cmd.ProcessState.Success() {
-		exitCode = 0
+	if err == nil {
+		err = dErr
 	}
 
-	*reply = types.CommandResponse{
-		ExitCode: exitCode,
-		Message:  string(out.Bytes()),
-	}
-
-	return nil
+	return fmt.Errorf("error verifying provider: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
 }
 
 // ListServers returns a slice of all running types.MockServers.

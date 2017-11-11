@@ -28,7 +28,7 @@ func (m *VerificationService) NewService(args []string) Service {
 	log.Printf("[DEBUG] starting verification service with args: %v\n", args)
 
 	m.Args = args
-	m.Command = getVerifierCommandPath()
+	m.Cmd = getVerifierCommandPath()
 	return m
 }
 

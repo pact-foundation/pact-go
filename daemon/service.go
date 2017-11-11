@@ -11,6 +11,7 @@ type Service interface {
 	Setup()
 	Stop(pid int) (bool, error)
 	List() map[int]*exec.Cmd
+	Command() *exec.Cmd
 	Start() *exec.Cmd
 	Run(io.Writer) (*exec.Cmd, error)
 	NewService(args []string) Service

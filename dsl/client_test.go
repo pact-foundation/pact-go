@@ -83,7 +83,7 @@ func createDaemon(port int, success bool) (*daemon.Daemon, *daemon.ServiceMock) 
 		execFunc = fakeExecFailCommand
 	}
 	svc := &daemon.ServiceMock{
-		Command:           "test",
+		Cmd:               "test",
 		Args:              []string{},
 		ServiceStopResult: true,
 		ServiceStopError:  nil,
@@ -262,7 +262,7 @@ func TestClient_VerifyProviderFailValidation(t *testing.T) {
 		t.Fatal("Expected a error but got none")
 	}
 
-	if !strings.Contains(err.Error(), "ProviderBaseURL is mandatory") {
+	if !strings.Contains(err.Error(), "PactURLs is mandatory") {
 		t.Fatalf("Expected a proper error message but got '%s'", err.Error())
 	}
 }
@@ -365,8 +365,6 @@ func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=%t", success)}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	return cmd
 }
 
@@ -384,7 +382,7 @@ func TestHelperProcess(t *testing.T) {
 	}
 
 	// Success :)
-	fmt.Fprintf(os.Stdout, "COMMAND: oh yays!\n")
+	fmt.Fprintf(os.Stdout, `{"summary_line":"1 examples, 0 failures"}`)
 	os.Exit(0)
 }
 

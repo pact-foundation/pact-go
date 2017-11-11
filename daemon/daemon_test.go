@@ -27,7 +27,7 @@ func createMockedDaemon(success bool) (*Daemon, *ServiceMock) {
 		execFunc = fakeExecFailCommand
 	}
 	svc := &ServiceMock{
-		Command:           "test",
+		Cmd:               "test",
 		Args:              []string{},
 		ServiceStopResult: true,
 		ServiceStopError:  nil,
@@ -245,19 +245,18 @@ func TestStopServer_FailedStatus(t *testing.T) {
 func TestVerifyProvider_MissingProviderBaseURL(t *testing.T) {
 	daemon, _ := createMockedDaemon(true)
 
-	req := types.VerifyRequest{}
-	res := types.CommandResponse{}
+	req := types.VerifyRequest{
+		PactURLs: []string{"url1", "url2"},
+	}
+	res := types.ProviderVerifierResponse{}
 	err := daemon.VerifyProvider(req, &res)
 
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-	if res.ExitCode != 1 {
-		t.Fatalf("Expected non-zero exit code (1) but got: %d", res.ExitCode)
+	if err == nil {
+		t.Fatal("Expected an error")
 	}
 
-	if !strings.Contains(res.Message, "ProviderBaseURL is mandatory") {
-		t.Fatalf("Expected error message but got '%s'", res.Message)
+	if !strings.Contains(err.Error(), "ProviderBaseURL is mandatory") {
+		t.Fatalf("Expected error message but got '%s'", err.Error())
 	}
 }
 
@@ -267,18 +266,15 @@ func TestVerifyProvider_MissingPactURLs(t *testing.T) {
 	req := types.VerifyRequest{
 		ProviderBaseURL: "http://foo.com",
 	}
-	res := types.CommandResponse{}
+	res := types.ProviderVerifierResponse{}
 	err := daemon.VerifyProvider(req, &res)
 
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-	if res.ExitCode != 1 {
-		t.Fatalf("Expected non-zero exit code (1) but got: %d", res.ExitCode)
+	if err == nil {
+		t.Fatal("Expected an error")
 	}
 
-	if !strings.Contains(res.Message, "PactURLs is mandatory") {
-		t.Fatalf("Expected error message but got '%s'", res.Message)
+	if !strings.Contains(err.Error(), "PactURLs is mandatory") {
+		t.Fatalf("Expected error message but got '%s'", err.Error())
 	}
 }
 
@@ -289,10 +285,10 @@ func TestVerifyProvider_Valid(t *testing.T) {
 		ProviderBaseURL: "http://foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
-	res := types.CommandResponse{}
+	res := types.ProviderVerifierResponse{}
 	err := daemon.VerifyProvider(req, &res)
 	if err != nil {
-		t.Fatalf("Error: %v", err)
+		t.Fatalf("Error: %s", err)
 	}
 }
 
@@ -303,17 +299,14 @@ func TestVerifyProvider_FailedCommand(t *testing.T) {
 		ProviderBaseURL: "http://foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
-	res := types.CommandResponse{}
+	res := types.ProviderVerifierResponse{}
 	err := daemon.VerifyProvider(req, &res)
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-	if res.ExitCode != 1 {
-		t.Fatalf("Expected non-zero exit code (1) but got: %d", res.ExitCode)
+	if err == nil {
+		t.Fatal("Expected an error")
 	}
 
-	if !strings.Contains(res.Message, "COMMAND: oh noes!") {
-		t.Fatalf("Expected error message but got '%s'", res.Message)
+	if !strings.Contains(err.Error(), "COMMAND: oh noes!") {
+		t.Fatalf("Expected error message but got '%s'", err.Error())
 	}
 }
 
@@ -328,7 +321,7 @@ func TestVerifyProvider_ValidProviderStates(t *testing.T) {
 		ProviderStatesURL:      "http://foo/states",
 		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
-	res := types.CommandResponse{}
+	res := types.ProviderVerifierResponse{}
 	err := daemon.VerifyProvider(req, &res)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
@@ -437,19 +430,15 @@ func TestRPCClient_Verify(t *testing.T) {
 		ProviderBaseURL: "http://foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 	}
-	res := types.CommandResponse{}
+	res := types.ProviderVerifierResponse{}
 
 	err = client.Call("Daemon.VerifyProvider", req, &res)
 	if err != nil {
 		log.Fatal("rpc error:", err)
 	}
 
-	if res.ExitCode != 0 {
-		t.Fatalf("Expected exit code of zero but got: %d", res.ExitCode)
-	}
-
-	if res.Message != "COMMAND: oh yays!" {
-		t.Fatalf("Expected empty message but got: '%s'", res.Message)
+	if got, want := res.SummaryLine, "1 examples, 0 failures"; got != want {
+		t.Fatalf("Expected a success message but got: '%s'", got)
 	}
 }
 
@@ -484,6 +473,6 @@ func TestHelperProcess(t *testing.T) {
 	}
 
 	// Success :)
-	fmt.Fprintf(os.Stdout, "COMMAND: oh yays!")
+	fmt.Fprintf(os.Stdout, `{"summary_line":"1 examples, 0 failures"}`)
 	os.Exit(0)
 }

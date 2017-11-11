@@ -20,23 +20,23 @@ func TestPact_Provider(t *testing.T) {
 	pact := createPact()
 
 	// Verify the Provider with local Pact Files
-	err := pact.VerifyProvider(types.VerifyRequest{
+	res, err := pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
-		Verbose:                true,
 	})
 
 	if err != nil {
 		t.Fatal("Error:", err)
 	}
+	assertExamples(t, res)
 
 	// Pull from pact broker, used in e2e/integrated tests for pact-go release
 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
 		var brokerHost = os.Getenv("PACT_BROKER_HOST")
 
 		// Verify the Provider - Specific Published Pacts
-		err = pact.VerifyProvider(types.VerifyRequest{
+		res, err = pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
 			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
 			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
@@ -44,15 +44,15 @@ func TestPact_Provider(t *testing.T) {
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
 			ProviderVersion:            "1.0.0",
-			Verbose:                    true,
 		})
 
 		if err != nil {
 			t.Fatal("Error:", err)
 		}
+		assertExamples(t, res)
 
 		// Verify the Provider - Latest Published Pacts for any known consumers
-		err = pact.VerifyProvider(types.VerifyRequest{
+		res, err = pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
 			BrokerURL:                  brokerHost,
 			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
@@ -60,15 +60,15 @@ func TestPact_Provider(t *testing.T) {
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
 			ProviderVersion:            "1.0.0",
-			Verbose:                    true,
 		})
 
 		if err != nil {
 			t.Fatal("Error:", err)
 		}
+		assertExamples(t, res)
 
 		// Verify the Provider - Tag-based Published Pacts for any known consumers
-		err = pact.VerifyProvider(types.VerifyRequest{
+		res, err = pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
 			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
 			BrokerURL:                  brokerHost,
@@ -82,8 +82,18 @@ func TestPact_Provider(t *testing.T) {
 		if err != nil {
 			t.Fatal("Error:", err)
 		}
+		assertExamples(t, res)
+
 	} else {
 		t.Log("Skipping pulling from broker as PACT_INTEGRATED_TESTS is not set")
+	}
+}
+
+func assertExamples(t *testing.T, r types.ProviderVerifierResponse) {
+	for _, example := range r.Examples {
+		if example.Status != "passed" {
+			t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+		}
 	}
 }
 
