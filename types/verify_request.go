@@ -55,7 +55,7 @@ func (v *VerifyRequest) Validate() error {
 	if len(v.PactURLs) != 0 {
 		v.Args = append(v.Args, strings.Join(v.PactURLs, " "))
 	} else {
-		return fmt.Errorf("PactURLs is mandatory.")
+		return fmt.Errorf("Pact URLs is mandatory")
 	}
 
 	v.Args = append(v.Args, "--format", "json")
@@ -64,7 +64,7 @@ func (v *VerifyRequest) Validate() error {
 		v.Args = append(v.Args, "--provider-base-url")
 		v.Args = append(v.Args, v.ProviderBaseURL)
 	} else {
-		return fmt.Errorf("ProviderBaseURL is mandatory.")
+		return fmt.Errorf("Provider base URL is mandatory")
 	}
 
 	if v.ProviderStatesSetupURL != "" {

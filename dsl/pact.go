@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"testing"
 
 	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/types"
@@ -234,9 +235,9 @@ func (p *Pact) WritePact() error {
 	return nil
 }
 
-// VerifyProvider reads the provided pact files and runs verification against
-// a running Provider API.
-func (p *Pact) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
+// VerifyProviderRaw reads the provided pact files and runs verification against
+// a running Provider API, providing raw response from the Verification process.
+func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	p.Setup(false)
 
 	// If we provide a Broker, we go to it to find consumers
@@ -251,4 +252,27 @@ func (p *Pact) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifi
 	log.Printf("[DEBUG] pact provider verification")
 
 	return p.pactClient.VerifyProvider(request)
+}
+
+// VerifyProvider accepts an instance of `*testing.T`
+// running the provider verification with granular test reporting and
+// automatic failure reporting for nice, simple tests.
+func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
+	res, err := p.VerifyProviderRaw(request)
+
+	if err != nil {
+		t.Fatal("Error:", err)
+		return res, err
+	}
+
+	for _, example := range res.Examples {
+		t.Run(example.Description, func(st *testing.T) {
+			st.Log(example.FullDescription)
+			if example.Status != "passed" {
+				st.Errorf("%s\n", example.Exception.Message)
+			}
+		})
+	}
+
+	return res, err
 }

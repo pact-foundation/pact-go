@@ -130,24 +130,18 @@ A typical Provider side test would like something like:
 		}
 		go startMyAPI("http://localhost:8000")
 
-		response, err := pact.VerifyProvider(types.VerifyRequest{
+		pact.VerifyProvider(types.VerifyRequest{
 			ProviderBaseURL:        "http://localhost:8000",
 			PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 			ProviderStatesSetupURL: "http://localhost:8000/setup",
 		})
-
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
-
-		for _, example := range response.Examples {
-			if example.Status != "passed" {
-				t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-			}
-		}
 	}
 
-Note that `PactURLs` can be a list of local pact files or remote based
+The `VerifyProvider` will handle all verifications, treating them as subtests
+and giving you granular test reporting. If you don't like this behaviour, you may
+call `VerifyProviderRaw` directly and handle the errors manually.
+
+Note that `PactURLs` may be a list of local pact files or remote based
 urls (possibly from a Pact Broker
 - http://docs.pact.io/documentation/sharings_pacts.html).
 

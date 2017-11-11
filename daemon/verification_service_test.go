@@ -1,6 +1,9 @@
 package daemon
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestVerificationService_NewService(t *testing.T) {
 	s := &VerificationService{}
@@ -11,6 +14,6 @@ func TestVerificationService_NewService(t *testing.T) {
 	}
 
 	if s.Args[0] != "--foo bar" {
-		t.Fatalf("Expected '--foo bar' argument to be passed")
+		t.Fatalf(fmt.Sprintf(`Expected "--foo bar" argument to be passed, got "%s"`, s.Args[0]))
 	}
 }
