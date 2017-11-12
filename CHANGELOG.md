@@ -1,6 +1,33 @@
+# Changelog
 Do this to generate your change history
 
     git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' vX.Y.Z..HEAD | egrep -v "wip(:|\()" | grep -v "docs(" | grep -v "chore(" | grep -v Merge | grep -v "test("
+
+## Versions
+
+### v0.0.9 (12 November 2017)
+  * [f7ba99f](https://github.com/pact-foundation/pact-go/commit/f7ba99f) - feat(verification): add testing.T to VerifyProvider for better test reporting (Matt Fellows, Sat Nov 11 16:46:00 2017 +1100)
+  * [7e9d0cc](https://github.com/pact-foundation/pact-go/commit/7e9d0cc) - feat(verification): Expose verification output (Ben Marini, Thu Nov 9 12:34:20 2017 -0800)
+  * [4653c81](https://github.com/pact-foundation/pact-go/commit/4653c81) - feat(upgrade): upgrade to latest standalone binary (Matt Fellows, Fri Nov 10 07:28:10 2017 +1100)
+  * [9f66925](https://github.com/pact-foundation/pact-go/commit/9f66925) - fix(test): fix flakey tests due to race conditions (Ben Marini, Mon Nov 6 09:53:44 2017 -0800)
+  * [e1d3fbc](https://github.com/pact-foundation/pact-go/commit/e1d3fbc) - Fixing readme so we can link to specific section. (Zach Bintliff, Wed Oct 18 16:01:21 2017 -0400)
+  * [e71d05b](https://github.com/pact-foundation/pact-go/commit/e71d05b) - fix(vet error) (Zach Bintliff, Wed Oct 18 16:25:14 2017 -0400)
+  * [6c7e7c9](https://github.com/pact-foundation/pact-go/commit/6c7e7c9) - Fixing readme so we can link to specific section. (Zach Bintliff, Wed Oct 18 16:01:21 2017 -0400)
+  * [153b949](https://github.com/pact-foundation/pact-go/commit/153b949) - feat(dsl): have dsl pass port for mock server instead of mock server (Zach Bintliff, Fri Sep 29 16:53:02 2017 -0400)
+  * [72b7e52](https://github.com/pact-foundation/pact-go/commit/72b7e52) - feat(examples): all examples are now E2E regression tests (Matt Fellows, Sat Aug 12 22:22:35 2017 +1000)
+  * [5d81925](https://github.com/pact-foundation/pact-go/commit/5d81925) - fix(tests): all e2e/examples put pacts in same dir (Matt Fellows, Sat Aug 12 21:14:59 2017 +1000)
+  * [a61fcae](https://github.com/pact-foundation/pact-go/commit/a61fcae) - feat(upgrade): update to latest pact standalone v1.4.2 (Matt Fellows, Sat Aug 12 18:55:37 2017 +1000)
+  * [8b8fba2](https://github.com/pact-foundation/pact-go/commit/8b8fba2) - feat(examples): run examples as part of CI (Matt Fellows, Tue Aug 8 19:49:06 2017 +1000)
+  * [18dfef7](https://github.com/pact-foundation/pact-go/commit/18dfef7) - fix(windows): fix download paths for windows build (Matt Fellows, Tue Aug 8 18:44:32 2017 +1000)
+  * [cdafe22](https://github.com/pact-foundation/pact-go/commit/cdafe22) - feat(standalone): use Ruby standalone package (Matt Fellows, Tue Aug 8 18:30:02 2017 +1000)
+  * [0dbba75](https://github.com/pact-foundation/pact-go/commit/0dbba75) - feat(test): upgrade verifier to 1.3.1 (Matt Fellows, Tue Aug 8 15:45:20 2017 +1000)
+  * [49d34ab](https://github.com/pact-foundation/pact-go/commit/49d34ab) - fix(test): wait for provider to be up in e2e test (Matt Fellows, Tue Aug 8 14:06:27 2017 +1000)
+  * [79bcada](https://github.com/pact-foundation/pact-go/commit/79bcada) - feat(windows): add Windows PoSH build script (Matt Fellows, Sun Aug 6 21:55:44 2017 +1000)
+  * [2201fe3](https://github.com/pact-foundation/pact-go/commit/2201fe3) - fix: make createSimplePact portable on windows (Matt Fellows, Sun Aug 6 18:58:13 2017 +1000)
+  * [1836355](https://github.com/pact-foundation/pact-go/commit/1836355) - fix: added extra mock service args (Matt Fellows, Sun Aug 6 18:44:02 2017 +1000)
+  * [29e4bc9](https://github.com/pact-foundation/pact-go/commit/29e4bc9) - fix: don't expect specific FS error (not portable) (Matt Fellows, Sun Aug 6 18:31:35 2017 +1000)
+  * [07f2f99](https://github.com/pact-foundation/pact-go/commit/07f2f99) - fix: don't expect specific FS error (not portable) (Matt Fellows, Sun Aug 6 18:27:48 2017 +1000)
+  * [136de24](https://github.com/pact-foundation/pact-go/commit/136de24) - feat(upgrade): upgrade to verifier v1.2.0 (Matt Fellows, Sun Aug 6 09:33:42 2017 +1000)
 
 ### 0.0.8 (15th July 2017)
 
