@@ -29,7 +29,7 @@ END
   git add CHANGELOG.md
   git commit -m "chore(release): release ${version}"
 
-  echo "==> Done - check your git logs, and then `git push`."
+  echo "==> Done - check your git logs, and then run 'git push'."
 else
   echo "ERROR: Version ${version} does not exist, exiting."
   echo "To fix this, ensure RELEASE_VERSION in the Wercker build is 
