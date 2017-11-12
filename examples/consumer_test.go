@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"testing"
 
 	"github.com/pact-foundation/pact-go/dsl"
 )
@@ -13,15 +14,14 @@ import (
 // Example Pact: How to run me!
 // 1. Start the daemon with `./pact-go daemon`
 // 2. cd <pact-go>/examples
-// 3. go run consumer.go
-func main() {
+// 3. go test -v -run TestConsumer
+func TestConsumer(t *testing.T) {
 
 	// Create Pact connecting to local Daemon
 	pact := &dsl.Pact{
 		Port:     6666, // Ensure this port matches the daemon port!
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
-		LogLevel: "DEBUG",
 		Host:     "localhost",
 	}
 	defer pact.Teardown()
@@ -30,6 +30,10 @@ func main() {
 	var test = func() error {
 		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
 		req, err := http.NewRequest("GET", u, strings.NewReader(`{"s":"foo"}`))
+
+		// NOTE: by default, request bodies are expected to be sent with a Content-Type
+		// of application/json. If you don't explicitly set the content-type, you
+		// will get a mismatch during Verification.
 		req.Header.Set("Content-Type", "application/json")
 		if err != nil {
 			return err
@@ -38,44 +42,24 @@ func main() {
 			return err
 		}
 
-		_, err = http.Get(fmt.Sprintf("http://localhost:%d/bazbat", pact.Server.Port))
-		if err != nil {
-			log.Fatalf("Error sending request: %v", err)
-		}
-
 		return err
 	}
 
-	// Set up our interactions. Note we have multiple in this test case!
+	// Set up our expected interactions.
 	pact.
 		AddInteraction().
-		Given("Some state").
-		UponReceiving("Some name for the test").
+		Given("User foo exists").
+		UponReceiving("A request to get foo").
 		WithRequest(dsl.Request{
-			Method: "GET",
-			Path:   "/foobar",
-			Headers: map[string]string{
-				"Content-Type": "application/json",
-			},
-			Body: `{"s":"foo"}`,
+			Method:  "GET",
+			Path:    "/foobar",
+			Headers: map[string]string{"Content-Type": "application/json"},
+			Body:    `{"s":"foo"}`,
 		}).
 		WillRespondWith(dsl.Response{
-			Status: 200,
-			Headers: map[string]string{
-				"Content-Type": "application/json",
-			},
-			Body: `{"s":"bar"}`,
-		})
-	pact.
-		AddInteraction().
-		Given("Some state2").
-		UponReceiving("Some name for the test").
-		WithRequest(dsl.Request{
-			Method: "GET",
-			Path:   "/bazbat",
-		}).
-		WillRespondWith(dsl.Response{
-			Status: 200,
+			Status:  200,
+			Headers: map[string]string{"Content-Type": "application/json"},
+			Body:    `{"lastName":"bar"}`,
 		})
 
 	// Verify

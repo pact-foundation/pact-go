@@ -57,7 +57,7 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 ## Installation
 
 * Download one of the zipped [release](https://github.com/pact-foundation/pact-go/releases) distributions for your OS.
-* Unzip the package into a known location, and rename `pact-go_<os/arch>` to `pact-go` and ensuring it is on the `PATH`.
+* Unzip the package into a known location, and ensuring the `pact-go` binary is on the `PATH`, next to the `pact` folder.
 * Run `pact-go` to see what options are available.
 * Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
 
@@ -73,55 +73,48 @@ DSLs communicate over a local (RPC) connection, and is transparent to clients.
 running for long periods (e.g. on a CI server).*
 
 ### Consumer
-1. Start the daemon with `./pact-go daemon`.
-1. go get github.com/pact-foundation/pact-go
-1. cd $GOPATH/src/github.com/pact-foundation/pact-go/examples
-1. `cd <pact-go>/examples`.
-1. `go run -v consumer.go`.
 
-Here is a simple example (`consumer_test.go`) you can run with `go test -v .`:
+We'll run through a simple example to get an understanding the concepts:
+
+1. Start the daemon with `./pact-go daemon`.
+1. `go get github.com/pact-foundation/pact-go`
+1. `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
+1. `go test -v -run TestConsumer`.
+
+The simple example looks like this:
 
 ```go
-package somepackage
+package main
 
 import (
 	"fmt"
-	"github.com/pact-foundation/pact-go/dsl"
+	"log"
 	"net/http"
+	"strings"
 	"testing"
+
+	"github.com/pact-foundation/pact-go/dsl"
 )
 
-func TestLogin(t *testing.T) {
+// Example Pact: How to run me!
+// 1. Start the daemon with `./pact-go daemon`
+// 2. cd <pact-go>/examples
+// 3. go test -v -run TestConsumer
+func TestConsumer(t *testing.T) {
 
-	// Create Pact, connecting to local Daemon
-	// Ensure the port matches the daemon port!
-	pact := dsl.Pact{
-		Port:     6666,
+	// Create Pact connecting to local Daemon
+	pact := &dsl.Pact{
+		Port:     6666, // Ensure this port matches the daemon port!
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
+		Host:     "localhost",
 	}
-	// Shuts down Mock Service when done
 	defer pact.Teardown()
 
-	// Set up our interactions. Note we have multiple in this test case!
-	pact.
-		AddInteraction().
-		Given("User Matt exists").           // Provider State
-		UponReceiving("A request to login"). // Test Case Name
-		WithRequest(dsl.Request{
-			Method: "GET",
-			Path:   "/login",
-			Body: `{"username":"matt"}`,
-		}).
-		WillRespondWith(dsl.Response{
-			Status: 200,
-			Body: `{"username":"matt", "id":1234}`,
-		})
-
-	// Run the test and verify the interactions.
-	if err := pact.Verify(func() error {
-		u := fmt.Sprintf("http://localhost:%d/login", pact.Server.Port)
-		req, err := http.NewRequest("GET", u, strings.NewReader(`{"username":"matt"}`))
+	// Pass in test case
+	var test = func() error {
+		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
+		req, err := http.NewRequest("GET", u, strings.NewReader(`{"s":"foo"}`))
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
 		// of application/json. If you don't explicitly set the content-type, you
@@ -133,17 +126,33 @@ func TestLogin(t *testing.T) {
 		if _, err = http.DefaultClient.Do(req); err != nil {
 			return err
 		}
-		return nil
-	}); err != nil {
-		t.Fatal(err)
+
+		return err
 	}
 
-	// Write pact to file `<pact-go>/pacts/my_consumer-my_provider.json`
-	pact.WritePact()
+	// Set up our expected interactions.
+	pact.
+		AddInteraction().
+		Given("User foo exists").
+		UponReceiving("A request to get foo").
+		WithRequest(dsl.Request{
+			Method:  "GET",
+			Path:    "/foobar",
+			Headers: map[string]string{"Content-Type": "application/json"},
+			Body:    `{"s":"foo"}`,
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  200,
+			Headers: map[string]string{"Content-Type": "application/json"},
+			Body:    `{"s":"bar"}`,
+		})
+
+	// Verify
+	if err := pact.Verify(test); err != nil {
+		log.Fatalf("Error on Verify: %v", err)
+	}
 }
-
 ```
-
 
 #### Matching (Consumer Tests)
 
@@ -212,42 +221,54 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 
 ### Provider
 
+1. Start the daemon with `./pact-go daemon`.
+1. `go get github.com/pact-foundation/pact-go`
+1. `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
+1. `go test -v -run TestProvider`.
+
+Here is the Provider test process broker down:
+
 1. Start your Provider API:
 
-	```go
-	mux := http.NewServeMux()
-	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
-	})
-	mux.HandleFunc("/someapi", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
-		fmt.Fprintf(w, `
-			[
-				[
-					{
-						"size": 10,
-						"colour": "red",
-						"tag": [
-							[
-								"jumper",
-								"shirt"
-							],
-							[
-								"jumper",
-								"shirt"
-							]
-						]
-					}
-				]
-			]`)
-	})
-	go http.ListenAndServe(":8000", mux)
-	```
+    You need to be able to first start your API in the background as part of your tests
+    before you can run the verification process. Here we create `startServer` which can be 
+    started in its own goroutine:
 
-	Note that the server has and endpoint:  `/setup` that allows the
-	verifier to setup any 
-	[provider states](http://docs.pact.io/documentation/provider_states.html) before
-	each test is run.
+    ```go
+    func startServer() {
+      mux := http.NewServeMux()
+      lastName := "billy"
+
+      mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
+        w.Header().Add("Content-Type", "application/json")
+        fmt.Fprintf(w, fmt.Sprintf(`{"lastName":"%s"}`, lastName))
+
+        // Break the API by replacing the above and uncommenting one of these
+        // w.WriteHeader(http.StatusUnauthorized)
+        // fmt.Fprintf(w, `{"s":"baz"}`)
+      })
+
+      // This function handles state requests for a particular test
+      // In this case, we ensure that the user being requested is available
+      // before the Verification process invokes the API.
+      mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
+        var s *types.ProviderState
+        decoder := json.NewDecoder(req.Body)
+        decoder.Decode(&s)
+        if s.State == "User foo exists" {
+          lastName = "bar"
+        }
+
+        w.Header().Add("Content-Type", "application/json")
+      })
+      go http.ListenAndServe(":8000", mux)
+    }
+    ```
+
+  Note that the server has a `/setup` endpoint that is given a `types.ProviderState` and allows the
+  verifier to setup any 
+  [provider states](http://docs.pact.io/documentation/provider_states.html) before
+  each test is run.
 
 2. Verify provider API
 
@@ -255,17 +276,31 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	satisfy the requirements of each of your known consumers:
 
 	```go
-    pact.VerifyProvider(t, types.VerifyRequest{
-      ProviderBaseURL:        "http://localhost:8000",
-      PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},		
-      ProviderStatesSetupURL: "http://localhost:8000/setup",
-    })
+    func TestProvider(t *testing.T) {
+
+      // Create Pact connecting to local Daemon
+      pact := &dsl.Pact{
+        Port:     6666, // Ensure this port matches the daemon port!
+        Consumer: "MyConsumer",
+        Provider: "MyProvider",
+      }
+
+      // Start provider API in the background
+      go startServer()
+
+      // Verify the Provider with local Pact Files
+      pact.VerifyProvider(t, types.VerifyRequest{
+        ProviderBaseURL:        "http://localhost:8000",
+        PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
+        ProviderStatesSetupURL: "http://localhost:8000/setup",
+      })
+    }
 	```
 
   The `VerifyProvider` will handle all verifications, treating them as subtests
   and giving you granular test reporting. If you don't like this behaviour, you may call `VerifyProviderRaw` directly and handle the errors manually.
 
-  Note that `PactURLs` may a list of local pact files or remote based
+  Note that `PactURLs` may be a list of local pact files or remote based
   urls (e.g. from a
   [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
 
@@ -319,7 +354,7 @@ See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-
 for more on this strategy.
 
 
-See the examples or read more at http://docs.pact.io/documentation/provider_states.html.
+For more on provider states, refer to http://docs.pact.io/documentation/provider_states.html.
 
 #### Publishing Verification Results to a Pact Broker
 
@@ -363,9 +398,11 @@ Use a cURL request like the following to PUT the pact to the right location,
 specifying your consumer name, provider name and consumer version.
 
 ```
-curl -v -XPUT \-H "Content-Type: application/json" \
--d@spec/pacts/a_consumer-a_provider.json \
-http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
+curl -v \
+  -X PUT \
+  -H "Content-Type: application/json" \
+  -d@spec/pacts/a_consumer-a_provider.json \
+  http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
 ```
 
 ### Using the Pact Broker with Basic authentication
@@ -411,18 +448,17 @@ pact := Pact{
 
 ## Examples
 
-There is a single file, end-to-end integration test we use as a smoke test before releasing a new binary, including publishing to a broker, you can run it (after starting the daemon) as follows:
+There is a number of examples we use as end-to-end integration test prior to releasing a new binary, including publishing to a Pact Broker. You can run them all by running `make pact` in the project root, or manually (after starting the daemon) as follows:
 
 ```sh
-cd dsl
+cd $GOPATH/src/github.com/pact-foundation/pact-go/examples
 export PACT_INTEGRATED_TESTS=1
 export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
 export PACT_BROKER_HOST="https://test.pact.dius.com.au"
-go test -run TestPact_Integration
 ```
 
-*Other examples:*
+Once these variables have been exported, cd into one of the directories containing a test and run `go test -v .`:
 
 * [API Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/)
 * [Golang ServeMux](https://github.com/pact-foundation/pact-go/tree/master/examples/mux)

@@ -39,7 +39,7 @@ raw http calls. This is important as it means we are testing the remote interfac
 to our collaborator, not something completely synthetic.
 
 ```
-cd consumer
+cd consumer/goconsumer
 go test -v .
 ```
 
