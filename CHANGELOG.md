@@ -5,6 +5,15 @@ Do this to generate your change history
 
 ## Versions
 
+### v0.0.10 (12 November 2017)
+  * [f7ba99f](https://github.com/pact-foundation/pact-go/commit/f7ba99f) - feat(verification): add testing.T to VerifyProvider for better test reporting (Matt Fellows, Sat Nov 11 16:46:00 2017 +1100)
+  * [7e9d0cc](https://github.com/pact-foundation/pact-go/commit/7e9d0cc) - feat(verification): Expose verification output (Ben Marini, Thu Nov 9 12:34:20 2017 -0800)
+  * [4653c81](https://github.com/pact-foundation/pact-go/commit/4653c81) - feat(upgrade): upgrade to latest standalone binary (Matt Fellows, Fri Nov 10 07:28:10 2017 +1100)
+  * [9f66925](https://github.com/pact-foundation/pact-go/commit/9f66925) - fix(test): fix flakey tests due to race conditions (Ben Marini, Mon Nov 6 09:53:44 2017 -0800)
+  * [e1d3fbc](https://github.com/pact-foundation/pact-go/commit/e1d3fbc) - Fixing readme so we can link to specific section. (Zach Bintliff, Wed Oct 18 16:01:21 2017 -0400)
+  * [e71d05b](https://github.com/pact-foundation/pact-go/commit/e71d05b) - fix(vet error) (Zach Bintliff, Wed Oct 18 16:25:14 2017 -0400)
+  * [6c7e7c9](https://github.com/pact-foundation/pact-go/commit/6c7e7c9) - Fixing readme so we can link to specific section. (Zach Bintliff, Wed Oct 18 16:01:21 2017 -0400)
+
 ### v0.0.9 (12 November 2017)
   * [f7ba99f](https://github.com/pact-foundation/pact-go/commit/f7ba99f) - feat(verification): add testing.T to VerifyProvider for better test reporting (Matt Fellows, Sat Nov 11 16:46:00 2017 +1100)
   * [7e9d0cc](https://github.com/pact-foundation/pact-go/commit/7e9d0cc) - feat(verification): Expose verification output (Ben Marini, Thu Nov 9 12:34:20 2017 -0800)
