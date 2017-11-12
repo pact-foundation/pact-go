@@ -17,6 +17,9 @@ dev:
 test:
 	"$(CURDIR)/scripts/test.sh"
 
+release:
+	"$(CURDIR)/scripts/release.sh"
+
 pact:
 	"$(CURDIR)/scripts/pact.sh"
 
@@ -26,4 +29,4 @@ testrace:
 updatedeps:
 	go get -d -v -p 2 ./...
 
-.PHONY: bin default dev test pact updatedeps clean
+.PHONY: bin default dev test pact updatedeps clean release
