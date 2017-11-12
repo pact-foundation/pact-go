@@ -3,7 +3,7 @@
 ## Raising defects
 
 Before raising an issue, make sure you have checked the open and closed issues to see if an answer is provided there.
-There may also be an answer to your question on [stackoverflow].
+There may also be an answer to your question on [stackoverflow](stackoverflow.com/questions/tagged/pact).
 
 Please provide the following information with your issue to enable us to respond as quickly as possible.
 
