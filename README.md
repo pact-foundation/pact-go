@@ -255,24 +255,22 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 	satisfy the requirements of each of your known consumers:
 
 	```go
-	response := pact.VerifyProvider(types.VerifyRequest{
-		ProviderBaseURL:        "http://localhost:8000",
-		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},		
-		ProviderStatesSetupURL: "http://localhost:8000/setup",
-	})
-
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
+    pact.VerifyProvider(t, types.VerifyRequest{
+      ProviderBaseURL:        "http://localhost:8000",
+      PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},		
+      ProviderStatesSetupURL: "http://localhost:8000/setup",
+    })
 	```
 
-	Note that `PactURLs` is a list of local pact files or remote based
-	urls (e.g. from a
-	[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
+  The `VerifyProvider` will handle all verifications, treating them as subtests
+  and giving you granular test reporting. If you don't like this behaviour, you may call `VerifyProviderRaw` directly and handle the errors manually.
 
+  Note that `PactURLs` may a list of local pact files or remote based
+  urls (e.g. from a
+  [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
 
-	See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
-	for a more complete E2E example.
+  See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
+  for a more complete E2E example.
 
 #### Provider Verification
 
@@ -281,7 +279,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 1. Use `PactURLs` to specify the exact set of pacts to be replayed:
 
 	```go
-	response = pact.VerifyProvider(types.VerifyRequest{
+	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},		
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
@@ -292,7 +290,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 1. Use `PactBroker` to automatically find all of the latest consumers:
 
 	```go
-	response = pact.VerifyProvider(types.VerifyRequest{
+	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              "http://brokerHost",		
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
@@ -303,7 +301,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 1. Use `PactBroker` and `Tags` to automatically find all of the latest consumers:
 
 	```go
-	response = pact.VerifyProvider(types.VerifyRequest{
+	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              "http://brokerHost",
 		Tags:                   []string{"latest", "sit4"},		
@@ -319,7 +317,6 @@ in development.
 
 See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
 for more on this strategy.
-e
 
 
 See the examples or read more at http://docs.pact.io/documentation/provider_states.html.

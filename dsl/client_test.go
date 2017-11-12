@@ -262,7 +262,7 @@ func TestClient_VerifyProviderFailValidation(t *testing.T) {
 		t.Fatal("Expected a error but got none")
 	}
 
-	if !strings.Contains(err.Error(), "PactURLs is mandatory") {
+	if !strings.Contains(err.Error(), "Pact URLs is mandatory") {
 		t.Fatalf("Expected a proper error message but got '%s'", err.Error())
 	}
 }

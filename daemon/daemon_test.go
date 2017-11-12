@@ -255,7 +255,7 @@ func TestVerifyProvider_MissingProviderBaseURL(t *testing.T) {
 		t.Fatal("Expected an error")
 	}
 
-	if !strings.Contains(err.Error(), "ProviderBaseURL is mandatory") {
+	if !strings.Contains(err.Error(), "Provider base URL is mandatory") {
 		t.Fatalf("Expected error message but got '%s'", err.Error())
 	}
 }
@@ -273,7 +273,7 @@ func TestVerifyProvider_MissingPactURLs(t *testing.T) {
 		t.Fatal("Expected an error")
 	}
 
-	if !strings.Contains(err.Error(), "PactURLs is mandatory") {
+	if !strings.Contains(err.Error(), "Pact URLs is mandatory") {
 		t.Fatalf("Expected error message but got '%s'", err.Error())
 	}
 }
