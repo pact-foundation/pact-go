@@ -27,7 +27,7 @@ go build -o "$pactDir\pact-go.exe" "github.com\pact-foundation\pact-go"
 
 Write-Verbose "--> Creating pact daemon (downloading Ruby binaries)"
 $downloadDir = $env:TEMP
-$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.20.0/pact-1.20.0-win32.zip"
+$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.22.0/pact-1.22.0-win32.zip"
 
 Write-Verbose "    Downloading $url"
 $zip = "$downloadDir\pact.zip"

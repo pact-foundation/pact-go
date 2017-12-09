@@ -37,6 +37,7 @@ func TestProvider(t *testing.T) {
 		ProviderBaseURL:        "http://localhost:8000",
 		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
 		ProviderStatesSetupURL: "http://localhost:8000/setup",
+		CustomProviderHeaders:  []string{"Authorization: basic e5e5e5e5e5e5e5"},
 	})
 }
 

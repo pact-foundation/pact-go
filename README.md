@@ -31,26 +31,32 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 ## Table of Contents
 
-<!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:1 -->
+<!-- TOC -->
 
-1. [Table of Contents](#table-of-contents)
-2. [Installation](#installation)
-3. [Running](#running)
-	1. [Consumer](#consumer)
-		1. [Matching (Consumer Tests)](#matching-consumer-tests)
-	2. [Provider](#provider)
-		1. [Provider States](#provider-states)
-	3. [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
-		1. [Publishing from Go code](#publishing-from-go-code)
-		2. [Publishing from the CLI](#publishing-from-the-cli)
-        4. [Publishing Verification Results to a Pact Broker](#publishing-verification-results-to-a-pact-broker)
-	5. [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-	6. [Output Logging](#output-logging)
-4. [Examples](#examples)
-5. [Contact](#contact)
-6. [Documentation](#documentation)
-7. [Roadmap](#roadmap)
-8. [Contributing](#contributing)
+- [Pact Go](#pact-go)
+  - [Introduction](#introduction)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Running](#running)
+    - [Consumer](#consumer)
+      - [Matching (Consumer Tests)](#matching-consumer-tests)
+    - [Provider](#provider)
+      - [Provider Verification](#provider-verification)
+      - [API with Authorization](#api-with-authorization)
+    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+      - [Publishing from Go code](#publishing-from-go-code)
+      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+      - [Publishing from the CLI](#publishing-from-the-cli)
+      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+    - [Troubleshooting](#troubleshooting)
+      - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
+      - [Output Logging](#output-logging)
+  - [Examples](#examples)
+  - [Contact](#contact)
+  - [Documentation](#documentation)
+  - [Troubleshooting](#troubleshooting-1)
+  - [Roadmap](#roadmap)
+  - [Contributing](#contributing)
 
 <!-- /TOC -->
 
@@ -356,25 +362,26 @@ for more on this strategy.
 
 For more on provider states, refer to http://docs.pact.io/documentation/provider_states.html.
 
-#### Publishing Verification Results to a Pact Broker
+#### API with Authorization
 
-If you're using a Pact Broker (e.g. a hosted one at pact.dius.com.au), you can
-publish your verification results so that consumers can query if they are safe
-to release.
+Sometimes you may need to add things to the requests that can't be persisted in a pact file. Examples of these would be authentication tokens, which have a small life span. e.g. an OAuth bearer token: `Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42`.
 
-It looks like this:
+For this case, we have a facility that should be carefully used during verification - the ability to specificy custom headers to be sent during provider verification. The property to achieve this is `CustomProviderHeaders`.
 
-![screenshot of verification result](https://cloud.githubusercontent.com/assets/53900/25884085/2066d98e-3593-11e7-82af-3b41a20af8e5.png)
-
-You need to specify the following:
+For example, to have an `Authorization` header sent as part of the verification request, modify the `VerifyRequest` parameter as per below:
 
 ```go
-PublishVerificationResults: true,
-ProviderVersion:            "1.0.0",
+	pact.VerifyProvider(t, types.VerifyRequest{
+    ...
+    CustomProviderHeaders:  []string{"Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42"},
+	})
 ```
 
-_NOTE_: You need to be already pulling pacts from the broker for this feature to work.
-### Publishing Pacts to a Broker and Tagging Pacts
+As you can see, this is your opportunity to modify\add to headers being sent to the Provider API, for example to create a valid time-bound token.
+
+*Important Note*: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
+
+### Publishing pacts to a Pact Broker and Tagging Pacts
 
 See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
 documentation for more details on the Broker and this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
@@ -392,6 +399,25 @@ err := p.Publish(types.PublishRequest{
 })
 ```
 
+#### Publishing Provider Verification Results to a Pact Broker
+
+If you're using a Pact Broker (e.g. a hosted one at pact.dius.com.au), you can
+publish your verification results so that consumers can query if they are safe
+to release.
+
+It looks like this:
+
+![screenshot of verification result](https://cloud.githubusercontent.com/assets/53900/25884085/2066d98e-3593-11e7-82af-3b41a20af8e5.png)
+
+You need to specify the following:
+
+```go
+PublishVerificationResults: true,
+ProviderVersion:            "1.0.0",
+```
+
+_NOTE_: You need to be already pulling pacts from the broker for this feature to work.
+
 #### Publishing from the CLI
 
 Use a cURL request like the following to PUT the pact to the right location,
@@ -405,7 +431,7 @@ curl -v \
   http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
 ```
 
-### Using the Pact Broker with Basic authentication
+#### Using the Pact Broker with Basic authentication
 
 The following flags are required to use basic authentication when
 publishing or retrieving Pact files to/from a Pact Broker:
@@ -413,7 +439,9 @@ publishing or retrieving Pact files to/from a Pact Broker:
 * `BrokerUsername` - the username for Pact Broker basic authentication.
 * `BrokerPassword` - the password for Pact Broker basic authentication.
 
-### Splitting tests across multiple files
+### Troubleshooting
+
+#### Splitting tests across multiple files
 
 Pact tests tend to be quite long, due to the need to be specific about request/response payloads. Often times it is nicer to be able to split your tests across multiple files for manageability.
 
@@ -433,7 +461,7 @@ You have two options to achieve this feat:
 
     See the JS [example](https://github.com/tarciosaraiva/pact-melbjs/blob/master/helper.js) and related [issue](https://github.com/pact-foundation/pact-js/issues/11) for more.
 
-### Output Logging
+#### Output Logging
 
 Pact Go uses a simple log utility ([logutils](https://github.com/hashicorp/logutils))
 to filter log messages. The CLI already contains flags to manage this,
