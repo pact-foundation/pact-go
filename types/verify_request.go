@@ -41,6 +41,12 @@ type VerifyRequest struct {
 	// Verbose increases verbosity of output
 	Verbose bool
 
+	// CustomProviderHeaders are header to add to provider state set up
+	// and pact verification `requests`. eg 'Authorization: Basic cGFjdDpwYWN0'.
+	// NOTE: Use this feature very carefully, as anything in here is not captured
+	// in the contract (e.g. time-bound tokens)
+	CustomProviderHeaders []string
+
 	// Arguments to the VerificationProvider
 	// Deprecated: This will be deleted after the native library replaces Ruby deps.
 	Args []string
@@ -56,6 +62,13 @@ func (v *VerifyRequest) Validate() error {
 		v.Args = append(v.Args, strings.Join(v.PactURLs, " "))
 	} else {
 		return fmt.Errorf("Pact URLs is mandatory")
+	}
+
+	if len(v.CustomProviderHeaders) != 0 {
+		for _, header := range v.CustomProviderHeaders {
+			v.Args = append(v.Args, "--custom-provider-header ")
+			v.Args = append(v.Args, header)
+		}
 	}
 
 	v.Args = append(v.Args, "--format", "json")
