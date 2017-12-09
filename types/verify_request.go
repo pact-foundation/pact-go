@@ -66,54 +66,45 @@ func (v *VerifyRequest) Validate() error {
 
 	if len(v.CustomProviderHeaders) != 0 {
 		for _, header := range v.CustomProviderHeaders {
-			v.Args = append(v.Args, "--custom-provider-header ")
-			v.Args = append(v.Args, header)
+			v.Args = append(v.Args, "--custom-provider-header", header)
 		}
 	}
 
 	v.Args = append(v.Args, "--format", "json")
 
 	if v.ProviderBaseURL != "" {
-		v.Args = append(v.Args, "--provider-base-url")
-		v.Args = append(v.Args, v.ProviderBaseURL)
+		v.Args = append(v.Args, "--provider-base-url", v.ProviderBaseURL)
 	} else {
 		return fmt.Errorf("Provider base URL is mandatory")
 	}
 
 	if v.ProviderStatesSetupURL != "" {
-		v.Args = append(v.Args, "--provider-states-setup-url")
-		v.Args = append(v.Args, v.ProviderStatesSetupURL)
+		v.Args = append(v.Args, "--provider-states-setup-url", v.ProviderStatesSetupURL)
 	}
 
 	// Field is deprecated, leave here to see deprecation notice
 	if v.ProviderStatesURL != "" {
-		v.Args = append(v.Args, "--provider-states-url")
-		v.Args = append(v.Args, v.ProviderStatesURL)
+		v.Args = append(v.Args, "--provider-states-url", v.ProviderStatesURL)
 	}
 
 	if v.BrokerUsername != "" {
-		v.Args = append(v.Args, "--broker-username")
-		v.Args = append(v.Args, v.BrokerUsername)
+		v.Args = append(v.Args, "--broker-username", v.BrokerUsername)
 	}
 
 	if v.BrokerPassword != "" {
-		v.Args = append(v.Args, "--broker-password")
-		v.Args = append(v.Args, v.BrokerPassword)
+		v.Args = append(v.Args, "--broker-password", v.BrokerPassword)
 	}
 
 	if v.ProviderVersion != "" {
-		v.Args = append(v.Args, "--provider_app_version")
-		v.Args = append(v.Args, v.ProviderVersion)
+		v.Args = append(v.Args, "--provider_app_version", v.ProviderVersion)
 	}
 
 	if v.PublishVerificationResults {
-		v.Args = append(v.Args, "--publish_verification_results")
-		v.Args = append(v.Args, "true")
+		v.Args = append(v.Args, "--publish_verification_results", "true")
 	}
 
 	if v.Verbose {
-		v.Args = append(v.Args, "--verbose")
-		v.Args = append(v.Args, fmt.Sprintf("%v", v.Verbose))
+		v.Args = append(v.Args, "--verbose", fmt.Sprintf("%v", v.Verbose))
 	}
 	return nil
 }
