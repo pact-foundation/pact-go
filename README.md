@@ -371,10 +371,10 @@ For this case, we have a facility that should be carefully used during verificat
 For example, to have an `Authorization` header sent as part of the verification request, modify the `VerifyRequest` parameter as per below:
 
 ```go
-	pact.VerifyProvider(t, types.VerifyRequest{
+  pact.VerifyProvider(t, types.VerifyRequest{
     ...
     CustomProviderHeaders:  []string{"Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42"},
-	})
+  })
 ```
 
 As you can see, this is your opportunity to modify\add to headers being sent to the Provider API, for example to create a valid time-bound token.
