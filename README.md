@@ -43,12 +43,11 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
     - [Provider](#provider)
       - [Provider Verification](#provider-verification)
       - [API with Authorization](#api-with-authorization)
-  - [Broker](#broker)
-    - [Publishing Verification Results to a Pact Broker](#publishing-verification-results-to-a-pact-broker)
-    - [Publishing Pacts to a Broker and Tagging Pacts](#publishing-pacts-to-a-broker-and-tagging-pacts)
-    - [Publishing from Go code](#publishing-from-go-code)
-    - [Publishing from the CLI](#publishing-from-the-cli)
-    - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+      - [Publishing from Go code](#publishing-from-go-code)
+      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+      - [Publishing from the CLI](#publishing-from-the-cli)
+      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
     - [Troubleshooting](#troubleshooting)
       - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
       - [Output Logging](#output-logging)
@@ -367,24 +366,40 @@ For more on provider states, refer to http://docs.pact.io/documentation/provider
 
 Sometimes you may need to add things to the requests that can't be persisted in a pact file. Examples of these would be authentication tokens, which have a small life span. e.g. an OAuth bearer token: `Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42`.
 
-For this case, we have a facility that should be carefully used during verification - the ability to specificy custom headers to be sent during provider verification. The flag to achieve this is `customProviderHeaders`.
+For this case, we have a facility that should be carefully used during verification - the ability to specificy custom headers to be sent during provider verification. The property to achieve this is `CustomProviderHeaders`.
 
-For example, to have two headers sent as part of the verification request, modify the `verifyProvider` options as per below:
+For example, to have an `Authorization` header sent as part of the verification request, modify the `VerifyRequest` parameter as per below:
 
-```js
-let opts = {
-  provider: 'Animal Profile Service',
-  ...
-  customProviderHeaders: ['Authorization: Bearer e5e5e5e5e5e5e5', 'SomeSpecialHeader: some specialvalue']
-}
-
-return new Verifier().verifyProvider(opts).then(output => { ... })
+```go
+	pact.VerifyProvider(t, types.VerifyRequest{
+    ...
+    CustomProviderHeaders:  []string{"Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42"},
+	})
 ```
 
-## Broker
+As you can see, this is your opportunity to modify\add to headers being sent to the Provider API, for example to create a valid time-bound token.
 
+*Important Note*: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
 
-### Publishing Verification Results to a Pact Broker
+### Publishing pacts to a Pact Broker and Tagging Pacts
+
+See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
+documentation for more details on the Broker and this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
+on how to make it work for you.
+
+#### Publishing from Go code
+
+```go
+p := Publisher{}
+err := p.Publish(types.PublishRequest{
+	PactURLs:	[]string{"./pacts/my_consumer-my_provider.json"},
+	PactBroker:	"http://pactbroker:8000",
+	ConsumerVersion: "1.0.0",
+	Tags:		[]string{"latest", "dev"},
+})
+```
+
+#### Publishing Provider Verification Results to a Pact Broker
 
 If you're using a Pact Broker (e.g. a hosted one at pact.dius.com.au), you can
 publish your verification results so that consumers can query if they are safe
@@ -402,25 +417,8 @@ ProviderVersion:            "1.0.0",
 ```
 
 _NOTE_: You need to be already pulling pacts from the broker for this feature to work.
-### Publishing Pacts to a Broker and Tagging Pacts
 
-See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
-documentation for more details on the Broker and this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
-on how to make it work for you.
-
-### Publishing from Go code
-
-```go
-p := Publisher{}
-err := p.Publish(types.PublishRequest{
-	PactURLs:	[]string{"./pacts/my_consumer-my_provider.json"},
-	PactBroker:	"http://pactbroker:8000",
-	ConsumerVersion: "1.0.0",
-	Tags:		[]string{"latest", "dev"},
-})
-```
-
-### Publishing from the CLI
+#### Publishing from the CLI
 
 Use a cURL request like the following to PUT the pact to the right location,
 specifying your consumer name, provider name and consumer version.
@@ -433,7 +431,7 @@ curl -v \
   http://your-pact-broker/pacts/provider/A%20Provider/consumer/A%20Consumer/version/1.0.0
 ```
 
-### Using the Pact Broker with Basic authentication
+#### Using the Pact Broker with Basic authentication
 
 The following flags are required to use basic authentication when
 publishing or retrieving Pact files to/from a Pact Broker:
