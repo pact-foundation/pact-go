@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v0.0.11 (10 December 2017)
+  * [8afba3a](https://github.com/pact-foundation/pact-go/commit/8afba3a) - feat(custom-headers): allow custom headers during provider verification (Matt Fellows, Sun Dec 10 09:32:33 2017 +1100)
+
 ### v0.0.10 (12 November 2017)
   * [f7ba99f](https://github.com/pact-foundation/pact-go/commit/f7ba99f) - feat(verification): add testing.T to VerifyProvider for better test reporting (Matt Fellows, Sat Nov 11 16:46:00 2017 +1100)
   * [7e9d0cc](https://github.com/pact-foundation/pact-go/commit/7e9d0cc) - feat(verification): Expose verification output (Ben Marini, Thu Nov 9 12:34:20 2017 -0800)
