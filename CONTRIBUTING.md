@@ -3,13 +3,13 @@
 ## Raising defects
 
 Before raising an issue, make sure you have checked the open and closed issues to see if an answer is provided there.
-There may also be an answer to your question on [stackoverflow](stackoverflow.com/questions/tagged/pact).
+There may also be an answer to your question on [stackoverflow](https://stackoverflow.com/questions/tagged/pact).
 
 Please provide the following information with your issue to enable us to respond as quickly as possible.
 
 1. The relevant versions of the packages you are using.
 1. The steps to recreate your issue.
-1. An executable code example where possible. You can fork this repository and modify the e2e [example](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_integration_test.go)  to quickly recreate your issue.
+1. An executable code example where possible. You can fork this repository and modify the e2e [example](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)  to quickly recreate your issue.
 
 You can run the E2E tests by:
 
@@ -83,5 +83,5 @@ You can also:
 
 ```
 cd dsl
-PACT_INTEGRATED_TESTS=1 PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M" PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1" PACT_BROKER_HOST="https://test.pact.dius.com.au" go test -run TestPact_Integration
+PACT_INTEGRATED_TESTS=1 PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M" PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1" PACT_BROKER_HOST="https://test.pact.dius.com.au" go test -run TestPact_AddInteraction
 ```
