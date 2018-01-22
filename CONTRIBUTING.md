@@ -9,7 +9,7 @@ Please provide the following information with your issue to enable us to respond
 
 1. The relevant versions of the packages you are using.
 1. The steps to recreate your issue.
-1. An executable code example where possible. You can fork this repository and modify the e2e [example](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)  to quickly recreate your issue.
+1. An executable code example where possible. You can fork this repository and modify the e2e [examples](https://github.com/pact-foundation/pact-go/blob/master/examples) to quickly recreate your issue.
 
 You can run the E2E tests by:
 
@@ -63,25 +63,4 @@ any new packages are added to `vendor.yml` prior to patching.
 Before releasing a new version, in addition to the standard (isolated) tests
 we smoke test the key features against a running Daemon and Broker.
 
-Running `make pact` is a good starting point. 
-
-You can also:
-
-1. Start daemon:
-
-  ```
-  go build .
-  ./pact-go daemon
-  ```
-
-2. Start a broker
-
-  See [Pact Broker](https://github.com/bethesque/pact_broker#usage) for details.
-  Make sure you have basic auth setup so we can test authentication.
-
-3. Run the integrated tests
-
-```
-cd dsl
-PACT_INTEGRATED_TESTS=1 PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M" PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1" PACT_BROKER_HOST="https://test.pact.dius.com.au" go test -run TestPact_AddInteraction
-```
+Run `make pact` to start the daemon and run integration tests. 
