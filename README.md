@@ -229,7 +229,7 @@ for more matching examples.
 [regular expressions](http://ruby-doc.org/core-2.1.5/Regexp.html) and double
 escape backslashes.
 
-Read more about [flexible matching](https://github.com/realestate-com-au/pact/wiki/Regular-expressions-and-type-matching-with-Pact).
+Read more about [flexible matching](https://github.com/pact-foundation/pact-ruby/wiki/Regular-expressions-and-type-matching-with-Pact).
 
 
 ### Provider
@@ -507,7 +507,7 @@ Once these variables have been exported, cd into one of the directories containi
 
 ## Documentation
 
-Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki](https://github.com/realestate-com-au/pact/wiki).
+Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki](https://github.com/pact-foundation/pact-ruby/wiki).
 
 ## Troubleshooting
 
