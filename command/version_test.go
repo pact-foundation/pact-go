@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_VersionCommand(t *testing.T) {
+func TestVersionCommand(t *testing.T) {
 	os.Args = []string{"version"}
 	err := versionCmd.Execute()
 	if err != nil {

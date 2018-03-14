@@ -37,6 +37,7 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
   - [Introduction](#introduction)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
+    - [Installation on *nix](#installation-on-nix)
   - [Running](#running)
     - [Consumer](#consumer)
       - [Matching (Consumer Tests)](#matching-consumer-tests)
@@ -62,27 +63,34 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 ## Installation
 
-* Download one of the zipped [release](https://github.com/pact-foundation/pact-go/releases) distributions for your OS.
-* Unzip the package into a known location, and ensuring the `pact-go` binary is on the `PATH`, next to the `pact` folder.
-* Run `pact-go` to see what options are available.
-* Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
+1. Download the [latest release](https://github.com/pact-foundation/pact-ruby-standalone/releases) of the standalone tools and ensure the binaries are on your `PATH`:
+1. Unzip the package into a known location, and ensuring the `pact-go` binary is on the `PATH`.
+1. Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
+
+See below for how to automate this:
+
+### Installation on *nix
+
+```sh
+cd /opt
+curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash
+export PATH=$PATH:/opt/pact/bin
+go get -d github.com/pact-foundation/pact-go
+```
+
+Test the installation:
+```sh
+pact help
+```
 
 ## Running
 
-Pact Go runs a two-step process:
-
-1. Run `pact-go daemon` in a separate process/shell. The Consumer and Provider
-DSLs communicate over a local (RPC) connection, and is transparent to clients.
-1. Create your Pact Consumer/Provider Tests. It defaults to run on port `6666`.
-
-*NOTE: The daemon is thread safe and it is normal to leave it
-running for long periods (e.g. on a CI server).*
+Pact Go runs as part of your regular Go tests!
 
 ### Consumer
 
 We'll run through a simple example to get an understanding the concepts:
 
-1. Start the daemon with `./pact-go daemon`.
 1. `go get github.com/pact-foundation/pact-go`
 1. `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
 1. `go test -v -run TestConsumer`.
@@ -110,7 +118,6 @@ func TestConsumer(t *testing.T) {
 
 	// Create Pact connecting to local Daemon
 	pact := &dsl.Pact{
-		Port:     6666, // Ensure this port matches the daemon port!
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
 		Host:     "localhost",
@@ -227,7 +234,6 @@ Read more about [flexible matching](https://github.com/realestate-com-au/pact/wi
 
 ### Provider
 
-1. Start the daemon with `./pact-go daemon`.
 1. `go get github.com/pact-foundation/pact-go`
 1. `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
 1. `go test -v -run TestProvider`.
@@ -237,7 +243,7 @@ Here is the Provider test process broker down:
 1. Start your Provider API:
 
     You need to be able to first start your API in the background as part of your tests
-    before you can run the verification process. Here we create `startServer` which can be 
+    before you can run the verification process. Here we create `startServer` which can be
     started in its own goroutine:
 
     ```go
@@ -272,7 +278,7 @@ Here is the Provider test process broker down:
     ```
 
   Note that the server has a `/setup` endpoint that is given a `types.ProviderState` and allows the
-  verifier to setup any 
+  verifier to setup any
   [provider states](http://docs.pact.io/documentation/provider_states.html) before
   each test is run.
 
@@ -286,7 +292,6 @@ Here is the Provider test process broker down:
 
       // Create Pact connecting to local Daemon
       pact := &dsl.Pact{
-        Port:     6666, // Ensure this port matches the daemon port!
         Consumer: "MyConsumer",
         Provider: "MyProvider",
       }
@@ -322,7 +327,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	```go
 	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
-		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},		
+		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -333,7 +338,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	```go
 	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
-		BrokerURL:              "http://brokerHost",		
+		BrokerURL:              "http://brokerHost",
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -345,7 +350,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              "http://brokerHost",
-		Tags:                   []string{"latest", "sit4"},		
+		Tags:                   []string{"latest", "sit4"},
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
