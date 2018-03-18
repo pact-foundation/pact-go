@@ -35,9 +35,9 @@ func NewInmemService() Service {
 	return &userService{
 		userDatabase: &UserRepository{
 			users: map[string]*User{
-				"billy": &User{
-					Name:     "billy",
-					username: "billy",
+				"Jean-Marie de La Beaujardière😀😍": &User{
+					Name:     "Jean-Marie de La Beaujardière😀😍",
+					username: "Jean-Marie de La Beaujardière😀😍",
 					password: "issilly",
 					Type:     "admin",
 				},

@@ -18,7 +18,7 @@ import (
 )
 
 // The actual Provider test itself
-func TestPact_Provider(t *testing.T) {
+func TestPact_MuxProvider(t *testing.T) {
 	go startInstrumentedProvider()
 
 	pact := createPact()
@@ -70,14 +70,6 @@ func TestPact_Provider(t *testing.T) {
 
 	} else {
 		t.Log("Skipping pulling from broker as PACT_INTEGRATED_TESTS is not set")
-	}
-}
-
-func assertExamples(t *testing.T, r types.ProviderVerifierResponse) {
-	for _, example := range r.Examples {
-		if example.Status != "passed" {
-			t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-		}
 	}
 }
 
@@ -137,9 +129,9 @@ var port, _ = utils.GetFreePort()
 // Provider States data sets
 var billyExists = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"billy": &examples.User{
-			Name:     "billy",
-			Username: "billy",
+		"Jean-Marie de La Beaujardière😀😍": &examples.User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			Username: "Jean-Marie de La Beaujardière😀😍",
 			Password: "issilly",
 			Type:     "admin",
 		},
@@ -150,9 +142,9 @@ var billyDoesNotExist = &examples.UserRepository{}
 
 var billyUnauthorized = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"billy": &examples.User{
-			Name:     "billy",
-			Username: "billy",
+		"Jean-Marie de La Beaujardière😀😍": &examples.User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			Username: "Jean-Marie de La Beaujardière😀😍",
 			Password: "issilly1",
 			Type:     "blocked",
 		},
