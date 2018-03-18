@@ -1,4 +1,4 @@
-package daemon
+package client
 
 import (
 	"fmt"
@@ -174,4 +174,39 @@ func TestServiceManager_Start(t *testing.T) {
 			return
 		}
 	}
+}
+
+// Adapted from http://npf.io/2015/06/testing-exec-command/
+var fakeExecSuccessCommand = func() *exec.Cmd {
+	return fakeExecCommand("", true, "")
+}
+
+var fakeExecFailCommand = func() *exec.Cmd {
+	return fakeExecCommand("", false, "")
+}
+
+func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestHelperProcess", "--", command}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=%t", success)}
+	return cmd
+}
+
+func TestHelperProcess(t *testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+	<-time.After(250 * time.Millisecond)
+
+	// some code here to check arguments perhaps?
+	// Fail :(
+	if os.Getenv("GO_WANT_HELPER_PROCESS_TO_SUCCEED") == "false" {
+		fmt.Fprintf(os.Stdout, "COMMAND: oh noes!")
+		os.Exit(1)
+	}
+
+	// Success :)
+	fmt.Fprintf(os.Stdout, `{"summary_line":"1 examples, 0 failures"}`)
+	os.Exit(0)
 }

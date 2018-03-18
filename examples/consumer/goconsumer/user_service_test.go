@@ -80,7 +80,7 @@ func setup() {
 
 	// Login form values
 	form = url.Values{}
-	form.Add("username", name)
+	form.Add("username")
 	form.Add("password", "issilly")
 
 	// Create a request to pass to our handler.
