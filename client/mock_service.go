@@ -2,9 +2,6 @@ package client
 
 import (
 	"fmt"
-	"path/filepath"
-
-	"github.com/kardianos/osext"
 )
 
 // MockService is a wrapper for the Pact Mock Service.
@@ -24,6 +21,5 @@ func (m *MockService) NewService(args []string) Service {
 }
 
 func getMockServiceCommandPath() string {
-	dir, _ := osext.ExecutableFolder()
-	return fmt.Sprintf(filepath.Join(dir, "pact", "bin", "pact-mock-service"))
+	return fmt.Sprintf("pact-mock-service")
 }

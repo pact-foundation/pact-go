@@ -24,10 +24,7 @@ var pact dsl.Pact
 var form url.Values
 var rr http.ResponseWriter
 var req *http.Request
-
 var name = "Jean-Marie de La Beaujardière😀😍"
-
-// var name = "billy"
 var like = dsl.Like
 var eachLike = dsl.EachLike
 var term = dsl.Term
@@ -80,7 +77,7 @@ func setup() {
 
 	// Login form values
 	form = url.Values{}
-	form.Add("username")
+	form.Add("username", name)
 	form.Add("password", "issilly")
 
 	// Create a request to pass to our handler.
@@ -94,9 +91,7 @@ func setup() {
 
 // Create Pact connecting to local Daemon
 func createPact() dsl.Pact {
-	pactDaemonPort := 6666
 	return dsl.Pact{
-		Port:     pactDaemonPort,
 		Consumer: "billy",
 		Provider: "bobby",
 		LogDir:   logDir,
@@ -135,13 +130,15 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 		Given("User billy exists").
 		UponReceiving("A request to login with user 'billy'").
 		WithRequest(dsl.Request{
-			Method: "POST",
-			Path:   "/users/login",
-			Body:   loginRequest,
+			Method:  "POST",
+			Path:    "/users/login",
+			Body:    loginRequest,
+			Headers: commonHeaders,
 		}).
 		WillRespondWith(dsl.Response{
-			Status: 200,
-			Body:   body,
+			Status:  200,
+			Body:    body,
+			Headers: commonHeaders,
 		})
 
 	err := pact.Verify(testBillyExists)

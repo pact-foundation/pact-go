@@ -19,28 +19,6 @@ build:
         name: Publish Coveralls
         code: goveralls -service="wercker.com" -coverprofile=profile.cov -repotoken $COVERALLS_TOKEN
     - script:
-        name: package
-        code: |
-          . /etc/profile.d/rvm.sh
-          make package
-    - script:
         name: pact
         code: |
           ./scripts/pact.sh
-    - script:
-        name: Cache artifacts for release
-        code: |
-          if [ -d "$WERCKER_CACHE_DIR/dist" ]; then rm -rf ${WERCKER_OUTPUT_DIR}/dist; fi
-          mkdir ${WERCKER_OUTPUT_DIR}/dist
-          cp -r dist/*.* ${WERCKER_OUTPUT_DIR}/dist/
-
-# TODO: Get tokens for Pact foundation
-deploy:
-    box: golang
-    steps:
-        - tcnksm/ghr:
-            token: $GITHUB_TOKEN
-            version: $RELEASE_VERSION
-            input: dist
-            replace: $RELEASE_IS_DRAFT
-            pre-release: $RELEASE_IS_DRAFT

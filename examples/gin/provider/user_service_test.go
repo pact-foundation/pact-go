@@ -129,7 +129,6 @@ var billyUnauthorized = &examples.UserRepository{
 func createPact() dsl.Pact {
 	// Create Pact connecting to local Daemon
 	return dsl.Pact{
-		Port:     6666,
 		Consumer: "billy",
 		Provider: "bobby",
 		LogDir:   logDir,

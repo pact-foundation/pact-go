@@ -109,10 +109,7 @@ func TestPact_GoKitProvider(t *testing.T) {
 
 // Setup the Pact client.
 func createPact() dsl.Pact {
-	// Create Pact connecting to local Daemon
-	pactDaemonPort := 6666
 	return dsl.Pact{
-		Port:     pactDaemonPort,
 		Consumer: "billy",
 		Provider: "bobby",
 		LogDir:   logDir,

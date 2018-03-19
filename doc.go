@@ -18,10 +18,8 @@ A typical consumer-side test would look something like this:
 
 	func TestLogin(t *testing.T) {
 
-		// Create Pact, connecting to local Daemon
-		// Ensure the port matches the daemon port!
+		// Create Pact client
 		pact := Pact{
-			Port:     6666,
 			Consumer: "My Consumer",
 			Provider: "My Provider",
 		}
@@ -123,11 +121,8 @@ Provider side Pact testing, involves verifying that the contract - the Pact file
 A typical Provider side test would like something like:
 
 	func TestProvider_PactContract(t *testing.T) {
-	// Create Pact, connecting to local Daemon
-	// Ensure the port matches the daemon port!
-		pact := Pact{
-			Port: 6666,
-		}
+	  // Create Pact
+		pact := Pact{}
 		go startMyAPI("http://localhost:8000")
 
 		pact.VerifyProvider(types.VerifyRequest{

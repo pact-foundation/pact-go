@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/logutils"
+	"github.com/pact-foundation/pact-go/client"
 	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
@@ -20,9 +21,6 @@ import (
 type Pact struct {
 	// Current server for the consumer.
 	Server *types.MockServer
-
-	// Port the Pact Daemon is running on.
-	Port int
 
 	// Pact RPC Client.
 	pactClient *PactClient
@@ -62,12 +60,12 @@ type Pact struct {
 	// Defaults to 2.
 	SpecificationVersion int
 
-	// Host is the address of the Daemon, Mock and Verification Service runs on
+	// Host is the address of the Mock and Verification Service runs on
 	// Examples include 'localhost', '127.0.0.1', '[::1]'
 	// Defaults to 'localhost'
 	Host string
 
-	// Network is the network of the Daemon, Mock and Verification Service
+	// Network is the network of the Mock and Verification Service
 	// Examples include 'tcp', 'tcp4', 'tcp6'
 	// Defaults to 'tcp'
 	Network string
@@ -81,7 +79,7 @@ type Pact struct {
 // required things. Will automatically start a Mock Service if none running.
 func (p *Pact) AddInteraction() *Interaction {
 	p.Setup(true)
-	log.Printf("[DEBUG] pact add interaction")
+	log.Println("[DEBUG] pact add interaction")
 	i := &Interaction{}
 	p.Interactions = append(p.Interactions, i)
 	return i
@@ -92,7 +90,7 @@ func (p *Pact) AddInteraction() *Interaction {
 // has been started.
 func (p *Pact) Setup(startMockServer bool) *Pact {
 	p.setupLogging()
-	log.Printf("[DEBUG] pact setup")
+	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
 
 	if p.Network == "" {
@@ -116,8 +114,7 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	}
 
 	if p.pactClient == nil {
-		client := &PactClient{Port: p.Port, Network: p.Network, Address: p.Host}
-		p.pactClient = client
+		p.pactClient = NewClient(&client.MockService{}, &client.VerificationService{})
 	}
 
 	// Need to predefine due to scoping
@@ -131,9 +128,9 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	if perr != nil {
 		log.Println("[ERROR] unable to find free port, mockserver will fail to start")
 	}
-	log.Println("[DEBUG] starting mock service on port:", port)
 
 	if p.Server == nil && startMockServer {
+		log.Println("[DEBUG] starting mock service on port:", port)
 		args := []string{
 			"--pact-specification-version",
 			fmt.Sprintf("%d", p.SpecificationVersion),
@@ -166,15 +163,20 @@ func (p *Pact) setupLogging() {
 		}
 		log.SetOutput(p.logFilter)
 	}
-	log.Printf("[DEBUG] pact setup logging")
+	log.Println("[DEBUG] pact setup logging")
 }
 
 // Teardown stops the Pact Mock Server. This usually is called on completion
 // of each test suite.
 func (p *Pact) Teardown() *Pact {
-	log.Printf("[DEBUG] teardown")
+	log.Println("[DEBUG] teardown")
 	if p.Server != nil {
-		p.Server = p.pactClient.StopServer(p.Server)
+		server, err := p.pactClient.StopServer(p.Server)
+
+		if err != nil {
+			log.Println("error:", err)
+		}
+		p.Server = server
 	}
 	return p
 }
@@ -183,7 +185,7 @@ func (p *Pact) Teardown() *Pact {
 // Will cleanup interactions between tests within a suite.
 func (p *Pact) Verify(integrationTest func() error) error {
 	p.Setup(true)
-	log.Printf("[DEBUG] pact verify")
+	log.Println("[DEBUG] pact verify")
 	mockServer := &MockService{
 		BaseURL:  fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
 		Consumer: p.Consumer,
@@ -220,7 +222,7 @@ func (p *Pact) Verify(integrationTest func() error) error {
 // configured file.
 func (p *Pact) WritePact() error {
 	p.Setup(true)
-	log.Printf("[DEBUG] pact write Pact file")
+	log.Println("[DEBUG] pact write Pact file")
 	mockServer := MockService{
 		BaseURL:           fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
 		Consumer:          p.Consumer,
@@ -242,14 +244,14 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 
 	// If we provide a Broker, we go to it to find consumers
 	if request.BrokerURL != "" {
-		log.Printf("[DEBUG] pact provider verification - finding all consumers from broker: %s", request.BrokerURL)
+		log.Println("[DEBUG] pact provider verification - finding all consumers from broker: ", request.BrokerURL)
 		err := findConsumers(p.Provider, &request)
 		if err != nil {
 			return types.ProviderVerifierResponse{}, err
 		}
 	}
 
-	log.Printf("[DEBUG] pact provider verification")
+	log.Println("[DEBUG] pact provider verification")
 
 	return p.pactClient.VerifyProvider(request)
 }

@@ -3,9 +3,6 @@ package client
 import (
 	"fmt"
 	"log"
-	"path/filepath"
-
-	"github.com/kardianos/osext"
 )
 
 // VerificationService is a wrapper for the Pact Provider Verifier Service.
@@ -35,6 +32,5 @@ func (v *VerificationService) NewService(args []string) Service {
 }
 
 func getVerifierCommandPath() string {
-	dir, _ := osext.ExecutableFolder()
-	return fmt.Sprintf(filepath.Join(dir, "pact", "bin", "pact-provider-verifier"))
+	return fmt.Sprintf("pact-provider-verifier")
 }

@@ -1,7 +1,16 @@
+/*
+Package client implements the raw interface to the Pact CLI tools: The Pact Mock Service and Provider Verification
+"binaries."
+
+See https://github.com/pact-foundation/pact-provider-verifier and
+https://github.com/bethesque/pact-mock_service for more on the Ruby "binaries".
+
+NOTE: The ultimate goal here is to replace the Ruby dependencies with a shared
+library (Pact Reference - (https://github.com/pact-foundation/pact-reference/).
+*/
 package client
 
 import (
-	"io"
 	"os/exec"
 )
 
@@ -13,6 +22,5 @@ type Service interface {
 	List() map[int]*exec.Cmd
 	Command() *exec.Cmd
 	Start() *exec.Cmd
-	Run(io.Writer) (*exec.Cmd, error)
 	NewService(args []string) Service
 }

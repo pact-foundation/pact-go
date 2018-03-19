@@ -1,16 +1,19 @@
 package dsl
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
-	"net/rpc"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pact-foundation/pact-go/client"
 	"github.com/pact-foundation/pact-go/types"
 )
 
@@ -18,51 +21,149 @@ var (
 	timeoutDuration = 10 * time.Second
 )
 
-// PactClient is the default implementation of the Client interface.
+// PactClient is the main interface into starting/stopping
+// the underlying Pact CLI subsystem
 type PactClient struct {
-	// Address the Daemon is listening on
-	Address string
+	pactMockSvcManager     client.Service
+	verificationSvcManager client.Service
 
 	// Track mock servers
 	Servers []MockService
 
-	// Track stub servers
-	// Stubs []StubService
+	// Network Daemon is listening on
+	Network string
+
+	// Address the Daemon is listening on
+	Address string
+}
+
+// NewClient creates a new Pact client manager
+func NewClient(MockServiceManager client.Service, verificationServiceManager client.Service) *PactClient {
+	MockServiceManager.Setup()
+	verificationServiceManager.Setup()
+
+	return &PactClient{
+		pactMockSvcManager:     MockServiceManager,
+		verificationSvcManager: verificationServiceManager,
+	}
 }
 
 // StartServer starts a remote Pact Mock Server.
-func (p *PactClient) StartServer(args []string, port int) *MockService {
-	log.Println("[DEBUG] client: starting a server")
+func (p *PactClient) StartServer(args []string, port int) *types.MockServer {
+	log.Println("[DEBUG] client: starting a server with args:", args, "port:", port)
+	args = append(args, []string{"--port", strconv.Itoa(port)}...)
+	svc := p.pactMockSvcManager.NewService(args)
+	cmd := svc.Start()
 
-	return nil
+	waitForPort(port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Mock Server to
+    start on port %d - are you sure it's running?`, port))
+
+	return &types.MockServer{
+		Pid:  cmd.Process.Pid,
+		Port: port,
+	}
 }
 
-// ListServers list all available Mock Servers
-func (p *PactClient) ListServers(args []string, port int) []*types.MockServer {
+// ListServers lists all known Mock Servers
+func (p *PactClient) ListServers() []*types.MockServer {
 	log.Println("[DEBUG] client: starting a server")
 
-	return nil
+	var servers []*types.MockServer
+
+	for port, s := range p.pactMockSvcManager.List() {
+		servers = append(servers, &types.MockServer{
+			Pid:  s.Process.Pid,
+			Port: port,
+		})
+	}
+
+	return servers
 }
 
 // StopServer stops a remote Pact Mock Server.
-func (p *PactClient) StopServer(server *types.MockServer) *types.MockServer {
+func (p *PactClient) StopServer(server *types.MockServer) (*types.MockServer, error) {
 	log.Println("[DEBUG] client: stop server")
 
-	return nil
+	// TODO: Need to be able to get a non-zero exit code here!
+	_, server.Error = p.pactMockSvcManager.Stop(server.Pid)
+	return server, server.Error
 }
 
 // RemoveAllServers stops all remote Pact Mock Servers.
 func (p *PactClient) RemoveAllServers(server *types.MockServer) *[]types.MockServer {
 	log.Println("[DEBUG] client: stop server")
 
+	for _, s := range p.verificationSvcManager.List() {
+		if s != nil {
+			p.pactMockSvcManager.Stop(s.Process.Pid)
+		}
+	}
 	return nil
 }
 
 // VerifyProvider runs the verification process against a running Provider.
 func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	log.Println("[DEBUG] client: verifying a provider")
+	var response types.ProviderVerifierResponse
 
-	return types.ProviderVerifierResponse{}, nil
+	// Convert request into flags, and validate request
+	err := request.Validate()
+	if err != nil {
+		return response, err
+	}
+
+	port := getPort(request.ProviderBaseURL)
+
+	waitForPort(port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Provider API to start
+		 on port %d - are you sure it's running?`, port))
+
+	// Run command, splitting out stderr and stdout. The command can fail for
+	// several reasons:
+	// 1. Command is unable to run at all.
+	// 2. Command runs, but fails for unknown reason.
+	// 3. Command runs, and returns exit status 1 because the tests fail.
+	//
+	// First, attempt to decode the response of the stdout.
+	// If that is successful, we are at case 3. Return stdout as message, no error.
+	// Else, return an error, include stderr and stdout in both the error and message.
+	svc := p.verificationSvcManager.NewService(request.Args)
+	cmd := svc.Command()
+
+	stdOutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return response, err
+	}
+	stdErrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return response, err
+	}
+	err = cmd.Start()
+	if err != nil {
+		return response, err
+	}
+	stdOut, err := ioutil.ReadAll(stdOutPipe)
+	if err != nil {
+		return response, err
+	}
+	stdErr, err := ioutil.ReadAll(stdErrPipe)
+	if err != nil {
+		return response, err
+	}
+
+	err = cmd.Wait()
+
+	decoder := json.NewDecoder(bytes.NewReader(stdOut))
+
+	dErr := decoder.Decode(&response)
+	if dErr == nil {
+		return response, err
+	}
+
+	if err == nil {
+		err = dErr
+	}
+
+	return response, fmt.Errorf("error verifying provider: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
 }
 
 // Get a port given a URL
@@ -84,17 +185,7 @@ func getPort(rawURL string) int {
 	return -1
 }
 
-func getHTTPClient(port int, network string, address string) (*rpc.Client, error) {
-	log.Println("[DEBUG] creating an HTTP client")
-	err := waitForPort(port, network, address, fmt.Sprintf(`Timed out waiting for Daemon on port %d - are you
-		sure it's running?`, port))
-	if err != nil {
-		return nil, err
-	}
-	return rpc.DialHTTP(network, fmt.Sprintf("%s:%d", address, port))
-}
-
-// Use this to wait for a daemon to be running prior
+// Use this to wait for a port to be running prior
 // to running tests.
 var waitForPort = func(port int, network string, address string, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
@@ -129,4 +220,13 @@ func sanitiseRubyResponse(response string) string {
 	s = r.ReplaceAllString(s, "\n")
 
 	return s
+}
+
+// getNetworkInterface returns a default interface to communicate to the Daemon
+// if none specified
+func (p *PactClient) getNetworkInterface() string {
+	if p.Network == "" {
+		return "tcp"
+	}
+	return p.Network
 }

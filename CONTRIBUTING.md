@@ -61,6 +61,6 @@ any new packages are added to `vendor.yml` prior to patching.
 ## Integration Tests
 
 Before releasing a new version, in addition to the standard (isolated) tests
-we smoke test the key features against a running Daemon and Broker.
+we smoke test the key features against the latest code and Broker.
 
-Run `make pact` to start the daemon and run integration tests. 
+Run `make pact` to run the integration tests.

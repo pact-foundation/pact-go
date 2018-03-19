@@ -22,6 +22,6 @@ var installCmd = &cobra.Command{
 }
 
 func init() {
-	installCmd.Flags().StringVarP(&path, "path", "p", "/opt/pact", "Local daemon port to listen on")
+	installCmd.Flags().StringVarP(&path, "path", "p", "/opt/pact", "Location to install the Pact CLI tools")
 	RootCmd.AddCommand(installCmd)
 }

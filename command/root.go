@@ -1,4 +1,4 @@
-// Package command contains the basic CLI commands to run Pact Go as a daemon.
+// Package command contains the basic CLI commands to run Pact Go.
 package command
 
 import (
