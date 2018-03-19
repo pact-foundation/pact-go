@@ -11,8 +11,8 @@ import (
 var userRepository = &types.UserRepository{
 	Users: map[string]*types.User{
 		"billy": &types.User{
-			Name:     "Jean-Marie de La Beaujardière😀😍",
-			Username: "Jean-Marie de La Beaujardière😀😍",
+			Name:     "billy",
+			Username: "billy",
 			Password: "issilly",
 		},
 	},

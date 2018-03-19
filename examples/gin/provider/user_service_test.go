@@ -14,7 +14,7 @@ import (
 )
 
 // The actual Provider test itself
-func TestPact_GinProvider(t *testing.T) {
+func TestPact_Provider(t *testing.T) {
 	go startInstrumentedProvider()
 
 	pact := createPact()
@@ -69,6 +69,14 @@ func TestPact_GinProvider(t *testing.T) {
 	}
 }
 
+func assertExamples(t *testing.T, r types.ProviderVerifierResponse) {
+	for _, example := range r.Examples {
+		if example.Status != "passed" {
+			t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+		}
+	}
+}
+
 // Starts the provider API with hooks for provider states.
 // This essentially mirrors the main.go file, with extra routes added.
 func startInstrumentedProvider() {
@@ -103,9 +111,9 @@ var port, _ = utils.GetFreePort()
 // Provider States data sets
 var billyExists = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"Jean-Marie de La Beaujardière😀😍": &examples.User{
-			Name:     "Jean-Marie de La Beaujardière😀😍",
-			Username: "Jean-Marie de La Beaujardière😀😍",
+		"billy": &examples.User{
+			Name:     "billy",
+			Username: "billy",
 			Password: "issilly",
 			Type:     "admin",
 		},
@@ -116,9 +124,9 @@ var billyDoesNotExist = &examples.UserRepository{}
 
 var billyUnauthorized = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"Jean-Marie de La Beaujardière😀😍": &examples.User{
-			Name:     "Jean-Marie de La Beaujardière😀😍",
-			Username: "Jean-Marie de La Beaujardière😀😍",
+		"billy": &examples.User{
+			Name:     "billy",
+			Username: "billy",
 			Password: "issilly1",
 			Type:     "blocked",
 		},
