@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -32,5 +31,5 @@ func (v *VerificationService) NewService(args []string) Service {
 }
 
 func getVerifierCommandPath() string {
-	return fmt.Sprintf("pact-provider-verifier")
+	return "pact-provider-verifier"
 }

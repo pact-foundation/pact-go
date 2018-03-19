@@ -4,6 +4,7 @@ LIBDIR=$(dirname "$0")
 . "${LIBDIR}/lib"
 
 curDir=${pwd}
+echo $curDir
 trap shutdown INT
 exitCode=0
 
@@ -27,6 +28,9 @@ export PACT_INTEGRATED_TESTS=1
 export PACT_BROKER_HOST="https://test.pact.dius.com.au"
 export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
+export PATH="../build/pact/bin:${PATH}"
+echo "which provier verifier? ->"
+which pact-provider-verifier
 
 step "Running E2E regression and example projects"
 examples=("github.com/pact-foundation/pact-go/examples/consumer/goconsumer" "github.com/pact-foundation/pact-go/examples/go-kit/provider" "github.com/pact-foundation/pact-go/examples/mux/provider" "github.com/pact-foundation/pact-go/examples/gin/provider")

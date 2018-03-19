@@ -7,17 +7,27 @@ build:
     - setup-go-workspace
     - golint:
         exclude: "vendor"
-    - script:
-        name: build
-        code: |
-          make bin
+    # - script:
+    #     name: build
+    #     code: |
+    #       make bin
     - script:
         name: install-cli-tools
         code: |
+          cd $WERCKER_ROOT
           ./scripts/install-cli-tools.sh
+          # echo "setting path"
+          # export PATH=$WERCKER_ROOT/build/pact/bin:$PATH
+          # echo $PATH
+          # ls $WERCKER_ROOT/build/pact/bin
+          # echo "checking for binary"
+          # which pact-provider-verifier
+          # echo "runnyng pact"
+          # make pact
     - script:
         name: test
         code: |
+          export PATH=$WERCKER_ROOT/build/pact/bin:$PATH
           make test
     - script:
         name: Publish Coveralls
@@ -25,4 +35,5 @@ build:
     - script:
         name: pact
         code: |
+          export PATH=$WERCKER_ROOT/build/pact/bin:$PATH
           ./scripts/pact.sh

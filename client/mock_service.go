@@ -1,9 +1,5 @@
 package client
 
-import (
-	"fmt"
-)
-
 // MockService is a wrapper for the Pact Mock Service.
 type MockService struct {
 	ServiceManager
@@ -21,5 +17,5 @@ func (m *MockService) NewService(args []string) Service {
 }
 
 func getMockServiceCommandPath() string {
-	return fmt.Sprintf("pact-mock-service")
+	return "pact-mock-service"
 }

@@ -224,7 +224,6 @@ var fakeExecFailCommand = func() *exec.Cmd {
 }
 
 func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {
-	log.Println("[YAEUT] Creating fake exec command with success", success)
 	cs := []string{"-test.run=TestHelperProcess", "--", command}
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)
