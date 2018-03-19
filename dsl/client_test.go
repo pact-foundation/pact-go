@@ -26,6 +26,7 @@ func TestClient_List(t *testing.T) {
 
 func TestClient_StartServer(t *testing.T) {
 	client, svc := createClient(true)
+	defer stubPorts()()
 
 	port, _ := utils.GetFreePort()
 	client.StartServer([]string{}, port)

@@ -151,6 +151,7 @@ func TestPact_VerifyFail(t *testing.T) {
 
 func TestPact_Setup(t *testing.T) {
 	pact := &Pact{LogLevel: "DEBUG"}
+	defer stubPorts()()
 	pact.Setup(true)
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
@@ -166,8 +167,11 @@ func TestPact_Setup(t *testing.T) {
 }
 
 func TestPact_SetupWithMockServerPort(t *testing.T) {
-	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768"}
+	c, _ := createClient(true)
+	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768", pactClient: c}
+	defer stubPorts()()
 	pact.Setup(true)
+
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
 	}
@@ -177,8 +181,11 @@ func TestPact_SetupWithMockServerPort(t *testing.T) {
 }
 
 func TestPact_SetupWithMockServerPortCSV(t *testing.T) {
-	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768,32769"}
+	c, _ := createClient(true)
+	defer stubPorts()()
+	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768,32769", pactClient: c}
 	pact.Setup(true)
+
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
 	}
@@ -189,6 +196,7 @@ func TestPact_SetupWithMockServerPortCSV(t *testing.T) {
 
 func TestPact_SetupWithMockServerPortRange(t *testing.T) {
 	c, _ := createClient(true)
+	defer stubPorts()()
 	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768-32770", pactClient: c}
 	pact.Setup(true)
 	if pact.Server == nil {
@@ -200,7 +208,9 @@ func TestPact_SetupWithMockServerPortRange(t *testing.T) {
 }
 
 func TestPact_Invalidrange(t *testing.T) {
-	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "abc-32770"}
+	c, _ := createClient(true)
+	defer stubPorts()()
+	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "abc-32770", pactClient: c}
 	pact.Setup(true)
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
@@ -212,6 +222,7 @@ func TestPact_Invalidrange(t *testing.T) {
 
 func TestPact_Teardown(t *testing.T) {
 	c, _ := createClient(true)
+	defer stubPorts()()
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 	pact.Setup(true)
 	pact.Teardown()
@@ -222,6 +233,7 @@ func TestPact_Teardown(t *testing.T) {
 
 func TestPact_VerifyProvider(t *testing.T) {
 	c, _ := createClient(true)
+	defer stubPorts()()
 
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
@@ -238,6 +250,7 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 	s := setupMockBroker(false)
 	defer s.Close()
 	c, _ := createClient(true)
+	defer stubPorts()()
 
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c, Provider: "bobby"}
 	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
@@ -270,6 +283,7 @@ func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 
 func TestPact_VerifyProviderFail(t *testing.T) {
 	c, _ := createClient(false)
+	defer stubPorts()()
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
@@ -316,4 +330,13 @@ func captureOutput(action func()) string {
 	os.Stderr = rescueStderr
 
 	return strings.TrimSpace(string(out))
+}
+
+func stubPorts() func() {
+	log.Println("Stubbing port timeout")
+	old := waitForPort
+	waitForPort = func(int, string, string, string) error {
+		return nil
+	}
+	return func() { waitForPort = old }
 }
