@@ -98,6 +98,7 @@ func (s *ServiceManager) List() map[int]*exec.Cmd {
 	return s.processes
 }
 
+// Command executes the command
 func (s *ServiceManager) Command() *exec.Cmd {
 	cmd := exec.Command(s.Cmd, s.Args...)
 	cmd.Env = s.Env
