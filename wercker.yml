@@ -12,6 +12,10 @@ build:
         code: |
           make bin
     - script:
+        name: install-cli-tools
+        code: |
+          ./scripts/install-cli-tools.sh
+    - script:
         name: test
         code: |
           make test
