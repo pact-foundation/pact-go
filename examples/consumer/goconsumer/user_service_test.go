@@ -24,9 +24,7 @@ var pact dsl.Pact
 var form url.Values
 var rr http.ResponseWriter
 var req *http.Request
-
-// var name = "Jean-Marie de La Beaujardière😀😍"
-var name = "billy"
+var name = "Jean-Marie de La Beaujardière😀😍"
 var like = dsl.Like
 var eachLike = dsl.EachLike
 var term = dsl.Term
@@ -79,7 +77,7 @@ func setup() {
 
 	// Login form values
 	form = url.Values{}
-	form.Add("username", "billy")
+	form.Add("username", name)
 	form.Add("password", "issilly")
 
 	// Create a request to pass to our handler.
