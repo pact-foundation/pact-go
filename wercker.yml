@@ -28,4 +28,5 @@ build:
         name: pact
         code: |
           export PATH=$WERCKER_ROOT/build/pact/bin:$PATH
+          export LANG=C.UTF-8
           ./scripts/pact.sh
