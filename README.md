@@ -452,7 +452,7 @@ Pact tests tend to be quite long, due to the need to be specific about request/r
 
 You have two options to achieve this feat:
 
-1. Set `PactFileWriteMode` to `"update"` when creating a `Pact` struct:
+1. Set `PactFileWriteMode` to `"merge"` when creating a `Pact` struct:
 
     This will allow you to have multiple independent tests for a given Consumer-Provider pair, without it clobbering previous interactions.
 
