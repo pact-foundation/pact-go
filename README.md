@@ -237,7 +237,7 @@ Here is the Provider test process broker down:
 1. Start your Provider API:
 
     You need to be able to first start your API in the background as part of your tests
-    before you can run the verification process. Here we create `startServer` which can be 
+    before you can run the verification process. Here we create `startServer` which can be
     started in its own goroutine:
 
     ```go
@@ -272,7 +272,7 @@ Here is the Provider test process broker down:
     ```
 
   Note that the server has a `/setup` endpoint that is given a `types.ProviderState` and allows the
-  verifier to setup any 
+  verifier to setup any
   [provider states](http://docs.pact.io/documentation/provider_states.html) before
   each test is run.
 
@@ -322,7 +322,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	```go
 	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
-		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},		
+		PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -333,7 +333,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	```go
 	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
-		BrokerURL:              "http://brokerHost",		
+		BrokerURL:              "http://brokerHost",
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -345,7 +345,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              "http://brokerHost",
-		Tags:                   []string{"latest", "sit4"},		
+		Tags:                   []string{"latest", "sit4"},
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -447,7 +447,7 @@ Pact tests tend to be quite long, due to the need to be specific about request/r
 
 You have two options to achieve this feat:
 
-1. Set `PactFileWriteMode` to `"update"` when creating a `Pact` struct:
+1. Set `PactFileWriteMode` to `"merge"` when creating a `Pact` struct:
 
     This will allow you to have multiple independent tests for a given Consumer-Provider pair, without it clobbering previous interactions.
 
