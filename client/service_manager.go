@@ -101,7 +101,10 @@ func (s *ServiceManager) List() map[int]*exec.Cmd {
 // Command executes the command
 func (s *ServiceManager) Command() *exec.Cmd {
 	cmd := exec.Command(s.Cmd, s.Args...)
-	cmd.Env = s.Env
+	env := os.Environ()
+	env = append(env, s.Env...)
+	cmd.Env = env
+
 	return cmd
 }
 
@@ -109,7 +112,9 @@ func (s *ServiceManager) Command() *exec.Cmd {
 func (s *ServiceManager) Start() *exec.Cmd {
 	log.Println("[DEBUG] starting service")
 	cmd := exec.Command(s.Cmd, s.Args...)
-	cmd.Env = s.Env
+	env := os.Environ()
+	env = append(env, s.Env...)
+	cmd.Env = env
 
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
