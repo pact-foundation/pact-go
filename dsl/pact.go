@@ -120,6 +120,10 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 		p.pactClient = client
 	}
 
+	if p.PactFileWriteMode == "" {
+		p.PactFileWriteMode = "overwrite"
+	}
+
 	// Need to predefine due to scoping
 	var port int
 	var perr error
@@ -145,6 +149,8 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 			p.Consumer,
 			"--provider",
 			p.Provider,
+			"--pact-file-write-mode",
+			p.PactFileWriteMode,
 		}
 
 		p.Server = p.pactClient.StartServer(args, port)
