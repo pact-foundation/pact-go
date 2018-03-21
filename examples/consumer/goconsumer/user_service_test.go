@@ -3,14 +3,17 @@ package goconsumer
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/dsl"
+	"github.com/pact-foundation/pact-go/types"
 )
 
 // Common test data
@@ -34,41 +37,41 @@ var commonHeaders = map[string]string{
 }
 
 // Use this to control the setup and teardown of Pact
-// func TestMain(m *testing.M) {
-// 	// Setup Pact and related test stuff
-// 	setup()
+func TestMain(m *testing.M) {
+	// Setup Pact and related test stuff
+	setup()
 
-// 	// Run all the tests
-// 	code := m.Run()
+	// Run all the tests
+	code := m.Run()
 
-// 	// Shutdown the Mock Service and Write pact files to disk
-// 	pact.WritePact()
-// 	pact.Teardown()
+	// Shutdown the Mock Service and Write pact files to disk
+	pact.WritePact()
+	pact.Teardown()
 
-// 	// Enable when running E2E/integration tests before a release
-// 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
-// 		var brokerHost = os.Getenv("PACT_BROKER_HOST")
+	// Enable when running E2E/integration tests before a release
+	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
+		var brokerHost = os.Getenv("PACT_BROKER_HOST")
 
-// 		// Publish the Pacts...
-// 		p := dsl.Publisher{}
-// 		err := p.Publish(types.PublishRequest{
-// 			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
-// 			PactBroker:      brokerHost,
-// 			ConsumerVersion: "1.0.0",
-// 			Tags:            []string{"latest", "sit4"},
-// 			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
-// 			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
-// 		})
+		// Publish the Pacts...
+		p := dsl.Publisher{}
+		err := p.Publish(types.PublishRequest{
+			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
+			PactBroker:      brokerHost,
+			ConsumerVersion: "1.0.1",
+			Tags:            []string{"latest", "sit4"},
+			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
+		})
 
-// 		if err != nil {
-// 			log.Println("ERROR: ", err)
-// 		}
-// 	} else {
-// 		log.Println("Skipping publishing")
-// 	}
+		if err != nil {
+			log.Println("ERROR: ", err)
+		}
+	} else {
+		log.Println("Skipping publishing")
+	}
 
-// 	os.Exit(code)
-// }
+	os.Exit(code)
+}
 
 // Setup common test data
 func setup() {
@@ -92,18 +95,15 @@ func setup() {
 func createPact() dsl.Pact {
 	pactDaemonPort := 6666
 	return dsl.Pact{
-		Port:              pactDaemonPort,
-		Consumer:          "billy",
-		Provider:          "bobby",
-		LogDir:            logDir,
-		PactDir:           pactDir,
-		PactFileWriteMode: "merge",
+		Port:     pactDaemonPort,
+		Consumer: "billy",
+		Provider: "bobby",
+		LogDir:   logDir,
+		PactDir:  pactDir,
 	}
 }
 
 func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
-	setup()
-
 	var testBillyExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
@@ -147,14 +147,9 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
-
-	// Shutdown the Mock Service and Write pact files to disk
-	pact.WritePact()
-	pact.Teardown()
 }
 
 func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
-	setup()
 	var testBillyDoesNotExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
@@ -187,14 +182,9 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
-
-	// Shutdown the Mock Service and Write pact files to disk
-	pact.WritePact()
-	pact.Teardown()
 }
 
 func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
-	setup()
 	var testBillyUnauthorized = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
@@ -227,7 +217,4 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
-	// Shutdown the Mock Service and Write pact files to disk
-	pact.WritePact()
-	pact.Teardown()
 }
