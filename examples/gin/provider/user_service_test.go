@@ -73,7 +73,7 @@ func TestPact_GinProvider(t *testing.T) {
 // This essentially mirrors the main.go file, with extra routes added.
 func startInstrumentedProvider() {
 	router := gin.Default()
-	router.POST("/users/login", UserLogin)
+	router.POST("/users/login/:id", UserLogin)
 	router.POST("/setup", providerStateSetup)
 
 	router.Run(fmt.Sprintf(":%d", port))

@@ -297,6 +297,7 @@ func TestPact_VerifyProviderFail(t *testing.T) {
 
 func TestPact_AddInteraction(t *testing.T) {
 	pact := &Pact{}
+	defer stubPorts()()
 
 	pact.
 		AddInteraction().

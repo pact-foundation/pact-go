@@ -8,7 +8,7 @@ import (
 )
 
 func TestMatcher_TermString(t *testing.T) {
-	expected := formatJSON(`
+	expected := formatJSON(MatcherString(`
 		{
 			"json_class": "Pact::Term",
 			"data": {
@@ -19,7 +19,7 @@ func TestMatcher_TermString(t *testing.T) {
 			    "s": "\\w+"
 			  }
 			}
-		}`)
+		}`))
 
 	match := formatJSON(Term("myawesomeword", `\\w+`))
 	if expected != match {
@@ -286,9 +286,15 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 }
 
 // Format a JSON document to make comparison easier.
-func formatJSON(object string) string {
+func formatJSON(object interface{}) interface{} {
 	var out bytes.Buffer
-	json.Indent(&out, []byte(object), "", "\t")
+	switch content := object.(type) {
+	case string:
+		json.Indent(&out, []byte(content), "", "\t")
+	case MatcherString:
+		json.Indent(&out, []byte(content), "", "\t")
+	}
+
 	return string(out.Bytes())
 }
 

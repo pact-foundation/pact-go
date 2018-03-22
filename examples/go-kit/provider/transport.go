@@ -31,7 +31,7 @@ func MakeHTTPHandler(ctx context.Context, s Service, logger log.Logger) http.Han
 	}
 	e := MakeServerEndpoints(s)
 
-	r.Methods("POST").Path("/users/login").Handler(httptransport.NewServer(
+	r.Methods("POST").Path("/users/login/{id}").Handler(httptransport.NewServer(
 		e.LoginEndpoint,
 		decodeUserRequest,
 		encodeResponse,

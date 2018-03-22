@@ -77,7 +77,7 @@ func TestPact_MuxProvider(t *testing.T) {
 // This essentially mirrors the main.go file, with extra routes added.
 func startInstrumentedProvider() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/users/login", UserLogin)
+	mux.HandleFunc("/users/login/", UserLogin)
 	mux.HandleFunc("/setup", providerStateSetupFunc)
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))

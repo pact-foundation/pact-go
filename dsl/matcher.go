@@ -25,8 +25,8 @@ func Like(content interface{}) string {
 
 // Term specifies that the matching should generate a value
 // and also match using a regular expression.
-func Term(generate string, matcher string) string {
-	return fmt.Sprintf(`
+func Term(generate string, matcher string) MatcherString {
+	return MatcherString(fmt.Sprintf(`
 		{
 			"json_class": "Pact::Term",
 			"data": {
@@ -37,5 +37,5 @@ func Term(generate string, matcher string) string {
 			    "s": "%s"
 			  }
 			}
-		}`, generate, matcher)
+		}`, generate, matcher))
 }

@@ -30,8 +30,8 @@ var eachLike = dsl.EachLike
 var term = dsl.Term
 var loginRequest = fmt.Sprintf(`{ "username":"%s", "password": "issilly" }`, name)
 
-var commonHeaders = map[string]string{
-	"Content-Type": "application/json; charset=utf-8",
+var commonHeaders = dsl.MatcherMap{
+	"Content-Type": dsl.Term("application/json; charset=utf-8", `application\/json`),
 }
 
 // Use this to control the setup and teardown of Pact
@@ -130,10 +130,12 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 		Given("User billy exists").
 		UponReceiving("A request to login with user 'billy'").
 		WithRequest(dsl.Request{
-			Method:  "POST",
-			Path:    "/users/login",
-			Body:    loginRequest,
-			Headers: commonHeaders,
+			Method: "POST",
+			Path:   dsl.Term("/users/login/1", "/users/login/[0-9]+"),
+			Query: dsl.MatcherMap{
+				"foo": dsl.Term("bar", "[a-zA-Z]+"),
+			},
+			Body: loginRequest,
 		}).
 		WillRespondWith(dsl.Response{
 			Status:  200,
@@ -167,9 +169,12 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 		UponReceiving("A request to login with user 'billy'").
 		WithRequest(dsl.Request{
 			Method:  "POST",
-			Path:    "/users/login",
+			Path:    "/users/login/10",
 			Body:    loginRequest,
 			Headers: commonHeaders,
+			Query: dsl.MatcherMap{
+				"foo": "anything",
+			},
 		}).
 		WillRespondWith(dsl.Response{
 			Status:  404,
@@ -202,7 +207,7 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 		UponReceiving("A request to login with user 'billy'").
 		WithRequest(dsl.Request{
 			Method:  "POST",
-			Path:    "/users/login",
+			Path:    "/users/login/10",
 			Body:    loginRequest,
 			Headers: commonHeaders,
 		}).
