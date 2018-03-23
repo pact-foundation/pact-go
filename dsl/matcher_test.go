@@ -10,18 +10,18 @@ import (
 func TestMatcher_TermString(t *testing.T) {
 	expected := formatJSON(MatcherString(`
 		{
-			"json_class": "Pact::Term",
-			"data": {
-			  "generate": "myawesomeword",
+      "data": {
+        "generate": "myawesomeword",
 			  "matcher": {
-			    "json_class": "Regexp",
+          "json_class": "Regexp",
 			    "o": 0,
 			    "s": "\\w+"
 			  }
-			}
+			},
+      "json_class": "Pact::Term"
 		}`))
 
-	match := formatJSON(Term("myawesomeword", `\\w+`))
+	match := formatJSON(Term("myawesomeword", `\w+`))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -30,8 +30,8 @@ func TestMatcher_TermString(t *testing.T) {
 func TestMatcher_LikeBasicString(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": "myspecialvalue"
+      "contents": "myspecialvalue",
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
 	match := formatJSON(Like(`"myspecialvalue"`))
@@ -43,8 +43,23 @@ func TestMatcher_LikeBasicString(t *testing.T) {
 func TestMatcher_LikeAsObject(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": {"baz":"bat"}
+      "contents": {"baz":"bat"},
+		  "json_class": "Pact::SomethingLike"
+		}`)
+
+	match := formatJSON(Like(map[string]string{
+		"baz": "bat",
+	}))
+	if expected != match {
+		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	}
+}
+
+func TestMatcher_LikeAsObjectString(t *testing.T) {
+	expected := formatJSON(`
+		{
+      "contents": {"baz":"bat"},
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
 	match := formatJSON(Like(`{"baz":"bat"}`))
@@ -56,11 +71,11 @@ func TestMatcher_LikeAsObject(t *testing.T) {
 func TestMatcher_LikeNumber(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": 37
+		  "contents": 42,
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
-	match := formatJSON(Like(37))
+	match := formatJSON(Like(42))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -69,11 +84,11 @@ func TestMatcher_LikeNumber(t *testing.T) {
 func TestMatcher_LikeNumberAsString(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": 37
+		  "contents": 42,
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
-	match := formatJSON(Like("37"))
+	match := formatJSON(Like("42"))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -82,26 +97,25 @@ func TestMatcher_LikeNumberAsString(t *testing.T) {
 func TestMatcher_EachLikeNumber(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": 42,
 		  "json_class": "Pact::ArrayLike",
-		  "contents": 37,
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike(37, 1))
+	match := formatJSON(EachLike(42, 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
 }
-
 func TestMatcher_EachLikeNumberAsString(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": 42,
 		  "json_class": "Pact::ArrayLike",
-		  "contents": 37,
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike("37", 1))
+	match := formatJSON(EachLike("42", 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -110,8 +124,8 @@ func TestMatcher_EachLikeNumberAsString(t *testing.T) {
 func TestMatcher_EachLikeString(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::ArrayLike",
 		  "contents": "someword",
+		  "json_class": "Pact::ArrayLike",
 		  "min": 7
 		}`)
 
@@ -124,8 +138,24 @@ func TestMatcher_EachLikeString(t *testing.T) {
 func TestMatcher_EachLikeObject(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": {"somekey":"someval"},
 		  "json_class": "Pact::ArrayLike",
+		  "min": 3
+		}`)
+
+	match := formatJSON(EachLike(map[string]string{
+		"somekey": "someval",
+	}, 3))
+	if expected != match {
+		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	}
+}
+
+func TestMatcher_EachLikeObjectAsString(t *testing.T) {
+	expected := formatJSON(`
+		{
 		  "contents": {"somekey":"someval"},
+		  "json_class": "Pact::ArrayLike",
 		  "min": 3
 		}`)
 
@@ -138,8 +168,22 @@ func TestMatcher_EachLikeObject(t *testing.T) {
 func TestMatcher_EachLikeArray(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": [1,2,3],
 		  "json_class": "Pact::ArrayLike",
+		  "min": 1
+		}`)
+
+	match := formatJSON(EachLike([]int{1, 2, 3}, 1))
+	if expected != match {
+		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	}
+}
+
+func TestMatcher_EachLikeArrayString(t *testing.T) {
+	expected := formatJSON(`
+		{
 		  "contents": [1,2,3],
+		  "json_class": "Pact::ArrayLike",
 		  "min": 1
 		}`)
 
@@ -152,13 +196,38 @@ func TestMatcher_EachLikeArray(t *testing.T) {
 func TestMatcher_NestLikeInEachLike(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::ArrayLike",
-		  "contents": {
-		    "id": {
-		      "json_class": "Pact::SomethingLike",
-		      "contents": 10
+      "contents": {
+        "id": {
+          "contents": 10,
+		      "json_class": "Pact::SomethingLike"
 		    }
 		  },
+      "json_class": "Pact::ArrayLike",
+		  "min": 1
+		}`)
+
+	match := formatJSON(EachLike(map[string]interface{}{
+		"id": Like(10),
+		// "id": map[string]interface{}{
+		// 	"contents":   10,
+		// 	"json_class": "Pact::SomethingLike",
+		// },
+	}, 1))
+
+	if expected != match {
+		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	}
+}
+func TestMatcher_NestLikeInEachLikeString(t *testing.T) {
+	expected := formatJSON(`
+		{
+		  "contents": {
+		    "id": {
+		      "contents": 10,
+		      "json_class": "Pact::SomethingLike"
+		    }
+      },
+      "json_class": "Pact::ArrayLike",
 		  "min": 1
 		}`)
 
@@ -172,10 +241,8 @@ func TestMatcher_NestLikeInEachLike(t *testing.T) {
 func TestMatcher_NestTermInEachLike(t *testing.T) {
 	expected := formatJSON(`
 		{
-	    "json_class": "Pact::ArrayLike",
 	    "contents": {
 	      "colour": {
-	        "json_class": "Pact::Term",
 	        "data": {
 	          "generate": "red",
 	          "matcher": {
@@ -183,9 +250,11 @@ func TestMatcher_NestTermInEachLike(t *testing.T) {
 	            "o": 0,
 	            "s": "red|green"
 	          }
-	        }
+          },
+          "json_class": "Pact::Term"
 	      }
-	    },
+      },
+      "json_class": "Pact::ArrayLike",
 	    "min": 1
 	  }`)
 
@@ -203,12 +272,12 @@ func TestMatcher_NestTermInEachLike(t *testing.T) {
 func TestMatcher_NestedEachLike(t *testing.T) {
 	expected := formatJSON(`
 		{
-	    "json_class": "Pact::ArrayLike",
-	    "contents": {
-	      "json_class": "Pact::ArrayLike",
+      "contents": {
 	      "contents": "blue",
+        "json_class": "Pact::ArrayLike",
 	      "min": 1
 	    },
+      "json_class": "Pact::ArrayLike",
 	    "min": 1
 	  }`)
 
@@ -224,42 +293,42 @@ func TestMatcher_NestedEachLike(t *testing.T) {
 
 func TestMatcher_NestAllTheThings(t *testing.T) {
 	expected := formatJSON(`{
-					"json_class": "Pact::ArrayLike",
 					"contents": {
-						"json_class": "Pact::ArrayLike",
 						"contents": {
-							"size": {
-								"json_class": "Pact::SomethingLike",
-								"contents": 10
-							},
 							"colour": {
-								"json_class": "Pact::Term",
-								"data": {
-									"generate": "red",
+                "data": {
+                  "generate": "red",
 									"matcher": {
-										"json_class": "Regexp",
+                    "json_class": "Regexp",
 										"o": 0,
 										"s": "red|green|blue"
 									}
-								}
+								},
+                "json_class": "Pact::Term"
+              },
+							"size": {
+                "contents": 10,
+								"json_class": "Pact::SomethingLike"
 							},
 							"tag": {
-								"json_class": "Pact::ArrayLike",
-								"contents": [
-									{
-										"json_class": "Pact::SomethingLike",
-										"contents": "jumper"
+                "contents": [
+                  {
+                    "contents": "jumper",
+                    "json_class": "Pact::SomethingLike"
 									},
 									{
-										"json_class": "Pact::SomethingLike",
-										"contents": "shirt"
+                    "contents": "shirt",
+                    "json_class": "Pact::SomethingLike"
 									}
-								],
+                ],
+                "json_class": "Pact::ArrayLike",
 								"min": 2
 							}
-						},
+            },
+            "json_class": "Pact::ArrayLike",
 						"min": 1
-					},
+          },
+          "json_class": "Pact::ArrayLike",
 					"min": 1
 				}`)
 
@@ -303,39 +372,49 @@ func ExampleLike_string() {
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::SomethingLike",
-	//	"contents": "myspecialvalue"
+	//	"contents": "myspecialvalue",
+	//	"json_class": "Pact::SomethingLike"
 	//}
 }
 
 func ExampleLike_object() {
+	match := Like(map[string]string{"baz": "bat"})
+	fmt.Println(formatJSON(match))
+	// Output:
+	//{
+	//	"contents": {
+	//		"baz": "bat"
+	//	},
+	//	"json_class": "Pact::SomethingLike"
+	//}
+}
+func ExampleLike_objectString() {
 	match := Like(`{"baz":"bat"}`)
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::SomethingLike",
 	//	"contents": {
 	//		"baz": "bat"
-	//	}
+	//	},
+	//	"json_class": "Pact::SomethingLike"
 	//}
 }
 
 func ExampleLike_number() {
-	match := Like(37)
+	match := Like(42)
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::SomethingLike",
-	//	"contents": 37
+	//	"contents": 42,
+	//	"json_class": "Pact::SomethingLike"
 	//}
 }
 
 func ExampleTerm() {
-	match := Term("myawesomeword", `\\w+`)
+	match := Term("myawesomeword", `\w+`)
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::Term",
 	//	"data": {
 	//		"generate": "myawesomeword",
 	//		"matcher": {
@@ -343,26 +422,27 @@ func ExampleTerm() {
 	//			"o": 0,
 	//			"s": "\\w+"
 	//		}
-	//	}
+	//	},
+	//	"json_class": "Pact::Term"
 	//}
 }
 
 func ExampleEachLike() {
-	match := EachLike(`[1,2,3]`, 1)
+	match := EachLike([]int{1, 2, 3}, 1)
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::ArrayLike",
 	//	"contents": [
 	//		1,
 	//		2,
 	//		3
 	//	],
+	//	"json_class": "Pact::ArrayLike",
 	//	"min": 1
 	//}
 }
 
-func ExampleEachLike_nested() {
+func E_xampleEachLike_nested() {
 	jumper := Like(`"jumper"`)
 	shirt := Like(`"shirt"`)
 	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
@@ -381,43 +461,43 @@ func ExampleEachLike_nested() {
 		1)
 	fmt.Println(formatJSON(match))
 	// Output:
-	//{
-	//	"json_class": "Pact::ArrayLike",
-	//	"contents": {
-	//		"json_class": "Pact::ArrayLike",
-	//		"contents": {
-	//			"size": {
-	//				"json_class": "Pact::SomethingLike",
-	//				"contents": 10
-	//			},
-	//			"colour": {
-	//				"json_class": "Pact::Term",
-	//				"data": {
-	//					"generate": "red",
-	//					"matcher": {
-	//						"json_class": "Regexp",
-	//						"o": 0,
-	//						"s": "red|green|blue"
-	//					}
-	//				}
-	//			},
-	//			"tag": {
-	//				"json_class": "Pact::ArrayLike",
-	//				"contents": [
-	//					{
-	//						"json_class": "Pact::SomethingLike",
-	//						"contents": "jumper"
-	//					},
-	//					{
-	//						"json_class": "Pact::SomethingLike",
-	//						"contents": "shirt"
-	//					}
-	//				],
-	//				"min": 2
-	//			}
-	//		},
-	//		"min": 1
-	//	},
-	//	"min": 1
-	//}
+	// {
+	//   "contents": {
+	//     "contents": {
+	//       "colour": {
+	//         "data": {
+	//           "generate": "%s",
+	//           "matcher": {
+	//             "json_class": "Regexp",
+	//             "o": 0,
+	//             "s": "red"
+	//           }
+	//         },
+	//         "json_class": "Pact::Term"
+	//       },
+	//       "size": {
+	//         "contents": 10,
+	//         "json_class": "Pact::SomethingLike"
+	//       },
+	//       "tag": {
+	//         "contents": [
+	//           {
+	//             "contents": "jumper",
+	//             "json_class": "Pact::SomethingLike"
+	//           },
+	//           {
+	//             "contents": "shirt",
+	//             "json_class": "Pact::SomethingLike"
+	//           }
+	//         ],
+	//         "json_class": "Pact::ArrayLike",
+	//         "min": 2
+	//       }
+	//     },
+	//     "json_class": "Pact::ArrayLike",
+	//     "min": 1
+	//   },
+	//   "json_class": "Pact::ArrayLike",
+	//   "min": 1
+	// }
 }

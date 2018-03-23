@@ -60,24 +60,28 @@ func (p *Interaction) WillRespondWith(response Response) *Interaction {
 	// Need to fix any weird JSON marshalling issues with the body Here
 	// If body is a string, not an object, we need to put it back into an object
 	// so that it's not double encoded
-	switch content := response.Body.(type) {
-	case string:
-		p.Response.Body = toObject([]byte(content))
-	default:
-		// leave alone
-	}
+	p.Response.Body = toObject(response.Body)
 
 	return p
 }
 
 // Takes a string body and converts it to an interface{} representation.
-func toObject(content []byte) interface{} {
-	var obj interface{}
-	err := json.Unmarshal(content, &obj)
-	if err != nil {
-		log.Println("[DEBUG] interaction: error unmarshaling object into string:", err.Error())
-		return string(content)
+func toObject(stringOrObject interface{}) interface{} {
+
+	switch content := stringOrObject.(type) {
+	case string:
+		var obj interface{}
+		err := json.Unmarshal([]byte(content), &obj)
+
+		if err != nil {
+			log.Println("[DEBUG] interaction: error unmarshaling object into string:", err.Error())
+			return stringOrObject
+		}
+
+		return obj
+	default:
+		// leave alone
 	}
 
-	return obj
+	return stringOrObject
 }
