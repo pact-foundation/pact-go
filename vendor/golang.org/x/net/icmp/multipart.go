@@ -10,22 +10,14 @@ import "golang.org/x/net/internal/iana"
 // exts as extensions, and returns a required length for message body
 // and a required length for a padded original datagram in wire
 // format.
-<<<<<<< HEAD
-func multipartMessageBodyDataLen(proto int, b []byte, exts []Extension) (bodyLen, dataLen int) {
-=======
 func multipartMessageBodyDataLen(proto int, withOrigDgram bool, b []byte, exts []Extension) (bodyLen, dataLen int) {
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 	for _, ext := range exts {
 		bodyLen += ext.Len(proto)
 	}
 	if bodyLen > 0 {
-<<<<<<< HEAD
-		dataLen = multipartMessageOrigDatagramLen(proto, b)
-=======
 		if withOrigDgram {
 			dataLen = multipartMessageOrigDatagramLen(proto, b)
 		}
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 		bodyLen += 4 // length of extension header
 	} else {
 		dataLen = len(b)
@@ -60,13 +52,8 @@ func multipartMessageOrigDatagramLen(proto int, b []byte) int {
 // marshalMultipartMessageBody takes data as an original datagram and
 // exts as extesnsions, and returns a binary encoding of message body.
 // It can be used for non-multipart message bodies when exts is nil.
-<<<<<<< HEAD
-func marshalMultipartMessageBody(proto int, data []byte, exts []Extension) ([]byte, error) {
-	bodyLen, dataLen := multipartMessageBodyDataLen(proto, data, exts)
-=======
 func marshalMultipartMessageBody(proto int, withOrigDgram bool, data []byte, exts []Extension) ([]byte, error) {
 	bodyLen, dataLen := multipartMessageBodyDataLen(proto, withOrigDgram, data, exts)
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 	b := make([]byte, 4+bodyLen)
 	copy(b[4:], data)
 	off := dataLen + 4
@@ -86,26 +73,16 @@ func marshalMultipartMessageBody(proto int, withOrigDgram bool, data []byte, ext
 					return nil, err
 				}
 				off += ext.Len(proto)
-<<<<<<< HEAD
-=======
 			case *InterfaceIdent:
 				if err := ext.marshal(proto, b[off:]); err != nil {
 					return nil, err
 				}
 				off += ext.Len(proto)
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 			}
 		}
 		s := checksum(b[dataLen+4:])
 		b[dataLen+4+2] ^= byte(s)
 		b[dataLen+4+3] ^= byte(s >> 8)
-<<<<<<< HEAD
-		switch proto {
-		case iana.ProtocolICMP:
-			b[1] = byte(dataLen / 4)
-		case iana.ProtocolIPv6ICMP:
-			b[0] = byte(dataLen / 8)
-=======
 		if withOrigDgram {
 			switch proto {
 			case iana.ProtocolICMP:
@@ -113,7 +90,6 @@ func marshalMultipartMessageBody(proto int, withOrigDgram bool, data []byte, ext
 			case iana.ProtocolIPv6ICMP:
 				b[0] = byte(dataLen / 8)
 			}
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 		}
 	}
 	return b, nil
@@ -121,11 +97,7 @@ func marshalMultipartMessageBody(proto int, withOrigDgram bool, data []byte, ext
 
 // parseMultipartMessageBody parses b as either a non-multipart
 // message body or a multipart message body.
-<<<<<<< HEAD
-func parseMultipartMessageBody(proto int, b []byte) ([]byte, []Extension, error) {
-=======
 func parseMultipartMessageBody(proto int, typ Type, b []byte) ([]byte, []Extension, error) {
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 	var l int
 	switch proto {
 	case iana.ProtocolICMP:
@@ -136,14 +108,6 @@ func parseMultipartMessageBody(proto int, typ Type, b []byte) ([]byte, []Extensi
 	if len(b) == 4 {
 		return nil, nil, nil
 	}
-<<<<<<< HEAD
-	exts, l, err := parseExtensions(b[4:], l)
-	if err != nil {
-		l = len(b) - 4
-	}
-	data := make([]byte, l)
-	copy(data, b[4:])
-=======
 	exts, l, err := parseExtensions(typ, b[4:], l)
 	if err != nil {
 		l = len(b) - 4
@@ -153,6 +117,5 @@ func parseMultipartMessageBody(proto int, typ Type, b []byte) ([]byte, []Extensi
 		data = make([]byte, l)
 		copy(data, b[4:])
 	}
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 	return data, exts, nil
 }

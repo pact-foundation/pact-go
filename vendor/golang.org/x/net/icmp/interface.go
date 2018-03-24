@@ -14,12 +14,6 @@ import (
 
 const (
 	classInterfaceInfo = 2
-<<<<<<< HEAD
-
-	afiIPv4 = 1
-	afiIPv6 = 2
-=======
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 )
 
 const (
@@ -130,19 +124,11 @@ func (ifi *InterfaceInfo) parseIfIndex(b []byte) ([]byte, error) {
 func (ifi *InterfaceInfo) marshalIPAddr(proto int, b []byte) []byte {
 	switch proto {
 	case iana.ProtocolICMP:
-<<<<<<< HEAD
-		binary.BigEndian.PutUint16(b[:2], uint16(afiIPv4))
-		copy(b[4:4+net.IPv4len], ifi.Addr.IP.To4())
-		b = b[4+net.IPv4len:]
-	case iana.ProtocolIPv6ICMP:
-		binary.BigEndian.PutUint16(b[:2], uint16(afiIPv6))
-=======
 		binary.BigEndian.PutUint16(b[:2], uint16(iana.AddrFamilyIPv4))
 		copy(b[4:4+net.IPv4len], ifi.Addr.IP.To4())
 		b = b[4+net.IPv4len:]
 	case iana.ProtocolIPv6ICMP:
 		binary.BigEndian.PutUint16(b[:2], uint16(iana.AddrFamilyIPv6))
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 		copy(b[4:4+net.IPv6len], ifi.Addr.IP.To16())
 		b = b[4+net.IPv6len:]
 	}
@@ -156,22 +142,14 @@ func (ifi *InterfaceInfo) parseIPAddr(b []byte) ([]byte, error) {
 	afi := int(binary.BigEndian.Uint16(b[:2]))
 	b = b[4:]
 	switch afi {
-<<<<<<< HEAD
-	case afiIPv4:
-=======
 	case iana.AddrFamilyIPv4:
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 		if len(b) < net.IPv4len {
 			return nil, errMessageTooShort
 		}
 		ifi.Addr.IP = make(net.IP, net.IPv4len)
 		copy(ifi.Addr.IP, b[:net.IPv4len])
 		b = b[net.IPv4len:]
-<<<<<<< HEAD
-	case afiIPv6:
-=======
 	case iana.AddrFamilyIPv6:
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 		if len(b) < net.IPv6len {
 			return nil, errMessageTooShort
 		}
@@ -253,8 +231,6 @@ func parseInterfaceInfo(b []byte) (Extension, error) {
 	}
 	return ifi, nil
 }
-<<<<<<< HEAD
-=======
 
 const (
 	classInterfaceIdent    = 3
@@ -344,4 +320,3 @@ func parseInterfaceIdent(b []byte) (Extension, error) {
 	}
 	return ifi, nil
 }
->>>>>>> feat(matchers): add more matchers for more fun 🎉

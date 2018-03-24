@@ -31,11 +31,7 @@ func (p *Echo) Marshal(proto int) ([]byte, error) {
 }
 
 // parseEcho parses b as an ICMP echo request or reply message body.
-<<<<<<< HEAD
-func parseEcho(proto int, b []byte) (MessageBody, error) {
-=======
 func parseEcho(proto int, _ Type, b []byte) (MessageBody, error) {
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 	bodyLen := len(b)
 	if bodyLen < 4 {
 		return nil, errMessageTooShort
@@ -47,8 +43,6 @@ func parseEcho(proto int, _ Type, b []byte) (MessageBody, error) {
 	}
 	return p, nil
 }
-<<<<<<< HEAD
-=======
 
 // An ExtendedEchoRequest represents an ICMP extended echo request
 // message body.
@@ -161,4 +155,3 @@ func parseExtendedEchoReply(proto int, _ Type, b []byte) (MessageBody, error) {
 	}
 	return p, nil
 }
->>>>>>> feat(matchers): add more matchers for more fun 🎉

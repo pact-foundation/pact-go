@@ -4,16 +4,12 @@
 
 package icmp
 
-<<<<<<< HEAD
-import "encoding/binary"
-=======
 import (
 	"encoding/binary"
 
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 )
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 
 // An Extension represents an ICMP extension.
 type Extension interface {
@@ -47,11 +43,7 @@ func validExtensionHeader(b []byte) bool {
 // It will return a list of ICMP extensions and an adjusted length
 // attribute that represents the length of the padded original
 // datagram field. Otherwise, it returns an error.
-<<<<<<< HEAD
-func parseExtensions(b []byte, l int) ([]Extension, int, error) {
-=======
 func parseExtensions(typ Type, b []byte, l int) ([]Extension, int, error) {
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 	// Still a lot of non-RFC 4884 compliant implementations are
 	// out there. Set the length attribute l to 128 when it looks
 	// inappropriate for backwards compatibility.
@@ -61,22 +53,6 @@ func parseExtensions(typ Type, b []byte, l int) ([]Extension, int, error) {
 	// header.
 	//
 	// See RFC 4884 for further information.
-<<<<<<< HEAD
-	if 128 > l || l+8 > len(b) {
-		l = 128
-	}
-	if l+8 > len(b) {
-		return nil, -1, errNoExtension
-	}
-	if !validExtensionHeader(b[l:]) {
-		if l == 128 {
-			return nil, -1, errNoExtension
-		}
-		l = 128
-		if !validExtensionHeader(b[l:]) {
-			return nil, -1, errNoExtension
-		}
-=======
 	switch typ {
 	case ipv4.ICMPTypeExtendedEchoRequest, ipv6.ICMPTypeExtendedEchoRequest:
 		if len(b) < 8 || !validExtensionHeader(b) {
@@ -99,7 +75,6 @@ func parseExtensions(typ Type, b []byte, l int) ([]Extension, int, error) {
 				return nil, -1, errNoExtension
 			}
 		}
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 	}
 	var exts []Extension
 	for b = b[l+4:]; len(b) >= 4; {
@@ -120,15 +95,12 @@ func parseExtensions(typ Type, b []byte, l int) ([]Extension, int, error) {
 				return nil, -1, err
 			}
 			exts = append(exts, ext)
-<<<<<<< HEAD
-=======
 		case classInterfaceIdent:
 			ext, err := parseInterfaceIdent(b[:ol])
 			if err != nil {
 				return nil, -1, err
 			}
 			exts = append(exts, ext)
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 		}
 		b = b[ol:]
 	}

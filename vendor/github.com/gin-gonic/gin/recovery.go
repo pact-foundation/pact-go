@@ -12,10 +12,7 @@ import (
 	"log"
 	"net/http/httputil"
 	"runtime"
-<<<<<<< HEAD
-=======
 	"time"
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 )
 
 var (
@@ -42,11 +39,7 @@ func RecoveryWithWriter(out io.Writer) HandlerFunc {
 				if logger != nil {
 					stack := stack(3)
 					httprequest, _ := httputil.DumpRequest(c.Request, false)
-<<<<<<< HEAD
-					logger.Printf("[Recovery] panic recovered:\n%s\n%s\n%s%s", string(httprequest), err, stack, reset)
-=======
 					logger.Printf("[Recovery] %s panic recovered:\n%s\n%s\n%s%s", timeFormat(time.Now()), string(httprequest), err, stack, reset)
->>>>>>> feat(matchers): add more matchers for more fun 🎉
 				}
 				c.AbortWithStatus(500)
 			}
@@ -115,11 +108,8 @@ func function(pc uintptr) []byte {
 	name = bytes.Replace(name, centerDot, dot, -1)
 	return name
 }
-<<<<<<< HEAD
-=======
 
 func timeFormat(t time.Time) string {
 	var timeString = t.Format("2006/01/02 - 15:04:05")
 	return timeString
 }
->>>>>>> feat(matchers): add more matchers for more fun 🎉
