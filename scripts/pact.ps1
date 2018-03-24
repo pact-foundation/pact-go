@@ -40,12 +40,11 @@ Write-Host "    Moving binaries into position"
 Get-ChildItem $pactDir\pact
 
 Write-Host "--> Adding pact binaries to path"
-$pactBinariesPath = $pactDir\pact\pact\bin
+$pactBinariesPath = "$pactDir\pact\bin"
 $env:PATH += ";$pactBinariesPath"
 Write-Host $env:PATH
 Get-ChildItem $pactBinariesPath
-pact-message.bat version
-pact-message version
+pact-broker version
 
 Write-Host "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
