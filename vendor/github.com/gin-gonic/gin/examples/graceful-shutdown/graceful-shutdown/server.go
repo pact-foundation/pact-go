@@ -27,8 +27,13 @@ func main() {
 
 	go func() {
 		// service connections
+<<<<<<< HEAD
 		if err := srv.ListenAndServe(); err != nil {
 			log.Printf("listen: %s\n", err)
+=======
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+>>>>>>> feat(matchers): add more matchers for more fun 🎉
 		}
 	}()
 

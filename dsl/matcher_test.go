@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
+	"regexp"
 	"testing"
 )
 
@@ -331,8 +333,6 @@ func formatJSON(object interface{}) interface{} {
 	switch content := object.(type) {
 	case string:
 		json.Indent(&out, []byte(content), "", "\t")
-	// case StringMatcher:
-	// 	json.Indent(&out, []byte(content), "", "\t")
 	default:
 		jsonString, err := json.Marshal(object)
 		if err != nil {
@@ -342,6 +342,151 @@ func formatJSON(object interface{}) interface{} {
 	}
 
 	return string(out.Bytes())
+}
+
+// Instrument the Matcher type to be able to assert the
+// values and regexs contained within!
+func (m Matcher) getValue() interface{} {
+	mString := objectToString(m)
+
+	// try like
+	likeValue := &like{}
+	err := json.Unmarshal([]byte(mString), likeValue)
+	if err == nil && likeValue.Contents != nil {
+		return likeValue.Contents
+	}
+
+	// try term
+	termValue := &term{}
+	err = json.Unmarshal([]byte(mString), termValue)
+	if err == nil && termValue != nil {
+		return termValue.Data.Generate
+	}
+
+	return "no value found"
+}
+
+func TestMatcher_SugarMatchers(t *testing.T) {
+
+	type matcherTestCase struct {
+		matcher  Matcher
+		testCase func(val interface{}) error
+	}
+	matchers := map[string]matcherTestCase{
+		"HexValue": matcherTestCase{
+			matcher: HexValue(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "3F" {
+					err = fmt.Errorf("want '3F', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Identifier": matcherTestCase{
+			matcher: Identifier(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
+				if !valid {
+					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Integer": matcherTestCase{
+			matcher: Integer(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
+				if !valid {
+					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"IPAddress": matcherTestCase{
+			matcher: IPAddress(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "127.0.0.1" {
+					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"IPv4Address": matcherTestCase{
+			matcher: IPv4Address(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "127.0.0.1" {
+					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"IPv6Address": matcherTestCase{
+			matcher: IPv6Address(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "::ffff:192.0.2.128" {
+					err = fmt.Errorf("want '::ffff:192.0.2.128', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Decimal": matcherTestCase{
+			matcher: Decimal(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(float64)
+				if !valid {
+					err = fmt.Errorf("want float64, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Timestamp": matcherTestCase{
+			matcher: Timestamp(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(string)
+				if !valid {
+					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Date": matcherTestCase{
+			matcher: Date(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(string)
+				if !valid {
+					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Time": matcherTestCase{
+			matcher: Time(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(string)
+				if !valid {
+					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"UUID": matcherTestCase{
+			matcher: UUID(),
+			testCase: func(v interface{}) (err error) {
+				match, err := regexp.MatchString(uuid, v.(string))
+
+				if !match {
+					err = fmt.Errorf("want string, got '%v'. Err: %v", v, err)
+				}
+				return
+			},
+		},
+	}
+	var err error
+	for k, v := range matchers {
+		if err = v.testCase(v.matcher.getValue()); err != nil {
+			t.Fatalf("error validating matcher '%s': %v", k, err)
+		}
+	}
 }
 
 func ExampleLike_string() {

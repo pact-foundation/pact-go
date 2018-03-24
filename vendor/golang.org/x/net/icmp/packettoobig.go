@@ -29,7 +29,11 @@ func (p *PacketTooBig) Marshal(proto int) ([]byte, error) {
 }
 
 // parsePacketTooBig parses b as an ICMP packet too big message body.
+<<<<<<< HEAD
 func parsePacketTooBig(proto int, b []byte) (MessageBody, error) {
+=======
+func parsePacketTooBig(proto int, _ Type, b []byte) (MessageBody, error) {
+>>>>>>> feat(matchers): add more matchers for more fun 🎉
 	bodyLen := len(b)
 	if bodyLen < 4 {
 		return nil, errMessageTooShort
