@@ -25,7 +25,7 @@ build:
         name: Publish Coveralls
         code: goveralls -service="wercker.com" -coverprofile=profile.cov -repotoken $COVERALLS_TOKEN
     - script:
-        name: pact
+        name: integration test
         code: |
           export PATH=$WERCKER_ROOT/build/pact/bin:$PATH
           export LANG=C.UTF-8
