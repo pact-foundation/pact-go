@@ -37,11 +37,10 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("$zip", $pactDir)
 
 Write-Host "    Moving binaries into position"
-Get-ChildItem $pactDir
 Get-ChildItem $pactDir/pact
 
 Write-Host "--> Adding pact binaries to path"
-$env:PATH = "$env:PATH;$pactDir/pact/bin"
+$env:PATH = "$env:PATH;$pactDir/pact/pact/bin"
 
 Write-Host "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
