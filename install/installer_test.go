@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TODO: mock out the file system
 func TestInstaller_CheckVersion(t *testing.T) {
 	i := Installer{}
 	err := i.CheckVersion("pact-mock-service", "2.7.3")

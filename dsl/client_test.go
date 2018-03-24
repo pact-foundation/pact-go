@@ -265,11 +265,3 @@ func Test_sanitiseRubyResponse(t *testing.T) {
 		}
 	}
 }
-
-func stubPorts() func() {
-	old := waitForPort
-	waitForPort = func(int, string, string, string) error {
-		return nil
-	}
-	return func() { waitForPort = old }
-}
