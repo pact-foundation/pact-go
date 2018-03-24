@@ -37,11 +37,14 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("$zip", $pactDir)
 
 Write-Host "    Moving binaries into position"
-Get-ChildItem $pactDir/pact
+Get-ChildItem $pactDir\pact
 
 Write-Host "--> Adding pact binaries to path"
-$env:PATH = "$env:PATH;$pactDir/pact/pact/bin"
+$pactBinariesPath = $pactDir\pact\pact\bin
+$env:PATH += ";$pactBinariesPath"
 Write-Host $env:PATH
+Get-ChildItem $pactBinariesPath
+pact-message.bat version
 pact-message version
 
 Write-Host "--> Running tests"
