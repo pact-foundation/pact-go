@@ -5,47 +5,29 @@ import (
 	"log"
 )
 
-// type Matcher interface{}
-
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater
-func EachLike(content interface{}, minRequired int) string {
-	// TODO: should we just be marshalling these things as map[string]interface{} JSON objects anyway?
-	//       this might remove the need for this ugly string/object combination
-	// TODO: if content is a string, it should probably be immediately converted to an object
-	// TODO: the above seems to have been fixed, but perhaps best to just _only_ allow objects
-	//       instead of allowing string and other nonsense??
-	return objectToString(map[string]interface{}{
+func EachLike(content interface{}, minRequired int) Matcher {
+	return Matcher{
 		"json_class": "Pact::ArrayLike",
 		"contents":   toObject(content),
 		"min":        minRequired,
-	})
-	// return fmt.Sprintf(`
-	// 	{
-	// 	  "json_class": "Pact::ArrayLike",
-	// 	  "contents": %v,
-	// 	  "min": %d
-	// 	}`, objectToString(content), minRequired)
+	}
 }
 
 // Like specifies that the given content type should be matched based
 // on type (int, string etc.) instead of a verbatim match.
-func Like(content interface{}) string {
-	return objectToString(map[string]interface{}{
+func Like(content interface{}) Matcher {
+	return Matcher{
 		"json_class": "Pact::SomethingLike",
 		"contents":   toObject(content),
-	})
-	// return fmt.Sprintf(`
-	// 	{
-	// 	  "json_class": "Pact::SomethingLike",
-	// 	  "contents": %v
-	// 	}`, objectToString(content))
+	}
 }
 
 // Term specifies that the matching should generate a value
 // and also match using a regular expression.
-func Term(generate string, matcher string) MatcherString {
-	return MatcherString(objectToString(map[string]interface{}{
+func Term(generate string, matcher string) Matcher {
+	return Matcher{
 		"json_class": "Pact::Term",
 		"data": map[string]interface{}{
 			"generate": toObject(generate),
@@ -55,21 +37,93 @@ func Term(generate string, matcher string) MatcherString {
 				"s":          toObject(matcher),
 			},
 		},
-	}))
+	}
+}
+
+// Regex is a more appropriately named alias for the "Term" matcher
+var Regex = Term
+
+// StringMatcher allows a string or Matcher to be provided in
+// when matching with the DSL
+// We use the strategy outlined at http://www.jerf.org/iri/post/2917
+// to create a "sum" or "union" type.
+type StringMatcher interface {
+	// isMatcher is how we tell the compiler that strings
+	// and other types are the same / allowed
+	isMatcher()
+}
+
+// S is the string primitive wrapper (alias) for the StringMatcher type,
+// it allows plain strings to be matched
+type S string
+
+func (s S) isMatcher() {}
+
+// String is the longer named form of the string primitive wrapper,
+// it allows plain strings to be matched
+type String string
+
+func (s String) isMatcher() {}
+
+// Matcher matches a complex object structure, which may itself
+// contain nested Matchers
+type Matcher map[string]interface{}
+
+func (m Matcher) isMatcher() {}
+
+// MarshalJSON is a custom encoder for Header type
+func (m Matcher) MarshalJSON() ([]byte, error) {
+	obj := map[string]interface{}{}
+
+	for header, value := range m {
+		obj[header] = toObject(value)
+	}
+
+	return json.Marshal(obj)
+}
+
+// UnmarshalJSON is a custom decoder for Header type
+func (m *Matcher) UnmarshalJSON(data []byte) error {
+	if err := json.Unmarshal(data, &m); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// MapMatcher allows a map[string]string-like object
+// to also contain complex matchers
+type MapMatcher map[string]StringMatcher
+
+// MarshalJSON is a custom encoder for Header type
+func (h MapMatcher) MarshalJSON() ([]byte, error) {
+	obj := map[string]interface{}{}
+
+	for header, value := range h {
+		obj[header] = toObject(value)
+	}
+
+	return json.Marshal(obj)
+}
+
+// UnmarshalJSON is a custom decoder for Header type
+func (h *MapMatcher) UnmarshalJSON(data []byte) error {
+	if err := json.Unmarshal(data, &h); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Takes an object and converts it to a JSON representation
 func objectToString(obj interface{}) string {
 	switch content := obj.(type) {
 	case string:
-		log.Println("STRING VALUE:", content)
 		return content
 	default:
-		log.Printf("OBJECT VALUE: %v", obj)
 		jsonString, err := json.Marshal(obj)
-		log.Println("OBJECT -> JSON VALUE:", string(jsonString))
 		if err != nil {
-			log.Println("[DEBUG] interaction: error unmarshaling object into string:", err.Error())
+			log.Println("[DEBUG] objectToString: error unmarshaling object into string:", err.Error())
 			return ""
 		}
 		return string(jsonString)

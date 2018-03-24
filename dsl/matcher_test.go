@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"testing"
 )
 
 func TestMatcher_TermString(t *testing.T) {
-	expected := formatJSON(MatcherString(`
+	expected := formatJSON(`
 		{
       "data": {
         "generate": "myawesomeword",
@@ -19,7 +20,7 @@ func TestMatcher_TermString(t *testing.T) {
 			  }
 			},
       "json_class": "Pact::Term"
-		}`))
+		}`)
 
 	match := formatJSON(Term("myawesomeword", `\w+`))
 	if expected != match {
@@ -34,7 +35,7 @@ func TestMatcher_LikeBasicString(t *testing.T) {
 		  "json_class": "Pact::SomethingLike"
 		}`)
 
-	match := formatJSON(Like(`"myspecialvalue"`))
+	match := formatJSON(Like("myspecialvalue"))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -129,7 +130,7 @@ func TestMatcher_EachLikeString(t *testing.T) {
 		  "min": 7
 		}`)
 
-	match := formatJSON(EachLike(`"someword"`, 7))
+	match := formatJSON(EachLike("someword", 7))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -187,7 +188,7 @@ func TestMatcher_EachLikeArrayString(t *testing.T) {
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike(`[1,2,3]`, 1))
+	match := formatJSON(EachLike("[1,2,3]", 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -206,32 +207,9 @@ func TestMatcher_NestLikeInEachLike(t *testing.T) {
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike(map[string]interface{}{
+	match := formatJSON(EachLike(Matcher{
 		"id": Like(10),
-		// "id": map[string]interface{}{
-		// 	"contents":   10,
-		// 	"json_class": "Pact::SomethingLike",
-		// },
 	}, 1))
-
-	if expected != match {
-		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
-	}
-}
-func TestMatcher_NestLikeInEachLikeString(t *testing.T) {
-	expected := formatJSON(`
-		{
-		  "contents": {
-		    "id": {
-		      "contents": 10,
-		      "json_class": "Pact::SomethingLike"
-		    }
-      },
-      "json_class": "Pact::ArrayLike",
-		  "min": 1
-		}`)
-
-	match := formatJSON(EachLike(fmt.Sprintf(`{ "id": %s }`, Like(10)), 1))
 
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
@@ -260,8 +238,8 @@ func TestMatcher_NestTermInEachLike(t *testing.T) {
 
 	match := formatJSON(
 		EachLike(
-			fmt.Sprintf(`{ "colour": %s }`,
-				Term("red", `red|green`)),
+			Matcher{
+				"colour": Term("red", "red|green")},
 			1))
 
 	if expected != match {
@@ -283,7 +261,7 @@ func TestMatcher_NestedEachLike(t *testing.T) {
 
 	match := formatJSON(
 		EachLike(
-			EachLike(`"blue"`, 1),
+			EachLike("blue", 1),
 			1))
 
 	if expected != match {
@@ -332,21 +310,14 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 					"min": 1
 				}`)
 
-	jumper := Like(`"jumper"`)
-	shirt := Like(`"shirt"`)
-	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-	size := Like(10)
-	colour := Term("red", "red|green|blue")
-
 	match := formatJSON(
 		EachLike(
 			EachLike(
-				fmt.Sprintf(
-					`{
-						"size": %s,
-						"colour": %s,
-						"tag": %s
-					}`, size, colour, tag),
+				Matcher{
+					"colour": Term("red", "red|green|blue"),
+					"size":   Like(10),
+					"tag":    EachLike([]Matcher{Like("jumper"), Like("shirt")}, 2),
+				},
 				1),
 			1))
 	if expected != match {
@@ -360,15 +331,21 @@ func formatJSON(object interface{}) interface{} {
 	switch content := object.(type) {
 	case string:
 		json.Indent(&out, []byte(content), "", "\t")
-	case MatcherString:
-		json.Indent(&out, []byte(content), "", "\t")
+	// case StringMatcher:
+	// 	json.Indent(&out, []byte(content), "", "\t")
+	default:
+		jsonString, err := json.Marshal(object)
+		if err != nil {
+			log.Println("[ERROR] unable to marshal json:", err)
+		}
+		json.Indent(&out, []byte(jsonString), "", "\t")
 	}
 
 	return string(out.Bytes())
 }
 
 func ExampleLike_string() {
-	match := Like(`"myspecialvalue"`)
+	match := Like("myspecialvalue")
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
@@ -440,64 +417,4 @@ func ExampleEachLike() {
 	//	"json_class": "Pact::ArrayLike",
 	//	"min": 1
 	//}
-}
-
-func E_xampleEachLike_nested() {
-	jumper := Like(`"jumper"`)
-	shirt := Like(`"shirt"`)
-	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-	size := Like(10)
-	colour := Term("red", "red|green|blue")
-
-	match := EachLike(
-		EachLike(
-			fmt.Sprintf(
-				`{
-							"size": %s,
-							"colour": %s,
-							"tag": %s
-						}`, size, colour, tag),
-			1),
-		1)
-	fmt.Println(formatJSON(match))
-	// Output:
-	// {
-	//   "contents": {
-	//     "contents": {
-	//       "colour": {
-	//         "data": {
-	//           "generate": "%s",
-	//           "matcher": {
-	//             "json_class": "Regexp",
-	//             "o": 0,
-	//             "s": "red"
-	//           }
-	//         },
-	//         "json_class": "Pact::Term"
-	//       },
-	//       "size": {
-	//         "contents": 10,
-	//         "json_class": "Pact::SomethingLike"
-	//       },
-	//       "tag": {
-	//         "contents": [
-	//           {
-	//             "contents": "jumper",
-	//             "json_class": "Pact::SomethingLike"
-	//           },
-	//           {
-	//             "contents": "shirt",
-	//             "json_class": "Pact::SomethingLike"
-	//           }
-	//         ],
-	//         "json_class": "Pact::ArrayLike",
-	//         "min": 2
-	//       }
-	//     },
-	//     "json_class": "Pact::ArrayLike",
-	//     "min": 1
-	//   },
-	//   "json_class": "Pact::ArrayLike",
-	//   "min": 1
-	// }
 }

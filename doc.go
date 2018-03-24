@@ -71,38 +71,27 @@ cases.
 
 Here is a complex example that shows how all 3 terms can be used together:
 
-colour := Term("red", "red|green|blue")
-
-match := EachLike(
-              EachLike(
-                         fmt.Sprintf(`{
-                             "size": 10,
-                             "colour": %s,
-                             "tag": [["jumper", "shirt]]
-                         }`, colour)
-              1),
-         1))
-
+  	body :=
+		Like(map[string]interface{}{
+			"response": map[string]interface{}{
+				"name": Like("Billy"),
+        "type": Term("admin", "admin|user|guest"),
+        "items": EachLike("cat", 2)
+			},
+		})
 
 This example will result in a response body from the mock server that looks like:
-	[
-	  [
-	    {
-	      "size": 10,
-	      "colour": "red",
-	      "tag": [
-	        [
-	          "jumper",
-	          "shirt"
-	        ],
-	        [
-	          "jumper",
-	          "shirt"
-	        ]
-	      ]
-	    }
-	  ]
-	]
+
+  {
+    "response": {
+      "name": "Billy",
+      "type": "admin",
+      "items": [
+        "cat",
+        "cat"
+      ]
+    }
+  }
 
 See the examples in the dsl package and the matcher tests
 (https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)

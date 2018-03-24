@@ -121,7 +121,7 @@ func TestInteraction_WillRespondWith(t *testing.T) {
 
 func TestInteraction_toObject(t *testing.T) {
 	// unstructured string should not be changed
-	res := toObject([]byte("somestring"))
+	res := toObject("somestring")
 	content, ok := res.(string)
 
 	if !ok {
@@ -133,7 +133,7 @@ func TestInteraction_toObject(t *testing.T) {
 	}
 
 	// errors should return a string repro of original interface{}
-	res = toObject([]byte(""))
+	res = toObject("")
 	content, ok = res.(string)
 
 	if !ok {

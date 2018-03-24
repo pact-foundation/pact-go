@@ -42,12 +42,7 @@ func (p *Interaction) WithRequest(request Request) *Interaction {
 	// Need to fix any weird JSON marshalling issues with the body Here
 	// If body is a string, not an object, we need to put it back into an object
 	// so that it's not double encoded
-	switch content := request.Body.(type) {
-	case string:
-		p.Request.Body = toObject([]byte(content))
-	default:
-		// leave alone
-	}
+	p.Request.Body = toObject(request.Body)
 
 	return p
 }
@@ -69,13 +64,14 @@ func (p *Interaction) WillRespondWith(response Response) *Interaction {
 func toObject(stringOrObject interface{}) interface{} {
 
 	switch content := stringOrObject.(type) {
+	case []byte:
 	case string:
 		var obj interface{}
 		err := json.Unmarshal([]byte(content), &obj)
 
 		if err != nil {
-			log.Println("[DEBUG] interaction: error unmarshaling object into string:", err.Error())
-			return stringOrObject
+			log.Printf("[DEBUG] interaction: error unmarshaling string '%v' into an object. Probably not an object: %v\n", stringOrObject, err.Error())
+			return content
 		}
 
 		return obj

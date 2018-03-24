@@ -151,12 +151,12 @@ func TestConsumer(t *testing.T) {
 		WithRequest(dsl.Request{
 			Method:  "GET",
 			Path:    "/foobar",
-			Headers: map[string]string{"Content-Type": "application/json"},
+			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
 			Body:    `{"s":"foo"}`,
 		}).
 		WillRespondWith(dsl.Response{
 			Status:  200,
-			Headers: map[string]string{"Content-Type": "application/json"},
+			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
 			Body:    `{"s":"bar"}`,
 		})
 
@@ -182,44 +182,36 @@ as the element _type_ (valid JSON number, string, object etc.) itself matches.
 consisting of elements like those passed in. `min` must be >= 1. `content` may
 be a valid JSON value: e.g. strings, numbers and objects.
 
+Matchers can be used on the `Body`, `Headers`, `Path` and `Query` fields of the `dsl.Request`
+type, and the `Body` and `Headers` fields of the `dsl.Response` type.
+
 *Example:*
 
-Here is a complex example that shows how all 3 terms can be used together:
+Here is a more complex example that shows how all 3 terms can be used together:
 
 ```go
-colour := Term("red", "red|green|blue")
-
-match := EachLike(
-              EachLike(
-                         fmt.Sprintf(`{
-                             "size": 10,
-                             "colour": %s,
-                             "tag": [["jumper", "shirt]]
-                         }`, colour)
-              1),
-         1))
+	body :=
+		Like(map[string]interface{}{
+			"response": map[string]interface{}{
+				"name": Like("Billy"),
+        "type": Term("admin", "admin|user|guest"),
+        "items": EachLike("cat", 2)
+			},
+		})
 ```
 
 This example will result in a response body from the mock server that looks like:
 ```json
-[
-  [
-    {
-      "size": 10,
-      "colour": "red",
-      "tag": [
-        [
-          "jumper",
-          "shirt"
-        ],
-        [
-          "jumper",
-          "shirt"
-        ]
-      ]
-    }
-  ]
-]
+{
+  "response": {
+    "name": "Billy",
+    "type": "admin",
+    "items": [
+      "cat",
+      "cat"
+    ]
+  }
+}
 ```
 
 See the [matcher tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)
