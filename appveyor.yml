@@ -12,7 +12,7 @@ clone_folder: c:\gopath\src\github.com\pact-foundation\pact-go
 
 environment:
   GOPATH: c:\gopath
-  GOVERSION: 1.8
+  GOVERSION: 1.10
   PACT_INTEGRATED_TESTS: 1
   PACT_BROKER_HOST: "https://test.pact.dius.com.au"
   PACT_BROKER_USERNAME: "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"

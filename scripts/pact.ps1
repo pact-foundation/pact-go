@@ -1,5 +1,4 @@
 $pactDir = "$env:APPVEYOR_BUILD_FOLDER\pact"
-# $pactDir = "$env:TEMP\pact"
 $exitCode = 0
 
 if ($env:PACT_INTEGRATED_TESTS) {
@@ -22,12 +21,9 @@ if (Test-Path "$pactDir") {
 Write-Verbose "--> Creating ${pactDir}"
 New-Item -Force -ItemType Directory $pactDir
 
-Write-Verbose "--> Creating pact-go binary"
-go build -o "$pactDir\pact-go.exe" "github.com\pact-foundation\pact-go"
-
-Write-Verbose "--> Creating pact daemon (downloading Ruby binaries)"
+Write-Verbose "--> Downloading Ruby binaries)"
 $downloadDir = $env:TEMP
-$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.22.0/pact-1.22.0-win32.zip"
+$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.32.0/pact-1.32.0-win32.zip"
 
 Write-Verbose "    Downloading $url"
 $zip = "$downloadDir\pact.zip"
@@ -44,6 +40,9 @@ Write-Verbose "    Moving binaries into position"
 Get-ChildItem $pactDir
 Get-ChildItem $pactDir/pact
 
+Write-Verbose "--> Adding pact binaries to path"
+$env:PATH = "$env:PATH;$pactDir/pact/bin"
+
 Write-Verbose "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
 $curDir=$pwd
@@ -58,8 +57,6 @@ foreach ($package in $packages) {
 }
 
 Write-Verbose "--> Testing E2E examples"
-Write-Verbose "    Starting pact daemon in background"
-Start-Process -FilePath "$pactDir\pact-go.exe" -ArgumentList "daemon -v -l DEBUG"  -RedirectStandardOutput "pacte-2e.log" -RedirectStandardError "pact-e2e-error.log"
 $env:PACT_INTEGRATED_TESTS=1
 
 $examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider")
@@ -76,9 +73,8 @@ foreach ($example in $examples) {
 }
 cd $curDir
 
-Write-Verbose "    Shutting down pact processes :)"
+Write-Verbose "    Shutting down any remaining pact processes :)"
 Stop-Process -Name ruby
-Stop-Process -Name pact-go
 
 Write-Verbose "    Done!"
 if ($exitCode -ne 0) {
