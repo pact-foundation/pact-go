@@ -41,6 +41,8 @@ Get-ChildItem $pactDir/pact
 
 Write-Host "--> Adding pact binaries to path"
 $env:PATH = "$env:PATH;$pactDir/pact/pact/bin"
+Write-Host $env:PATH
+pact-message version
 
 Write-Host "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
