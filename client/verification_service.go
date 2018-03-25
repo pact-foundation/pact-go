@@ -26,6 +26,7 @@ func (v *VerificationService) NewService(args []string) Service {
 
 	v.Args = args
 	v.Cmd = getVerifierCommandPath()
+
 	return v
 }
 

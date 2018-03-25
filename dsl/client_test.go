@@ -212,7 +212,7 @@ func createClient(success bool) (*PactClient, *ServiceMock) {
 		}
 	}()
 
-	d := NewClient(svc, svc)
+	d := newClient(svc, svc, svc)
 	return d, svc
 }
 

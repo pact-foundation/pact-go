@@ -2,6 +2,7 @@ package install
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 )
 
@@ -31,6 +32,13 @@ func getInstaller(version string, err error) *Installer {
 	return &Installer{testCommander{version, err}}
 }
 
+func TestInstaller_NewInstaller(t *testing.T) {
+	i := NewInstaller()
+
+	if reflect.TypeOf(i).String() != "*install.Installer" {
+		t.Fatal("want *install.Installer, got", reflect.TypeOf(i).String())
+	}
+}
 func TestInstaller_CheckVersion(t *testing.T) {
 	i := getInstaller("1.5.0", nil)
 	err := i.CheckVersion("pact-mock-service", "1.5.0")

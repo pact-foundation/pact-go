@@ -26,6 +26,7 @@ var (
 type PactClient struct {
 	pactMockSvcManager     client.Service
 	verificationSvcManager client.Service
+	messageSvcManager      client.Service
 
 	// Track mock servers
 	Servers []MockService
@@ -37,15 +38,22 @@ type PactClient struct {
 	Address string
 }
 
-// NewClient creates a new Pact client manager
-func NewClient(MockServiceManager client.Service, verificationServiceManager client.Service) *PactClient {
+// newClient creates a new Pact client manager with the provided services
+func newClient(MockServiceManager client.Service, verificationServiceManager client.Service, messageServiceManager client.Service) *PactClient {
 	MockServiceManager.Setup()
 	verificationServiceManager.Setup()
+	messageServiceManager.Setup()
 
 	return &PactClient{
 		pactMockSvcManager:     MockServiceManager,
 		verificationSvcManager: verificationServiceManager,
+		messageSvcManager:      messageServiceManager,
 	}
+}
+
+// NewClient creates a new Pact client manager with defaults
+func NewClient() *PactClient {
+	return newClient(&client.MockService{}, &client.VerificationService{}, &client.MessageVerificationService{})
 }
 
 // StartServer starts a remote Pact Mock Server.
@@ -164,6 +172,49 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 	}
 
 	return response, fmt.Errorf("error verifying provider: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
+}
+
+// UpdateMessagePact adds a pact message to a contract file
+func (p *PactClient) UpdateMessagePact(request types.PactMessageRequest) error {
+	log.Println("[DEBUG] client: adding pact message...")
+
+	// Convert request into flags, and validate request
+	err := request.Validate()
+	if err != nil {
+		return err
+	}
+
+	svc := p.messageSvcManager.NewService(request.Args)
+	cmd := svc.Command()
+
+	stdOutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stdErrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+	stdOut, err := ioutil.ReadAll(stdOutPipe)
+	if err != nil {
+		return err
+	}
+	stdErr, err := ioutil.ReadAll(stdErrPipe)
+	if err != nil {
+		return err
+	}
+
+	err = cmd.Wait()
+
+	if err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("error creating message: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
 }
 
 // Get a port given a URL

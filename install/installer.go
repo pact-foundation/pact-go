@@ -77,13 +77,6 @@ func (i *Installer) CheckVersion(binary, version string) error {
 	return fmt.Errorf("version %s of %s does not match constraint %s", version, binary, versionRange)
 }
 
-// InstallTools installs the CLI tools onto the host system
-func (i *Installer) InstallTools() error {
-	log.Println("[INFO] Installing tools")
-
-	return nil
-}
-
 // GetVersionForBinary gets the version of a given Ruby binary
 func (i *Installer) GetVersionForBinary(binary string) (version string, err error) {
 	log.Println("[DEBUG] running binary", binary)

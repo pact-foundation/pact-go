@@ -175,11 +175,7 @@ func (m Matcher) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON is a custom decoder for Header type
 func (m *Matcher) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &m); err != nil {
-		return err
-	}
-
-	return nil
+	return json.Unmarshal(data, &m)
 }
 
 // MapMatcher allows a map[string]string-like object
@@ -199,11 +195,7 @@ func (h MapMatcher) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON is a custom decoder for Header type
 func (h *MapMatcher) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &h); err != nil {
-		return err
-	}
-
-	return nil
+	return json.Unmarshal(data, &h)
 }
 
 // Takes an object and converts it to a JSON representation

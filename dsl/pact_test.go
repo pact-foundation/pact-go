@@ -236,7 +236,7 @@ func TestPact_Teardown(t *testing.T) {
 	}
 }
 
-func TestPact_VerifyProvider(t *testing.T) {
+func TestPact_VerifyProviderRaw(t *testing.T) {
 	c, _ := createClient(true)
 	defer stubPorts()()
 
@@ -248,6 +248,37 @@ func TestPact_VerifyProvider(t *testing.T) {
 
 	if err != nil {
 		t.Fatal("Error:", err)
+	}
+}
+
+func TestPact_VerifyProvider(t *testing.T) {
+	c, _ := createClient(true)
+	defer stubPorts()()
+	exampleTest := &testing.T{}
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
+
+	_, err := pact.VerifyProvider(exampleTest, types.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	})
+
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+}
+func TestPact_VerifyProviderFail(t *testing.T) {
+	c, _ := createClient(false)
+	defer stubPorts()()
+	exampleTest := &testing.T{}
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
+
+	_, err := pact.VerifyProvider(exampleTest, types.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	})
+
+	if err == nil {
+		t.Fatal("want error, got nil")
 	}
 }
 
@@ -286,7 +317,7 @@ func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 	}
 }
 
-func TestPact_VerifyProviderFail(t *testing.T) {
+func TestPact_VerifyProviderRawFail(t *testing.T) {
 	c, _ := createClient(false)
 	defer stubPorts()()
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}

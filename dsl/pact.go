@@ -5,14 +5,18 @@ collaboration test cases, and Provider contract test verification.
 package dsl
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/logutils"
-	"github.com/pact-foundation/pact-go/client"
 	"github.com/pact-foundation/pact-go/install"
 	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
@@ -128,7 +132,7 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	}
 
 	if p.pactClient == nil {
-		p.pactClient = NewClient(&client.MockService{}, &client.VerificationService{})
+		p.pactClient = NewClient()
 	}
 
 	if p.PactFileWriteMode == "" {
@@ -206,6 +210,12 @@ func (p *Pact) Teardown() *Pact {
 func (p *Pact) Verify(integrationTest func() error) error {
 	p.Setup(true)
 	log.Println("[DEBUG] pact verify")
+
+	// Check if we are verifying messages or if we actually have interactions
+	if len(p.Interactions) == 0 {
+		return errors.New("there are no interactions to be verified")
+	}
+
 	mockServer := &MockService{
 		BaseURL:  fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
 		Consumer: p.Consumer,
@@ -301,7 +311,131 @@ var checkCliCompatibility = func() {
 	err := installer.CheckInstallation()
 
 	if err != nil {
-		log.Println("[DEBUG] asoetusaoteuasoet")
-		log.Fatal("[ERROR] CLI tools are out of date, please upgrade before continuing.")
+		log.Fatal("[ERROR] CLI tools are out of date, please upgrade before continuing")
 	}
+}
+
+// VerifyMessageProducer accepts an instance of `*testing.T`
+// running provider message verification with granular test reporting and
+// automatic failure reporting for nice, simple tests.
+//
+// A Message Producer is analagous to Consumer in the HTTP Interaction model.
+// It is the initiator of an interaction, and expects something on the other end
+// of the interaction to respond - just in this case, not immediately.
+func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, handlers map[string]func(...interface{}) (map[string]interface{}, error)) (types.ProviderVerifierResponse, error) {
+
+	// Starts the message wrapper API with hooks back to the message handlers
+	// This maps the 'description' field of a message pact, to a function handler
+	// that will implement the message producer. This function must return an object and optionally
+	// and error. The object will be marshalled to JSON for comparison.
+	mux := http.NewServeMux()
+
+	// TODO: make this dynamic
+	port := 9393
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+		// Extract message
+		var message Message
+		body, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
+
+		if err != nil {
+			// TODO: How should we respond back to the verifier in this case? 50x?
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		json.Unmarshal(body, &message)
+
+		// Lookup key in function mapping
+		f, messageFound := handlers[message.Description]
+
+		if !messageFound {
+			// TODO: How should we respond back to the verifier in this case? 50x?
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		// Execute function handler
+		res, handlerErr := f()
+
+		fmt.Printf("[DEBUG] f() returned: %v", res)
+
+		if handlerErr != nil {
+			// TODO: How should we respond back to the verifier in this case? 50x?
+			fmt.Println("[ERROR] error handling function:", handlerErr)
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+
+		// Write the body back
+		resBody, errM := json.Marshal(res)
+		if errM != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Println("[ERROR] error marshalling objcet:", errM)
+			return
+		}
+		fmt.Printf("[DEBUG] sending response body back to verifier %v", resBody)
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(resBody)
+	})
+
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ln.Close()
+
+	log.Printf("[DEBUG] API handler starting: port %d (%s)", port, ln.Addr())
+	go http.Serve(ln, mux)
+
+	portErr := waitForPort(port, "tcp", "localhost", fmt.Sprintf(`Timed out waiting for Daemon on port %d - are you
+		sure it's running?`, port))
+
+	if portErr != nil {
+		t.Fatal("Error:", err)
+		return types.ProviderVerifierResponse{}, portErr
+	}
+
+	res, err := p.VerifyProviderRaw(request)
+
+	for _, example := range res.Examples {
+		t.Run(example.Description, func(st *testing.T) {
+			st.Log(example.FullDescription)
+			if example.Status != "passed" {
+				st.Errorf("%s\n", example.Exception.Message)
+			}
+		})
+	}
+
+	return res, err
+}
+
+// VerifyMessageConsumer creates a new Pact _message_ interaction to build a testable
+// interaction
+//
+// A Message Consumer is analagous to a Provider in the HTTP Interaction model.
+// It is the receiver of an interaction, and needs to be able to handle whatever
+// request was provided.
+func (p *Pact) VerifyMessageConsumer(message *Message, handler func(...Message) error) error {
+	log.Printf("[DEBUG] verify message")
+	p.Setup(false)
+
+	// Yield message, and send through handler function
+	// TODO: for now just call the handler
+	err := handler(*message)
+	if err != nil {
+		return err
+	}
+
+	// If no errors, update Message Pact
+	return p.pactClient.UpdateMessagePact(types.PactMessageRequest{
+		Message:           message,
+		Consumer:          p.Consumer,
+		Provider:          p.Provider,
+		PactFileWriteMode: p.PactFileWriteMode,
+		PactDir:           p.PactDir,
+	})
 }
