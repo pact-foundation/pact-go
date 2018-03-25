@@ -268,16 +268,11 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	res, err := p.VerifyProviderRaw(request)
 
-	if err != nil {
-		t.Fatal("Error:", err)
-		return res, err
-	}
-
 	for _, example := range res.Examples {
 		t.Run(example.Description, func(st *testing.T) {
 			st.Log(example.FullDescription)
 			if example.Status != "passed" {
-				st.Errorf("%s\n", example.Exception.Message)
+				t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
 			}
 		})
 	}

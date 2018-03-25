@@ -20,7 +20,6 @@ type VerificationService struct {
 // 		--broker-password
 //    --publish-verification-results
 //    --provider-app-version
-//    --provider-app-version
 //    --custom-provider-headers
 func (v *VerificationService) NewService(args []string) Service {
 	log.Printf("[DEBUG] starting verification service with args: %v\n", args)
