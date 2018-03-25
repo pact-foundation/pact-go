@@ -29,9 +29,9 @@ var port, _ = utils.GetFreePort()
 // Provider States data sets
 var billyExists = &UserRepository{
 	users: map[string]*User{
-		"Jean-Marie de La Beaujardière😀😍": &User{
-			Name:     "Jean-Marie de La Beaujardière😀😍",
-			username: "Jean-Marie de La Beaujardière😀😍",
+		"sally": &User{
+			Name:     "sally",
+			username: "sally",
 			password: "issilly",
 			Type:     "admin",
 		},
@@ -42,9 +42,9 @@ var billyDoesNotExist = &UserRepository{}
 
 var billyUnauthorized = &UserRepository{
 	users: map[string]*User{
-		"Jean-Marie de La Beaujardière😀😍": &User{
-			Name:     "Jean-Marie de La Beaujardière😀😍",
-			username: "Jean-Marie de La Beaujardière😀😍",
+		"sally": &User{
+			Name:     "sally",
+			username: "sally",
 			password: "issilly1",
 			Type:     "blocked",
 		},

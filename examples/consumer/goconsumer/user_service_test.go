@@ -24,7 +24,7 @@ var pact dsl.Pact
 var form url.Values
 var rr http.ResponseWriter
 var req *http.Request
-var name = "Jean-Marie de La Beaujardière😀😍"
+var name = "sally"
 var like = dsl.Like
 var eachLike = dsl.EachLike
 var term = dsl.Term
