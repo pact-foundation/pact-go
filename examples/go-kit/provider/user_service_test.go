@@ -114,6 +114,7 @@ func createPact() dsl.Pact {
 		Provider: "bobby",
 		LogDir:   logDir,
 		PactDir:  pactDir,
+		LogLevel: "DEBUG",
 	}
 }
 
