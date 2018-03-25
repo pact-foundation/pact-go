@@ -20,7 +20,7 @@ build:
         name: test
         code: |
           export PATH=$WERCKER_ROOT/build/pact/bin:$PATH
-          sudo chmod go-w /go
+          sudo chmod -R go-w /go
           make test
     - script:
         name: Publish Coveralls
