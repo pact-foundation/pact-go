@@ -13,11 +13,12 @@ import (
 
 // Installer manages the underlying Ruby installation
 type Installer struct {
+	commander commander
 }
 
 const (
 	mockServiceRange = ">= 2.6.4, < 3.0.0"
-	verifierRange    = ">= 1.11.0, < 2.0.0"
+	verifierRange    = ">= 1.12.0, < 3.0.0"
 	brokerRange      = ">= 1.14.0, < 2.0.0"
 )
 
@@ -25,6 +26,11 @@ var versionMap = map[string]string{
 	"pact-mock-service":      mockServiceRange,
 	"pact-provider-verifier": verifierRange,
 	"pact-broker":            brokerRange,
+}
+
+// NewInstaller creates a new initialised Installer
+func NewInstaller() *Installer {
+	return &Installer{commander: realCommander{}}
 }
 
 // CheckInstallation checks installation of all of the tools
@@ -68,7 +74,7 @@ func (i *Installer) CheckVersion(binary, version string) error {
 		return nil
 	}
 
-	return fmt.Errorf("version %s does not match constraint %s", version, versionRange)
+	return fmt.Errorf("version %s of %s does not match constraint %s", version, binary, versionRange)
 }
 
 // InstallTools installs the CLI tools onto the host system
@@ -82,9 +88,20 @@ func (i *Installer) InstallTools() error {
 func (i *Installer) GetVersionForBinary(binary string) (version string, err error) {
 	log.Println("[DEBUG] running binary", binary)
 
-	cmd := exec.Command(binary, "version")
-	content, err := cmd.Output()
+	content, err := i.commander.Output(binary, "version")
 	version = string(content)
 
 	return strings.TrimSpace(version), err
+}
+
+// commander wraps the exec package, allowing us
+// properly test the file system
+type commander interface {
+	Output(command string, args ...string) ([]byte, error)
+}
+
+type realCommander struct{}
+
+func (c realCommander) Output(command string, args ...string) ([]byte, error) {
+	return exec.Command(command, args...).CombinedOutput()
 }

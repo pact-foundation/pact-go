@@ -97,10 +97,12 @@ func setup() {
 // Create Pact connecting to local Daemon
 func createPact() dsl.Pact {
 	return dsl.Pact{
-		Consumer: "billy",
-		Provider: "bobby",
-		LogDir:   logDir,
-		PactDir:  pactDir,
+		Consumer:                 "billy",
+		Provider:                 "bobby",
+		LogDir:                   logDir,
+		PactDir:                  pactDir,
+		LogLevel:                 "DEBUG",
+		DisableToolValidityCheck: true,
 	}
 }
 

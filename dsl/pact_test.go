@@ -10,6 +10,11 @@ import (
 	"github.com/pact-foundation/pact-go/types"
 )
 
+func init() {
+	// mock out this function
+	checkCliCompatibility = func() {}
+}
+
 func TestPact_setupLogging(t *testing.T) {
 	res := captureOutput(func() {
 		(&Pact{LogLevel: "DEBUG"}).setupLogging()

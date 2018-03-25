@@ -61,7 +61,6 @@ func (m *MockService) call(method string, url string, content interface{}) error
 
 	responseBody, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	log.Printf("[DEBUG] mock service response Body: %s\n", responseBody)
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		return errors.New(string(responseBody))
 	}

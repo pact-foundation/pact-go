@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/client"
+	"github.com/pact-foundation/pact-go/install"
 	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
@@ -73,6 +74,14 @@ type Pact struct {
 	// Ports MockServer can be deployed to, can be CSV or Range with a dash
 	// Example "1234", "12324,5667", "1234-5667"
 	AllowedMockServerPorts string
+
+	// DisableToolValidityCheck prevents CLI version checking - use this carefully!
+	// The ideal situation is to check the tool installation with  before running
+	// the tests, which should speed up large test suites significantly
+	DisableToolValidityCheck bool
+
+	// Check if CLI tools are up to date
+	toolValidityCheck bool
 }
 
 // AddInteraction creates a new Pact interaction, initialising all
@@ -95,6 +104,11 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 
 	if p.Network == "" {
 		p.Network = "tcp"
+	}
+
+	if !p.toolValidityCheck && !p.DisableToolValidityCheck {
+		checkCliCompatibility()
+		p.toolValidityCheck = true
 	}
 
 	if p.Host == "" {
@@ -163,7 +177,7 @@ func (p *Pact) setupLogging() {
 			p.LogLevel = "INFO"
 		}
 		p.logFilter = &logutils.LevelFilter{
-			Levels:   []logutils.LogLevel{"DEBUG", "WARN", "ERROR"},
+			Levels:   []logutils.LogLevel{"DEBUG", "INFO", "WARN", "ERROR"},
 			MinLevel: logutils.LogLevel(p.LogLevel),
 			Writer:   os.Stderr,
 		}
@@ -278,4 +292,16 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) (types.
 	}
 
 	return res, err
+}
+
+var installer = install.NewInstaller()
+
+var checkCliCompatibility = func() {
+	log.Println("[DEBUG] checking CLI compatability")
+	err := installer.CheckInstallation()
+
+	if err != nil {
+		log.Println("[DEBUG] asoetusaoteuasoet")
+		log.Fatal("[ERROR] CLI tools are out of date, please upgrade before continuing.")
+	}
 }

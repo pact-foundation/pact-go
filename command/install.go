@@ -1,7 +1,10 @@
 package command
 
 import (
-	"fmt"
+	"log"
+	"os"
+
+	"github.com/pact-foundation/pact-go/install"
 
 	"github.com/spf13/cobra"
 )
@@ -9,15 +12,18 @@ import (
 var path string
 var installCmd = &cobra.Command{
 	Use:   "install",
-	Short: "Install required tools",
-	Long:  "Installs underlying Pact standalone tools for use by the library",
+	Short: "Check required tools",
+	Long:  "Checks versions of required Pact CLI tools for used by the library",
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel(verbose, logLevel)
 
 		// Run the installer
-		fmt.Println("[INFO] Installing required tools...", path)
-		fmt.Println("[INFO] Checking installation succeeded...")
-		fmt.Println("[INFO] Tooling installed and up to date!")
+		i := install.NewInstaller()
+		var err error
+		if err = i.CheckInstallation(); err != nil {
+			log.Println("[ERROR] Your Pact CLI installation is out of date, please update to the latest version. Error:", err)
+			os.Exit(1)
+		}
 	},
 }
 

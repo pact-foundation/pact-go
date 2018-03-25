@@ -21,6 +21,7 @@ type ServiceManager struct {
 // Setup the Management services.
 func (s *ServiceManager) Setup() {
 	log.Println("[DEBUG] setting up a service manager")
+
 	s.commandCreatedChan = make(chan *exec.Cmd)
 	s.commandCompleteChan = make(chan *exec.Cmd)
 	s.processes = make(map[int]*exec.Cmd)
