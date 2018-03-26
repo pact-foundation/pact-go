@@ -15,9 +15,9 @@ type Login struct {
 
 var userRepository = &types.UserRepository{
 	Users: map[string]*types.User{
-		"sally": &types.User{
-			Name:     "sally",
-			Username: "sally",
+		"Jean-Marie de La Beaujardière😀😍": &types.User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			Username: "Jean-Marie de La Beaujardière😀😍",
 			Password: "issilly",
 			Type:     "admin",
 		},
