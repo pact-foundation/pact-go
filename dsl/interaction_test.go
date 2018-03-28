@@ -119,7 +119,7 @@ func TestInteraction_isStringLikeObject(t *testing.T) {
 	}
 
 	for testCase, want := range testCases {
-		if isJsonFormattedObject(testCase) != want {
+		if isJSONFormattedObject(testCase) != want {
 			t.Fatal("want", want, "got", !want, "for test case", testCase)
 		}
 	}
