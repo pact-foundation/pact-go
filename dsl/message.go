@@ -44,7 +44,7 @@ func (p *Message) WithMetadata(metadata MapMatcher) *Message {
 // confirm that the Provider provides an API listening on the given interface.
 // Mandatory.
 func (p *Message) WithContent(content interface{}) *Message {
-	p.Content = toObject(content)
+	p.Content = content
 
 	return p
 }

@@ -58,19 +58,6 @@ func TestMatcher_LikeAsObject(t *testing.T) {
 	}
 }
 
-func TestMatcher_LikeAsObjectString(t *testing.T) {
-	expected := formatJSON(`
-		{
-      "contents": {"baz":"bat"},
-		  "json_class": "Pact::SomethingLike"
-		}`)
-
-	match := formatJSON(Like(`{"baz":"bat"}`))
-	if expected != match {
-		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
-	}
-}
-
 func TestMatcher_LikeNumber(t *testing.T) {
 	expected := formatJSON(`
 		{
@@ -87,7 +74,7 @@ func TestMatcher_LikeNumber(t *testing.T) {
 func TestMatcher_LikeNumberAsString(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "contents": 42,
+		  "contents": "42",
 		  "json_class": "Pact::SomethingLike"
 		}`)
 
@@ -113,7 +100,7 @@ func TestMatcher_EachLikeNumber(t *testing.T) {
 func TestMatcher_EachLikeNumberAsString(t *testing.T) {
 	expected := formatJSON(`
 		{
-      "contents": 42,
+      "contents": "42",
 		  "json_class": "Pact::ArrayLike",
 		  "min": 1
 		}`)
@@ -154,7 +141,7 @@ func TestMatcher_EachLikeObject(t *testing.T) {
 	}
 }
 
-func TestMatcher_EachLikeObjectAsString(t *testing.T) {
+func TestMatcher_EachLikeObjectAsStringFail(t *testing.T) {
 	expected := formatJSON(`
 		{
 		  "contents": {"somekey":"someval"},
@@ -163,8 +150,8 @@ func TestMatcher_EachLikeObjectAsString(t *testing.T) {
 		}`)
 
 	match := formatJSON(EachLike(`{"somekey":"someval"}`, 3))
-	if expected != match {
-		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	if expected == match {
+		t.Fatalf("Expected Term to NOT match. '%s' != '%s'", expected, match)
 	}
 }
 
@@ -177,20 +164,6 @@ func TestMatcher_EachLikeArray(t *testing.T) {
 		}`)
 
 	match := formatJSON(EachLike([]int{1, 2, 3}, 1))
-	if expected != match {
-		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
-	}
-}
-
-func TestMatcher_EachLikeArrayString(t *testing.T) {
-	expected := formatJSON(`
-		{
-		  "contents": [1,2,3],
-		  "json_class": "Pact::ArrayLike",
-		  "min": 1
-		}`)
-
-	match := formatJSON(EachLike("[1,2,3]", 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -510,18 +483,6 @@ func ExampleLike_object() {
 	//	"json_class": "Pact::SomethingLike"
 	//}
 }
-func ExampleLike_objectString() {
-	match := Like(`{"baz":"bat"}`)
-	fmt.Println(formatJSON(match))
-	// Output:
-	//{
-	//	"contents": {
-	//		"baz": "bat"
-	//	},
-	//	"json_class": "Pact::SomethingLike"
-	//}
-}
-
 func ExampleLike_number() {
 	match := Like(42)
 	fmt.Println(formatJSON(match))

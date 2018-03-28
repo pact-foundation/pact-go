@@ -21,48 +21,49 @@ type Interaction struct {
 }
 
 // Given specifies a provider state. Optional.
-func (p *Interaction) Given(state string) *Interaction {
-	p.State = state
-	return p
+func (i *Interaction) Given(state string) *Interaction {
+	i.State = state
+
+	return i
 }
 
 // UponReceiving specifies the name of the test case. This becomes the name of
 // the consumer/provider pair in the Pact file. Mandatory.
-func (p *Interaction) UponReceiving(description string) *Interaction {
-	p.Description = description
-	return p
+func (i *Interaction) UponReceiving(description string) *Interaction {
+	i.Description = description
+
+	return i
 }
 
 // WithRequest specifies the details of the HTTP request that will be used to
 // confirm that the Provider provides an API listening on the given interface.
 // Mandatory.
-func (p *Interaction) WithRequest(request Request) *Interaction {
-	p.Request = request
+func (i *Interaction) WithRequest(request Request) *Interaction {
+	i.Request = request
 
-	// Need to fix any weird JSON marshalling issues with the body Here
-	// If body is a string, not an object, we need to put it back into an object
-	// so that it's not double encoded
-	p.Request.Body = toObject(request.Body)
+	// Check if someone tried to add an object as a string representation
+	// as per original allowed implementation, e.g.
+	// { "foo": "bar", "baz": like("bat") }
+	if isJSONFormattedObject(request.Body) {
+		log.Println("[WARN] request body appears to be a JSON formatted object, " +
+			"no structural matching will occur. Support for structured strings has been" +
+			"deprecated as of 0.13.0")
+	}
 
-	return p
+	return i
 }
 
 // WillRespondWith specifies the details of the HTTP response that will be used to
 // confirm that the Provider must satisfy. Mandatory.
-func (p *Interaction) WillRespondWith(response Response) *Interaction {
-	p.Response = response
+func (i *Interaction) WillRespondWith(response Response) *Interaction {
+	i.Response = response
 
-	// Need to fix any weird JSON marshalling issues with the body Here
-	// If body is a string, not an object, we need to put it back into an object
-	// so that it's not double encoded
-	p.Response.Body = toObject(response.Body)
-
-	return p
+	return i
 }
 
-// Takes a string body and converts it to an interface{} representation.
-func toObject(stringOrObject interface{}) interface{} {
-
+// Checks to see if someone has tried to submit a JSON string
+// for an object, which is no longer supported
+func isJSONFormattedObject(stringOrObject interface{}) bool {
 	switch content := stringOrObject.(type) {
 	case []byte:
 	case string:
@@ -70,14 +71,14 @@ func toObject(stringOrObject interface{}) interface{} {
 		err := json.Unmarshal([]byte(content), &obj)
 
 		if err != nil {
-			log.Printf("[DEBUG] interaction: error unmarshaling string '%v' into an object. Probably not an object: %v\n", stringOrObject, err.Error())
-			return content
+			return false
 		}
 
-		return obj
-	default:
-		// leave alone
+		// Check if a map type
+		if _, ok := obj.(map[string]interface{}); ok {
+			return true
+		}
 	}
 
-	return stringOrObject
+	return false
 }

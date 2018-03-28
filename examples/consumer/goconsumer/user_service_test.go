@@ -32,9 +32,7 @@ var term = dsl.Term
 type s = dsl.String
 type request = dsl.Request
 
-// var str = dsl.S
-var loginRequest = fmt.Sprintf(`{ "username":"%s", "password": "issilly" }`, name)
-
+var loginRequest = map[string]string{"username": name, "password": "issilly"}
 var commonHeaders = dsl.MapMatcher{
 	"Content-Type": term("application/json; charset=utf-8", `application\/json`),
 }
@@ -142,12 +140,16 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 			Query: dsl.MapMatcher{
 				"foo": term("bar", "[a-zA-Z]+"),
 			},
-			Body: loginRequest,
+			Body:    loginRequest,
+			Headers: commonHeaders,
 		}).
 		WillRespondWith(dsl.Response{
-			Status:  200,
-			Body:    body,
-			Headers: commonHeaders,
+			Status: 200,
+			Body:   body,
+			Headers: dsl.MapMatcher{
+				"X-Api-Correlation-Id": dsl.Like("100"),
+				"Content-Type":         term("application/json; charset=utf-8", `application\/json`),
+			},
 		})
 
 	err := pact.Verify(testBillyExists)

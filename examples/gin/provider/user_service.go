@@ -26,6 +26,8 @@ var userRepository = &types.UserRepository{
 
 // UserLogin is the login route.
 func UserLogin(c *gin.Context) {
+	c.Header("X-Api-Correlation-Id", "1234")
+
 	var json Login
 	if c.BindJSON(&json) == nil {
 		user, err := userRepository.ByUsername(json.User)

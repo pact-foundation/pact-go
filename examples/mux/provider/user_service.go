@@ -22,6 +22,7 @@ var userRepository = &types.UserRepository{
 var UserLogin = func(w http.ResponseWriter, r *http.Request) {
 	var login types.LoginRequest
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Api-Correlation-Id", "1234")
 
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()

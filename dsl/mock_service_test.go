@@ -15,14 +15,11 @@ import (
 // Simple mock server for testing. This is getting confusing...
 func setupMockServer(success bool, t *testing.T) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request, err := ioutil.ReadAll(r.Body)
+		_, err := ioutil.ReadAll(r.Body)
 		r.Body.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		t.Logf("%v\n", r)
-		t.Logf("Request Body: %s\n", request)
 
 		if success {
 			fmt.Fprintln(w, "Hello, client")

@@ -47,7 +47,7 @@ type term struct {
 func EachLike(content interface{}, minRequired int) Matcher {
 	return Matcher{
 		"json_class": "Pact::ArrayLike",
-		"contents":   toObject(content),
+		"contents":   content,
 		"min":        minRequired,
 	}
 }
@@ -57,7 +57,7 @@ func EachLike(content interface{}, minRequired int) Matcher {
 func Like(content interface{}) Matcher {
 	return Matcher{
 		"json_class": "Pact::SomethingLike",
-		"contents":   toObject(content),
+		"contents":   content,
 	}
 }
 
@@ -67,11 +67,11 @@ func Term(generate string, matcher string) Matcher {
 	return Matcher{
 		"json_class": "Pact::Term",
 		"data": map[string]interface{}{
-			"generate": toObject(generate),
+			"generate": generate,
 			"matcher": map[string]interface{}{
 				"json_class": "Regexp",
 				"o":          0,
-				"s":          toObject(matcher),
+				"s":          matcher,
 			},
 		},
 	}
@@ -162,41 +162,9 @@ type Matcher map[string]interface{}
 
 func (m Matcher) isMatcher() {}
 
-// MarshalJSON is a custom encoder for Header type
-func (m Matcher) MarshalJSON() ([]byte, error) {
-	obj := map[string]interface{}{}
-
-	for header, value := range m {
-		obj[header] = toObject(value)
-	}
-
-	return json.Marshal(obj)
-}
-
-// UnmarshalJSON is a custom decoder for Header type
-func (m *Matcher) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &m)
-}
-
 // MapMatcher allows a map[string]string-like object
 // to also contain complex matchers
 type MapMatcher map[string]StringMatcher
-
-// MarshalJSON is a custom encoder for Header type
-func (h MapMatcher) MarshalJSON() ([]byte, error) {
-	obj := map[string]interface{}{}
-
-	for header, value := range h {
-		obj[header] = toObject(value)
-	}
-
-	return json.Marshal(obj)
-}
-
-// UnmarshalJSON is a custom decoder for Header type
-func (h *MapMatcher) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &h)
-}
 
 // Takes an object and converts it to a JSON representation
 func objectToString(obj interface{}) string {
