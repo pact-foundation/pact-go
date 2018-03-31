@@ -31,3 +31,10 @@ build:
           export PATH=$WERCKER_ROOT/build/pact/bin:$PATH
           export LANG=C.UTF-8
           ./scripts/pact.sh
+
+deploy:
+    steps:
+        - github-create-release:
+            token: $GITHUB_TOKEN
+            tag: $RELEASE_VERSION
+            pre-release: $RELEASE_IS_DRAFT
