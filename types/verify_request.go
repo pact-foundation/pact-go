@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 // VerifyRequest contains the verification params.
@@ -61,7 +60,7 @@ func (v *VerifyRequest) Validate() error {
 	v.Args = []string{}
 
 	if len(v.PactURLs) != 0 {
-		v.Args = append(v.Args, strings.Join(v.PactURLs, " "))
+		v.Args = append(v.Args, v.PactURLs...)
 	} else {
 		return fmt.Errorf("Pact URLs is mandatory")
 	}
