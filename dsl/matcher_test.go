@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestMatcher_TermString(t *testing.T) {
@@ -461,6 +463,56 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		}
 	}
 }
+
+func TestMatcher_extractPayloadTopLevelMatcher(t *testing.T) {
+	m := Matcher{
+		"json_class": "Pact::SomethingLike",
+		"contents":   "something",
+	}
+	if extractPayload(m) != "something" {
+		t.Fatal("want 'something', got", extractPayload(m))
+	}
+
+}
+
+func TestMatcher_extractPayloadComplex(t *testing.T) {
+	m := map[string]interface{}{
+		"foo": Like("bar"),
+		"bar": Term("baz", "baz|bat"),
+		"baz": EachLike(map[string]interface{}{
+			"bing":  "bong",
+			"boing": 1,
+		}, 2),
+	}
+	want := map[string]interface{}{
+		"foo": "bar",
+		"bar": "baz",
+		"baz": []interface{}{
+			map[string]interface{}{
+				"bing":  "bong",
+				"boing": 1,
+			},
+			map[string]interface{}{
+				"bing":  "bong",
+				"boing": 1,
+			},
+		},
+	}
+
+	got := extractPayload(m)
+	if !cmp.Equal(want, got) {
+		t.Fatalf("want '%v', got '%v'. Diff: \n %v", want, got, cmp.Diff(want, got))
+	}
+}
+
+// func TestMatcher_getMatcher(t *testing.T) {
+// 	m, ok := getMatcher(Matcher{
+// 		"json_class": "Pact::SomethingLike",
+// 		"contents":   "something",
+// 	})
+// 	fmt.Println(m, ok)
+// 	log.Println(m, ok)
+// }
 
 func ExampleLike_string() {
 	match := Like("myspecialvalue")

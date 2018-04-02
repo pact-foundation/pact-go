@@ -425,6 +425,7 @@ func (p *Pact) VerifyMessageConsumer(message *Message, handler func(...Message) 
 
 	// Yield message, and send through handler function
 	// TODO: for now just call the handler
+	// TODO: unwrap the message back to its "generated" form
 	err := handler(*message)
 	if err != nil {
 		return err

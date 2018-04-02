@@ -2,7 +2,9 @@ package dsl
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"reflect"
 	"time"
 )
 
@@ -142,13 +144,25 @@ type StringMatcher interface {
 	// isMatcher is how we tell the compiler that strings
 	// and other types are the same / allowed
 	isMatcher()
+
+	// GetValue returns the raw generated value for the matcher
+	// without any of the matching detail context
+	GetValue() interface{}
 }
 
 // S is the string primitive wrapper (alias) for the StringMatcher type,
 // it allows plain strings to be matched
+// To keep backwards compatible with previous versions
+// we aren't using an alias here
 type S string
 
 func (s S) isMatcher() {}
+
+// GetValue returns the raw generated value for the matcher
+// without any of the matching detail context
+func (s S) GetValue() interface{} {
+	return s
+}
 
 // String is the longer named form of the string primitive wrapper,
 // it allows plain strings to be matched
@@ -156,11 +170,173 @@ type String string
 
 func (s String) isMatcher() {}
 
+// GetValue returns the raw generated value for the matcher
+// without any of the matching detail context
+func (s String) GetValue() interface{} {
+	return s
+}
+
 // Matcher matches a complex object structure, which may itself
 // contain nested Matchers
 type Matcher map[string]interface{}
 
 func (m Matcher) isMatcher() {}
+
+// GetValue returns the raw generated value for the matcher
+// without any of the matching detail context
+func (m Matcher) GetValue() interface{} {
+	class, ok := m["json_class"]
+
+	if !ok {
+		return nil
+	}
+
+	// extract out the value
+	switch class {
+	case "Pact::ArrayLike":
+		contents := m["contents"]
+		min := m["min"].(int)
+		data := make([]interface{}, min)
+
+		for i := 0; i < min; i++ {
+			data[i] = contents
+		}
+
+	case "Pact::SomethingLike":
+		return m["contents"]
+	case "Pact::Term":
+		data := m["data"].(map[string]interface{})
+		return data["generate"]
+	}
+
+	return nil
+}
+
+// GetValue returns the raw generated value for the matcher
+// without any of the matching detail context
+func getMatcherValue(m interface{}) interface{} {
+	matcher, ok := getMatcher(m)
+	if !ok {
+		return nil
+	}
+
+	class, ok := matcher["json_class"]
+
+	if !ok {
+		return nil
+	}
+
+	// extract out the value
+	switch class {
+	case "Pact::ArrayLike":
+		contents := matcher["contents"]
+		min := matcher["min"].(int)
+		data := make([]interface{}, min)
+
+		for i := 0; i < min; i++ {
+			data[i] = contents
+		}
+		return data
+
+	case "Pact::SomethingLike":
+		return matcher["contents"]
+	case "Pact::Term":
+		data := matcher["data"].(map[string]interface{})
+		return data["generate"]
+	}
+
+	return nil
+}
+
+// func isMatcher(obj map[string]interface{}) bool {
+func isMatcher(obj interface{}) bool {
+	m, ok := obj.(map[string]interface{})
+
+	if ok {
+		if _, match := m["json_class"]; match {
+			return true
+		}
+	}
+
+	if _, match := obj.(Matcher); match {
+		return true
+	}
+
+	return false
+}
+
+func getMatcher(obj interface{}) (Matcher, bool) {
+	// If an object, but not a map[string]interface{} then just return?
+	m, ok := obj.(map[string]interface{})
+
+	if ok {
+		if _, match := m["json_class"]; match {
+			return m, true
+		}
+	}
+
+	m, ok = obj.(Matcher)
+	if ok {
+		return m, true
+	}
+
+	fmt.Println("NOT a matcher")
+	return nil, false
+}
+
+func extractPayload(obj interface{}) interface{} {
+	fmt.Println("extractpaload")
+
+	// special case: top level matching object
+	// we need to strip the properties
+	matcher, ok := getMatcher(obj)
+
+	if ok {
+		fmt.Println("top level matcher", matcher, "returning value:", getMatcherValue(matcher))
+		return extractPayload(getMatcherValue(matcher))
+	}
+
+	fmt.Println("not a top level matcher", matcher, "returning value:", obj)
+	return extractPayloadRecursive(obj, make(map[string]interface{}))
+}
+
+// Recurse the object removing any underlying matching guff, returning
+// the raw example content (ready for JSON marshalling)
+// NOTE: type information is going to be lost here which is OK
+//       because it must be mapped to JSON encodable types
+//       It is expected that any object is marshalled to JSON and into a map[string]interface{}
+//       for use here
+//       It will probably break custom, user-supplied types? e.g. a User{} or ShoppingCart{}?
+//       But then any enclosed Matchers will likely break them anyway
+func extractPayloadRecursive(obj interface{}, stack map[string]interface{}) map[string]interface{} {
+	fmt.Println("extracting payload recursively")
+
+	objectMap, ok := obj.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	// recurse the (remaining) object, replacing Matchers with their
+	// actual contents
+	for k, rawValue := range objectMap {
+		fmt.Println(k, "=>", rawValue, "(raw)")
+		// v, ok := rawValue.(map[string]interface{})
+		// fmt.Println(k, "=>", v)
+
+		if ok && isMatcher(rawValue) {
+			fmt.Println("v is Matcher")
+			matcherValue := getMatcherValue(rawValue)
+			stack[k] = matcherValue
+			extractPayloadRecursive(matcherValue, stack)
+		} else {
+			fmt.Println("v is not Matcher but of type", reflect.TypeOf(rawValue))
+			stack[k] = rawValue
+			extractPayloadRecursive(rawValue, stack)
+		}
+	}
+
+	return stack
+}
 
 // MapMatcher allows a map[string]string-like object
 // to also contain complex matchers
