@@ -29,11 +29,23 @@ func TestMessageConsumer_Success(t *testing.T) {
 		ExpectsToReceive("some test case").
 		WithMetadata(commonHeaders).
 		WithContent(map[string]interface{}{
-			"foo": "bar",
+			"id":   like(127),
+			"name": "Baz",
+			"access": eachLike(map[string]interface{}{
+				"role": term("admin", "admin|controller|user"),
+			}, 3),
 		})
 
-	err := pact.VerifyMessageConsumer(message, func(i ...dsl.Message) error {
-		t.Logf("[DEBUG] calling message handler func with arguments: %v \n", i)
+	err := pact.VerifyMessageConsumer(message, func(m dsl.Message) error {
+		t.Logf("[DEBUG] calling message handler func with arguments: %v \n", m.Content)
+
+		body := m.Content.(map[string]interface{})
+
+		_, ok := body["id"]
+
+		if !ok {
+			return errors.New("invalid object supplied, missing fields (id)")
+		}
 
 		return nil
 	})
@@ -53,8 +65,8 @@ func TestMessageConsumer_Fail(t *testing.T) {
 			"foo": "bar",
 		})
 
-	err := pact.VerifyMessageConsumer(message, func(i ...dsl.Message) error {
-		t.Logf("[DEBUG] calling message handler func with arguments: %v \n", i)
+	err := pact.VerifyMessageConsumer(message, func(m dsl.Message) error {
+		t.Logf("[DEBUG] calling message handler func with arguments: %v \n", m)
 
 		return errors.New("something bad happened and I couldn't parse the message")
 	})

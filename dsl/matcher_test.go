@@ -472,16 +472,41 @@ func TestMatcher_extractPayloadTopLevelMatcher(t *testing.T) {
 	if extractPayload(m) != "something" {
 		t.Fatal("want 'something', got", extractPayload(m))
 	}
-
+}
+func TestMatcher_extractPayloadSimpleType(t *testing.T) {
+	m := map[string]interface{}{
+		"value": "string",
+	}
+	if !cmp.Equal(extractPayload(m), m) {
+		t.Fatal("extract payload diff: ", cmp.Diff(m, extractPayload(m)))
+	}
 }
 
+func TestMatcher_extractPayloadEachLike(t *testing.T) {
+	m := map[string]interface{}{
+		"access": EachLike(map[string]interface{}{
+			"role": Term("admin", "admin|controller|user"),
+		}, 3),
+	}
+	want := map[string]interface{}{
+		"access": []interface{}{
+			map[string]interface{}{"role": "admin"},
+		},
+	}
+
+	got := extractPayload(m)
+	if !cmp.Equal(want, got) {
+		t.Fatalf("want '%v', got '%v'. Diff: \n %v", want, got, cmp.Diff(want, got))
+	}
+}
 func TestMatcher_extractPayloadComplex(t *testing.T) {
 	m := map[string]interface{}{
 		"foo": Like("bar"),
 		"bar": Term("baz", "baz|bat"),
 		"baz": EachLike(map[string]interface{}{
-			"bing":  "bong",
-			"boing": 1,
+			"bing":  Like("bong"),
+			"boing": Like(1),
+			"bop":   "bop",
 		}, 2),
 	}
 	want := map[string]interface{}{
@@ -491,10 +516,12 @@ func TestMatcher_extractPayloadComplex(t *testing.T) {
 			map[string]interface{}{
 				"bing":  "bong",
 				"boing": 1,
+				"bop":   "bop",
 			},
 			map[string]interface{}{
 				"bing":  "bong",
 				"boing": 1,
+				"bop":   "bop",
 			},
 		},
 	}
@@ -504,15 +531,6 @@ func TestMatcher_extractPayloadComplex(t *testing.T) {
 		t.Fatalf("want '%v', got '%v'. Diff: \n %v", want, got, cmp.Diff(want, got))
 	}
 }
-
-// func TestMatcher_getMatcher(t *testing.T) {
-// 	m, ok := getMatcher(Matcher{
-// 		"json_class": "Pact::SomethingLike",
-// 		"contents":   "something",
-// 	})
-// 	fmt.Println(m, ok)
-// 	log.Println(m, ok)
-// }
 
 func ExampleLike_string() {
 	match := Like("myspecialvalue")

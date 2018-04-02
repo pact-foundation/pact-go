@@ -419,14 +419,23 @@ func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, 
 // A Message Consumer is analagous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
-func (p *Pact) VerifyMessageConsumer(message *Message, handler func(...Message) error) error {
+func (p *Pact) VerifyMessageConsumer(message *Message, handler func(Message) error) error {
 	log.Printf("[DEBUG] verify message")
 	p.Setup(false)
 
 	// Yield message, and send through handler function
 	// TODO: for now just call the handler
 	// TODO: unwrap the message back to its "generated" form
-	err := handler(*message)
+	generatedMessage :=
+		Message{
+			Content:     extractPayload(message.Content),
+			Description: message.Description,
+			State:       message.State,
+			Metadata:    message.Metadata,
+		}
+
+	log.Println("[DEBUG] generated message from matcher:", generatedMessage.Content)
+	err := handler(generatedMessage)
 	if err != nil {
 		return err
 	}
