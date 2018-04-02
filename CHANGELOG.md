@@ -5,6 +5,13 @@ Do this to generate your change history
 
 ## Versions
 
+### v0.0.12 (03 April 2018)
+  * [a6a3e76](https://github.com/pact-foundation/pact-go/commit/a6a3e76) - fix(verification): fix verifier CLI invocation with multiple pacts. Fixes #75 (Matt Fellows, Sat Mar 31 15:14:10 2018 +1100)
+  * [e2362ea](https://github.com/pact-foundation/pact-go/commit/e2362ea) - fix: pass pact-file-write-mode to CLI #71 (Matt Fellows, Wed Mar 21 10:31:00 2018 +1100)
+  * [3bc71f1](https://github.com/pact-foundation/pact-go/commit/3bc71f1) - Fix broken links to realestate-com-au/pact/wiki (#68) (Mohan Raj Rajamanickam, Tue Mar 13 14:28:58 2018 -0700)
+  * [b5db82a](https://github.com/pact-foundation/pact-go/commit/b5db82a) - Update CONTRIBUTING.md (Mohan Raj Rajamanickam, Mon Jan 22 11:13:29 2018 -0800)
+  * [4494c82](https://github.com/pact-foundation/pact-go/commit/4494c82) - Fixing broken links and references in CONTRIBUTING (Mohan Raj Rajamanickam, Tue Jan 16 14:44:35 2018 -0800)
+
 ### v0.0.11 (10 December 2017)
   * [8afba3a](https://github.com/pact-foundation/pact-go/commit/8afba3a) - feat(custom-headers): allow custom headers during provider verification (Matt Fellows, Sun Dec 10 09:32:33 2017 +1100)
 
