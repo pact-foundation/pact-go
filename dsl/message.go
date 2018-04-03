@@ -8,7 +8,7 @@ type Message struct {
 	Content interface{} `json:"content,omitempty"`
 
 	// Provider state to be written into the Pact file
-	State string `json:"providerState,omitempty"`
+	States []State `json:"providerStates,omitempty"`
 
 	// Message metadata
 	Metadata MapMatcher `json:"metadata,omitempty"`
@@ -19,9 +19,16 @@ type Message struct {
 	Args []string `json:"-"`
 }
 
+// State specifies how the system should be configured when
+// verified. e.g. "user A exists"
+type State struct {
+	Name string `json:"name"`
+}
+
 // Given specifies a provider state. Optional.
 func (p *Message) Given(state string) *Message {
-	p.State = state
+	p.States = []State{State{state}}
+
 	return p
 }
 

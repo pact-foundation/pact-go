@@ -36,7 +36,7 @@ func TestMessageProvider_Success(t *testing.T) {
 	// TODO: Add function mappings to the VerifyRequest type (or have separate one for producer)
 	//       this can't happen until we remove the RPC shit, because functions can't be mapped
 	//       over the wire
-	pact.VerifyMessageProducer(t, types.VerifyRequest{
+	pact.VerifyMessageProvider(t, types.VerifyRequest{
 		ProviderBaseURL: fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/message-pact.json", pactDir))},
 	}, functionMappings)

@@ -37,7 +37,7 @@ func TestMessageConsumer_Success(t *testing.T) {
 		})
 
 	err := pact.VerifyMessageConsumer(message, func(m dsl.Message) error {
-		t.Logf("[DEBUG] calling message handler func with arguments: %v \n", m.Content)
+		t.Logf("[DEBUG] calling message handler func with arguments: %+v \n", m.Content)
 
 		body := m.Content.(map[string]interface{})
 
@@ -85,11 +85,10 @@ var logDir = fmt.Sprintf("%s/log", dir)
 func createPact() dsl.Pact {
 	// Create Pact connecting to local Daemon
 	return dsl.Pact{
-		Consumer: "billy",
-		Provider: "bobby",
-		LogDir:   logDir,
-		// PactDir:  pactDir, // TODO: this seems to cause an issue "NoMethodError: undefined method `content' for #<Pact::Interaction:0x00007fc8f1a082e8>"
-		PactDir:           "/tmp",
+		Consumer:          "billy",
+		Provider:          "bobby",
+		LogDir:            logDir,
+		PactDir:           pactDir, // TODO: this seems to cause an issue "NoMethodError: undefined method `content' for #<Pact::Interaction:0x00007fc8f1a082e8>"
 		LogLevel:          "DEBUG",
 		PactFileWriteMode: "update",
 	}

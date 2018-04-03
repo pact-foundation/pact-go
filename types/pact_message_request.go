@@ -50,6 +50,8 @@ func (m *PactMessageRequest) Validate() error {
 		m.Provider,
 		"--pact-dir",
 		m.PactDir,
+		"--pact-specification-version",
+		"3",
 	}...)
 
 	return nil

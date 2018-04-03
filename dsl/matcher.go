@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"time"
 )
@@ -186,18 +185,15 @@ func (m Matcher) isMatcher() {}
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
 func (m Matcher) GetValue() interface{} {
-	log.Println("GETTING VALUE!")
 	class, ok := m["json_class"]
 
 	if !ok {
-		log.Println("GETTING VALUE!- NOT OK")
 		return nil
 	}
 
 	// extract out the value
 	switch class {
 	case "Pact::ArrayLike":
-		log.Println("GETTING VALUE!- ARRAY")
 		contents := m["contents"]
 		min, err := strconv.Atoi(fmt.Sprintf("%d", m["min"]))
 		if err != nil {
@@ -212,14 +208,11 @@ func (m Matcher) GetValue() interface{} {
 		return data
 
 	case "Pact::SomethingLike":
-		log.Println("GETTING VALUE!- something like")
 		return m["contents"]
 	case "Pact::Term":
-		log.Println("GETTING VALUE!- term")
 		data := m["data"].(map[string]interface{})
 		return data["generate"]
 	}
-	log.Println("GETTING VALUE!- MEH?!")
 
 	return nil
 }
@@ -293,151 +286,6 @@ func getMatcher(obj interface{}) (Matcher, bool) {
 	}
 
 	return nil, false
-}
-
-var loop int
-
-func extractPayload(obj interface{}) interface{} {
-	fmt.Println("extractpaload")
-	loop = 0
-
-	// special case: top level matching object
-	// we need to strip the properties
-	stack := make(map[string]interface{})
-
-	// Convert to and from JSON to get a map[string]interface{}
-	data, err := json.Marshal(obj)
-	if err != nil {
-		return nil
-	}
-
-	// var newObj map[string]interface{}
-	var newObj interface{}
-	json.Unmarshal(data, &newObj)
-
-	// matcher, ok := getMatcher(obj)
-	// if ok {
-	// 	fmt.Println("top level matcher", matcher, "returning value:", getMatcherValue(matcher))
-	// 	return extractPayloadRecursive(getMatcherValue(matcher), stack)
-	// }
-
-	// fmt.Println("not a top level matcher, returning value:", obj)
-	return extractPayloadRecursive(newObj, stack)
-}
-
-// Recurse the object removing any underlying matching guff, returning
-// the raw example content (ready for JSON marshalling)
-// NOTE: type information is going to be lost here which is OK
-//       because it must be mapped to JSON encodable types
-//       It is expected that any object is marshalled to JSON and into a map[string]interface{}
-//       for use here
-//       It will probably break custom, user-supplied types? e.g. a User{} or ShoppingCart{}?
-//       But then any enclosed Matchers will likely break them anyway
-func extractPayloadRecursive(obj interface{}, stack interface{}) interface{} {
-	loop = loop + 1
-	if loop > 10 {
-		log.Println("oh oh, non terminating - bail!")
-		return nil
-	}
-	original := reflect.ValueOf(obj)
-
-	fmt.Println("------------------------------")
-	fmt.Println("extracting payload recursively")
-	fmt.Printf("obj: %+v\n", obj)
-	fmt.Printf("Stack: %+v\n", stack)
-
-	// switch obj.(type)
-	switch original.Kind() {
-	// The first cases handle nested structures and translate them recursively
-
-	// If it is a pointer we need to unwrap and call once again
-	case reflect.Ptr:
-		log.Println("[DEBUG] Pointer")
-		// To get the actual value of the original we have to call Elem()
-		// At the same time this unwraps the pointer so we don't end up in
-		// an infinite recursion
-		originalValue := original.Elem()
-
-		// Check if the pointer is nil
-		if !originalValue.IsValid() {
-			log.Println("[WARN] pointer not properly unmarshalled")
-			return nil
-		}
-
-		// Unwrap the newly created pointer
-		extractPayloadRecursive(originalValue, stack)
-
-		// If it is an interface (which is very similar to a pointer), do basically the
-		// same as for the pointer. Though a pointer is not the same as an interface so
-		// note that we have to call Elem() after creating a new object because otherwise
-		// we would end up with an actual pointer
-	case reflect.Interface:
-		log.Println("[DEBUG] Interface")
-
-		// Get rid of the wrapping interface
-		originalValue := original.Elem()
-
-		// Create a new object. Now new gives us a pointer, but we want the value it
-		// points to, so we have to call Elem() to unwrap it
-		copyValue := reflect.New(originalValue.Type()).Elem()
-		extractPayloadRecursive(copyValue, stack)
-
-		// If it is a struct we translate each field
-	// case reflect.Struct:
-	// 	log.Println("[DEBUG] Struct")
-	// 	_, ok := getMatcher(obj)
-	// 	if ok {
-	// 		fmt.Println("2. MATCHER!")
-	// 	}
-
-	// 	for i := 0; i < original.NumField(); i++ {
-	// 		extractPayloadRecursive(original.Field(i), stack)
-	// 	}
-
-	// If it is a slice we create a new slice and translate each element
-	case reflect.Slice:
-		log.Println("[DEBUG] Slice")
-		for i := 0; i < original.Len(); i++ {
-			extractPayloadRecursive(original.Index(i).Interface(), stack)
-		}
-
-		// If it is a map we create a new map and translate each value
-	case reflect.Map:
-		log.Println("[DEBUG] Map")
-		stackMap, ok := stack.(map[string]interface{})
-
-		if !ok {
-			log.Println("STACK is not a map[]")
-			stack = make(map[string]interface{})
-			stackMap, _ = stack.(map[string]interface{})
-		}
-
-		for k, v := range obj.(map[string]interface{}) {
-			matcher, ok := getMatcher(v)
-			fmt.Println(k, "=>", v)
-			if ok {
-				value := matcher.GetValue()
-				fmt.Println("3. Map is a MATCHER!", value)
-				stackMap[k] = value
-				extractPayloadRecursive(value, stackMap[k])
-			} else {
-				stackMap[k] = v
-				extractPayloadRecursive(v, stackMap[k])
-			}
-		}
-
-		// If it is a string translate it (yay finally we're doing what we came for)
-	case reflect.String:
-		fmt.Println("STRING")
-		return obj
-		// 	copy.SetString(original.Interface().(string))
-
-		// And everything else will simply be taken from the original
-	default:
-		fmt.Println("something else")
-	}
-
-	return stack
 }
 
 // MapMatcher allows a map[string]string-like object

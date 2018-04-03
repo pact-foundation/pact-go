@@ -315,14 +315,15 @@ var checkCliCompatibility = func() {
 	}
 }
 
-// VerifyMessageProducer accepts an instance of `*testing.T`
+// VerifyMessageProvider accepts an instance of `*testing.T`
 // running provider message verification with granular test reporting and
 // automatic failure reporting for nice, simple tests.
 //
 // A Message Producer is analagous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
-func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, handlers map[string]func(...interface{}) (map[string]interface{}, error)) (types.ProviderVerifierResponse, error) {
+func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyRequest, handlers map[string]func(...interface{}) (map[string]interface{}, error)) (types.ProviderVerifierResponse, error) {
+	response := types.ProviderVerifierResponse{}
 
 	// Starts the message wrapper API with hooks back to the message handlers
 	// This maps the 'description' field of a message pact, to a function handler
@@ -330,8 +331,11 @@ func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, 
 	// and error. The object will be marshalled to JSON for comparison.
 	mux := http.NewServeMux()
 
-	// TODO: make this dynamic
-	port := 9393
+	port, err := utils.GetFreePort()
+	if err != nil {
+		return response, fmt.Errorf("unable to allocate a port for verification: %v", err)
+	}
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -341,7 +345,6 @@ func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, 
 		r.Body.Close()
 
 		if err != nil {
-			// TODO: How should we respond back to the verifier in this case? 50x?
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -352,7 +355,6 @@ func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, 
 		f, messageFound := handlers[message.Description]
 
 		if !messageFound {
-			// TODO: How should we respond back to the verifier in this case? 50x?
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -360,11 +362,7 @@ func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, 
 		// Execute function handler
 		res, handlerErr := f()
 
-		fmt.Printf("[DEBUG] f() returned: %v", res)
-
 		if handlerErr != nil {
-			// TODO: How should we respond back to the verifier in this case? 50x?
-			fmt.Println("[ERROR] error handling function:", handlerErr)
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -376,7 +374,6 @@ func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, 
 			fmt.Println("[ERROR] error marshalling objcet:", errM)
 			return
 		}
-		fmt.Printf("[DEBUG] sending response body back to verifier %v", resBody)
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(resBody)
@@ -396,7 +393,7 @@ func (p *Pact) VerifyMessageProducer(t *testing.T, request types.VerifyRequest, 
 
 	if portErr != nil {
 		t.Fatal("Error:", err)
-		return types.ProviderVerifierResponse{}, portErr
+		return response, portErr
 	}
 
 	res, err := p.VerifyProviderRaw(request)
@@ -423,19 +420,24 @@ func (p *Pact) VerifyMessageConsumer(message *Message, handler func(Message) err
 	log.Printf("[DEBUG] verify message")
 	p.Setup(false)
 
+	// Reify the message back to its "example/generated" form
+	reified, err := p.pactClient.ReifyMessage(types.PactReificationRequest{
+		Message: message.Content,
+	})
+	if err != nil {
+		return fmt.Errorf("unable to convert consumer test to JSON: %v", err)
+	}
+
 	// Yield message, and send through handler function
-	// TODO: for now just call the handler
-	// TODO: unwrap the message back to its "generated" form
 	generatedMessage :=
 		Message{
-			Content:     extractPayload(message.Content),
+			Content:     reified,
 			Description: message.Description,
-			State:       message.State,
+			States:      message.States,
 			Metadata:    message.Metadata,
 		}
 
-	log.Println("[DEBUG] generated message from matcher:", generatedMessage.Content)
-	err := handler(generatedMessage)
+	err = handler(generatedMessage)
 	if err != nil {
 		return err
 	}

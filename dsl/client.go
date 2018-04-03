@@ -53,7 +53,7 @@ func newClient(MockServiceManager client.Service, verificationServiceManager cli
 
 // NewClient creates a new Pact client manager with defaults
 func NewClient() *PactClient {
-	return newClient(&client.MockService{}, &client.VerificationService{}, &client.MessageVerificationService{})
+	return newClient(&client.MockService{}, &client.VerificationService{}, &client.MessageService{})
 }
 
 // StartServer starts a remote Pact Mock Server.
@@ -215,6 +215,64 @@ func (p *PactClient) UpdateMessagePact(request types.PactMessageRequest) error {
 	}
 
 	return fmt.Errorf("error creating message: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
+}
+
+// ReifyMessage takes a structured object, potentially containing nested Matchers
+// and returns an object with just the example (generated) content
+// The object may be a simple JSON primitive e.g. string or number or a complex object
+func (p *PactClient) ReifyMessage(request types.PactReificationRequest) (response interface{}, err error) {
+	log.Println("[DEBUG] client: adding pact message...")
+
+	// Convert request into flags, and validate request
+	err = request.Validate()
+	if err != nil {
+		return
+	}
+
+	svc := p.messageSvcManager.NewService(request.Args)
+	cmd := svc.Command()
+
+	stdOutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return
+	}
+	stdErrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return
+	}
+	err = cmd.Start()
+	if err != nil {
+		return
+	}
+	stdOut, err := ioutil.ReadAll(stdOutPipe)
+	if err != nil {
+		return
+	}
+	stdErr, err := ioutil.ReadAll(stdErrPipe)
+	if err != nil {
+		return
+	}
+
+	err = cmd.Wait()
+
+	decoder := json.NewDecoder(bytes.NewReader(stdOut))
+
+	dErr := decoder.Decode(&response)
+	if dErr == nil {
+		return
+	}
+
+	if err == nil {
+		err = dErr
+	}
+
+	if err == nil {
+		return
+	}
+
+	err = fmt.Errorf("error creating message: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
+
+	return
 }
 
 // Get a port given a URL

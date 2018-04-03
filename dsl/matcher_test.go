@@ -8,8 +8,6 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestMatcher_TermString(t *testing.T) {
@@ -461,74 +459,6 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		if err = v.testCase(v.matcher.getValue()); err != nil {
 			t.Fatalf("error validating matcher '%s': %v", k, err)
 		}
-	}
-}
-
-func TestMatcher_extractPayloadTopLevelMatcher(t *testing.T) {
-	m := Matcher{
-		"json_class": "Pact::SomethingLike",
-		"contents":   "something",
-	}
-	if extractPayload(m) != "something" {
-		t.Fatal("want 'something', got", extractPayload(m))
-	}
-}
-func TestMatcher_extractPayloadSimpleType(t *testing.T) {
-	m := map[string]interface{}{
-		"value": "string",
-	}
-	if !cmp.Equal(extractPayload(m), m) {
-		t.Fatal("extract payload diff: ", cmp.Diff(m, extractPayload(m)))
-	}
-}
-
-func TestMatcher_extractPayloadEachLike(t *testing.T) {
-	m := map[string]interface{}{
-		"access": EachLike(map[string]interface{}{
-			"role": Term("admin", "admin|controller|user"),
-		}, 3),
-	}
-	want := map[string]interface{}{
-		"access": []interface{}{
-			map[string]interface{}{"role": "admin"},
-		},
-	}
-
-	got := extractPayload(m)
-	if !cmp.Equal(want, got) {
-		t.Fatalf("want '%v', got '%v'. Diff: \n %v", want, got, cmp.Diff(want, got))
-	}
-}
-func TestMatcher_extractPayloadComplex(t *testing.T) {
-	m := map[string]interface{}{
-		"foo": Like("bar"),
-		"bar": Term("baz", "baz|bat"),
-		"baz": EachLike(map[string]interface{}{
-			"bing":  Like("bong"),
-			"boing": Like(1),
-			"bop":   "bop",
-		}, 2),
-	}
-	want := map[string]interface{}{
-		"foo": "bar",
-		"bar": "baz",
-		"baz": []interface{}{
-			map[string]interface{}{
-				"bing":  "bong",
-				"boing": 1,
-				"bop":   "bop",
-			},
-			map[string]interface{}{
-				"bing":  "bong",
-				"boing": 1,
-				"bop":   "bop",
-			},
-		},
-	}
-
-	got := extractPayload(m)
-	if !cmp.Equal(want, got) {
-		t.Fatalf("want '%v', got '%v'. Diff: \n %v", want, got, cmp.Diff(want, got))
 	}
 }
 
