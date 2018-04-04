@@ -16,8 +16,8 @@ func TestMessageProvider_Success(t *testing.T) {
 
 	// Map test descriptions to message producer (handlers)
 	// TODO: convert these all to types to ease readability
-	functionMappings := map[string]func(...interface{}) (map[string]interface{}, error){
-		"a test message": func(...interface{}) (map[string]interface{}, error) {
+	functionMappings := dsl.MessageProviders{
+		"a test message": func(m dsl.Message) (interface{}, error) {
 			fmt.Println("Calling 'text' function that would produce a message")
 			res := map[string]interface{}{
 				"content": map[string]string{

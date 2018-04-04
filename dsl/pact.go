@@ -322,7 +322,7 @@ var checkCliCompatibility = func() {
 // A Message Producer is analagous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
-func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRequest, handlers map[string]func(...interface{}) (map[string]interface{}, error)) (types.ProviderVerifierResponse, error) {
+func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRequest, handlers MessageProviders) (types.ProviderVerifierResponse, error) {
 	response := types.ProviderVerifierResponse{}
 
 	// Starts the message wrapper API with hooks back to the message handlers
@@ -372,7 +372,7 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 		}
 
 		// Execute function handler
-		res, handlerErr := f()
+		res, handlerErr := f(message)
 
 		if handlerErr != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -428,7 +428,7 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 // A Message Consumer is analagous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
-func (p *Pact) VerifyMessageConsumer(message *Message, handler func(Message) error) error {
+func (p *Pact) VerifyMessageConsumer(message *Message, handler MessageConsumer) error {
 	log.Printf("[DEBUG] verify message")
 	p.Setup(false)
 

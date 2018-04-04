@@ -1,5 +1,18 @@
 package dsl
 
+// type MessageHandler map[string]func(...interface{})
+
+// MessageProvider is a provider function that generates a
+// message for a Consumer given a Message context (state, description etc.)
+type MessageProvider func(Message) (interface{}, error)
+
+// MessageProviders is a list of handlers ordered by description
+type MessageProviders map[string]MessageProvider
+
+// MessageConsumer receives a message and must be able to parse
+// the content
+type MessageConsumer func(Message) error
+
 // Message is a representation of a single, unidirectional message
 // e.g. MQ, pub/sub, Websocket, Lambda
 // Message is the main implementation of the Pact Message interface.
