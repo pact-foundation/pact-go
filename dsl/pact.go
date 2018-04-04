@@ -322,7 +322,7 @@ var checkCliCompatibility = func() {
 // A Message Producer is analagous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
-func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyRequest, handlers map[string]func(...interface{}) (map[string]interface{}, error)) (types.ProviderVerifierResponse, error) {
+func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRequest, handlers map[string]func(...interface{}) (map[string]interface{}, error)) (types.ProviderVerifierResponse, error) {
 	response := types.ProviderVerifierResponse{}
 
 	// Starts the message wrapper API with hooks back to the message handlers
@@ -334,6 +334,18 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyRequest, 
 	port, err := utils.GetFreePort()
 	if err != nil {
 		return response, fmt.Errorf("unable to allocate a port for verification: %v", err)
+	}
+
+	// Construct verifier request
+	verificationRequest := types.VerifyRequest{
+		ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", port),
+		PactURLs:                   request.PactURLs,
+		BrokerURL:                  request.BrokerURL,
+		Tags:                       request.Tags,
+		BrokerUsername:             request.BrokerUsername,
+		BrokerPassword:             request.BrokerPassword,
+		PublishVerificationResults: request.PublishVerificationResults,
+		ProviderVersion:            request.ProviderVersion,
 	}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -396,7 +408,7 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyRequest, 
 		return response, portErr
 	}
 
-	res, err := p.VerifyProviderRaw(request)
+	res, err := p.VerifyProviderRaw(verificationRequest)
 
 	for _, example := range res.Examples {
 		t.Run(example.Description, func(st *testing.T) {

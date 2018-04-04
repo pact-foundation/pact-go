@@ -85,8 +85,8 @@ var logDir = fmt.Sprintf("%s/log", dir)
 func createPact() dsl.Pact {
 	// Create Pact connecting to local Daemon
 	return dsl.Pact{
-		Consumer:          "billy",
-		Provider:          "bobby",
+		Consumer:          "PactGoMessageConsumer",
+		Provider:          "PactGoMessageProvider",
 		LogDir:            logDir,
 		PactDir:           pactDir, // TODO: this seems to cause an issue "NoMethodError: undefined method `content' for #<Pact::Interaction:0x00007fc8f1a082e8>"
 		LogLevel:          "DEBUG",
