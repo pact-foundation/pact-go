@@ -215,6 +215,45 @@ This example will result in a response body from the mock server that looks like
 ]
 ```
 
+#### Auto-Generate Match String (Consumer Tests)
+
+Furthermore, if you isolate your Data Transfer Objects (DTOs) to an adapters package so that they exactly reflect the interface between you and your provider, then you can leverage `dsl.Match` to auto-generate the expected response body in your contract tests. Under the hood, `Match` recursively traverses the DTO struct and uses `Term, Like, and EachLike` to create the contract.
+
+This saves the trouble of declaring the contract by hand. It also maintains one source of truth. To change the consumer-provider interface, you only have to update your DTO struct and the contract will automatically follow suit. 
+
+*Example:*
+
+```go
+type DTO struct {
+  ID    string    `json:"id"`
+  Title string    `json:"title"`
+  Tags  []string  `json:"tags" pact:"min=2"`
+  Date  string    `json:"date" pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
+}
+```
+then specifying a response body is as simple as:
+```go
+	// Set up our expected interactions.
+	pact.
+		AddInteraction().
+		Given("User foo exists").
+		UponReceiving("A request to get foo").
+		WithRequest(dsl.Request{
+			Method:  "GET",
+			Path:    "/foobar",
+			Headers: map[string]string{"Content-Type": "application/json"},
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  200,
+			Headers: map[string]string{"Content-Type": "application/json"},
+			Body:    Match(DTO{}), // That's it!!!
+		})
+```
+
+The `pact` struct tags shown above are optional. By default, dsl.Match just asserts that the JSON shape matches the struct and that the field types match.
+
+See [dsl.Match](https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher.go) for more information.
+
 See the [matcher tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)
 for more matching examples.
 
