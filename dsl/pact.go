@@ -367,6 +367,7 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 		f, messageFound := handlers[message.Description]
 
 		if !messageFound {
+			log.Printf("[ERROR] message handler not found for message description: %v", message.Description)
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -415,6 +416,7 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 			st.Log(example.FullDescription)
 			if example.Status != "passed" {
 				st.Errorf("%s\n", example.Exception.Message)
+				st.Error("Check to ensure that all message expectations have corresponding message handlers")
 			}
 		})
 	}
