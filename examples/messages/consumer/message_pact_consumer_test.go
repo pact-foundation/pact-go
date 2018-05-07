@@ -22,6 +22,34 @@ var commonHeaders = dsl.MapMatcher{
 
 var pact = createPact()
 
+type accessLevel struct {
+	Role string
+}
+
+type user struct {
+	ID     int
+	Name   string
+	Access []accessLevel
+}
+
+var apiHandlerWrapper = func(m dsl.Message) error {
+	body, ok := m.Content.(user)
+
+	if !ok {
+		return errors.New("Expected User object")
+	}
+
+	return apiHandler(body)
+}
+
+var apiHandler = func(u user) error {
+	if u.ID != -1 {
+		return errors.New("invalid object supplied, missing fields (id)")
+	}
+
+	return nil
+}
+
 func TestMessageConsumer_Success(t *testing.T) {
 	message := &dsl.Message{}
 	message.
@@ -36,23 +64,7 @@ func TestMessageConsumer_Success(t *testing.T) {
 			}, 3),
 		})
 
-	err := pact.VerifyMessageConsumer(message, func(m dsl.Message) error {
-		t.Logf("[DEBUG] calling message handler func with arguments: %+v \n", m.Content)
-
-		body := m.Content.(map[string]interface{})
-
-		_, ok := body["id"]
-
-		if !ok {
-			return errors.New("invalid object supplied, missing fields (id)")
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		t.Fatal("VerifyMessageConsumer failed:", err)
-	}
+	pact.VerifyMessageConsumer(t, message, apiHandlerWrapper)
 }
 func TestMessageConsumer_Fail(t *testing.T) {
 	t.Skip()
@@ -65,15 +77,11 @@ func TestMessageConsumer_Fail(t *testing.T) {
 			"foo": "bar",
 		})
 
-	err := pact.VerifyMessageConsumer(message, func(m dsl.Message) error {
+	pact.VerifyMessageConsumer(t, message, func(m dsl.Message) error {
 		t.Logf("[DEBUG] calling message handler func with arguments: %v \n", m)
 
 		return errors.New("something bad happened and I couldn't parse the message")
 	})
-
-	if err != nil {
-		t.Fatal("VerifyMessageConsumer failed:", err)
-	}
 }
 
 // Configuration / Test Data

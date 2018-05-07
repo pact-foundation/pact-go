@@ -424,13 +424,14 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 	return res, err
 }
 
-// VerifyMessageConsumer creates a new Pact _message_ interaction to build a testable
-// interaction
+// VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable
+// interaction.
+//
 //
 // A Message Consumer is analagous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
-func (p *Pact) VerifyMessageConsumer(message *Message, handler MessageConsumer) error {
+func (p *Pact) VerifyMessageConsumerRaw(message *Message, handler MessageConsumer) error {
 	log.Printf("[DEBUG] verify message")
 	p.Setup(false)
 
@@ -442,12 +443,14 @@ func (p *Pact) VerifyMessageConsumer(message *Message, handler MessageConsumer) 
 		return fmt.Errorf("unable to convert consumer test to JSON: %v", err)
 	}
 
+	fmt.Printf("[INFO] Reified message: %v", reified)
+
 	// Yield message, and send through handler function
 	generatedMessage :=
 		Message{
 			Content:     reified,
-			Description: message.Description,
 			States:      message.States,
+			Description: message.Description,
 			Metadata:    message.Metadata,
 		}
 
@@ -464,4 +467,21 @@ func (p *Pact) VerifyMessageConsumer(message *Message, handler MessageConsumer) 
 		PactFileWriteMode: p.PactFileWriteMode,
 		PactDir:           p.PactDir,
 	})
+}
+
+// VerifyMessageConsumer creates a new Pact _message_ interaction to build a testable
+// interaction, accepts an instance of `*testing.T`
+//
+//
+// A Message Consumer is analagous to a Provider in the HTTP Interaction model.
+// It is the receiver of an interaction, and needs to be able to handle whatever
+// request was provided.
+func (p *Pact) VerifyMessageConsumer(t *testing.T, message *Message, handler MessageConsumer) error {
+	err := p.VerifyMessageConsumerRaw(message, handler)
+
+	if err != nil {
+		t.Errorf("VerifyMessageConsumer failed: %v", err)
+	}
+
+	return err
 }

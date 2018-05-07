@@ -2,6 +2,10 @@ package dsl
 
 // type MessageHandler map[string]func(...interface{})
 
+// StateHandler is a provider function that sets up a given state before
+// the provider interaction is validated
+type StateHandler func(string) (interface{}, error)
+
 // MessageProvider is a provider function that generates a
 // message for a Consumer given a Message context (state, description etc.)
 type MessageProvider func(Message) (interface{}, error)
