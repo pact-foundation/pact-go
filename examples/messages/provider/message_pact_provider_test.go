@@ -10,6 +10,16 @@ import (
 	"github.com/pact-foundation/pact-go/types"
 )
 
+type AccessLevel struct {
+	Role string `json:"role,omitempty"`
+}
+
+type User struct {
+	ID     int           `json:"id,omitempty"`
+	Name   string        `json:"name,omitempty"`
+	Access []AccessLevel `json:"access,omitempty"`
+}
+
 // The actual Provider test itself
 func TestMessageProvider_Success(t *testing.T) {
 	pact := createPact()
@@ -18,24 +28,16 @@ func TestMessageProvider_Success(t *testing.T) {
 	// TODO: convert these all to types to ease readability
 	functionMappings := dsl.MessageProviders{
 		"some test case": func(m dsl.Message) (interface{}, error) {
-			fmt.Println("Calling 'text' function that would produce a message")
-			res := map[string]interface{}{
-				"content": map[string]interface{}{
-					"access": []map[string]string{
-						{
-							"role": "admin",
-						},
-						{
-							"role": "admin",
-						},
-						{
-							"role": "admin",
-						},
-					},
-					"id":   27,
-					"name": "Baz",
-				},
+			fmt.Println("Calling provider function that would produce a message")
+			res := User{
+				ID:   44,
+				Name: "Baz",
+				Access: []AccessLevel{
+					{Role: "admin"},
+					{Role: "admin"},
+					{Role: "admin"}},
 			}
+
 			return res, nil
 		},
 	}
@@ -58,7 +60,7 @@ func createPact() dsl.Pact {
 		Consumer:          "PactGoMessageConsumer",
 		Provider:          "PactGoMessageProvider",
 		LogDir:            logDir,
-		LogLevel:          "WARN",
+		LogLevel:          "DEBUG",
 		PactFileWriteMode: "update",
 	}
 }

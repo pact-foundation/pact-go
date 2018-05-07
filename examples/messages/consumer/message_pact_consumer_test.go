@@ -22,30 +22,26 @@ var commonHeaders = dsl.MapMatcher{
 
 var pact = createPact()
 
-type accessLevel struct {
-	Role string
+type AccessLevel struct {
+	Role string `json:"role,omitempty"`
 }
 
-type user struct {
-	ID     int
-	Name   string
-	Access []accessLevel
+type User struct {
+	ID     int           `json:"id,omitempty"`
+	Name   string        `json:"name,omitempty"`
+	Access []AccessLevel `json:"access,omitempty"`
 }
 
-var apiHandlerWrapper = func(m dsl.Message) error {
-	body, ok := m.Content.(user)
-
-	if !ok {
-		return errors.New("Expected User object")
-	}
-
-	return apiHandler(body)
+var userHandlerWrapper = func(m dsl.Message) error {
+	return userHandler(*m.Content.(*User))
 }
 
-var apiHandler = func(u user) error {
-	if u.ID != -1 {
+var userHandler = func(u User) error {
+	if u.ID == -1 {
 		return errors.New("invalid object supplied, missing fields (id)")
 	}
+
+	// ... actually consume the message
 
 	return nil
 }
@@ -62,9 +58,10 @@ func TestMessageConsumer_Success(t *testing.T) {
 			"access": eachLike(map[string]interface{}{
 				"role": term("admin", "admin|controller|user"),
 			}, 3),
-		})
+		}).
+		AsType(&User{})
 
-	pact.VerifyMessageConsumer(t, message, apiHandlerWrapper)
+	pact.VerifyMessageConsumer(t, message, userHandlerWrapper)
 }
 func TestMessageConsumer_Fail(t *testing.T) {
 	t.Skip()
@@ -91,12 +88,11 @@ var logDir = fmt.Sprintf("%s/log", dir)
 
 // Setup the Pact client.
 func createPact() dsl.Pact {
-	// Create Pact connecting to local Daemon
 	return dsl.Pact{
 		Consumer:          "PactGoMessageConsumer",
 		Provider:          "PactGoMessageProvider",
 		LogDir:            logDir,
-		PactDir:           pactDir, // TODO: this seems to cause an issue "NoMethodError: undefined method `content' for #<Pact::Interaction:0x00007fc8f1a082e8>"
+		PactDir:           pactDir,
 		LogLevel:          "DEBUG",
 		PactFileWriteMode: "update",
 	}

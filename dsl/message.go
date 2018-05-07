@@ -1,5 +1,10 @@
 package dsl
 
+import (
+	"fmt"
+	"reflect"
+)
+
 // type MessageHandler map[string]func(...interface{})
 
 // StateHandler is a provider function that sets up a given state before
@@ -22,7 +27,10 @@ type MessageConsumer func(Message) error
 // Message is the main implementation of the Pact Message interface.
 type Message struct {
 	// Message Body
-	Content interface{} `json:"content,omitempty"`
+	Content interface{} `json:"contents,omitempty"`
+
+	// Message Body as a Raw JSON string
+	ContentRaw interface{} `json:"-"`
 
 	// Provider state to be written into the Pact file
 	States []State `json:"providerStates,omitempty"`
@@ -32,6 +40,10 @@ type Message struct {
 
 	// Description to be written into the Pact file
 	Description string `json:"description"`
+
+	// Type to Marshall content into when sending back to the consumer
+	// Defaults to interface{}
+	Type interface{}
 
 	Args []string `json:"-"`
 }
@@ -69,6 +81,15 @@ func (p *Message) WithMetadata(metadata MapMatcher) *Message {
 // Mandatory.
 func (p *Message) WithContent(content interface{}) *Message {
 	p.Content = content
+
+	return p
+}
+
+// AsType specifies that the content sent through to the
+// consumer handler should be sent as the given type
+func (p *Message) AsType(t interface{}) *Message {
+	fmt.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
+	p.Type = t
 
 	return p
 }

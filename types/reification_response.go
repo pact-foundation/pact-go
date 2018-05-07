@@ -6,5 +6,5 @@ type ReificationResponse struct {
 	Response interface{}
 
 	// Raw response from reification
-	ResponseRaw string
+	ResponseRaw []byte
 }

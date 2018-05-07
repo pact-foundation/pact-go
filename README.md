@@ -8,6 +8,7 @@ DSL for the consumer project, and interaction playback and verification for the 
 [![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
 [![Build status](https://ci.appveyor.com/api/projects/status/lg02mfcmvr3e8w5n?svg=true)](https://ci.appveyor.com/project/mefellows/pact-go)
+[![slack](http://slack.pact.io/badge.svg)](http://slack.pact.io)
 
 ## Introduction
 
@@ -33,42 +34,43 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 <!-- TOC -->
 
-* [Introduction](#introduction)
-* [Table of Contents](#table-of-contents)
-* [Installation](#installation)
-  * [Installation on \*nix](#installation-on-\nix)
-* [Using Pact](#using-pact)
-* [HTTP API Testing](#http-api-testing)
-  * [Consumer Side Testing](#consumer-side-testing)
-  * [Provider API Testing](#provider-api-testing)
-    * [Provider Verification](#provider-verification)
-    * [API with Authorization](#api-with-authorization)
-  * [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
-    * [Publishing from Go code](#publishing-from-go-code)
-    * [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
-    * [Publishing from the CLI](#publishing-from-the-cli)
-    * [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-* [Asynchronous API Testing](#asynchronous-api-testing)
-  * [Consumer](#consumer)
-  * [Provider (Producer)](#provider-producer)
-  * [Pact Broker Integration](#pact-broker-integration)
-* [Matching](#matching)
-  * [Matching on types](#matching-on-types)
-  * [Matching on arrays](#matching-on-arrays)
-  * [Matching by regular expression](#matching-by-regular-expression)
-  * [Match common formats](#match-common-formats)
-* [Examples](#examples)
-  * [HTTP APIs](#http-apis)
-  * [Asynchronous APIs](#asynchronous-apis)
-  * [Integrated examples](#integrated-examples)
-* [Troubleshooting](#troubleshooting)
-  * [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-  * [Output Logging](#output-logging)
-* [Contact](#contact)
-* [Documentation](#documentation)
-* [Troubleshooting](#troubleshooting-1)
-* [Roadmap](#roadmap)
-* [Contributing](#contributing)
+- [Pact Go](#pact-go)
+  - [Introduction](#introduction)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Installation on \*nix](#installation-on-\nix)
+  - [Using Pact](#using-pact)
+  - [HTTP API Testing](#http-api-testing)
+    - [Consumer Side Testing](#consumer-side-testing)
+    - [Provider API Testing](#provider-api-testing)
+      - [Provider Verification](#provider-verification)
+      - [API with Authorization](#api-with-authorization)
+    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+      - [Publishing from Go code](#publishing-from-go-code)
+      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+      - [Publishing from the CLI](#publishing-from-the-cli)
+      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+  - [Asynchronous API Testing](#asynchronous-api-testing)
+    - [Consumer](#consumer)
+    - [Provider (Producer)](#provider-producer)
+    - [Pact Broker Integration](#pact-broker-integration)
+  - [Matching](#matching)
+    - [Matching on types](#matching-on-types)
+    - [Matching on arrays](#matching-on-arrays)
+    - [Matching by regular expression](#matching-by-regular-expression)
+    - [Match common formats](#match-common-formats)
+  - [Examples](#examples)
+    - [HTTP APIs](#http-apis)
+    - [Asynchronous APIs](#asynchronous-apis)
+    - [Integrated examples](#integrated-examples)
+  - [Troubleshooting](#troubleshooting)
+      - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
+    - [Output Logging](#output-logging)
+  - [Contact](#contact)
+  - [Documentation](#documentation)
+  - [Troubleshooting](#troubleshooting-1)
+  - [Roadmap](#roadmap)
+  - [Contributing](#contributing)
 
 <!-- /TOC -->
 
@@ -405,93 +407,47 @@ Furthermore, the web has things like WebSockets which involve bidirectional mess
 Pact now has experimental support for these use cases, by abstracting away the protocol and focussing on the messages passing between them.
 
 For further reading and introduction into this topic, see this [article](https://dius.com.au/2017/09/22/contract-testing-serverless-and-asynchronous-applications/)
-and our [example](https://github.com/pact-foundation/pact-js/tree/master/examples/messages) for a more detailed overview of these concepts.
-
-_Since version `v6.0.0-alpha` or later_
+and our [example](https://github.com/pact-foundation/pact-go/tree/feat/matching-rules-daemonless/examples/messages) for a more detailed overview of these concepts.
 
 ### Consumer
 
-A Consumer is the system that will be reading a message from a queue or some intermediary - like a DynamoDB table or S3 bucket -
+A Consumer is the system that will be reading a message from a queue or some intermediary - like a Kinesis stream, websocket or S3 bucket -
 and be able to handle it.
 
-From a Pact testing point of view, Pact takes the place of the intermediary (MQ/broker etc.) and confirms whether or not the consumer is able to handle a request.
+From a Pact testing point of view, Pact takes the place of the intermediary and confirms whether or not the consumer is able to handle a request.
 
 The following test creates a contract for a Dog API handler:
 
-```js
-const {
-  MessageConsumer,
-  Message,
-  synchronousBodyHandler
-} = require("@pact-foundation/pact");
+```go
+// 1 Given this handler that accepts a User and returns an error
+userHandler := func(u User) error {
+	if u.ID == -1 {
+		return errors.New("invalid object supplied, missing fields (id)")
+	}
 
-// 1 API Handler
-const dogApiHandler = function(dog) {
-  if (!dog.id && !dog.name && !dog.type) {
-    throw new Error("missing fields");
-  }
+	// ... actually consume the message
 
-  // do some other things to dog...
-  // e.g. dogRepository.save(dog)
-  return;
-};
+	return nil
+}
 
-// 2 Pact Message Consumer
-const messagePact = new MessageConsumer({
-  consumer: "MyJSMessageConsumer",
-  dir: path.resolve(process.cwd(), "pacts"),
-  pactfileWriteMode: "update",
-  provider: "MyJSMessageProvider"
-});
+// 2 We write a small adapter that will take the incoming dsl.Message
+// and call the function with the correct type
+var userHandlerWrapper = func(m dsl.Message) error {
+	return userHandler(*m.Content.(*User))
+}
 
-describe("receive dog event", () => {
-  it("should accept a valid dog", () => {
-    // 3 Consumer expectations
-    return (
-      messagePact
-        .given("some state")
-        .expectsToReceive("a request for a dog")
-        .withContent({
-          id: like(1),
-          name: like("rover"),
-          type: term({ generate: "bulldog", matcher: "^(bulldog|sheepdog)$" })
-        })
-        .withMetadata({
-          "content-type": "application/json"
-        })
+// 3 Create the Pact Message Consumer
+pact := dsl.Pact {
+	return dsl.Pact{
+		Consumer:                 "PactGoMessageConsumer",
+		Provider:                 "PactGoMessageProvider",
+		LogDir:                   logDir,
+		PactDir:                  pactDir,
+	}
+}
 
-        // 4 Verify consumers' ability to handle messages
-        .verify(synchronousBodyHandler(dogApiHandler))
-    );
-  });
-});
-```
-
-**Explanation**:
-
-1.  The Dog API - a contrived API handler example. Expects a dog object and throws an `Error` if it can't handle it.
-    * In most applications, some form of transactionality exists and communication with a MQ/broker happens.
-    * It's important we separate out the protocol bits from the message handling bits, so that we can test that in isolation.
-1.  Creates the MessageConsumer class
-1.  Setup the expectations for the consumer - here we expect a `dog` object with three fields
-1.  Pact will send the message to your message handler. If the handler returns a successful promise, the message is saved, otherwise the test fails. There are a few key things to consider:
-    * The actual request body that Pact will send, will be contained within a [Message](https://github.com/pact-foundation/pact-js/tree/feat/message-pact/src/dsl/message.ts) object along with other context, so the body must be retrieved via `content` attribute.
-    * All handlers to be tested must be of the shape `(m: Message) => Promise<any>` - that is, they must accept a `Message` and return a `Promise`. This is how we get around all of the various protocols, and will often require a lightweight adapter function to convert it.
-    * In this case, we wrap the actual dogApiHandler with a convenience function `synchronousBodyHandler` provided by Pact, which Promisifies the handler and extracts the contents.
-
-### Provider (Producer)
-
-A Provider (Producer in messaging parlance) is the system that will be putting a message onto the queue.
-
-As per the Consumer case, Pact takes the position of the intermediary (MQ/broker) and checks to see whether or not the Provider sends a message that matches the Consumer's expectations.
-
-```js
-const { MessageProvider, Message } = require("@pact-foundation/pact");
-
-// 1 Messaging integration client
-
-
-// 2 Test
+// 4 Write the consumer test, and call VerifyMessageConsumer
+// passing through the function
 func TestMessageConsumer_Success(t *testing.T) {
 	message := &dsl.Message{}
 	message.
@@ -504,10 +460,52 @@ func TestMessageConsumer_Success(t *testing.T) {
 			"access": eachLike(map[string]interface{}{
 				"role": term("admin", "admin|controller|user"),
 			}, 3),
-		})
+    })
+    AsType(&User{}) // Optional
 
-	pact.VerifyMessageConsumer(t, message, apiHandlerWrapper)
+	pact.VerifyMessageConsumer(t, message, userHandlerWrapper)
 }
+```
+
+**Explanation**:
+
+1.  The  API - a contrived API handler example. Expects a User object and throws an `Error` if it can't handle it.
+    * In most applications, some form of transactionality exists and communication with a MQ/broker happens.
+    * It's important we separate out the protocol bits from the message handling bits, so that we can test that in isolation.
+1.  Creates the MessageConsumer class
+1.  Setup the expectations for the consumer - here we expect a `User` object with three fields
+1.  Pact will send the message to your message handler. If the handler does not error, the message is saved, otherwise the test fails. There are a few key things to consider:
+    * The actual request body that Pact will invoke on your handler will be contained within a `dsl.Message` object along with other context, so the body must be retrieved via `Content` attribute. If you set `Message.AsType(T)` this object will be mapped for you. If you don't want Pact to perform the conversion, you may do so on the object (`dsl.Message.Content`) or on the raw JSON (`dsl.Message.ContentRaw`).
+    * All handlers to be tested must be of the shape `func(dsl.Message) error` - that is, they must accept a `Message` and return an `error`. This is how we get around all of the various protocols, and will often require a lightweight adapter function to convert it.
+    * In this case, we wrap the actual `userHandler` with `userHandlerWrapper` provided by Pact.
+
+### Provider (Producer)
+
+A Provider (Producer in messaging parlance) is the system that will be putting a message onto the queue.
+
+As per the Consumer case, Pact takes the position of the intermediary (MQ/broker) and checks to see whether or not the Provider sends a message that matches the Consumer's expectations.
+
+```js
+	functionMappings := dsl.MessageProviders{
+		"some test case": func(m dsl.Message) (interface{}, error) {
+			fmt.Println("Calling provider function that is responsible for creating the message")
+			res := User{
+				ID:   44,
+				Name: "Baz",
+				Access: []AccessLevel{
+					{Role: "admin"},
+					{Role: "admin"},
+					{Role: "admin"}},
+			}
+
+			return res, nil
+		},
+	}
+
+	// Verify the Provider with local Pact Files
+	pact.VerifyMessageProvider(t, types.VerifyMessageRequest{
+		PactURLs: []string{filepath.ToSlash(fmt.Sprintf("%s/pactgomessageconsumer-pactgomessageprovider.json", pactDir))},
+	}, functionMappings)
 ```
 
 **Explanation**:
@@ -662,6 +660,10 @@ pact := Pact{
 ```
 
 ## Contact
+
+Join us in slack: [![slack](http://slack.pact.io/badge.svg)](http://slack.pact.io)
+
+or
 
 * Twitter: [@pact_up](https://twitter.com/pact_up)
 * Stack Overflow: stackoverflow.com/questions/tagged/pact

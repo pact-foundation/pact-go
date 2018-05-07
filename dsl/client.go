@@ -220,8 +220,13 @@ func (p *PactClient) UpdateMessagePact(request types.PactMessageRequest) error {
 // ReifyMessage takes a structured object, potentially containing nested Matchers
 // and returns an object with just the example (generated) content
 // The object may be a simple JSON primitive e.g. string or number or a complex object
-func (p *PactClient) ReifyMessage(request types.PactReificationRequest) (types.ReificationResponse, err error) {
+func (p *PactClient) ReifyMessage(request *types.PactReificationRequest) (res *types.ReificationResponse, err error) {
 	log.Println("[DEBUG] client: adding pact message...")
+
+	var responseObject interface{}
+	res = &types.ReificationResponse{
+		Response: responseObject,
+	}
 
 	// Convert request into flags, and validate request
 	err = request.Validate()
@@ -255,9 +260,10 @@ func (p *PactClient) ReifyMessage(request types.PactReificationRequest) (types.R
 
 	err = cmd.Wait()
 
+	res.ResponseRaw = stdOut
 	decoder := json.NewDecoder(bytes.NewReader(stdOut))
 
-	dErr := decoder.Decode(&response)
+	dErr := decoder.Decode(&res.Response)
 	if dErr == nil {
 		return
 	}

@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/hashicorp/logutils"
@@ -380,8 +381,12 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 			return
 		}
 
+		wrappedResponse := map[string]interface{}{
+			"contents": res,
+		}
+
 		// Write the body back
-		resBody, errM := json.Marshal(res)
+		resBody, errM := json.Marshal(wrappedResponse)
 		if errM != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			fmt.Println("[ERROR] error marshalling objcet:", errM)
@@ -436,19 +441,28 @@ func (p *Pact) VerifyMessageConsumerRaw(message *Message, handler MessageConsume
 	p.Setup(false)
 
 	// Reify the message back to its "example/generated" form
-	reified, err := p.pactClient.ReifyMessage(types.PactReificationRequest{
+	reified, err := p.pactClient.ReifyMessage(&types.PactReificationRequest{
 		Message: message.Content,
 	})
+
 	if err != nil {
-		return fmt.Errorf("unable to convert consumer test to JSON: %v", err)
+		return fmt.Errorf("unable to convert consumer test to a valid JSON representation: %v", err)
 	}
 
-	fmt.Printf("[INFO] Reified message: %v", reified)
+	t := reflect.TypeOf(message.Type)
+	if t != nil && t.Name() != "interface" {
+		log.Println("[DEBUG] narrowing type to", t.Name())
+		err = json.Unmarshal(reified.ResponseRaw, &message.Type)
+
+		if err != nil {
+			return fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
+		}
+	}
 
 	// Yield message, and send through handler function
 	generatedMessage :=
 		Message{
-			Content:     reified,
+			Content:     message.Type,
 			States:      message.States,
 			Description: message.Description,
 			Metadata:    message.Metadata,
@@ -469,13 +483,8 @@ func (p *Pact) VerifyMessageConsumerRaw(message *Message, handler MessageConsume
 	})
 }
 
-// VerifyMessageConsumer creates a new Pact _message_ interaction to build a testable
-// interaction, accepts an instance of `*testing.T`
-//
-//
-// A Message Consumer is analagous to a Provider in the HTTP Interaction model.
-// It is the receiver of an interaction, and needs to be able to handle whatever
-// request was provided.
+// VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
+// accepting an instance of `*testing.T`
 func (p *Pact) VerifyMessageConsumer(t *testing.T, message *Message, handler MessageConsumer) error {
 	err := p.VerifyMessageConsumerRaw(message, handler)
 
