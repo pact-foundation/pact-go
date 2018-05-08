@@ -34,43 +34,43 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 <!-- TOC -->
 
-- [Pact Go](#pact-go)
-  - [Introduction](#introduction)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-    - [Installation on \*nix](#installation-on-\nix)
-  - [Using Pact](#using-pact)
-  - [HTTP API Testing](#http-api-testing)
-    - [Consumer Side Testing](#consumer-side-testing)
-    - [Provider API Testing](#provider-api-testing)
-      - [Provider Verification](#provider-verification)
-      - [API with Authorization](#api-with-authorization)
-    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
-      - [Publishing from Go code](#publishing-from-go-code)
-      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
-      - [Publishing from the CLI](#publishing-from-the-cli)
-      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-  - [Asynchronous API Testing](#asynchronous-api-testing)
-    - [Consumer](#consumer)
-    - [Provider (Producer)](#provider-producer)
-    - [Pact Broker Integration](#pact-broker-integration)
-  - [Matching](#matching)
-    - [Matching on types](#matching-on-types)
-    - [Matching on arrays](#matching-on-arrays)
-    - [Matching by regular expression](#matching-by-regular-expression)
-    - [Match common formats](#match-common-formats)
-  - [Examples](#examples)
-    - [HTTP APIs](#http-apis)
-    - [Asynchronous APIs](#asynchronous-apis)
-    - [Integrated examples](#integrated-examples)
-  - [Troubleshooting](#troubleshooting)
-      - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-    - [Output Logging](#output-logging)
-  - [Contact](#contact)
-  - [Documentation](#documentation)
-  - [Troubleshooting](#troubleshooting-1)
-  - [Roadmap](#roadmap)
-  - [Contributing](#contributing)
+* [Introduction](#introduction)
+* [Table of Contents](#table-of-contents)
+* [Installation](#installation)
+  * [Installation on \*nix](#installation-on-\nix)
+* [Using Pact](#using-pact)
+* [HTTP API Testing](#http-api-testing)
+  * [Consumer Side Testing](#consumer-side-testing)
+  * [Provider API Testing](#provider-api-testing)
+    * [Provider Verification](#provider-verification)
+    * [API with Authorization](#api-with-authorization)
+  * [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+    * [Publishing from Go code](#publishing-from-go-code)
+    * [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+    * [Publishing from the CLI](#publishing-from-the-cli)
+    * [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+* [Asynchronous API Testing](#asynchronous-api-testing)
+  * [Consumer](#consumer)
+  * [Provider (Producer)](#provider-producer)
+  * [Pact Broker Integration](#pact-broker-integration)
+* [Matching](#matching)
+  * [Matching on types](#matching-on-types)
+  * [Matching on arrays](#matching-on-arrays)
+  * [Matching by regular expression](#matching-by-regular-expression)
+  * [Match common formats](#match-common-formats)
+    * [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
+* [Examples](#examples)
+  * [HTTP APIs](#http-apis)
+  * [Asynchronous APIs](#asynchronous-apis)
+  * [Integrated examples](#integrated-examples)
+* [Troubleshooting](#troubleshooting)
+  * [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
+  * [Output Logging](#output-logging)
+* [Contact](#contact)
+* [Documentation](#documentation)
+* [Troubleshooting](#troubleshooting-1)
+* [Roadmap](#roadmap)
+* [Contributing](#contributing)
 
 <!-- /TOC -->
 
@@ -469,7 +469,7 @@ func TestMessageConsumer_Success(t *testing.T) {
 
 **Explanation**:
 
-1.  The  API - a contrived API handler example. Expects a User object and throws an `Error` if it can't handle it.
+1.  The API - a contrived API handler example. Expects a User object and throws an `Error` if it can't handle it.
     * In most applications, some form of transactionality exists and communication with a MQ/broker happens.
     * It's important we separate out the protocol bits from the message handling bits, so that we can test that in isolation.
 1.  Creates the MessageConsumer class
@@ -596,6 +596,50 @@ Often times, you find yourself having to re-write regular expressions for common
 | `ipIPv4Address | Match string containing IP4 formatted address |
 | `IPv6Address()`                                                | Match string containing IP6 formatted address                                                   |
 | `UUID()`                                                       | Match strings containing UUIDs                                                                  |
+
+#### Auto-generate matchers from struct tags
+
+Furthermore, if you isolate your Data Transfer Objects (DTOs) to an adapters package so that they exactly reflect the interface between you and your provider, then you can leverage `dsl.Match` to auto-generate the expected response body in your contract tests. Under the hood, `Match` recursively traverses the DTO struct and uses `Term, Like, and EachLike` to create the contract.
+
+This saves the trouble of declaring the contract by hand. It also maintains one source of truth. To change the consumer-provider interface, you only have to update your DTO struct and the contract will automatically follow suit.
+
+_Example:_
+
+```go
+type DTO struct {
+  ID    string    `json:"id"`
+  Title string    `json:"title"`
+  Tags  []string  `json:"tags" pact:"min=2"`
+  Date  string    `json:"date" pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
+}
+```
+
+then specifying a response body is as simple as:
+
+```go
+	// Set up our expected interactions.
+	pact.
+		AddInteraction().
+		Given("User foo exists").
+		UponReceiving("A request to get foo").
+		WithRequest(dsl.Request{
+			Method:  "GET",
+			Path:    "/foobar",
+			Headers: map[string]string{"Content-Type": "application/json"},
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  200,
+			Headers: map[string]string{"Content-Type": "application/json"},
+			Body:    Match(DTO{}), // That's it!!!
+		})
+```
+
+The `pact` struct tags shown above are optional. By default, dsl.Match just asserts that the JSON shape matches the struct and that the field types match.
+
+See [dsl.Match](https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher.go) for more information.
+
+See the [matcher tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)
+for more matching examples.
 
 ## Examples
 
