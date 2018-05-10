@@ -23,6 +23,7 @@ New-Item -Force -ItemType Directory $pactDir
 
 Write-Host "--> Downloading Ruby binaries)"
 $downloadDir = $env:TEMP
+$version = Get-Contents "./"
 $url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.33.1/pact-1.33.1-win32.zip"
 
 Write-Host "    Downloading $url"

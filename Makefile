@@ -2,9 +2,6 @@ TEST?=./...
 
 default: test
 
-package:
-	@sh -c "$(CURDIR)/scripts/package.sh"
-
 bin:
 	@sh -c "$(CURDIR)/scripts/build.sh"
 
