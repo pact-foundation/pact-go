@@ -513,3 +513,12 @@ func TestPublish_tagRequestFail(t *testing.T) {
 		t.Fatalf("Expected error but got none")
 	}
 }
+
+func TestPublish_SetClient(t *testing.T) {
+	p := &Publisher{}
+	client := &http.Client{}
+	p.SetClient(client)
+	if p.client != client {
+		t.Fatalf("SetClient Failed To Set Client On Publisher")
+	}
+}

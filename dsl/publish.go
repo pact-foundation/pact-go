@@ -32,6 +32,7 @@ type PactName struct {
 // Publisher is the API to send Pact files to a Pact Broker.
 type Publisher struct {
 	request types.PublishRequest
+	client  *http.Client
 }
 
 // validate the publish requests.
@@ -71,7 +72,9 @@ func (p *Publisher) validate() error {
 
 // call sends a message to the Pact Broker.
 func (p *Publisher) call(method string, url string, content []byte) error {
-	client := &http.Client{}
+	if p.client == nil {
+		p.client = &http.Client{}
+	}
 	var req *http.Request
 	var err error
 	req, err = http.NewRequest(method, url, bytes.NewReader(content))
@@ -85,7 +88,7 @@ func (p *Publisher) call(method string, url string, content []byte) error {
 		req.SetBasicAuth(p.request.BrokerUsername, p.request.BrokerPassword)
 	}
 
-	res, err := client.Do(req)
+	res, err := p.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -190,4 +193,9 @@ func (p *Publisher) tagRequest(consumerName string, request types.PublishRequest
 	}
 
 	return nil
+}
+
+// SetClient allows dsl users to configure the http.Client used when publishing Pacts
+func (p *Publisher) SetClient(client *http.Client) {
+	p.client = client
 }
