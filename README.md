@@ -27,7 +27,9 @@ how to get going.
 Pact Go implements [Pact Specification v2](https://github.com/pact-foundation/pact-specification/tree/version-2),
 including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
-[![asciicast](https://asciinema.org/a/121445.png)](https://asciinema.org/a/121445)
+<p align="center">
+  <img width="880" src="https://cdn.rawgit.com/pact-foundation/pact-go/master/.github/pact.svg">
+</p>
 
 ## Table of Contents
 
@@ -40,6 +42,7 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
   - [Running](#running)
     - [Consumer](#consumer)
       - [Matching (Consumer Tests)](#matching-consumer-tests)
+      - [Auto-Generate Match String (Consumer Tests)](#auto-generate-match-string-consumer-tests)
     - [Provider](#provider)
       - [Provider Verification](#provider-verification)
       - [API with Authorization](#api-with-authorization)
@@ -219,7 +222,7 @@ This example will result in a response body from the mock server that looks like
 
 Furthermore, if you isolate your Data Transfer Objects (DTOs) to an adapters package so that they exactly reflect the interface between you and your provider, then you can leverage `dsl.Match` to auto-generate the expected response body in your contract tests. Under the hood, `Match` recursively traverses the DTO struct and uses `Term, Like, and EachLike` to create the contract.
 
-This saves the trouble of declaring the contract by hand. It also maintains one source of truth. To change the consumer-provider interface, you only have to update your DTO struct and the contract will automatically follow suit. 
+This saves the trouble of declaring the contract by hand. It also maintains one source of truth. To change the consumer-provider interface, you only have to update your DTO struct and the contract will automatically follow suit.
 
 *Example:*
 
