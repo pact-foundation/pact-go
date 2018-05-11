@@ -44,3 +44,6 @@ logs
 
 # IDE
 .vscode
+
+# Dependencies
+vendor

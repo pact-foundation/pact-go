@@ -55,12 +55,12 @@ work is completed.
 
 #### Vendoring
 
-We use [Govend](https://github.com/govend/govend) to vendor packages. Please ensure
-any new packages are added to `vendor.yml` prior to patching.
+We use [dep](https://github.com/golang/dep) to vendor packages. Please ensure
+any new packages that need to have a specific version locked are added to `Gopkg.toml`.
 
 ## Integration Tests
 
 Before releasing a new version, in addition to the standard (isolated) tests
 we smoke test the key features against a running Daemon and Broker.
 
-Run `make pact` to start the daemon and run integration tests. 
+Run `make pact` to start the daemon and run integration tests.
