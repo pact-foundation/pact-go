@@ -309,7 +309,7 @@ Here is the Provider test process broker down:
 
         w.Header().Add("Content-Type", "application/json")
       })
-      go http.ListenAndServe(":8000", mux)
+      log.Fatal(http.ListenAndServe(":8000", mux))
     }
     ```
 
