@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -67,5 +68,5 @@ func startServer() {
 
 		w.Header().Add("Content-Type", "application/json")
 	})
-	go http.ListenAndServe(":8000", mux)
+	log.Fatal(http.ListenAndServe(":8000", mux))
 }
