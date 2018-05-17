@@ -815,6 +815,37 @@ func Test_pluckParams(t *testing.T) {
 			},
 		},
 		{
+			name: "expected use - string tag with complex string",
+			args: args{
+				srcType: reflect.TypeOf(""),
+				pactTag: "example=Jean-Marie de La Beaujardière😀😍",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				str: stringParams{
+					example: "Jean-Marie de La Beaujardière😀😍",
+				},
+			},
+		},
+		{
+			name: "expected use - example with no regex",
+			args: args{
+				srcType: reflect.TypeOf(""),
+				pactTag: "example=aBcD123",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				str: stringParams{
+					example: "aBcD123",
+				},
+			},
+			wantPanic: false,
+		},
+		{
 			name: "empty string tag",
 			args: args{
 				srcType: reflect.TypeOf(""),
@@ -851,22 +882,6 @@ func Test_pluckParams(t *testing.T) {
 			args: args{
 				srcType: reflect.TypeOf(""),
 				pactTag: "example=aBcD123,regex=",
-			},
-			wantPanic: true,
-		},
-		{
-			name: "invalid string tag - no regex",
-			args: args{
-				srcType: reflect.TypeOf(""),
-				pactTag: "example=aBcD123",
-			},
-			wantPanic: true,
-		},
-		{
-			name: "invalid string tag - regex typo",
-			args: args{
-				srcType: reflect.TypeOf(""),
-				pactTag: "example=aBcD123,regx=[A-Za-z0-9]",
 			},
 			wantPanic: true,
 		},

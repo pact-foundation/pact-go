@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/dsl"
+	ex "github.com/pact-foundation/pact-go/examples/types"
 	"github.com/pact-foundation/pact-go/types"
 )
 
@@ -25,6 +26,7 @@ var form url.Values
 var rr http.ResponseWriter
 var req *http.Request
 var name = "Jean-Marie de La Beaujardière😀😍"
+var password = "issilly"
 var like = dsl.Like
 var eachLike = dsl.EachLike
 var term = dsl.Term
@@ -32,7 +34,10 @@ var term = dsl.Term
 type s = dsl.String
 type request = dsl.Request
 
-var loginRequest = map[string]string{"username": name, "password": "issilly"}
+var loginRequest = ex.LoginRequest{
+	Username: name,
+	Password: password,
+}
 var commonHeaders = dsl.MapMatcher{
 	"Content-Type": term("application/json; charset=utf-8", `application\/json`),
 }
@@ -81,7 +86,7 @@ func setup() {
 	// Login form values
 	form = url.Values{}
 	form.Add("username", name)
-	form.Add("password", "issilly")
+	form.Add("password", password)
 
 	// Create a request to pass to our handler.
 	req, _ = http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
@@ -140,7 +145,7 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 			Query: dsl.MapMatcher{
 				"foo": term("bar", "[a-zA-Z]+"),
 			},
-			Body:    loginRequest,
+			Body:    dsl.Match(loginRequest),
 			Headers: commonHeaders,
 		}).
 		WillRespondWith(dsl.Response{

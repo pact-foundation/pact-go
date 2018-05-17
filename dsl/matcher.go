@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -343,6 +344,10 @@ func match(srcType reflect.Type, params params) Matcher {
 		if params.str.regEx != "" {
 			return Term(params.str.example, params.str.regEx)
 		}
+		if params.str.example != "" {
+			return Like(params.str.example)
+		}
+
 		return Like(`"string"`)
 	case reflect.Bool:
 		return Like(true)
@@ -397,17 +402,30 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 			triggerInvalidPactTagPanic(pactTag, err)
 		}
 	case reflect.String:
-		components := strings.Split(pactTag, ",regex=")
+		fullRegex, _ := regexp.Compile(`regex=(.*)$`)
+		exampleRegex, _ := regexp.Compile(`^example=(.*)`)
 
-		if len(components) != 2 {
-			triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: unable to split on ',regex='"))
-		} else if len(components[1]) == 0 {
-			triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: regex must not be empty"))
-		} else if _, err := fmt.Sscanf(components[0], "example=%s", &params.str.example); err != nil {
-			triggerInvalidPactTagPanic(pactTag, err)
+		if fullRegex.Match([]byte(pactTag)) {
+			components := strings.Split(pactTag, ",regex=")
+
+			if len(components[1]) == 0 {
+				triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: regex must not be empty"))
+			}
+
+			if _, err := fmt.Sscanf(components[0], "example=%s", &params.str.example); err != nil {
+				triggerInvalidPactTagPanic(pactTag, err)
+			}
+			params.str.regEx = strings.Replace(components[1], `\`, `\\`, -1)
+
+		} else if exampleRegex.Match([]byte(pactTag)) {
+			components := strings.Split(pactTag, "example=")
+
+			if len(components) != 2 {
+				triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: example must not be empty"))
+			}
+
+			params.str.example = components[1]
 		}
-
-		params.str.regEx = strings.Replace(components[1], `\`, `\\`, -1)
 	}
 
 	return params
