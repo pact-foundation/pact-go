@@ -6,7 +6,6 @@ import (
 	"log"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -188,107 +187,7 @@ func (m Matcher) isMatcher() {}
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
 func (m Matcher) GetValue() interface{} {
-	class, ok := m["json_class"]
-
-	if !ok {
-		return nil
-	}
-
-	// extract out the value
-	switch class {
-	case "Pact::ArrayLike":
-		contents := m["contents"]
-		min, err := strconv.Atoi(fmt.Sprintf("%d", m["min"]))
-		if err != nil {
-			min = 1
-		}
-
-		data := make([]interface{}, min)
-
-		for i := 0; i < min; i++ {
-			data[i] = contents
-		}
-		return data
-
-	case "Pact::SomethingLike":
-		return m["contents"]
-	case "Pact::Term":
-		data := m["data"].(map[string]interface{})
-		return data["generate"]
-	}
-
 	return nil
-}
-
-// GetValue returns the raw generated value for the matcher
-// without any of the matching detail context
-func getMatcherValue(m interface{}) interface{} {
-	matcher, ok := getMatcher(m)
-	if !ok {
-		return nil
-	}
-
-	class, ok := matcher["json_class"]
-
-	if !ok {
-		return nil
-	}
-
-	// extract out the value
-	switch class {
-	case "Pact::ArrayLike":
-		contents := matcher["contents"]
-		min := matcher["min"].(int)
-		data := make([]interface{}, min)
-
-		for i := 0; i < min; i++ {
-			data[i] = contents
-		}
-		return data
-
-	case "Pact::SomethingLike":
-		return matcher["contents"]
-	case "Pact::Term":
-		data := matcher["data"].(map[string]interface{})
-		return data["generate"]
-	}
-
-	return nil
-}
-
-// func isMatcher(obj map[string]interface{}) bool {
-func isMatcher(obj interface{}) bool {
-	m, ok := obj.(map[string]interface{})
-
-	if ok {
-		if _, match := m["json_class"]; match {
-			return true
-		}
-	}
-
-	if _, match := obj.(Matcher); match {
-		return true
-	}
-
-	return false
-}
-
-func getMatcher(obj interface{}) (Matcher, bool) {
-	// If an object, but not a map[string]interface{} then just return?
-	m, ok := obj.(map[string]interface{})
-
-	if ok {
-		if _, match := m["json_class"]; match {
-			return m, true
-		}
-	}
-
-	m, ok = obj.(Matcher)
-	if ok {
-		return m, true
-	}
-
-	return nil, false
 }
 
 // MapMatcher allows a map[string]string-like object
@@ -420,7 +319,7 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 		} else if exampleRegex.Match([]byte(pactTag)) {
 			components := strings.Split(pactTag, "example=")
 
-			if len(components) != 2 {
+			if len(components) != 2 || strings.TrimSpace(components[1]) == "" {
 				triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: example must not be empty"))
 			}
 

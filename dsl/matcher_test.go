@@ -870,6 +870,14 @@ func Test_pluckParams(t *testing.T) {
 			wantPanic: true,
 		},
 		{
+			name: "invalid string tag - empty example",
+			args: args{
+				srcType: reflect.TypeOf(""),
+				pactTag: "example=",
+			},
+			wantPanic: true,
+		},
+		{
 			name: "invalid string tag - example typo",
 			args: args{
 				srcType: reflect.TypeOf(""),
