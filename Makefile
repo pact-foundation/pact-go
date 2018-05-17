@@ -2,7 +2,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: clean bin tools test pact
+ci:: clean bin tools test pact goveralls
 
 bin:
 	@sh -c "$(CURDIR)/scripts/build.sh"
