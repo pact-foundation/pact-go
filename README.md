@@ -29,7 +29,9 @@ Pact Go implements [Pact Specification v2](https://github.com/pact-foundation/pa
 including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 <p align="center">
-  <img width="880" src="https://raw.githubusercontent.com/pact-foundation/pact-go/master/.github/pact-small.svg?sanitize=true">
+  <a href="https://asciinema.org/a/180671">
+    <img width="880" src="https://raw.githubusercontent.com/pact-foundation/pact-go/master/.github/pact-small.svg?sanitize=true">
+  </a>
 </p>
 
 ## Table of Contents
