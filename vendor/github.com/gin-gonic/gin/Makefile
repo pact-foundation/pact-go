@@ -2,14 +2,14 @@ GOFMT ?= gofmt "-s"
 PACKAGES ?= $(shell go list ./... | grep -v /vendor/)
 GOFILES := $(shell find . -name "*.go" -type f -not -path "./vendor/*")
 
-all: install
+all: build
 
 install: deps
 	govendor sync
 
 .PHONY: test
 test:
-	sh coverage.sh
+	go test -v -covermode=count -coverprofile=coverage.out
 
 .PHONY: fmt
 fmt:
