@@ -31,7 +31,7 @@ type PactLink struct {
 
 // HalLinks represents the _links key in a HAL document.
 type HalLinks struct {
-	Pacts []PactLink `json:"pacts"`
+	Pacts []PactLink `json:"pb:pacts"`
 }
 
 // HalDoc is a simple representation of the HAL response from a Pact Broker.

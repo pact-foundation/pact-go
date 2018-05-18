@@ -186,7 +186,7 @@ func setupMockBroker(auth bool) *httptest.Server {
 	// curl --user pactuser:pact -H "accept: application/hal+json" "http://pact.onegeek.com.au/pacts/provider/bobby/latest"
 	mux.HandleFunc("/pacts/provider/bobby/latest", authFunc(func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] get pacts for provider 'bobby'")
-		fmt.Fprintf(w, `{"_links":{"self":{"href":"%s/pacts/provider/bobby/latest","title":"Latest pact versions for the provider bobby"},"provider":{"href":"%s/pacticipants/bobby","title":"bobby"},"pacts":[{"href":"%s/pacts/provider/bobby/consumer/jessica/version/2.0.0","title":"Pact between jessica (v2.0.0) and bobby","name":"jessica"},{"href":"%s/pacts/provider/bobby/consumer/billy/version/1.0.0","title":"Pact between billy (v1.0.0) and bobby","name":"billy"}]}}`, server.URL, server.URL, server.URL, server.URL)
+		fmt.Fprintf(w, `{"_links":{"self":{"href":"%s/pacts/provider/bobby/latest","title":"Latest pact versions for the provider bobby"},"provider":{"href":"%s/pacticipants/bobby","title":"bobby"},"pb:pacts":[{"href":"%s/pacts/provider/bobby/consumer/jessica/version/2.0.0","title":"Pact between jessica (v2.0.0) and bobby","name":"jessica"},{"href":"%s/pacts/provider/bobby/consumer/billy/version/1.0.0","title":"Pact between billy (v1.0.0) and bobby","name":"billy"}]}}`, server.URL, server.URL, server.URL, server.URL)
 		w.Header().Add("Content-Type", "application/hal+json")
 	}))
 
@@ -194,7 +194,7 @@ func setupMockBroker(auth bool) *httptest.Server {
 	// curl --user pactuser:pact -H "accept: application/hal+json" "http://pact.onegeek.com.au/pacts/provider/bobby/latest/sit4"
 	mux.Handle("/pacts/provider/bobby/latest/prod", authFunc(func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] get all pacts for provider 'bobby' where the tag 'prod' exists")
-		fmt.Fprintf(w, `{"_links":{"self":{"href":"%s/pacts/provider/bobby/latest/dev","title":"Latest pact versions for the provider bobby with tag 'dev'"},"provider":{"href":"%s/pacticipants/bobby","title":"bobby"},"pacts":[{"href":"%s/pacts/provider/bobby/consumer/billy/version/1.0.0","title":"Pact between billy (v1.0.0) and bobby","name":"billy"}]}}`, server.URL, server.URL, server.URL)
+		fmt.Fprintf(w, `{"_links":{"self":{"href":"%s/pacts/provider/bobby/latest/dev","title":"Latest pact versions for the provider bobby with tag 'dev'"},"provider":{"href":"%s/pacticipants/bobby","title":"bobby"},"pb:pacts":[{"href":"%s/pacts/provider/bobby/consumer/billy/version/1.0.0","title":"Pact between billy (v1.0.0) and bobby","name":"billy"}]}}`, server.URL, server.URL, server.URL)
 		w.Header().Add("Content-Type", "application/hal+json")
 	}))
 
@@ -217,7 +217,7 @@ func setupMockBroker(auth bool) *httptest.Server {
 	// curl --user pactuser:pact -H "accept: application/hal+json" "http://pact.onegeek.com.au/pacts/provider/bobby/latest/sit4"
 	mux.Handle("/pacts/provider/bobby/latest/dev", authFunc(func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] get all pacts for provider 'bobby' where the tag 'dev' exists")
-		fmt.Fprintf(w, `{"_links":{"self":{"href":"%s/pacts/provider/bobby/latest/dev","title":"Latest pact versions for the provider bobby with tag 'dev'"},"provider":{"href":"%s/pacticipants/bobby","title":"bobby"},"pacts":[{"href":"%s/pacts/provider/bobby/consumer/billy/version/1.0.1","title":"Pact between billy (v1.0.1) and bobby","name":"billy"}]}}`, server.URL, server.URL, server.URL)
+		fmt.Fprintf(w, `{"_links":{"self":{"href":"%s/pacts/provider/bobby/latest/dev","title":"Latest pact versions for the provider bobby with tag 'dev'"},"provider":{"href":"%s/pacticipants/bobby","title":"bobby"},"pb:pacts":[{"href":"%s/pacts/provider/bobby/consumer/billy/version/1.0.1","title":"Pact between billy (v1.0.1) and bobby","name":"billy"}]}}`, server.URL, server.URL, server.URL)
 		w.Header().Add("Content-Type", "application/hal+json")
 	}))
 
