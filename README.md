@@ -1,6 +1,8 @@
 # Pact Go
 
-Golang version of [Pact](http://pact.io). Enables consumer driven contract testing, providing a mock service and
+Golang version of [Pact](http://pact.io). Pact is a contract testing framework for HTTP APIs and non-HTTP asynchronous messaging systems.
+
+Enables consumer driven contract testing, providing a mock service and
 DSL for the consumer project, and interaction playback and verification for the service Provider project.
 
 [![Build Status](https://travis-ci.org/pact-foundation/pact-go.svg?branch=master)](https://travis-ci.org/pact-foundation/pact-go)
@@ -12,7 +14,7 @@ DSL for the consumer project, and interaction playback and verification for the 
 
 ## Introduction
 
-From the [Pact website](http://docs.pact.io/):
+From the [Pact website]:
 
 > The Pact family of frameworks provide support for [Consumer Driven Contracts](http://martinfowler.com/articles/consumerDrivenContracts.html) testing.
 
@@ -22,11 +24,7 @@ From the [Pact website](http://docs.pact.io/):
 
 > Pact is a testing tool that guarantees those Contracts are satisfied.
 
-Read [Getting started with Pact](http://dius.com.au/2016/02/03/microservices-pact/) for more information on
-how to get going.
-
-Pact Go implements [Pact Specification v2](https://github.com/pact-foundation/pact-specification/tree/version-2),
-including [flexible matching](http://docs.pact.io/documentation/matching.html).
+Read [Getting started with Pact] for more information for beginners.
 
 <p align="center">
   <a href="https://asciinema.org/a/180671">
@@ -41,7 +39,9 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 - [Pact Go](#pact-go)
   - [Introduction](#introduction)
   - [Table of Contents](#table-of-contents)
+  - [Versions](#versions)
   - [Installation](#installation)
+    - [Go get](#go-get)
     - [Installation on \*nix](#installation-on-\nix)
   - [Using Pact](#using-pact)
   - [HTTP API Testing](#http-api-testing)
@@ -79,13 +79,26 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 <!-- /TOC -->
 
+## Versions
+
+| Version | Stable     | [Spec] Compatibility | Install         |
+| ------- |------------|----------------------|-----------------|
+| 1.0.x   | Yes        | 2, 3*                | [Installation]  |
+| 1.1.x   | No (alpha) | 2, 3*                | [release/1.1.x] |
+| 0.x.x   | Yes        | Up to v2             | [release/0.x.x] |
+
+_*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
+
 ## Installation
 
-*NOTE*: This is the new `1.x.x` release branch with the latest API and feature set (including Message support), for the previous stable version, see the [release/0.x.x](https://github.com/pact-foundation/pact-go/tree/release/0.x.x) branch.
-
-1.  Download the [latest release](https://github.com/pact-foundation/pact-ruby-standalone/releases) of the standalone tools and ensure the binaries are on your `PATH`:
-1.  Unzip the package into a known location, and ensuring the `pact-go` binary is on the `PATH`.
+1.  Download the latest [CLI tools] of the standalone tools and ensure the binaries are on your `PATH`:
+1.  Unzip the package into a known location, and ensuring the `pact` and other binaries in the `bin` directory are on the `PATH`.
 1.  Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
+
+### Go get
+
+Since `1.x.x` Pact is go-gettable, and uses tags for versioning, so `dep ensure --add github.com/pact-foundation/pact-go@1.0.0-beta` or `go get gopkg.in/pact-foundation/pact-go.v1` is now possible.
+
 
 See below for how to automate this:
 
@@ -233,7 +246,7 @@ Here is the Provider test process broker down:
 
         w.Header().Add("Content-Type", "application/json")
       })
-      go http.ListenAndServe(":8000", mux)
+      log.Fatal(http.ListenAndServe(":8000", mux))
     }
     ```
 
@@ -716,18 +729,18 @@ Join us in slack: [![slack](http://slack.pact.io/badge.svg)](http://slack.pact.i
 
 or
 
-* Twitter: [@pact_up](https://twitter.com/pact_up)
+* Twitter: [@pact_up]
 * Stack Overflow: stackoverflow.com/questions/tagged/pact
 * Gitter: https://gitter.im/realestate-com-au/pact
-* Gophers #pact [Slack channel](https://gophers.slack.com/messages/pact/)
+* Gophers #pact [Slack channel]
 
 ## Documentation
 
-Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki](https://github.com/pact-foundation/pact-ruby/wiki).
+Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki].
 
 ## Troubleshooting
 
-See [TROUBLESHOOTING](https://github.com/pact-foundation/pact-go/wiki/Troubleshooting) for some helpful tips/tricks.
+See [TROUBLESHOOTING] for some helpful tips/tricks.
 
 ## Roadmap
 
@@ -737,3 +750,18 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 ## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md).
+
+[Spec]: (https://github.com/pact-foundation/pact-specification)
+[release/0.x.x]: (https://github.com/pact-foundation/pact-go/tree/release/0.x.x)
+[release/1.1.x]: (https://github.com/pact-foundation/pact-go/tree/release/1.1.x)
+[TROUBLESHOOTING]: (https://github.com/pact-foundation/pact-go/wiki/Troubleshooting)
+[Pact Wiki]: (https://github.com/pact-foundation/pact-ruby/wiki)
+[Getting started with Pact]: (http://dius.com.au/2016/02/03/microservices-pact/)
+[Pact website]: (http://docs.pact.io/)
+[Slack channel]: (https://gophers.slack.com/messages/pact/)
+[@pact_up]: (https://twitter.com/pact_up)
+[Pact Specification v2]: (https://github.com/pact-foundation/pact-specification/tree/version-2)
+[Pact Specification v3]: (https://github.com/pact-foundation/pact-specification/tree/version-3)
+[CLI tools]: (https://github.com/pact-foundation/pact-ruby-standalone/releases)
+[Installation]: (#installation)
+[Message support]: (https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues)

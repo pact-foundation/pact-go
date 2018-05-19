@@ -2,7 +2,7 @@
 
 # Get current versions
 echo "==> Finding current version"
-version=$(cat command/version.go | egrep -o "v[0-9\.]+")
+version=$(cat command/version.go | egrep -o "v([0-9\.]+)-?([a-zA-Z\-]+)?")
 date=$(date "+%d %B %Y")
 
 # Check tags
@@ -32,7 +32,7 @@ END
   echo "==> Done - check your git logs, and then run 'git push'."
 else
   echo "ERROR: Version ${version} does not exist, exiting."
-  echo "To fix this, ensure RELEASE_VERSION in the Wercker build is 
+  echo "To fix this, ensure RELEASE_VERSION in the Wercker build is
         set to the correct tag (https://app.wercker.com/Pact-Foundation/pact-go/environment)"
   exit 1
 fi
