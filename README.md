@@ -66,7 +66,7 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 
 ## Installation
 
-*NOTE*: This is the deprecated, however stable `0.x.x` release branch, for the latest see `[https://github.com/pact-foundation/pact-go](https://github.com/pact-foundation/pact-go)`
+*NOTE*: This is the deprecated, however stable, `0.x.x` release branch, for the latest see the [master](https://github.com/pact-foundation/pact-go) release.
 
 * Download one of the zipped [release](https://github.com/pact-foundation/pact-go/releases) distributions for your OS.
 * Unzip the package into a known location, and ensuring the `pact-go` binary is on the `PATH`, next to the `pact` folder.
