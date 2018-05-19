@@ -31,6 +31,7 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
   <img width="880" src="https://raw.githubusercontent.com/pact-foundation/pact-go/master/.github/pact-small.svg?sanitize=true">
 </p>
 
+
 ## Table of Contents
 
 <!-- TOC -->
@@ -64,6 +65,8 @@ including [flexible matching](http://docs.pact.io/documentation/matching.html).
 <!-- /TOC -->
 
 ## Installation
+
+*NOTE*: This is the deprecated, however stable `0.x.x` release branch, for the latest see `[https://github.com/pact-foundation/pact-go](https://github.com/pact-foundation/pact-go)`
 
 * Download one of the zipped [release](https://github.com/pact-foundation/pact-go/releases) distributions for your OS.
 * Unzip the package into a known location, and ensuring the `pact-go` binary is on the `PATH`, next to the `pact` folder.
