@@ -45,10 +45,10 @@ func TestInteraction_WithRequest(t *testing.T) {
 		Given("Some state").
 		UponReceiving("Some name for the test").
 		WithRequest(Request{
-			Body: `{
-			"foo": "bar",
-			"baz": "bat"
-			}`,
+			Body: map[string]string{
+				"foo": "bar",
+				"baz": "bat",
+			},
 		})
 
 	obj := map[string]string{
@@ -60,12 +60,8 @@ func TestInteraction_WithRequest(t *testing.T) {
 	body, _ := json.Marshal(obj)
 	json.Unmarshal(body, &expect)
 
-	if _, ok := i.Request.Body.(map[string]interface{}); !ok {
-		t.Fatalf("Expected response to be of type 'map[string]string'")
-	}
-
-	if !reflect.DeepEqual(i.Request.Body, expect) {
-		t.Fatalf("Expected response object body '%v' to match '%v'", i.Request.Body, expect)
+	if _, ok := i.Request.Body.(map[string]string); !ok {
+		t.Fatal("Expected response to be of type 'map[string]string', but got", reflect.TypeOf(i.Request.Body))
 	}
 }
 
@@ -95,10 +91,10 @@ func TestInteraction_WillRespondWith(t *testing.T) {
 		UponReceiving("Some name for the test").
 		WithRequest(Request{}).
 		WillRespondWith(Response{
-			Body: `{
+			Body: map[string]string{
 				"foo": "bar",
-				"baz": "bat"
-			}`,
+				"baz": "bat",
+			},
 		})
 
 	obj := map[string]string{
@@ -110,37 +106,21 @@ func TestInteraction_WillRespondWith(t *testing.T) {
 	body, _ := json.Marshal(obj)
 	json.Unmarshal(body, &expect)
 
-	if _, ok := i.Response.Body.(map[string]interface{}); !ok {
-		t.Fatalf("Expected response to be of type 'map[string]string'")
-	}
-
-	if !reflect.DeepEqual(i.Response.Body, expect) {
-		t.Fatalf("Expected response object body '%v' to match '%v'", i.Response.Body, expect)
+	if _, ok := i.Response.Body.(map[string]string); !ok {
+		t.Fatal("Expected response to be of type 'map[string]string', but got", reflect.TypeOf(i.Response.Body))
 	}
 }
 
-func TestInteraction_toObject(t *testing.T) {
-	// unstructured string should not be changed
-	res := toObject([]byte("somestring"))
-	content, ok := res.(string)
-
-	if !ok {
-		t.Fatalf("must be a string")
+func TestInteraction_isStringLikeObject(t *testing.T) {
+	testCases := map[string]bool{
+		"somestring":    false,
+		"":              false,
+		`{"foo":"bar"}`: true,
 	}
 
-	if content != "somestring" {
-		t.Fatalf("Expected 'somestring' but got '%s'", content)
-	}
-
-	// errors should return a string repro of original interface{}
-	res = toObject([]byte(""))
-	content, ok = res.(string)
-
-	if !ok {
-		t.Fatalf("must be a string")
-	}
-
-	if content != "" {
-		t.Fatalf("Expected '' but got '%s'", content)
+	for testCase, want := range testCases {
+		if isJSONFormattedObject(testCase) != want {
+			t.Fatal("want", want, "got", !want, "for test case", testCase)
+		}
 	}
 }

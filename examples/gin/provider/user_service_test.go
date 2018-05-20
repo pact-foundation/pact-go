@@ -14,7 +14,7 @@ import (
 )
 
 // The actual Provider test itself
-func TestPact_Provider(t *testing.T) {
+func TestPact_GinProvider(t *testing.T) {
 	go startInstrumentedProvider()
 
 	pact := createPact()
@@ -69,19 +69,11 @@ func TestPact_Provider(t *testing.T) {
 	}
 }
 
-func assertExamples(t *testing.T, r types.ProviderVerifierResponse) {
-	for _, example := range r.Examples {
-		if example.Status != "passed" {
-			t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-		}
-	}
-}
-
 // Starts the provider API with hooks for provider states.
 // This essentially mirrors the main.go file, with extra routes added.
 func startInstrumentedProvider() {
 	router := gin.Default()
-	router.POST("/users/login", UserLogin)
+	router.POST("/users/login/:id", UserLogin)
 	router.POST("/setup", providerStateSetup)
 
 	router.Run(fmt.Sprintf(":%d", port))
@@ -111,9 +103,9 @@ var port, _ = utils.GetFreePort()
 // Provider States data sets
 var billyExists = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"billy": &examples.User{
-			Name:     "billy",
-			Username: "billy",
+		"Jean-Marie de La Beaujardière😀😍": &examples.User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			Username: "Jean-Marie de La Beaujardière😀😍",
 			Password: "issilly",
 			Type:     "admin",
 		},
@@ -124,9 +116,9 @@ var billyDoesNotExist = &examples.UserRepository{}
 
 var billyUnauthorized = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"billy": &examples.User{
-			Name:     "billy",
-			Username: "billy",
+		"Jean-Marie de La Beaujardière😀😍": &examples.User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			Username: "Jean-Marie de La Beaujardière😀😍",
 			Password: "issilly1",
 			Type:     "blocked",
 		},
@@ -137,7 +129,6 @@ var billyUnauthorized = &examples.UserRepository{
 func createPact() dsl.Pact {
 	// Create Pact connecting to local Daemon
 	return dsl.Pact{
-		Port:     6666,
 		Consumer: "billy",
 		Provider: "bobby",
 		LogDir:   logDir,

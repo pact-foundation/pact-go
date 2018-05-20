@@ -1,3 +1,5 @@
+LIBDIR=$(dirname "$0")
+
 function step {
   echo ""
   echo " -----> $1"
@@ -13,9 +15,11 @@ function detect_os {
   if [[ "$unamestr" == 'Linux' ]]; then
     platform='linux'
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    platform='darwin'  
+    platform='darwin'
   elif [[ "$unamestr" == 'FreeBSD' ]]; then
     platform='freebsd'
   fi
   echo $platform
 }
+
+export PATH="${LIBDIR}/../build/pact/bin:${PATH}"

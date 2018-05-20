@@ -12,7 +12,7 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/users/login", provider.UserLogin)
+	mux.HandleFunc("/users/login/", provider.UserLogin)
 
 	port, _ := utils.GetFreePort()
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))

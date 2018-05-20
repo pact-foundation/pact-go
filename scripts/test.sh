@@ -1,11 +1,14 @@
-#!/bin/sh
+#!/bin/bash
+
+LIBDIR=$(dirname "$0")
+. "${LIBDIR}/lib"
 
 # Get Test dependencies
 go get github.com/axw/gocov/gocov
 go get github.com/mattn/goveralls
 go get golang.org/x/tools/cmd/cover
 go get github.com/modocache/gover
-
+export PATH="../build/pact/bin:${PATH}"
 # Run test coverage on each subdirectories and merge the coverage profile.
 
 echo "mode: count" > profile.cov

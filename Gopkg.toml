@@ -16,8 +16,13 @@
 #   source = "github.com/myfork/project2"
 #
 # [[override]]
-#  name = "github.com/x/y"
-#  version = "2.4.0"
+#   name = "github.com/x/y"
+#   version = "2.4.0"
+#
+# [prune]
+#   non-go = false
+#   go-tests = true
+#   unused-packages = true
 
 
 [[constraint]]
@@ -30,12 +35,16 @@
 
 [[constraint]]
   name = "github.com/gorilla/mux"
-  version = "1.6.1"
+  version = "1.6.2"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/go-version"
 
 [[constraint]]
   branch = "master"
   name = "github.com/hashicorp/logutils"
 
-[[constraint]]
-  branch = "master"
-  name = "github.com/kardianos/osext"
+[prune]
+  go-tests = true
+  unused-packages = true

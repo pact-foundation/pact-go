@@ -31,7 +31,7 @@ func MakeHTTPHandler(ctx context.Context, s Service, logger log.Logger) http.Han
 	}
 	e := MakeServerEndpoints(s)
 
-	r.Methods("POST").Path("/users/login").Handler(httptransport.NewServer(
+	r.Methods("POST").Path("/users/login/{id}").Handler(httptransport.NewServer(
 		e.LoginEndpoint,
 		decodeUserRequest,
 		encodeResponse,
@@ -51,11 +51,13 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 		return nil
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Api-Correlation-Id", "1234")
 	return json.NewEncoder(w).Encode(response)
 }
 
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Api-Correlation-Id", "1234")
 	w.WriteHeader(codeFrom(err))
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"error": err.Error(),

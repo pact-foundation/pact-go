@@ -8,8 +8,12 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/types"
-	"github.com/pact-foundation/pact-go/utils"
 )
+
+func init() {
+	// mock out this function
+	checkCliCompatibility = func() {}
+}
 
 func TestPact_setupLogging(t *testing.T) {
 	res := captureOutput(func() {
@@ -38,21 +42,6 @@ func TestPact_setupLogging(t *testing.T) {
 	if res != "" {
 		t.Fatalf("Expected log message to be empty but got '%s'", res)
 	}
-}
-
-// Capture output from a log write
-func captureOutput(action func()) string {
-	rescueStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	action()
-
-	w.Close()
-	out, _ := ioutil.ReadAll(r)
-	os.Stderr = rescueStderr
-
-	return strings.TrimSpace(string(out))
 }
 
 func TestPact_Verify(t *testing.T) {
@@ -88,7 +77,6 @@ func TestPact_Verify(t *testing.T) {
 		t.Fatalf("Expected test function to be called but it was not")
 	}
 }
-
 func TestPact_VerifyMockServerFail(t *testing.T) {
 	ms := setupMockServer(true, t)
 	defer ms.Close()
@@ -167,16 +155,13 @@ func TestPact_VerifyFail(t *testing.T) {
 }
 
 func TestPact_Setup(t *testing.T) {
-	t.Log("testing pact setup")
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-
-	pact := &Pact{Port: port, LogLevel: "DEBUG"}
+	pact := &Pact{LogLevel: "DEBUG"}
+	defer stubPorts()()
 	pact.Setup(true)
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
 	}
-	pact2 := &Pact{Port: port, LogLevel: "DEBUG"}
+	pact2 := &Pact{LogLevel: "DEBUG"}
 	pact2.Setup(false)
 	if pact2.Server != nil {
 		t.Fatalf("Expected server to be nil")
@@ -187,11 +172,11 @@ func TestPact_Setup(t *testing.T) {
 }
 
 func TestPact_SetupWithMockServerPort(t *testing.T) {
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-
-	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "32768"}
+	c, _ := createClient(true)
+	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768", pactClient: c}
+	defer stubPorts()()
 	pact.Setup(true)
+
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
 	}
@@ -201,11 +186,11 @@ func TestPact_SetupWithMockServerPort(t *testing.T) {
 }
 
 func TestPact_SetupWithMockServerPortCSV(t *testing.T) {
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-
-	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "32768,32769"}
+	c, _ := createClient(true)
+	defer stubPorts()()
+	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768,32769", pactClient: c}
 	pact.Setup(true)
+
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
 	}
@@ -215,24 +200,22 @@ func TestPact_SetupWithMockServerPortCSV(t *testing.T) {
 }
 
 func TestPact_SetupWithMockServerPortRange(t *testing.T) {
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-
-	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "32768-32770"}
+	c, _ := createClient(true)
+	defer stubPorts()()
+	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768-32770", pactClient: c}
 	pact.Setup(true)
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
 	}
 	if pact.Server.Port != 32768 {
-		t.Fatalf("Expected mock daemon to be started on specific port")
+		t.Fatal("Expected mock daemon to be started on specific port, got", 32768)
 	}
 }
 
 func TestPact_Invalidrange(t *testing.T) {
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-
-	pact := &Pact{Port: port, LogLevel: "DEBUG", AllowedMockServerPorts: "abc-32770"}
+	c, _ := createClient(true)
+	defer stubPorts()()
+	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "abc-32770", pactClient: c}
 	pact.Setup(true)
 	if pact.Server == nil {
 		t.Fatalf("Expected server to be created")
@@ -243,34 +226,21 @@ func TestPact_Invalidrange(t *testing.T) {
 }
 
 func TestPact_Teardown(t *testing.T) {
-	old := waitForPort
-	defer func() { waitForPort = old }()
-	waitForPort = func(int, string, string, string) error {
-		return nil
-	}
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-	waitForPortInTest(port, t)
-
-	pact := &Pact{Port: port, LogLevel: "DEBUG"}
+	c, _ := createClient(true)
+	defer stubPorts()()
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 	pact.Setup(true)
 	pact.Teardown()
-	if pact.Server.Status != 0 {
-		t.Fatalf("Expected server exit status to be 0 but got %d", pact.Server.Status)
+	if pact.Server.Error != nil {
+		t.Fatal("got error:", pact.Server.Error)
 	}
 }
 
-func TestPact_VerifyProvider(t *testing.T) {
-	old := waitForPort
-	defer func() { waitForPort = old }()
-	waitForPort = func(int, string, string, string) error {
-		return nil
-	}
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-	waitForPortInTest(port, t)
+func TestPact_VerifyProviderRaw(t *testing.T) {
+	c, _ := createClient(true)
+	defer stubPorts()()
 
-	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
@@ -281,19 +251,44 @@ func TestPact_VerifyProvider(t *testing.T) {
 	}
 }
 
+func TestPact_VerifyProvider(t *testing.T) {
+	c, _ := createClient(true)
+	defer stubPorts()()
+	exampleTest := &testing.T{}
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
+
+	_, err := pact.VerifyProvider(exampleTest, types.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	})
+
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+}
+func TestPact_VerifyProviderFail(t *testing.T) {
+	c, _ := createClient(false)
+	defer stubPorts()()
+	exampleTest := &testing.T{}
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
+
+	_, err := pact.VerifyProvider(exampleTest, types.VerifyRequest{
+		ProviderBaseURL: "http://www.foo.com",
+		PactURLs:        []string{"foo.json", "bar.json"},
+	})
+
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+}
+
 func TestPact_VerifyProviderBroker(t *testing.T) {
 	s := setupMockBroker(false)
 	defer s.Close()
-	old := waitForPort
-	defer func() { waitForPort = old }()
-	waitForPort = func(int, string, string, string) error {
-		return nil
-	}
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-	waitForPortInTest(port, t)
+	c, _ := createClient(true)
+	defer stubPorts()()
 
-	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "bobby"}
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c, Provider: "bobby"}
 	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
 		ProviderBaseURL:            "http://www.foo.com",
 		BrokerURL:                  s.URL,
@@ -309,16 +304,9 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 	s := setupMockBroker(false)
 	defer s.Close()
-	old := waitForPort
-	defer func() { waitForPort = old }()
-	waitForPort = func(int, string, string, string) error {
-		return nil
-	}
-	port, _ := utils.GetFreePort()
-	createDaemon(port, true)
-	waitForPortInTest(port, t)
+	c, _ := createClient(true)
 
-	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}, Provider: "providernotexist"}
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c, Provider: "providernotexist"}
 	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		BrokerURL:       s.URL,
@@ -329,17 +317,10 @@ func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
 	}
 }
 
-func TestPact_VerifyProviderFail(t *testing.T) {
-	old := waitForPort
-	defer func() { waitForPort = old }()
-	waitForPort = func(int, string, string, string) error {
-		return nil
-	}
-	port, _ := utils.GetFreePort()
-	createDaemon(port, false)
-	waitForPortInTest(port, t)
-
-	pact := &Pact{Port: port, LogLevel: "DEBUG", pactClient: &PactClient{Port: port}}
+func TestPact_VerifyProviderRawFail(t *testing.T) {
+	c, _ := createClient(false)
+	defer stubPorts()()
+	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
@@ -352,6 +333,7 @@ func TestPact_VerifyProviderFail(t *testing.T) {
 
 func TestPact_AddInteraction(t *testing.T) {
 	pact := &Pact{}
+	defer stubPorts()()
 
 	pact.
 		AddInteraction().
@@ -370,4 +352,28 @@ func TestPact_AddInteraction(t *testing.T) {
 	if len(pact.Interactions) != 2 {
 		t.Fatalf("Expected 2 interactions to be added to Pact but got %d", len(pact.Interactions))
 	}
+}
+
+// Capture output from a log write
+func captureOutput(action func()) string {
+	rescueStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	action()
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stderr = rescueStderr
+
+	return strings.TrimSpace(string(out))
+}
+
+func stubPorts() func() {
+	log.Println("Stubbing port timeout")
+	old := waitForPort
+	waitForPort = func(int, string, string, string) error {
+		return nil
+	}
+	return func() { waitForPort = old }
 }

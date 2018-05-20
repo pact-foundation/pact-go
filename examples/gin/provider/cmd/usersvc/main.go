@@ -5,6 +5,6 @@ import "github.com/pact-foundation/pact-go/examples/gin/provider"
 
 func main() {
 	router := gin.Default()
-	router.POST("/users/login", provider.UserLogin)
+	router.POST("/users/login/:id", provider.UserLogin)
 	router.Run(":8080")
 }

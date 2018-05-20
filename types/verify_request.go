@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"log"
 )
 
 // VerifyRequest contains the verification params.
@@ -38,6 +39,7 @@ type VerifyRequest struct {
 	ProviderVersion string
 
 	// Verbose increases verbosity of output
+	// Deprecated
 	Verbose bool
 
 	// CustomProviderHeaders are header to add to provider state set up
@@ -103,7 +105,7 @@ func (v *VerifyRequest) Validate() error {
 	}
 
 	if v.Verbose {
-		v.Args = append(v.Args, "--verbose", fmt.Sprintf("%v", v.Verbose))
+		log.Println("[DEBUG] verifier: ignoring deprecated Verbose flag")
 	}
 	return nil
 }

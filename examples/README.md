@@ -3,7 +3,7 @@
 This folder contains a number of examples in different frameworks to demonstrate
 how Pact could be used in each.
 
-Each Provider API currently exposes a single `Login` endpoint at `POST /users/login`, 
+Each Provider API currently exposes a single `Login` endpoint at `POST /users/login/1`,
 which the [Consumer](consumer/goconsumer) uses to authenticate a User.
 
 We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):
@@ -54,5 +54,5 @@ Before you can run the consumer make sure the provider is
 go run cmd/web/main.go
 ```
 
-Hit http://localhost:8081/ in your browser. You can use the username/password 
+Hit http://localhost:8081/ in your browser. You can use the username/password
 combination of "billy" / "issilly" to authenticate.

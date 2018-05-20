@@ -4,25 +4,27 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
+	"regexp"
 	"testing"
 )
 
 func TestMatcher_TermString(t *testing.T) {
 	expected := formatJSON(`
 		{
-			"json_class": "Pact::Term",
-			"data": {
-			  "generate": "myawesomeword",
+      "data": {
+        "generate": "myawesomeword",
 			  "matcher": {
-			    "json_class": "Regexp",
+          "json_class": "Regexp",
 			    "o": 0,
 			    "s": "\\w+"
 			  }
-			}
+			},
+      "json_class": "Pact::Term"
 		}`)
 
-	match := formatJSON(Term("myawesomeword", `\\w+`))
+	match := formatJSON(Term("myawesomeword", `\w+`))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -31,11 +33,11 @@ func TestMatcher_TermString(t *testing.T) {
 func TestMatcher_LikeBasicString(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": "myspecialvalue"
+      "contents": "myspecialvalue",
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
-	match := formatJSON(Like(`"myspecialvalue"`))
+	match := formatJSON(Like("myspecialvalue"))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -44,11 +46,13 @@ func TestMatcher_LikeBasicString(t *testing.T) {
 func TestMatcher_LikeAsObject(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": {"baz":"bat"}
+      "contents": {"baz":"bat"},
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
-	match := formatJSON(Like(`{"baz":"bat"}`))
+	match := formatJSON(Like(map[string]string{
+		"baz": "bat",
+	}))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -57,11 +61,11 @@ func TestMatcher_LikeAsObject(t *testing.T) {
 func TestMatcher_LikeNumber(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": 37
+		  "contents": 42,
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
-	match := formatJSON(Like(37))
+	match := formatJSON(Like(42))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -70,11 +74,11 @@ func TestMatcher_LikeNumber(t *testing.T) {
 func TestMatcher_LikeNumberAsString(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::SomethingLike",
-		  "contents": 37
+		  "contents": "42",
+		  "json_class": "Pact::SomethingLike"
 		}`)
 
-	match := formatJSON(Like("37"))
+	match := formatJSON(Like("42"))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -83,26 +87,25 @@ func TestMatcher_LikeNumberAsString(t *testing.T) {
 func TestMatcher_EachLikeNumber(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": 42,
 		  "json_class": "Pact::ArrayLike",
-		  "contents": 37,
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike(37, 1))
+	match := formatJSON(EachLike(42, 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
 }
-
 func TestMatcher_EachLikeNumberAsString(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": "42",
 		  "json_class": "Pact::ArrayLike",
-		  "contents": 37,
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike("37", 1))
+	match := formatJSON(EachLike("42", 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -111,12 +114,12 @@ func TestMatcher_EachLikeNumberAsString(t *testing.T) {
 func TestMatcher_EachLikeString(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::ArrayLike",
 		  "contents": "someword",
+		  "json_class": "Pact::ArrayLike",
 		  "min": 7
 		}`)
 
-	match := formatJSON(EachLike(`"someword"`, 7))
+	match := formatJSON(EachLike("someword", 7))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -125,26 +128,42 @@ func TestMatcher_EachLikeString(t *testing.T) {
 func TestMatcher_EachLikeObject(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": {"somekey":"someval"},
 		  "json_class": "Pact::ArrayLike",
+		  "min": 3
+		}`)
+
+	match := formatJSON(EachLike(map[string]string{
+		"somekey": "someval",
+	}, 3))
+	if expected != match {
+		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	}
+}
+
+func TestMatcher_EachLikeObjectAsStringFail(t *testing.T) {
+	expected := formatJSON(`
+		{
 		  "contents": {"somekey":"someval"},
+		  "json_class": "Pact::ArrayLike",
 		  "min": 3
 		}`)
 
 	match := formatJSON(EachLike(`{"somekey":"someval"}`, 3))
-	if expected != match {
-		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	if expected == match {
+		t.Fatalf("Expected Term to NOT match. '%s' != '%s'", expected, match)
 	}
 }
 
 func TestMatcher_EachLikeArray(t *testing.T) {
 	expected := formatJSON(`
 		{
+      "contents": [1,2,3],
 		  "json_class": "Pact::ArrayLike",
-		  "contents": [1,2,3],
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike(`[1,2,3]`, 1))
+	match := formatJSON(EachLike([]int{1, 2, 3}, 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
@@ -153,17 +172,19 @@ func TestMatcher_EachLikeArray(t *testing.T) {
 func TestMatcher_NestLikeInEachLike(t *testing.T) {
 	expected := formatJSON(`
 		{
-		  "json_class": "Pact::ArrayLike",
-		  "contents": {
-		    "id": {
-		      "json_class": "Pact::SomethingLike",
-		      "contents": 10
+      "contents": {
+        "id": {
+          "contents": 10,
+		      "json_class": "Pact::SomethingLike"
 		    }
 		  },
+      "json_class": "Pact::ArrayLike",
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike(fmt.Sprintf(`{ "id": %s }`, Like(10)), 1))
+	match := formatJSON(EachLike(Matcher{
+		"id": Like(10),
+	}, 1))
 
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
@@ -173,10 +194,8 @@ func TestMatcher_NestLikeInEachLike(t *testing.T) {
 func TestMatcher_NestTermInEachLike(t *testing.T) {
 	expected := formatJSON(`
 		{
-	    "json_class": "Pact::ArrayLike",
 	    "contents": {
 	      "colour": {
-	        "json_class": "Pact::Term",
 	        "data": {
 	          "generate": "red",
 	          "matcher": {
@@ -184,16 +203,18 @@ func TestMatcher_NestTermInEachLike(t *testing.T) {
 	            "o": 0,
 	            "s": "red|green"
 	          }
-	        }
+          },
+          "json_class": "Pact::Term"
 	      }
-	    },
+      },
+      "json_class": "Pact::ArrayLike",
 	    "min": 1
 	  }`)
 
 	match := formatJSON(
 		EachLike(
-			fmt.Sprintf(`{ "colour": %s }`,
-				Term("red", `red|green`)),
+			Matcher{
+				"colour": Term("red", "red|green")},
 			1))
 
 	if expected != match {
@@ -204,18 +225,18 @@ func TestMatcher_NestTermInEachLike(t *testing.T) {
 func TestMatcher_NestedEachLike(t *testing.T) {
 	expected := formatJSON(`
 		{
-	    "json_class": "Pact::ArrayLike",
-	    "contents": {
-	      "json_class": "Pact::ArrayLike",
+      "contents": {
 	      "contents": "blue",
+        "json_class": "Pact::ArrayLike",
 	      "min": 1
 	    },
+      "json_class": "Pact::ArrayLike",
 	    "min": 1
 	  }`)
 
 	match := formatJSON(
 		EachLike(
-			EachLike(`"blue"`, 1),
+			EachLike("blue", 1),
 			1))
 
 	if expected != match {
@@ -225,60 +246,53 @@ func TestMatcher_NestedEachLike(t *testing.T) {
 
 func TestMatcher_NestAllTheThings(t *testing.T) {
 	expected := formatJSON(`{
-					"json_class": "Pact::ArrayLike",
 					"contents": {
-						"json_class": "Pact::ArrayLike",
 						"contents": {
-							"size": {
-								"json_class": "Pact::SomethingLike",
-								"contents": 10
-							},
 							"colour": {
-								"json_class": "Pact::Term",
-								"data": {
-									"generate": "red",
+                "data": {
+                  "generate": "red",
 									"matcher": {
-										"json_class": "Regexp",
+                    "json_class": "Regexp",
 										"o": 0,
 										"s": "red|green|blue"
 									}
-								}
+								},
+                "json_class": "Pact::Term"
+              },
+							"size": {
+                "contents": 10,
+								"json_class": "Pact::SomethingLike"
 							},
 							"tag": {
-								"json_class": "Pact::ArrayLike",
-								"contents": [
-									{
-										"json_class": "Pact::SomethingLike",
-										"contents": "jumper"
+                "contents": [
+                  {
+                    "contents": "jumper",
+                    "json_class": "Pact::SomethingLike"
 									},
 									{
-										"json_class": "Pact::SomethingLike",
-										"contents": "shirt"
+                    "contents": "shirt",
+                    "json_class": "Pact::SomethingLike"
 									}
-								],
+                ],
+                "json_class": "Pact::ArrayLike",
 								"min": 2
 							}
-						},
+            },
+            "json_class": "Pact::ArrayLike",
 						"min": 1
-					},
+          },
+          "json_class": "Pact::ArrayLike",
 					"min": 1
 				}`)
-
-	jumper := Like(`"jumper"`)
-	shirt := Like(`"shirt"`)
-	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-	size := Like(10)
-	colour := Term("red", "red|green|blue")
 
 	match := formatJSON(
 		EachLike(
 			EachLike(
-				fmt.Sprintf(
-					`{
-						"size": %s,
-						"colour": %s,
-						"tag": %s
-					}`, size, colour, tag),
+				Matcher{
+					"colour": Term("red", "red|green|blue"),
+					"size":   Like(10),
+					"tag":    EachLike([]Matcher{Like("jumper"), Like("shirt")}, 2),
+				},
 				1),
 			1))
 	if expected != match {
@@ -287,50 +301,203 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 }
 
 // Format a JSON document to make comparison easier.
-func formatJSON(object string) string {
+func formatJSON(object interface{}) interface{} {
 	var out bytes.Buffer
-	json.Indent(&out, []byte(object), "", "\t")
+	switch content := object.(type) {
+	case string:
+		json.Indent(&out, []byte(content), "", "\t")
+	default:
+		jsonString, err := json.Marshal(object)
+		if err != nil {
+			log.Println("[ERROR] unable to marshal json:", err)
+		}
+		json.Indent(&out, []byte(jsonString), "", "\t")
+	}
+
 	return string(out.Bytes())
 }
 
+// Instrument the Matcher type to be able to assert the
+// values and regexs contained within!
+func (m Matcher) getValue() interface{} {
+	mString := objectToString(m)
+
+	// try like
+	likeValue := &like{}
+	err := json.Unmarshal([]byte(mString), likeValue)
+	if err == nil && likeValue.Contents != nil {
+		return likeValue.Contents
+	}
+
+	// try term
+	termValue := &term{}
+	err = json.Unmarshal([]byte(mString), termValue)
+	if err == nil && termValue != nil {
+		return termValue.Data.Generate
+	}
+
+	return "no value found"
+}
+
+func TestMatcher_SugarMatchers(t *testing.T) {
+
+	type matcherTestCase struct {
+		matcher  Matcher
+		testCase func(val interface{}) error
+	}
+	matchers := map[string]matcherTestCase{
+		"HexValue": matcherTestCase{
+			matcher: HexValue(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "3F" {
+					err = fmt.Errorf("want '3F', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Identifier": matcherTestCase{
+			matcher: Identifier(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
+				if !valid {
+					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Integer": matcherTestCase{
+			matcher: Integer(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
+				if !valid {
+					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"IPAddress": matcherTestCase{
+			matcher: IPAddress(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "127.0.0.1" {
+					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"IPv4Address": matcherTestCase{
+			matcher: IPv4Address(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "127.0.0.1" {
+					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"IPv6Address": matcherTestCase{
+			matcher: IPv6Address(),
+			testCase: func(v interface{}) (err error) {
+				if v.(string) != "::ffff:192.0.2.128" {
+					err = fmt.Errorf("want '::ffff:192.0.2.128', got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Decimal": matcherTestCase{
+			matcher: Decimal(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(float64)
+				if !valid {
+					err = fmt.Errorf("want float64, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Timestamp": matcherTestCase{
+			matcher: Timestamp(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(string)
+				if !valid {
+					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Date": matcherTestCase{
+			matcher: Date(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(string)
+				if !valid {
+					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"Time": matcherTestCase{
+			matcher: Time(),
+			testCase: func(v interface{}) (err error) {
+				_, valid := v.(string)
+				if !valid {
+					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+				}
+				return
+			},
+		},
+		"UUID": matcherTestCase{
+			matcher: UUID(),
+			testCase: func(v interface{}) (err error) {
+				match, err := regexp.MatchString(uuid, v.(string))
+
+				if !match {
+					err = fmt.Errorf("want string, got '%v'. Err: %v", v, err)
+				}
+				return
+			},
+		},
+	}
+	var err error
+	for k, v := range matchers {
+		if err = v.testCase(v.matcher.getValue()); err != nil {
+			t.Fatalf("error validating matcher '%s': %v", k, err)
+		}
+	}
+}
+
 func ExampleLike_string() {
-	match := Like(`"myspecialvalue"`)
+	match := Like("myspecialvalue")
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::SomethingLike",
-	//	"contents": "myspecialvalue"
+	//	"contents": "myspecialvalue",
+	//	"json_class": "Pact::SomethingLike"
 	//}
 }
 
 func ExampleLike_object() {
-	match := Like(`{"baz":"bat"}`)
+	match := Like(map[string]string{"baz": "bat"})
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::SomethingLike",
 	//	"contents": {
 	//		"baz": "bat"
-	//	}
+	//	},
+	//	"json_class": "Pact::SomethingLike"
 	//}
 }
-
 func ExampleLike_number() {
-	match := Like(37)
+	match := Like(42)
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::SomethingLike",
-	//	"contents": 37
+	//	"contents": 42,
+	//	"json_class": "Pact::SomethingLike"
 	//}
 }
 
 func ExampleTerm() {
-	match := Term("myawesomeword", `\\w+`)
+	match := Term("myawesomeword", `\w+`)
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::Term",
 	//	"data": {
 	//		"generate": "myawesomeword",
 	//		"matcher": {
@@ -338,81 +505,22 @@ func ExampleTerm() {
 	//			"o": 0,
 	//			"s": "\\w+"
 	//		}
-	//	}
+	//	},
+	//	"json_class": "Pact::Term"
 	//}
 }
 
 func ExampleEachLike() {
-	match := EachLike(`[1,2,3]`, 1)
+	match := EachLike([]int{1, 2, 3}, 1)
 	fmt.Println(formatJSON(match))
 	// Output:
 	//{
-	//	"json_class": "Pact::ArrayLike",
 	//	"contents": [
 	//		1,
 	//		2,
 	//		3
 	//	],
-	//	"min": 1
-	//}
-}
-
-func ExampleEachLike_nested() {
-	jumper := Like(`"jumper"`)
-	shirt := Like(`"shirt"`)
-	tag := EachLike(fmt.Sprintf(`[%s, %s]`, jumper, shirt), 2)
-	size := Like(10)
-	colour := Term("red", "red|green|blue")
-
-	match := EachLike(
-		EachLike(
-			fmt.Sprintf(
-				`{
-							"size": %s,
-							"colour": %s,
-							"tag": %s
-						}`, size, colour, tag),
-			1),
-		1)
-	fmt.Println(formatJSON(match))
-	// Output:
-	//{
 	//	"json_class": "Pact::ArrayLike",
-	//	"contents": {
-	//		"json_class": "Pact::ArrayLike",
-	//		"contents": {
-	//			"size": {
-	//				"json_class": "Pact::SomethingLike",
-	//				"contents": 10
-	//			},
-	//			"colour": {
-	//				"json_class": "Pact::Term",
-	//				"data": {
-	//					"generate": "red",
-	//					"matcher": {
-	//						"json_class": "Regexp",
-	//						"o": 0,
-	//						"s": "red|green|blue"
-	//					}
-	//				}
-	//			},
-	//			"tag": {
-	//				"json_class": "Pact::ArrayLike",
-	//				"contents": [
-	//					{
-	//						"json_class": "Pact::SomethingLike",
-	//						"contents": "jumper"
-	//					},
-	//					{
-	//						"json_class": "Pact::SomethingLike",
-	//						"contents": "shirt"
-	//					}
-	//				],
-	//				"min": 2
-	//			}
-	//		},
-	//		"min": 1
-	//	},
 	//	"min": 1
 	//}
 }
@@ -435,7 +543,7 @@ func TestMatch(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		want      string
+		want      Matcher
 		wantPanic bool
 	}{
 		{
@@ -464,21 +572,28 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: wordDTO{},
 			},
-			want: fmt.Sprintf("{\"word\": %s,\"length\": %s}", Like(`"string"`), Like(1)),
+			want: map[string]interface{}{
+				"word":   Like(`"string"`),
+				"length": Like(1),
+			},
 		},
 		{
 			name: "recursive case - struct with custom string tag",
 			args: args{
 				src: dateDTO{},
 			},
-			want: fmt.Sprintf("{\"date\": %s}", Term("2000-01-01", `^\\d{4}-\\d{2}-\\d{2}$`)),
+			want: map[string]interface{}{
+				"date": Term("2000-01-01", `^\\d{4}-\\d{2}-\\d{2}$`),
+			},
 		},
 		{
 			name: "recursive case - struct with custom slice tag",
 			args: args{
 				src: wordsDTO{},
 			},
-			want: fmt.Sprintf("{\"words\": %s}", EachLike(Like(`"string"`), 2)),
+			want: map[string]interface{}{
+				"words": EachLike(Like(`"string"`), 2),
+			},
 		},
 		{
 			name: "base case - string",
@@ -588,19 +703,22 @@ func TestMatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got string
+			var got Matcher
 			var didPanic bool
 			defer func() {
 				if rec := recover(); rec != nil {
+					fmt.Println(rec)
 					didPanic = true
 				}
 				if tt.wantPanic != didPanic {
-					t.Errorf("Match() didPanic = %v, want %v", didPanic, tt.wantPanic)
+					t.Errorf("Match() - '%s': didPanic = %v, want %v", tt.name, didPanic, tt.wantPanic)
 				} else if !didPanic && !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Match() = %v, want %v", got, tt.want)
+					t.Errorf("Match() - '%s':  = %v, want %v", tt.name, got, tt.want)
 				}
 			}()
+
 			got = Match(tt.args.src)
+			log.Println("Got matcher: ", got)
 		})
 	}
 }
@@ -697,6 +815,37 @@ func Test_pluckParams(t *testing.T) {
 			},
 		},
 		{
+			name: "expected use - string tag with complex string",
+			args: args{
+				srcType: reflect.TypeOf(""),
+				pactTag: "example=Jean-Marie de La Beaujardière😀😍",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				str: stringParams{
+					example: "Jean-Marie de La Beaujardière😀😍",
+				},
+			},
+		},
+		{
+			name: "expected use - example with no regex",
+			args: args{
+				srcType: reflect.TypeOf(""),
+				pactTag: "example=aBcD123",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				str: stringParams{
+					example: "aBcD123",
+				},
+			},
+			wantPanic: false,
+		},
+		{
 			name: "empty string tag",
 			args: args{
 				srcType: reflect.TypeOf(""),
@@ -721,6 +870,14 @@ func Test_pluckParams(t *testing.T) {
 			wantPanic: true,
 		},
 		{
+			name: "invalid string tag - empty example",
+			args: args{
+				srcType: reflect.TypeOf(""),
+				pactTag: "example=",
+			},
+			wantPanic: true,
+		},
+		{
 			name: "invalid string tag - example typo",
 			args: args{
 				srcType: reflect.TypeOf(""),
@@ -733,22 +890,6 @@ func Test_pluckParams(t *testing.T) {
 			args: args{
 				srcType: reflect.TypeOf(""),
 				pactTag: "example=aBcD123,regex=",
-			},
-			wantPanic: true,
-		},
-		{
-			name: "invalid string tag - no regex",
-			args: args{
-				srcType: reflect.TypeOf(""),
-				pactTag: "example=aBcD123",
-			},
-			wantPanic: true,
-		},
-		{
-			name: "invalid string tag - regex typo",
-			args: args{
-				srcType: reflect.TypeOf(""),
-				pactTag: "example=aBcD123,regx=[A-Za-z0-9]",
 			},
 			wantPanic: true,
 		},

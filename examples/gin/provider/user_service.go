@@ -15,9 +15,9 @@ type Login struct {
 
 var userRepository = &types.UserRepository{
 	Users: map[string]*types.User{
-		"billy": &types.User{
-			Name:     "billy",
-			Username: "billy",
+		"Jean-Marie de La Beaujardière😀😍": &types.User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			Username: "Jean-Marie de La Beaujardière😀😍",
 			Password: "issilly",
 			Type:     "admin",
 		},
@@ -26,6 +26,8 @@ var userRepository = &types.UserRepository{
 
 // UserLogin is the login route.
 func UserLogin(c *gin.Context) {
+	c.Header("X-Api-Correlation-Id", "1234")
+
 	var json Login
 	if c.BindJSON(&json) == nil {
 		user, err := userRepository.ByUsername(json.User)

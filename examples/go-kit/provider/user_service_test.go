@@ -29,9 +29,9 @@ var port, _ = utils.GetFreePort()
 // Provider States data sets
 var billyExists = &UserRepository{
 	users: map[string]*User{
-		"billy": &User{
-			Name:     "billy",
-			username: "billy",
+		"Jean-Marie de La Beaujardière😀😍": &User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			username: "Jean-Marie de La Beaujardière😀😍",
 			password: "issilly",
 			Type:     "admin",
 		},
@@ -42,9 +42,9 @@ var billyDoesNotExist = &UserRepository{}
 
 var billyUnauthorized = &UserRepository{
 	users: map[string]*User{
-		"billy": &User{
-			Name:     "billy",
-			username: "billy",
+		"Jean-Marie de La Beaujardière😀😍": &User{
+			Name:     "Jean-Marie de La Beaujardière😀😍",
+			username: "Jean-Marie de La Beaujardière😀😍",
 			password: "issilly1",
 			Type:     "blocked",
 		},
@@ -52,7 +52,7 @@ var billyUnauthorized = &UserRepository{
 }
 
 // The actual Provider test itself
-func TestPact_Provider(t *testing.T) {
+func TestPact_GoKitProvider(t *testing.T) {
 	go startInstrumentedProvider()
 
 	pact := createPact()
@@ -107,24 +107,14 @@ func TestPact_Provider(t *testing.T) {
 	}
 }
 
-func assertExamples(t *testing.T, r types.ProviderVerifierResponse) {
-	for _, example := range r.Examples {
-		if example.Status != "passed" {
-			t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-		}
-	}
-}
-
 // Setup the Pact client.
 func createPact() dsl.Pact {
-	// Create Pact connecting to local Daemon
-	pactDaemonPort := 6666
 	return dsl.Pact{
-		Port:     pactDaemonPort,
 		Consumer: "billy",
 		Provider: "bobby",
 		LogDir:   logDir,
 		PactDir:  pactDir,
+		LogLevel: "DEBUG",
 	}
 }
 

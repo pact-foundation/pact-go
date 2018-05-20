@@ -18,10 +18,8 @@ A typical consumer-side test would look something like this:
 
 	func TestLogin(t *testing.T) {
 
-		// Create Pact, connecting to local Daemon
-		// Ensure the port matches the daemon port!
+		// Create Pact client
 		pact := Pact{
-			Port:     6666,
 			Consumer: "My Consumer",
 			Provider: "My Provider",
 		}
@@ -73,38 +71,27 @@ cases.
 
 Here is a complex example that shows how all 3 terms can be used together:
 
-colour := Term("red", "red|green|blue")
-
-match := EachLike(
-              EachLike(
-                         fmt.Sprintf(`{
-                             "size": 10,
-                             "colour": %s,
-                             "tag": [["jumper", "shirt]]
-                         }`, colour)
-              1),
-         1))
-
+  	body :=
+		Like(map[string]interface{}{
+			"response": map[string]interface{}{
+				"name": Like("Billy"),
+        "type": Term("admin", "admin|user|guest"),
+        "items": EachLike("cat", 2)
+			},
+		})
 
 This example will result in a response body from the mock server that looks like:
-	[
-	  [
-	    {
-	      "size": 10,
-	      "colour": "red",
-	      "tag": [
-	        [
-	          "jumper",
-	          "shirt"
-	        ],
-	        [
-	          "jumper",
-	          "shirt"
-	        ]
-	      ]
-	    }
-	  ]
-	]
+
+  {
+    "response": {
+      "name": "Billy",
+      "type": "admin",
+      "items": [
+        "cat",
+        "cat"
+      ]
+    }
+  }
 
 See the examples in the dsl package and the matcher tests
 (https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)
@@ -123,11 +110,8 @@ Provider side Pact testing, involves verifying that the contract - the Pact file
 A typical Provider side test would like something like:
 
 	func TestProvider_PactContract(t *testing.T) {
-	// Create Pact, connecting to local Daemon
-	// Ensure the port matches the daemon port!
-		pact := Pact{
-			Port: 6666,
-		}
+	  // Create Pact
+		pact := Pact{}
 		go startMyAPI("http://localhost:8000")
 
 		pact.VerifyProvider(types.VerifyRequest{

@@ -1,9 +1,8 @@
 TEST?=./...
 
-default: test
+.DEFAULT_GOAL := ci
 
-package:
-	@sh -c "$(CURDIR)/scripts/package.sh"
+ci:: clean bin tools test pact goveralls
 
 bin:
 	@sh -c "$(CURDIR)/scripts/build.sh"
@@ -25,6 +24,12 @@ pact:
 
 testrace:
 	go test -race $(TEST) $(TESTARGS)
+
+tools:
+	"$(CURDIR)/scripts/install-cli-tools.sh"
+
+goveralls:
+	"$(CURDIR)/scripts/goveralls.sh"
 
 updatedeps:
 	go get -d -v -p 2 ./...

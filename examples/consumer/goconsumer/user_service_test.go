@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/dsl"
+	ex "github.com/pact-foundation/pact-go/examples/types"
 	"github.com/pact-foundation/pact-go/types"
 )
 
@@ -24,16 +25,21 @@ var pact dsl.Pact
 var form url.Values
 var rr http.ResponseWriter
 var req *http.Request
-
-// var name = "Jean-Marie de La Beaujardière😀😍"
-var name = "billy"
+var name = "Jean-Marie de La Beaujardière😀😍"
+var password = "issilly"
 var like = dsl.Like
 var eachLike = dsl.EachLike
 var term = dsl.Term
-var loginRequest = fmt.Sprintf(`{ "username":"%s", "password": "issilly" }`, name)
 
-var commonHeaders = map[string]string{
-	"Content-Type": "application/json; charset=utf-8",
+type s = dsl.String
+type request = dsl.Request
+
+var loginRequest = ex.LoginRequest{
+	Username: name,
+	Password: password,
+}
+var commonHeaders = dsl.MapMatcher{
+	"Content-Type": term("application/json; charset=utf-8", `application\/json`),
 }
 
 // Use this to control the setup and teardown of Pact
@@ -79,8 +85,8 @@ func setup() {
 
 	// Login form values
 	form = url.Values{}
-	form.Add("username", "billy")
-	form.Add("password", "issilly")
+	form.Add("username", name)
+	form.Add("password", password)
 
 	// Create a request to pass to our handler.
 	req, _ = http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
@@ -93,13 +99,13 @@ func setup() {
 
 // Create Pact connecting to local Daemon
 func createPact() dsl.Pact {
-	pactDaemonPort := 6666
 	return dsl.Pact{
-		Port:     pactDaemonPort,
-		Consumer: "billy",
-		Provider: "bobby",
-		LogDir:   logDir,
-		PactDir:  pactDir,
+		Consumer:                 "billy",
+		Provider:                 "bobby",
+		LogDir:                   logDir,
+		PactDir:                  pactDir,
+		LogLevel:                 "DEBUG",
+		DisableToolValidityCheck: true,
 	}
 }
 
@@ -117,14 +123,14 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 
 		return nil
 	}
+
 	body :=
-		like(fmt.Sprintf(
-			`{
-            "user": {
-              "name": "%s",
-              "type": %v
-            }
-					}`, name, term("admin", "admin|user|guest")))
+		like(dsl.Matcher{
+			"user": dsl.Matcher{
+				"name": name,
+				"type": term("admin", "admin|user|guest"),
+			},
+		})
 
 	// Pull from pact broker, used in e2e/integrated tests for pact-go release
 	// Setup interactions on the Mock Service. Note that you can have multiple
@@ -133,14 +139,22 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 		AddInteraction().
 		Given("User billy exists").
 		UponReceiving("A request to login with user 'billy'").
-		WithRequest(dsl.Request{
+		WithRequest(request{
 			Method: "POST",
-			Path:   "/users/login",
-			Body:   loginRequest,
+			Path:   term("/users/login/1", "/users/login/[0-9]+"),
+			Query: dsl.MapMatcher{
+				"foo": term("bar", "[a-zA-Z]+"),
+			},
+			Body:    dsl.Match(loginRequest),
+			Headers: commonHeaders,
 		}).
 		WillRespondWith(dsl.Response{
 			Status: 200,
 			Body:   body,
+			Headers: dsl.MapMatcher{
+				"X-Api-Correlation-Id": dsl.Like("100"),
+				"Content-Type":         term("application/json; charset=utf-8", `application\/json`),
+			},
 		})
 
 	err := pact.Verify(testBillyExists)
@@ -157,7 +171,7 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 		client.loginHandler(rr, req)
 
 		if client.user != nil {
-			return fmt.Errorf("Expected user to be nil but got: %v", client.user)
+			return fmt.Errorf("Expected user to be nil but in stead got: %v", client.user)
 		}
 
 		return nil
@@ -167,11 +181,14 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 		AddInteraction().
 		Given("User billy does not exist").
 		UponReceiving("A request to login with user 'billy'").
-		WithRequest(dsl.Request{
+		WithRequest(request{
 			Method:  "POST",
-			Path:    "/users/login",
+			Path:    s("/users/login/10"),
 			Body:    loginRequest,
 			Headers: commonHeaders,
+			Query: dsl.MapMatcher{
+				"foo": s("anything"),
+			},
 		}).
 		WillRespondWith(dsl.Response{
 			Status:  404,
@@ -202,9 +219,9 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 		AddInteraction().
 		Given("User billy is unauthorized").
 		UponReceiving("A request to login with user 'billy'").
-		WithRequest(dsl.Request{
+		WithRequest(request{
 			Method:  "POST",
-			Path:    "/users/login",
+			Path:    s("/users/login/10"),
 			Body:    loginRequest,
 			Headers: commonHeaders,
 		}).
