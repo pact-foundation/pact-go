@@ -1,10 +1,6 @@
 $pactDir = "$env:APPVEYOR_BUILD_FOLDER\pact"
 $exitCode = 0
 
-if ($env:PACT_INTEGRATED_TESTS) {
-  Remove-Item env:\PACT_INTEGRATED_TESTS
-}
-
 # Set environment
 if (!($env:GOPATH)) {
   $env:GOPATH = "c:\go"
@@ -21,17 +17,21 @@ if (Test-Path "$pactDir") {
 Write-Host "--> Creating ${pactDir}"
 New-Item -Force -ItemType Directory $pactDir
 
-Write-Host "--> Downloading Ruby binaries)"
+Write-Host "--> Downloading Latest Ruby binaries)"
 $downloadDir = $env:TEMP
-$version = Get-Contents "./"
-$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.33.1/pact-1.33.1-win32.zip"
+$latestRelease = Invoke-WebRequest https://github.com/pact-foundation/pact-ruby-standalone/releases/latest -Headers @{"Accept"="application/json"}
+$json = $latestRelease.Content | ConvertFrom-Json
+$latestVersion = $json.tag_name
+$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v$latestVersion/pact-$latestVersion-win32.zip"
 
 Write-Host "    Downloading $url"
 $zip = "$downloadDir\pact.zip"
-if (!(Test-Path "$zip")) {
-  $downloader = new-object System.Net.WebClient
-  $downloader.DownloadFile($url, $zip)
+if (Test-Path "$zip") {
+  Remove-Item $zip
 }
+
+$downloader = new-object System.Net.WebClient
+$downloader.DownloadFile($url, $zip)
 
 Write-Host "    Extracting $zip"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
