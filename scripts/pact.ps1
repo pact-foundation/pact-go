@@ -14,6 +14,8 @@ if (Test-Path "$pactDir") {
   rmdir -Recurse -Force $pactDir
 }
 
+
+# Install CLI Tools
 Write-Host "--> Creating ${pactDir}"
 New-Item -Force -ItemType Directory $pactDir
 
@@ -21,10 +23,11 @@ Write-Host "--> Downloading Latest Ruby binaries)"
 $downloadDir = $env:TEMP
 $latestRelease = Invoke-WebRequest https://github.com/pact-foundation/pact-ruby-standalone/releases/latest -Headers @{"Accept"="application/json"}
 $json = $latestRelease.Content | ConvertFrom-Json
-$latestVersion = $json.tag_name
-$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v$latestVersion/pact-$latestVersion-win32.zip"
+$tag = $json.tag_name
+$latestVersion = $tag.Substring(1)
+$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/$tag/pact-$latestVersion-win32.zip"
 
-Write-Host "    Downloading $url"
+Write-Host "Downloading $url"
 $zip = "$downloadDir\pact.zip"
 if (Test-Path "$zip") {
   Remove-Item $zip
@@ -33,11 +36,11 @@ if (Test-Path "$zip") {
 $downloader = new-object System.Net.WebClient
 $downloader.DownloadFile($url, $zip)
 
-Write-Host "    Extracting $zip"
+Write-Host "Extracting $zip"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("$zip", $pactDir)
 
-Write-Host "    Moving binaries into position"
+Write-Host "Moving binaries into position"
 Get-ChildItem $pactDir\pact
 
 Write-Host "--> Adding pact binaries to path"
@@ -47,40 +50,46 @@ Write-Host $env:PATH
 Get-ChildItem $pactBinariesPath
 pact-broker version
 
+
+# Run t sts
 Write-Host "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
 $curDir=$pwd
 
 foreach ($package in $packages) {
-  Write-Host "    Running tests for $package"
+  Write-Host "Running tests for $package"
   go test -v $package
   if ($LastExitCode -ne 0) {
-    Write-Host "    ERROR: Test failed, logging failure"
+    Write-Host "ERROR: Test failed, logging failure"
     $exitCode=1
   }
 }
 
+
+# Run integration tests
 Write-Host "--> Testing E2E examples"
 $env:PACT_INTEGRATED_TESTS=1
 
 $examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider")
 foreach ($example in $examples) {
-  Write-Host "    Installing dependencies for example: $example"
+  Write-Host "Installing dependencies for example: $example"
   cd "$env:GOPATH\src\$example"
   go get ./...
-  Write-Host "    Running tests for $example"
+  Write-Host "Running tests for $example"
   go test -v .
   if ($LastExitCode -ne 0) {
-    Write-Host "    ERROR: Test failed, logging failure"
+    Write-Host "ERROR: Test failed, logging failure"
     $exitCode=1
   }
 }
 cd $curDir
 
-Write-Host "    Shutting down any remaining pact processes :)"
+
+# Shutdown
+Write-Host "Shutting down any remaining pact processes :)"
 Stop-Process -Name ruby
 
-Write-Host "    Done!"
+Write-Host "Done!"
 if ($exitCode -ne 0) {
   Write-Host "--> Build failed, exiting"
   Exit $exitCode
