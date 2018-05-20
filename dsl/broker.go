@@ -31,7 +31,8 @@ type PactLink struct {
 
 // HalLinks represents the _links key in a HAL document.
 type HalLinks struct {
-	Pacts []PactLink `json:"pb:pacts"`
+	Pacts    []PactLink `json:"pb:pacts"`
+	OldPacts []PactLink `json:"pacts"`
 }
 
 // HalDoc is a simple representation of the HAL response from a Pact Broker.
@@ -101,9 +102,15 @@ func findConsumers(provider string, request *types.VerifyRequest) error {
 			return err
 		}
 
+		for _, p := range doc.Links.OldPacts {
+			pactURLs[p.Title] = p.Href
+		}
+
 		for _, p := range doc.Links.Pacts {
 			pactURLs[p.Title] = p.Href
 		}
+
+		fmt.Println(pactURLs)
 	}
 
 	// Scrub out duplicate pacts across tags (e.g. 'latest' may equal 'prod' pact)
