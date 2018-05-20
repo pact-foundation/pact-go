@@ -81,11 +81,11 @@ Read [Getting started with Pact] for more information for beginners.
 
 ## Versions
 
-| Version | Stable     | [Spec] Compatibility | Install         |
-| ------- |------------|----------------------|-----------------|
-| 1.0.x   | Yes        | 2, 3*                | [Installation]  |
-| 1.1.x   | No (alpha) | 2, 3*                | [v1.1.x-alpha]  |
-| 0.x.x   | Yes        | Up to v2             | [v0.x.x]        |
+| Version | Stable     | [Spec] Compatibility | Install             |
+| ------- |------------|----------------------|---------------------|
+| 1.0.x   | Yes        | 2, 3*                | See [Installation]  |
+| 1.1.x   | No (alpha) | 2, 3*                | 1.1.x [alpha]       |
+| 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]      |
 
 _*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
 
@@ -103,6 +103,8 @@ Since `1.x.x` Pact is go-gettable, and uses tags for versioning, so `dep ensure 
 See below for how to automate this:
 
 ### Installation on \*nix
+
+The following will install pact binaries into `/opt/pact/bin`:
 
 ```sh
 cd /opt
@@ -752,8 +754,8 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 See [CONTRIBUTING](CONTRIBUTING.md).
 
 [Spec]: (https://github.com/pact-foundation/pact-specification)
-[v0.x.x]: (https://github.com/pact-foundation/pact-go/tree/release/0.x.x)
-[v1.1.x-alpha]: (https://github.com/pact-foundation/pact-go/tree/release/1.1.x)
+[stable]: (https://github.com/pact-foundation/pact-go/tree/release/0.x.x)
+[alpha]: (https://github.com/pact-foundation/pact-go/tree/release/1.1.x)
 [TROUBLESHOOTING]: (https://github.com/pact-foundation/pact-go/wiki/Troubleshooting)
 [Pact Wiki]: (https://github.com/pact-foundation/pact-ruby/wiki)
 [Getting started with Pact]: (http://dius.com.au/2016/02/03/microservices-pact/)
