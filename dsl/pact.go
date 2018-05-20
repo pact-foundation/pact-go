@@ -40,6 +40,9 @@ type Pact struct {
 	// Interactions contains all of the Mock Service Interactions to be setup.
 	Interactions []*Interaction
 
+	// MessageInteractions contains all of the Message based interactions to be setup.
+	MessageInteractions []*Message
+
 	// Log levels.
 	LogLevel string
 
@@ -87,6 +90,15 @@ type Pact struct {
 
 	// Check if CLI tools are up to date
 	toolValidityCheck bool
+}
+
+// AddMessage creates a new asynchronous consumer expectation
+func (p *Pact) AddMessage() *Message {
+	log.Println("[DEBUG] pact add message")
+
+	m := &Message{}
+	p.MessageInteractions = append(p.MessageInteractions, m)
+	return m
 }
 
 // AddInteraction creates a new Pact interaction, initialising all
@@ -316,40 +328,8 @@ var checkCliCompatibility = func() {
 	}
 }
 
-// VerifyMessageProvider accepts an instance of `*testing.T`
-// running provider message verification with granular test reporting and
-// automatic failure reporting for nice, simple tests.
-//
-// A Message Producer is analagous to Consumer in the HTTP Interaction model.
-// It is the initiator of an interaction, and expects something on the other end
-// of the interaction to respond - just in this case, not immediately.
-func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRequest, handlers MessageProviders) (types.ProviderVerifierResponse, error) {
-	response := types.ProviderVerifierResponse{}
-
-	// Starts the message wrapper API with hooks back to the message handlers
-	// This maps the 'description' field of a message pact, to a function handler
-	// that will implement the message producer. This function must return an object and optionally
-	// and error. The object will be marshalled to JSON for comparison.
-	mux := http.NewServeMux()
-
-	port, err := utils.GetFreePort()
-	if err != nil {
-		return response, fmt.Errorf("unable to allocate a port for verification: %v", err)
-	}
-
-	// Construct verifier request
-	verificationRequest := types.VerifyRequest{
-		ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", port),
-		PactURLs:                   request.PactURLs,
-		BrokerURL:                  request.BrokerURL,
-		Tags:                       request.Tags,
-		BrokerUsername:             request.BrokerUsername,
-		BrokerPassword:             request.BrokerPassword,
-		PublishVerificationResults: request.PublishVerificationResults,
-		ProviderVersion:            request.ProviderVersion,
-	}
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+var messageHandler = func(messageHandlers MessageHandlers, stateHandlers StateHandlers) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		// Extract message
@@ -364,8 +344,24 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 
 		json.Unmarshal(body, &message)
 
+		// Setup any provider state
+		for _, state := range message.States {
+			sf, stateFound := stateHandlers[state.Name]
+
+			if !stateFound {
+				log.Printf("[WARN] state handler not found for state: %v", state.Name)
+			} else {
+				// Execute state handler
+				if err = sf(state.Name); err != nil {
+					log.Printf("[WARN] state handler for '%v' return error: %v", state.Name, err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+			}
+		}
+
 		// Lookup key in function mapping
-		f, messageFound := handlers[message.Description]
+		f, messageFound := messageHandlers[message.Description]
 
 		if !messageFound {
 			log.Printf("[ERROR] message handler not found for message description: %v", message.Description)
@@ -395,7 +391,64 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(resBody)
-	})
+	}
+}
+
+// VerifyMessageProvider accepts an instance of `*testing.T`
+// running provider message verification with granular test reporting and
+// automatic failure reporting for nice, simple tests.
+//
+// A Message Producer is analagous to Consumer in the HTTP Interaction model.
+// It is the initiator of an interaction, and expects something on the other end
+// of the interaction to respond - just in this case, not immediately.
+func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest) (res types.ProviderVerifierResponse, err error) {
+	res, err = p.VerifyMessageProviderRaw(request)
+
+	for _, example := range res.Examples {
+		t.Run(example.Description, func(st *testing.T) {
+			st.Log(example.FullDescription)
+			if example.Status != "passed" {
+				st.Errorf("%s\n", example.Exception.Message)
+				st.Error("Check to ensure that all message expectations have corresponding message handlers")
+			}
+		})
+	}
+
+	return
+}
+
+// VerifyMessageProviderRaw runs provider message verification.
+//
+// A Message Producer is analagous to Consumer in the HTTP Interaction model.
+// It is the initiator of an interaction, and expects something on the other end
+// of the interaction to respond - just in this case, not immediately.
+func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) (types.ProviderVerifierResponse, error) {
+	response := types.ProviderVerifierResponse{}
+
+	// Starts the message wrapper API with hooks back to the message handlers
+	// This maps the 'description' field of a message pact, to a function handler
+	// that will implement the message producer. This function must return an object and optionally
+	// and error. The object will be marshalled to JSON for comparison.
+	mux := http.NewServeMux()
+
+	port, err := utils.GetFreePort()
+	if err != nil {
+		return response, fmt.Errorf("unable to allocate a port for verification: %v", err)
+	}
+
+	// Construct verifier request
+	verificationRequest := types.VerifyRequest{
+		ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", port),
+		PactURLs:                   request.PactURLs,
+		BrokerURL:                  request.BrokerURL,
+		Tags:                       request.Tags,
+		BrokerUsername:             request.BrokerUsername,
+		BrokerPassword:             request.BrokerPassword,
+		PublishVerificationResults: request.PublishVerificationResults,
+		ProviderVersion:            request.ProviderVersion,
+	}
+
+	mux.HandleFunc("/", messageHandler(request.MessageHandlers, request.StateHandlers))
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
@@ -410,23 +463,11 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request types.VerifyMessageRe
 		sure it's running?`, port))
 
 	if portErr != nil {
-		t.Fatal("Error:", err)
+		log.Fatal("Error:", err)
 		return response, portErr
 	}
 
-	res, err := p.VerifyProviderRaw(verificationRequest)
-
-	for _, example := range res.Examples {
-		t.Run(example.Description, func(st *testing.T) {
-			st.Log(example.FullDescription)
-			if example.Status != "passed" {
-				st.Errorf("%s\n", example.Exception.Message)
-				st.Error("Check to ensure that all message expectations have corresponding message handlers")
-			}
-		})
-	}
-
-	return res, err
+	return p.VerifyProviderRaw(verificationRequest)
 }
 
 // VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable

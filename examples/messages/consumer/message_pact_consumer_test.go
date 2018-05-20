@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/dsl"
+	"github.com/pact-foundation/pact-go/examples/messages/types"
 )
 
 var like = dsl.Like
@@ -22,35 +23,11 @@ var commonHeaders = dsl.MapMatcher{
 
 var pact = createPact()
 
-type AccessLevel struct {
-	Role string `json:"role,omitempty"`
-}
-
-type User struct {
-	ID     int           `json:"id,omitempty"`
-	Name   string        `json:"name,omitempty"`
-	Access []AccessLevel `json:"access,omitempty"`
-}
-
-var userHandlerWrapper = func(m dsl.Message) error {
-	return userHandler(*m.Content.(*User))
-}
-
-var userHandler = func(u User) error {
-	if u.ID == -1 {
-		return errors.New("invalid object supplied, missing fields (id)")
-	}
-
-	// ... actually consume the message
-
-	return nil
-}
-
-func TestMessageConsumer_Success(t *testing.T) {
-	message := &dsl.Message{}
+func TestMessageConsumer_UserExists(t *testing.T) {
+	message := pact.AddMessage()
 	message.
-		Given("some state").
-		ExpectsToReceive("some test case").
+		Given("user with id 127 exists").
+		ExpectsToReceive("a user").
 		WithMetadata(commonHeaders).
 		WithContent(map[string]interface{}{
 			"id":   like(127),
@@ -59,16 +36,29 @@ func TestMessageConsumer_Success(t *testing.T) {
 				"role": term("admin", "admin|controller|user"),
 			}, 3),
 		}).
-		AsType(&User{})
+		AsType(&types.User{})
 
 	pact.VerifyMessageConsumer(t, message, userHandlerWrapper)
 }
+
+func TestMessageConsumer_Order(t *testing.T) {
+	message := pact.AddMessage()
+	message.
+		Given("an order exists").
+		ExpectsToReceive("an order").
+		WithMetadata(commonHeaders).
+		WithContent(dsl.Match(types.Order{})).
+		AsType(&types.Order{})
+
+	pact.VerifyMessageConsumer(t, message, orderHandlerWrapper)
+}
+
 func TestMessageConsumer_Fail(t *testing.T) {
 	t.Skip()
-	message := &dsl.Message{}
+	message := pact.AddMessage()
 	message.
-		Given("some state").
-		ExpectsToReceive("some test case").
+		Given("no users").
+		ExpectsToReceive("a user").
 		WithMetadata(commonHeaders).
 		WithContent(map[string]interface{}{
 			"foo": "bar",
@@ -79,6 +69,34 @@ func TestMessageConsumer_Fail(t *testing.T) {
 
 		return errors.New("something bad happened and I couldn't parse the message")
 	})
+}
+
+var userHandlerWrapper = func(m dsl.Message) error {
+	return userHandler(*m.Content.(*types.User))
+}
+
+var orderHandlerWrapper = func(m dsl.Message) error {
+	return orderHandler(*m.Content.(*types.Order))
+}
+
+var userHandler = func(u types.User) error {
+	if u.ID == 0 {
+		return errors.New("invalid object supplied, missing fields (id)")
+	}
+
+	// ... actually consume the message
+
+	return nil
+}
+
+var orderHandler = func(o types.Order) error {
+	if o.ID == 0 {
+		return errors.New("expected order, missing fields (id)")
+	}
+
+	// ... actually consume the message
+
+	return nil
 }
 
 // Configuration / Test Data

@@ -5,18 +5,19 @@ import (
 	"reflect"
 )
 
-// type MessageHandler map[string]func(...interface{})
-
 // StateHandler is a provider function that sets up a given state before
 // the provider interaction is validated
-type StateHandler func(string) (interface{}, error)
+type StateHandler func(string) error
 
-// MessageProvider is a provider function that generates a
+// StateHandlers is a list of StateHandler's
+type StateHandlers map[string]StateHandler
+
+// MessageHandler is a provider function that generates a
 // message for a Consumer given a Message context (state, description etc.)
-type MessageProvider func(Message) (interface{}, error)
+type MessageHandler func(Message) (interface{}, error)
 
-// MessageProviders is a list of handlers ordered by description
-type MessageProviders map[string]MessageProvider
+// MessageHandlers is a list of handlers ordered by description
+type MessageHandlers map[string]MessageHandler
 
 // MessageConsumer receives a message and must be able to parse
 // the content

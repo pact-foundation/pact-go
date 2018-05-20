@@ -84,8 +84,8 @@ Read [Getting started with Pact] for more information for beginners.
 | Version | Stable     | [Spec] Compatibility | Install         |
 | ------- |------------|----------------------|-----------------|
 | 1.0.x   | Yes        | 2, 3*                | [Installation]  |
-| 1.1.x   | No (alpha) | 2, 3*                | [release/1.1.x] |
-| 0.x.x   | Yes        | Up to v2             | [release/0.x.x] |
+| 1.1.x   | No (alpha) | 2, 3*                | [v1.1.x-alpha]  |
+| 0.x.x   | Yes        | Up to v2             | [v0.x.x]        |
 
 _*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
 
@@ -469,7 +469,7 @@ pact := dsl.Pact {
 // 4 Write the consumer test, and call VerifyMessageConsumer
 // passing through the function
 func TestMessageConsumer_Success(t *testing.T) {
-	message := &dsl.Message{}
+	message := pact.AddMessage()
 	message.
 		Given("some state").
 		ExpectsToReceive("some test case").
@@ -752,8 +752,8 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 See [CONTRIBUTING](CONTRIBUTING.md).
 
 [Spec]: (https://github.com/pact-foundation/pact-specification)
-[release/0.x.x]: (https://github.com/pact-foundation/pact-go/tree/release/0.x.x)
-[release/1.1.x]: (https://github.com/pact-foundation/pact-go/tree/release/1.1.x)
+[v0.x.x]: (https://github.com/pact-foundation/pact-go/tree/release/0.x.x)
+[v1.1.x-alpha]: (https://github.com/pact-foundation/pact-go/tree/release/1.1.x)
 [TROUBLESHOOTING]: (https://github.com/pact-foundation/pact-go/wiki/Troubleshooting)
 [Pact Wiki]: (https://github.com/pact-foundation/pact-ruby/wiki)
 [Getting started with Pact]: (http://dius.com.au/2016/02/03/microservices-pact/)

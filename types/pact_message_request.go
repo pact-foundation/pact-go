@@ -13,7 +13,6 @@ type PactMessageRequest struct {
 	Consumer string
 
 	// Provider is the name of the message provider
-	// TODO: do we always know this? Presumably not
 	Provider string
 
 	// PactDir is the location of where pacts should be stored

@@ -1,12 +1,11 @@
-package types
+package dsl
 
 import (
 	"fmt"
 )
 
-// VerifyMessageRequest contains the verification params.
-// TODO: make this CLI "request" type an Interface (e.g. Validate())
-//       also make the core of it embeddable to be re-used
+// VerifyMessageRequest contains the verification logic
+// to send to the Pact Message verifier
 type VerifyMessageRequest struct {
 	// Local/HTTP paths to Pact files.
 	PactURLs []string
@@ -28,6 +27,16 @@ type VerifyMessageRequest struct {
 
 	// ProviderVersion is the semantical version of the Provider API.
 	ProviderVersion string
+
+	// MessageHandlers contains a mapped list of message handlers for a provider
+	// that will be rable to produce the correct message format for a given
+	// consumer interaction
+	MessageHandlers MessageHandlers
+
+	// StateHandlers contain a mapped list of message states to functions
+	// that are used to setup a given provider state prior to the message
+	// verification step.
+	StateHandlers StateHandlers
 
 	// Arguments to the VerificationProvider
 	// Deprecated: This will be deleted after the native library replaces Ruby deps.
