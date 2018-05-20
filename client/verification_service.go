@@ -2,6 +2,7 @@ package client
 
 import (
 	"log"
+	"os"
 )
 
 // VerificationService is a wrapper for the Pact Provider Verifier Service.
@@ -26,6 +27,7 @@ func (v *VerificationService) NewService(args []string) Service {
 
 	v.Args = args
 	v.Cmd = getVerifierCommandPath()
+	v.Env = append(os.Environ(), `PACT_INTERACTION_RERUN_COMMAND="To re-run this specific test, set the following environment variables and run your test again: PACT_DESCRIPTION=\"<PACT_DESCRIPTION>\" PACT_PROVIDER_STATE=\"<PACT_PROVIDER_STATE>\""`)
 
 	return v
 }
