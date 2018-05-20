@@ -22,13 +22,10 @@ func TestBroker_findConsumersNoTags(t *testing.T) {
 		t.Fatalf("Error: %s", err.Error())
 	}
 
-	if len(request.PactURLs) != 4 {
-		t.Fatalf("Expected 4 PactURLs but got: %d", len(request.PactURLs))
-	}
-
-	pactURL := fmt.Sprintf("%s/pacts/provider/bobby/consumer/jessica/version/2.0.0", s.URL)
-	if request.PactURLs[0] != pactURL && request.PactURLs[1] != pactURL {
-		t.Fatalf("Expected '%s', but got '%s'", pactURL, request.PactURLs[0])
+	// Because we have both old and new format here, we will not benefit from
+	// the condensing of pacts, even though the contents are the same
+	if len(request.PactURLs) != 2 {
+		t.Fatalf("Expected 2 PactURLs but got: %d, %s", len(request.PactURLs), request.PactURLs)
 	}
 }
 
@@ -44,13 +41,8 @@ func TestBroker_findConsumersWithTags(t *testing.T) {
 		t.Fatalf("Error: %s", err.Error())
 	}
 
-	if len(request.PactURLs) != 4 {
-		t.Fatalf("Expected 4 PactURLs but got: %d", len(request.PactURLs))
-	}
-
-	pactURL := fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/version/1.0.1", s.URL)
-	if request.PactURLs[0] != pactURL && request.PactURLs[1] != pactURL {
-		t.Fatalf("Expected '%s', but got '%s'", pactURL, request.PactURLs[0])
+	if len(request.PactURLs) != 2 {
+		t.Fatalf("Expected 2 PactURLs but got: %d", len(request.PactURLs))
 	}
 }
 

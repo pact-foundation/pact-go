@@ -102,15 +102,18 @@ func findConsumers(provider string, request *types.VerifyRequest) error {
 			return err
 		}
 
-		for _, p := range doc.Links.OldPacts {
-			pactURLs[p.Title] = p.Href
-		}
-
+		// Collapse results on the URL the pact links to
 		for _, p := range doc.Links.Pacts {
-			pactURLs[p.Title] = p.Href
+			pactURLs[p.Href] = p.Href
 		}
 
-		fmt.Println(pactURLs)
+		// Ensure backwards compatability with old pacts
+		// See https://github.com/pact-foundation/pact_broker/issues/209#issuecomment-390437990
+		for _, p := range doc.Links.OldPacts {
+			pactURLs[p.Href] = p.Href
+		}
+
+		fmt.Println("[DEBUG] pacts to verify: ", pactURLs)
 	}
 
 	// Scrub out duplicate pacts across tags (e.g. 'latest' may equal 'prod' pact)
