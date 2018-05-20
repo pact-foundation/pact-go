@@ -5,6 +5,16 @@ Do this to generate your change history
 
 ## Versions
 
+### v0.0.13 (20 May 2018)
+  * [71a3cf5](https://github.com/pact-foundation/pact-go/commit/71a3cf5) - fix(broker): fix pact retrieval from broker (Matt Fellows, Sun May 20 16:04:41 2018 +1000)
+  * [9d5d1ab](https://github.com/pact-foundation/pact-go/commit/9d5d1ab) - feat(publisher): add SetClient func (Deseao, Thu May 10 12:07:57 2018 -0500)
+  * [45b72ae](https://github.com/pact-foundation/pact-go/commit/45b72ae) - feat(matching): add auto-match capability (#78) (Alex Ramey, Tue May 8 16:39:00 2018 -0400)
+  * [a6a3e76](https://github.com/pact-foundation/pact-go/commit/a6a3e76) - fix(verification): fix verifier CLI invocation with multiple pacts. Fixes #75 (Matt Fellows, Sat Mar 31 15:14:10 2018 +1100)
+  * [e2362ea](https://github.com/pact-foundation/pact-go/commit/e2362ea) - fix: pass pact-file-write-mode to CLI #71 (Matt Fellows, Wed Mar 21 10:31:00 2018 +1100)
+  * [3bc71f1](https://github.com/pact-foundation/pact-go/commit/3bc71f1) - Fix broken links to realestate-com-au/pact/wiki (#68) (Mohan Raj Rajamanickam, Tue Mar 13 14:28:58 2018 -0700)
+  * [b5db82a](https://github.com/pact-foundation/pact-go/commit/b5db82a) - Update CONTRIBUTING.md (Mohan Raj Rajamanickam, Mon Jan 22 11:13:29 2018 -0800)
+  * [4494c82](https://github.com/pact-foundation/pact-go/commit/4494c82) - Fixing broken links and references in CONTRIBUTING (Mohan Raj Rajamanickam, Tue Jan 16 14:44:35 2018 -0800)
+
 ### v0.0.12 (03 April 2018)
   * [a6a3e76](https://github.com/pact-foundation/pact-go/commit/a6a3e76) - fix(verification): fix verifier CLI invocation with multiple pacts. Fixes #75 (Matt Fellows, Sat Mar 31 15:14:10 2018 +1100)
   * [e2362ea](https://github.com/pact-foundation/pact-go/commit/e2362ea) - fix: pass pact-file-write-mode to CLI #71 (Matt Fellows, Wed Mar 21 10:31:00 2018 +1100)
