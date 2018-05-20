@@ -95,12 +95,13 @@ _*_ v3 support is limited to the subset of functionality required to enable lang
 1.  Unzip the package into a known location, and ensuring the `pact` and other binaries in the `bin` directory are on the `PATH`.
 1.  Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
 
+See below for how to automate this:
+
 ### Go get
 
 Since `1.x.x` Pact is go-gettable, and uses tags for versioning, so `dep ensure --add github.com/pact-foundation/pact-go@1.0.0-beta` or `go get gopkg.in/pact-foundation/pact-go.v1` is now possible.
 
-
-See below for how to automate this:
+See the [Changelog] for versions to pin to and their history.
 
 ### Installation on \*nix
 
@@ -767,3 +768,4 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 [CLI tools]: (https://github.com/pact-foundation/pact-ruby-standalone/releases)
 [Installation]: (#installation)
 [Message support]: (https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues)
+[Changelog](https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md)
