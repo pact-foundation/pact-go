@@ -70,10 +70,12 @@ Read [Getting started with Pact] for more information for beginners.
     - [Integrated examples](#integrated-examples)
   - [Troubleshooting](#troubleshooting)
       - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-    - [Output Logging](#output-logging)
+      - [Output Logging](#output-logging)
+      - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
+      - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
+      - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
   - [Contact](#contact)
   - [Documentation](#documentation)
-  - [Troubleshooting](#troubleshooting-1)
   - [Roadmap](#roadmap)
   - [Contributing](#contributing)
 
@@ -713,7 +715,7 @@ You have two options to achieve this feat:
 
     See the JS [example](https://github.com/tarciosaraiva/pact-melbjs/blob/master/helper.js) and related [issue](https://github.com/pact-foundation/pact-js/issues/11) for more.
 
-### Output Logging
+#### Output Logging
 
 Pact Go uses a simple log utility ([logutils](https://github.com/hashicorp/logutils))
 to filter log messages. The CLI already contains flags to manage this,
@@ -724,6 +726,57 @@ pact := Pact{
   ...
 	LogLevel: "DEBUG", // One of DEBUG, INFO, ERROR, NONE
 }
+```
+
+#### Check if the CLI tools are up to date
+
+Pact ships with a CLI that you can also use to check if the tools are up to date. Simply run `pact-go install`, exit status `0` is good, `1` or higher is bad.
+
+#### Disable CLI checks to speed up tests
+
+Pact relies on a number of CLI tools for successful operation, and it performs some pre-emptive checks
+during test runs to ensure that everything will run smoothly. This check, unfortunately, can add up
+if spread across a large test suite. You can disable the check by setting the environment variable `PACT_DISABLE_TOOL_VALIDITY_CHECK=1` or specifying it when creating a `dsl.Pact` struct:
+
+```go
+dsl.Pact{
+  ...
+  DisableToolValidityCheck: true,
+}
+```
+
+You can then [check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date) as part of your CI process once up-front and speed up the rest of the process!
+
+#### Re-run a specific provider verification test
+
+Sometimes you want to target a specific test for debugging an issue or some other reason.
+
+This is easy for the consumer side, as each consumer test can be controlled
+within a valid `*testing.T` function, however this is not possible for Provider verification.
+
+But there is a way! Given an interaction that looks as follows (taken from the message examples):
+
+```go
+	message := pact.AddMessage()
+	message.
+		Given("user with id 127 exists").
+		ExpectsToReceive("a user").
+		WithMetadata(commonHeaders).
+		WithContent(map[string]interface{}{
+			"id":   like(127),
+			"name": "Baz",
+			"access": eachLike(map[string]interface{}{
+				"role": term("admin", "admin|controller|user"),
+			}, 3),
+		}).
+		AsType(&types.User{})
+```
+
+and the function used to run provider verification is `go test -run TestMessageProvider`, you can test the verification of this specific interaction by setting two environment variables `PACT_DESCRIPTION` and `PACT_PROVIDER_STATE` and re-running the command. For example:
+
+```
+cd examples/message/provider
+PACT_DESCRIPTION="a user" PACT_PROVIDER_STATE="user with id 127 exists" go test -v .
 ```
 
 ## Contact
@@ -740,10 +793,6 @@ or
 ## Documentation
 
 Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki].
-
-## Troubleshooting
-
-See [TROUBLESHOOTING] for some helpful tips/tricks.
 
 ## Roadmap
 

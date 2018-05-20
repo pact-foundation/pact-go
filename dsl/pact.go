@@ -123,7 +123,7 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 		p.Network = "tcp"
 	}
 
-	if !p.toolValidityCheck && !p.DisableToolValidityCheck {
+	if !p.toolValidityCheck && !(p.DisableToolValidityCheck || os.Getenv("PACT_DISABLE_TOOL_VALIDITY_CHECK") != "") {
 		checkCliCompatibility()
 		p.toolValidityCheck = true
 	}

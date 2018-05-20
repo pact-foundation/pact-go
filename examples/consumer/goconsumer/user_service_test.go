@@ -56,14 +56,19 @@ func TestMain(m *testing.M) {
 
 	// Enable when running E2E/integration tests before a release
 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
-		var brokerHost = os.Getenv("PACT_BROKER_HOST")
+		brokerHost := os.Getenv("PACT_BROKER_HOST")
+		version := "1.0.0"
+		if os.Getenv("TRAVIS_BUILD_NUMBER") != "" {
+			version = "1.0." + os.Getenv("TRAVIS_BUILD_NUMBER")
+		}
 
 		// Publish the Pacts...
 		p := dsl.Publisher{}
+
 		err := p.Publish(types.PublishRequest{
 			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 			PactBroker:      brokerHost,
-			ConsumerVersion: "1.0.1",
+			ConsumerVersion: version,
 			Tags:            []string{"latest", "sit4"},
 			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
