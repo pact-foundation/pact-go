@@ -32,28 +32,27 @@ A typical consumer-side test would look something like this:
 			return err
 		}
 
-		// Set up our interactions. Note we have multiple in this test case!
-		pact.
-			AddInteraction().
-			Given("User Matt exists"). // Provider State
-			UponReceiving("A request to login"). // Test Case Name
-			WithRequest(Request{
-				Method: "GET",
-				Path:   "/login",
-			}).
-			WillRespondWith(Response{
-				Status: 200,
-			})
+    // Set up our expected interactions.
+    pact.
+      AddInteraction().
+      Given("User foo exists").
+      UponReceiving("A request to get foo").
+      WithRequest(dsl.Request{
+        Method:  "GET",
+        Path:    dsl.String("/foobar"),
+        Headers: dsl.MapMatcher{"Content-Type": "application/json"},
+      }).
+      WillRespondWith(dsl.Response{
+        Status:  200,
+        Headers: dsl.MapMatcher{"Content-Type": "application/json"},
+        Body:    dsl.Match(&Foo{})
+      })
 
-		// Run the test and verify the interactions.
-		err := pact.Verify(test)
-		if err != nil {
-			t.Fatalf("Error on Verify: %v", err)
-		}
-
-		// Write pact to file
-		pact.WritePact()
-	}
+    // Verify
+    if err := pact.Verify(test); err != nil {
+      log.Fatalf("Error on Verify: %v", err)
+    }
+  }
 
 If this test completed successfully, a Pact file should have been written to
 ./pacts/my_consumer-my_provider.json containing all of the interactions

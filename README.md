@@ -159,11 +159,10 @@ import (
 // 3. go test -v -run TestConsumer
 func TestConsumer(t *testing.T) {
 
-	// Create Pact connecting to local Daemon
+	// Create Pact client
 	pact := &dsl.Pact{
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
-		Host:     "localhost",
 	}
 	defer pact.Teardown()
 
@@ -193,14 +192,13 @@ func TestConsumer(t *testing.T) {
 		UponReceiving("A request to get foo").
 		WithRequest(dsl.Request{
 			Method:  "GET",
-			Path:    "/foobar",
+			Path:    dsl.String("/foobar"),
 			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
-			Body:    `{"s":"foo"}`,
 		}).
 		WillRespondWith(dsl.Response{
-			Status:  200,
+      Status:  200,
 			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
-			Body:    `{"s":"bar"}`,
+			Body:    dsl.Match(&Foo{})
 		})
 
 	// Verify
@@ -367,9 +365,12 @@ _Important Note_: You should only use this feature for things that can not be pe
 
 ### Publishing pacts to a Pact Broker and Tagging Pacts
 
-See the [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)
-documentation for more details on the Broker and this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
-on how to make it work for you.
+Using a [Pact Broker] is recommended for any serious workloads, you can run your own one or use a [hosted broker].
+
+By integrating with a Broker, you get much more advanced collaboration features and can take advantage of automation tools, such as the [can-i-deploy tool], which can tell you at any point in time, which component is safe to release.
+
+See the [Pact Broker](https://docs.pact.io/getting-started/sharing-pacts-with-the-pact-broker)
+documentation for more details on the Broker.
 
 #### Publishing from Go code
 
@@ -466,8 +467,6 @@ pact := dsl.Pact {
 	return dsl.Pact{
 		Consumer:                 "PactGoMessageConsumer",
 		Provider:                 "PactGoMessageProvider",
-		LogDir:                   logDir,
-		PactDir:                  pactDir,
 	}
 }
 
@@ -817,4 +816,7 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 [CLI tools]: (https://github.com/pact-foundation/pact-ruby-standalone/releases)
 [Installation]: (#installation)
 [Message support]: (https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues)
-[Changelog](https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md)
+[Changelog]: (https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md)
+[Pact Broker]: (https://github.com/pact-foundation/pact_broker)
+[hosted broker]: pact.dius.com.au
+[can-i-deploy tool]: (https://github.com/pact-foundation/pact_broker/wiki/Provider-verification-results)
