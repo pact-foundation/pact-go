@@ -36,60 +36,60 @@ Read [Getting started with Pact] for more information for beginners.
 
 <!-- TOC -->
 
-- [Pact Go](#pact-go)
-  - [Introduction](#introduction)
-  - [Table of Contents](#table-of-contents)
-  - [Versions](#versions)
-  - [Installation](#installation)
-    - [Go get](#go-get)
-    - [Installation on \*nix](#installation-on-\nix)
-  - [Using Pact](#using-pact)
-  - [HTTP API Testing](#http-api-testing)
-    - [Consumer Side Testing](#consumer-side-testing)
-    - [Provider API Testing](#provider-api-testing)
-      - [Provider Verification](#provider-verification)
-      - [API with Authorization](#api-with-authorization)
-    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
-      - [Publishing from Go code](#publishing-from-go-code)
-      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
-      - [Publishing from the CLI](#publishing-from-the-cli)
-      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-  - [Asynchronous API Testing](#asynchronous-api-testing)
-    - [Consumer](#consumer)
-    - [Provider (Producer)](#provider-producer)
-    - [Pact Broker Integration](#pact-broker-integration)
-  - [Matching](#matching)
-    - [Matching on types](#matching-on-types)
-    - [Matching on arrays](#matching-on-arrays)
-    - [Matching by regular expression](#matching-by-regular-expression)
-    - [Match common formats](#match-common-formats)
-      - [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
-  - [Examples](#examples)
-    - [HTTP APIs](#http-apis)
-    - [Asynchronous APIs](#asynchronous-apis)
-    - [Integrated examples](#integrated-examples)
-  - [Troubleshooting](#troubleshooting)
-      - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-      - [Output Logging](#output-logging)
-      - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
-      - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
-      - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
-  - [Contact](#contact)
-  - [Documentation](#documentation)
-  - [Roadmap](#roadmap)
-  - [Contributing](#contributing)
+* [Pact Go](#pact-go)
+  * [Introduction](#introduction)
+  * [Table of Contents](#table-of-contents)
+  * [Versions](#versions)
+  * [Installation](#installation)
+    * [Go get](#go-get)
+    * [Installation on \*nix](#installation-on-\nix)
+  * [Using Pact](#using-pact)
+  * [HTTP API Testing](#http-api-testing)
+    * [Consumer Side Testing](#consumer-side-testing)
+    * [Provider API Testing](#provider-api-testing)
+      * [Provider Verification](#provider-verification)
+      * [API with Authorization](#api-with-authorization)
+    * [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+      * [Publishing from Go code](#publishing-from-go-code)
+      * [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+      * [Publishing from the CLI](#publishing-from-the-cli)
+      * [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+  * [Asynchronous API Testing](#asynchronous-api-testing)
+    * [Consumer](#consumer)
+    * [Provider (Producer)](#provider-producer)
+    * [Pact Broker Integration](#pact-broker-integration)
+  * [Matching](#matching)
+    * [Matching on types](#matching-on-types)
+    * [Matching on arrays](#matching-on-arrays)
+    * [Matching by regular expression](#matching-by-regular-expression)
+    * [Match common formats](#match-common-formats)
+      * [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
+  * [Examples](#examples)
+    * [HTTP APIs](#http-apis)
+    * [Asynchronous APIs](#asynchronous-apis)
+    * [Integrated examples](#integrated-examples)
+  * [Troubleshooting](#troubleshooting)
+    * [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
+    * [Output Logging](#output-logging)
+    * [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
+    * [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
+    * [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
+  * [Contact](#contact)
+  * [Documentation](#documentation)
+  * [Roadmap](#roadmap)
+  * [Contributing](#contributing)
 
 <!-- /TOC -->
 
 ## Versions
 
-| Version | Stable     | [Spec] Compatibility | Install             |
-| ------- |------------|----------------------|---------------------|
-| 1.0.x   | Yes        | 2, 3*                | See [Installation]  |
-| 1.1.x   | No (alpha) | 2, 3*                | 1.1.x [alpha]       |
-| 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]      |
+| Version | Stable     | [Spec] Compatibility | Install            |
+| ------- | ---------- | -------------------- | ------------------ |
+| 1.0.x   | Yes        | 2, 3\*               | See [Installation] |
+| 1.1.x   | No (alpha) | 2, 3\*               | 1.1.x [alpha]      |
+| 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]     |
 
-_*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
+_\*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
 
 ## Installation
 
@@ -433,7 +433,7 @@ Furthermore, the web has things like WebSockets which involve bidirectional mess
 Pact now has experimental support for these use cases, by abstracting away the protocol and focussing on the messages passing between them.
 
 For further reading and introduction into this topic, see this [article](https://dius.com.au/2017/09/22/contract-testing-serverless-and-asynchronous-applications/)
-and our [example](https://github.com/pact-foundation/pact-go/tree/feat/matching-rules-daemonless/examples/messages) for a more detailed overview of these concepts.
+and our [example](https://github.com/pact-foundation/pact-go/tree/master/examples/messages) for a more detailed overview of these concepts.
 
 ### Consumer
 
@@ -676,7 +676,7 @@ for more matching examples.
 
 ### Asynchronous APIs
 
-* [Message Queue](https://github.com/pact-foundation/pact-go/tree/feat/matching-rules-daemonless/examples/messages)
+* [Message Queue](https://github.com/pact-foundation/pact-go/tree/master/examples/messages)
 
 ### Integrated examples
 
@@ -802,21 +802,21 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 
 See [CONTRIBUTING](CONTRIBUTING.md).
 
-[Spec]: (https://github.com/pact-foundation/pact-specification)
+[spec]: (https://github.com/pact-foundation/pact-specification)
 [stable]: (https://github.com/pact-foundation/pact-go/tree/release/0.x.x)
 [alpha]: (https://github.com/pact-foundation/pact-go/tree/release/1.1.x)
-[TROUBLESHOOTING]: (https://github.com/pact-foundation/pact-go/wiki/Troubleshooting)
-[Pact Wiki]: (https://github.com/pact-foundation/pact-ruby/wiki)
-[Getting started with Pact]: (http://dius.com.au/2016/02/03/microservices-pact/)
-[Pact website]: (http://docs.pact.io/)
-[Slack channel]: (https://gophers.slack.com/messages/pact/)
+[troubleshooting]: (https://github.com/pact-foundation/pact-go/wiki/Troubleshooting)
+[pact wiki]: (https://github.com/pact-foundation/pact-ruby/wiki)
+[getting started with pact]: (http://dius.com.au/2016/02/03/microservices-pact/)
+[pact website]: (http://docs.pact.io/)
+[slack channel]: (https://gophers.slack.com/messages/pact/)
 [@pact_up]: (https://twitter.com/pact_up)
-[Pact Specification v2]: (https://github.com/pact-foundation/pact-specification/tree/version-2)
-[Pact Specification v3]: (https://github.com/pact-foundation/pact-specification/tree/version-3)
-[CLI tools]: (https://github.com/pact-foundation/pact-ruby-standalone/releases)
-[Installation]: (#installation)
-[Message support]: (https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues)
-[Changelog]: (https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md)
-[Pact Broker]: (https://github.com/pact-foundation/pact_broker)
+[pact specification v2]: (https://github.com/pact-foundation/pact-specification/tree/version-2)
+[pact specification v3]: (https://github.com/pact-foundation/pact-specification/tree/version-3)
+[cli tools]: (https://github.com/pact-foundation/pact-ruby-standalone/releases)
+[installation]: (#installation)
+[message support]: (https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues)
+[changelog]: (https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md)
+[pact broker]: (https://github.com/pact-foundation/pact_broker)
 [hosted broker]: pact.dius.com.au
 [can-i-deploy tool]: (https://github.com/pact-foundation/pact_broker/wiki/Provider-verification-results)
