@@ -7,7 +7,7 @@ import (
 
 // StateHandler is a provider function that sets up a given state before
 // the provider interaction is validated
-type StateHandler func(string) error
+type StateHandler func(State) error
 
 // StateHandlers is a list of StateHandler's
 type StateHandlers map[string]StateHandler
@@ -52,12 +52,13 @@ type Message struct {
 // State specifies how the system should be configured when
 // verified. e.g. "user A exists"
 type State struct {
-	Name string `json:"name"`
+	Name   string                 `json:"name"`
+	Params map[string]interface{} `json:"params,omitempty"`
 }
 
 // Given specifies a provider state. Optional.
 func (p *Message) Given(state string) *Message {
-	p.States = []State{State{state}}
+	p.States = []State{State{Name: state}}
 
 	return p
 }
