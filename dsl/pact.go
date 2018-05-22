@@ -356,7 +356,7 @@ var messageHandler = func(messageHandlers MessageHandlers, stateHandlers StateHa
 				log.Printf("[WARN] state handler not found for state: %v", state.Name)
 			} else {
 				// Execute state handler
-				if err = sf(state.Name); err != nil {
+				if err = sf(state); err != nil {
 					log.Printf("[WARN] state handler for '%v' return error: %v", state.Name, err)
 					w.WriteHeader(http.StatusInternalServerError)
 					return

@@ -36,7 +36,7 @@ func TestMessageProvider_Success(t *testing.T) {
 	}
 
 	stateMappings := dsl.StateHandlers{
-		"user with id 127 exists": func(s string) error {
+		"user with id 127 exists": func(s dsl.State) error {
 			user = &types.User{
 				ID:   44,
 				Name: "Baz",
@@ -48,7 +48,7 @@ func TestMessageProvider_Success(t *testing.T) {
 
 			return nil
 		},
-		"no users": func(s string) error {
+		"no users": func(s dsl.State) error {
 			user = nil
 
 			return nil
