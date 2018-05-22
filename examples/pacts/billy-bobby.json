@@ -1,0 +1,147 @@
+{
+  "consumer": {
+    "name": "billy"
+  },
+  "provider": {
+    "name": "bobby"
+  },
+  "interactions": [
+    {
+      "description": "A request to login with user 'billy'",
+      "providerState": "User billy exists",
+      "request": {
+        "method": "POST",
+        "path": "/users/login/1",
+        "query": "foo=bar",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "password": "issilly",
+          "username": "Jean-Marie de La Beaujardière😀😍"
+        },
+        "matchingRules": {
+          "$.path": {
+            "match": "regex",
+            "regex": "\\/users\\/login\\/[0-9]+"
+          },
+          "$.query.foo[0]": {
+            "match": "regex",
+            "regex": "[a-zA-Z]+"
+          },
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          },
+          "$.body.password": {
+            "match": "type"
+          },
+          "$.body.username": {
+            "match": "type"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "X-Api-Correlation-Id": "100"
+        },
+        "body": {
+          "user": {
+            "name": "Jean-Marie de La Beaujardière😀😍",
+            "type": "admin"
+          }
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          },
+          "$.headers.X-Api-Correlation-Id": {
+            "match": "type"
+          },
+          "$.body": {
+            "match": "type"
+          },
+          "$.body.user.type": {
+            "match": "regex",
+            "regex": "admin|user|guest"
+          }
+        }
+      }
+    },
+    {
+      "description": "A request to login with user 'billy'",
+      "providerState": "User billy does not exist",
+      "request": {
+        "method": "POST",
+        "path": "/users/login/10",
+        "query": "foo=anything",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "username": "Jean-Marie de La Beaujardière😀😍",
+          "password": "issilly"
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        }
+      }
+    },
+    {
+      "description": "A request to login with user 'billy'",
+      "providerState": "User billy is unauthorized",
+      "request": {
+        "method": "POST",
+        "path": "/users/login/10",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "username": "Jean-Marie de La Beaujardière😀😍",
+          "password": "issilly"
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
