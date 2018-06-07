@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/pact-foundation/pact-go/types"
 )
@@ -372,7 +373,7 @@ func captureOutput(action func()) string {
 func stubPorts() func() {
 	log.Println("Stubbing port timeout")
 	old := waitForPort
-	waitForPort = func(int, string, string, string) error {
+	waitForPort = func(int, string, string, time.Duration, string) error {
 		return nil
 	}
 	return func() { waitForPort = old }

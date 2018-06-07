@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/install"
@@ -88,6 +89,11 @@ type Pact struct {
 	// the tests, which should speed up large test suites significantly
 	DisableToolValidityCheck bool
 
+	// ClientTimeout specifies how long to wait for Pact CLI to start
+	// Can be increased to reduce likelihood of intermittent failure
+	// Defaults to 10s
+	ClientTimeout time.Duration
+
 	// Check if CLI tools are up to date
 	toolValidityCheck bool
 }
@@ -144,8 +150,13 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 		p.SpecificationVersion = 2
 	}
 
+	if p.ClientTimeout == 0 {
+		p.ClientTimeout = 10 * time.Second
+	}
+
 	if p.pactClient == nil {
 		p.pactClient = NewClient()
+		p.pactClient.TimeoutDuration = p.ClientTimeout
 	}
 
 	if p.PactFileWriteMode == "" {
@@ -463,8 +474,8 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) (types.Pro
 	log.Printf("[DEBUG] API handler starting: port %d (%s)", port, ln.Addr())
 	go http.Serve(ln, mux)
 
-	portErr := waitForPort(port, "tcp", "localhost", fmt.Sprintf(`Timed out waiting for Daemon on port %d - are you
-		sure it's running?`, port))
+	portErr := waitForPort(port, "tcp", "localhost", p.ClientTimeout,
+		fmt.Sprintf(`Timed out waiting for Daemon on port %d - are you sure it's running?`, port))
 
 	if portErr != nil {
 		log.Fatal("Error:", err)
