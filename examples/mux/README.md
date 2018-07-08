@@ -10,9 +10,9 @@ the Consumer uses to authenticate a User.
 
 We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):
 
-1. When the user "Billy" exists, and we perform a login, we expect an HTTP `200`
-1. When the user "Billy" does not exists, and we perform a login, we expect an HTTP `404`
-1. When the user "Billy" is unauthorized, and we perform a login, we expect an HTTP `403`
+1.  When the user "Billy" exists, and we perform a login, we expect an HTTP `200`
+1.  When the user "Billy" does not exists, and we perform a login, we expect an HTTP `404`
+1.  When the user "Billy" is unauthorized, and we perform a login, we expect an HTTP `403`
 
 # Getting started
 
@@ -21,9 +21,7 @@ daemon in the background:
 
 ```
 go get ./...
-<path to>/pact-go daemon
 ```
-
 
 ## Provider
 
