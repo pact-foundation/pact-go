@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/pact-foundation/pact-go/dsl"
 	ex "github.com/pact-foundation/pact-go/examples/types"
@@ -59,7 +60,7 @@ func TestMain(m *testing.M) {
 		brokerHost := os.Getenv("PACT_BROKER_HOST")
 		version := "1.0.0"
 		if os.Getenv("TRAVIS_BUILD_NUMBER") != "" {
-			version = "1.0." + os.Getenv("TRAVIS_BUILD_NUMBER")
+			version = fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_BUILD_NUMBER"), time.Now().Unix())
 		}
 
 		// Publish the Pacts...
