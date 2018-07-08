@@ -36,48 +36,48 @@ Read [Getting started with Pact] for more information for beginners.
 
 <!-- TOC -->
 
-* [Pact Go](#pact-go)
-  * [Introduction](#introduction)
-  * [Table of Contents](#table-of-contents)
-  * [Versions](#versions)
-  * [Installation](#installation)
-    * [Go get](#go-get)
-    * [Installation on \*nix](#installation-on-\nix)
-  * [Using Pact](#using-pact)
-  * [HTTP API Testing](#http-api-testing)
-    * [Consumer Side Testing](#consumer-side-testing)
-    * [Provider API Testing](#provider-api-testing)
-      * [Provider Verification](#provider-verification)
-      * [API with Authorization](#api-with-authorization)
-    * [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
-      * [Publishing from Go code](#publishing-from-go-code)
-      * [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
-      * [Publishing from the CLI](#publishing-from-the-cli)
-      * [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-  * [Asynchronous API Testing](#asynchronous-api-testing)
-    * [Consumer](#consumer)
-    * [Provider (Producer)](#provider-producer)
-    * [Pact Broker Integration](#pact-broker-integration)
-  * [Matching](#matching)
-    * [Matching on types](#matching-on-types)
-    * [Matching on arrays](#matching-on-arrays)
-    * [Matching by regular expression](#matching-by-regular-expression)
-    * [Match common formats](#match-common-formats)
-      * [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
-  * [Examples](#examples)
-    * [HTTP APIs](#http-apis)
-    * [Asynchronous APIs](#asynchronous-apis)
-    * [Integrated examples](#integrated-examples)
-  * [Troubleshooting](#troubleshooting)
-    * [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-    * [Output Logging](#output-logging)
-    * [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
-    * [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
-    * [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
-  * [Contact](#contact)
-  * [Documentation](#documentation)
-  * [Roadmap](#roadmap)
-  * [Contributing](#contributing)
+- [Pact Go](#pact-go)
+  - [Introduction](#introduction)
+  - [Table of Contents](#table-of-contents)
+  - [Versions](#versions)
+  - [Installation](#installation)
+    - [Go get](#go-get)
+    - [Installation on \*nix](#installation-on-\nix)
+  - [Using Pact](#using-pact)
+  - [HTTP API Testing](#http-api-testing)
+    - [Consumer Side Testing](#consumer-side-testing)
+    - [Provider API Testing](#provider-api-testing)
+      - [Provider Verification](#provider-verification)
+      - [API with Authorization](#api-with-authorization)
+    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+      - [Publishing from Go code](#publishing-from-go-code)
+      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+      - [Publishing from the CLI](#publishing-from-the-cli)
+      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+  - [Asynchronous API Testing](#asynchronous-api-testing)
+    - [Consumer](#consumer)
+    - [Provider (Producer)](#provider-producer)
+    - [Pact Broker Integration](#pact-broker-integration)
+  - [Matching](#matching)
+    - [Matching on types](#matching-on-types)
+    - [Matching on arrays](#matching-on-arrays)
+    - [Matching by regular expression](#matching-by-regular-expression)
+    - [Match common formats](#match-common-formats)
+      - [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
+  - [Examples](#examples)
+    - [HTTP APIs](#http-apis)
+    - [Asynchronous APIs](#asynchronous-apis)
+    - [Integrated examples](#integrated-examples)
+  - [Troubleshooting](#troubleshooting)
+    - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
+    - [Output Logging](#output-logging)
+    - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
+    - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
+    - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
+  - [Contact](#contact)
+  - [Documentation](#documentation)
+  - [Roadmap](#roadmap)
+  - [Contributing](#contributing)
 
 <!-- /TOC -->
 
@@ -154,9 +154,8 @@ import (
 )
 
 // Example Pact: How to run me!
-// 1. Start the daemon with `./pact-go daemon`
-// 2. cd <pact-go>/examples
-// 3. go test -v -run TestConsumer
+// 1. cd <pact-go>/examples
+// 2. go test -v -run TestConsumer
 func TestConsumer(t *testing.T) {
 
 	// Create Pact client
@@ -421,8 +420,8 @@ curl -v \
 The following flags are required to use basic authentication when
 publishing or retrieving Pact files to/from a Pact Broker:
 
-* `BrokerUsername` - the username for Pact Broker basic authentication.
-* `BrokerPassword` - the password for Pact Broker basic authentication.
+- `BrokerUsername` - the username for Pact Broker basic authentication.
+- `BrokerPassword` - the password for Pact Broker basic authentication.
 
 ## Asynchronous API Testing
 
@@ -494,14 +493,14 @@ func TestMessageConsumer_Success(t *testing.T) {
 **Explanation**:
 
 1.  The API - a contrived API handler example. Expects a User object and throws an `Error` if it can't handle it.
-    * In most applications, some form of transactionality exists and communication with a MQ/broker happens.
-    * It's important we separate out the protocol bits from the message handling bits, so that we can test that in isolation.
+    - In most applications, some form of transactionality exists and communication with a MQ/broker happens.
+    - It's important we separate out the protocol bits from the message handling bits, so that we can test that in isolation.
 1.  Creates the MessageConsumer class
 1.  Setup the expectations for the consumer - here we expect a `User` object with three fields
 1.  Pact will send the message to your message handler. If the handler does not error, the message is saved, otherwise the test fails. There are a few key things to consider:
-    * The actual request body that Pact will invoke on your handler will be contained within a `dsl.Message` object along with other context, so the body must be retrieved via `Content` attribute. If you set `Message.AsType(T)` this object will be mapped for you. If you don't want Pact to perform the conversion, you may do so on the object (`dsl.Message.Content`) or on the raw JSON (`dsl.Message.ContentRaw`).
-    * All handlers to be tested must be of the shape `func(dsl.Message) error` - that is, they must accept a `Message` and return an `error`. This is how we get around all of the various protocols, and will often require a lightweight adapter function to convert it.
-    * In this case, we wrap the actual `userHandler` with `userHandlerWrapper` provided by Pact.
+    - The actual request body that Pact will invoke on your handler will be contained within a `dsl.Message` object along with other context, so the body must be retrieved via `Content` attribute. If you set `Message.AsType(T)` this object will be mapped for you. If you don't want Pact to perform the conversion, you may do so on the object (`dsl.Message.Content`) or on the raw JSON (`dsl.Message.ContentRaw`).
+    - All handlers to be tested must be of the shape `func(dsl.Message) error` - that is, they must accept a `Message` and return an `error`. This is how we get around all of the various protocols, and will often require a lightweight adapter function to convert it.
+    - In this case, we wrap the actual `userHandler` with `userHandlerWrapper` provided by Pact.
 
 ### Provider (Producer)
 
@@ -536,7 +535,7 @@ As per the Consumer case, Pact takes the position of the intermediary (MQ/broker
 
 1.  Our API client contains a single function `createDog` which is responsible for generating the message that will be sent to the consumer via some message queue
 1.  We configure Pact to stand-in for the queue. The most important bit here is the `handlers` block
-    * Similar to the Consumer tests, we map the various interactions that are going to be verified as denoted by their `description` field. In this case, `a request for a dog`, maps to the `createDog` handler. Notice how this matches the original Consumer test.
+    - Similar to the Consumer tests, we map the various interactions that are going to be verified as denoted by their `description` field. In this case, `a request for a dog`, maps to the `createDog` handler. Notice how this matches the original Consumer test.
 1.  We can now run the verification process. Pact will read all of the interactions specified by its consumer, and invoke each function that is responsible for generating that message.
 
 ### Pact Broker Integration
@@ -669,14 +668,14 @@ for more matching examples.
 
 ### HTTP APIs
 
-* [API Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/)
-* [Golang ServeMux](https://github.com/pact-foundation/pact-go/tree/master/examples/mux)
-* [Go Kit](https://github.com/pact-foundation/pact-go/tree/master/examples/go-kit)
-* [Gin](https://github.com/pact-foundation/pact-go/tree/master/examples/gin)
+- [API Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/)
+- [Golang ServeMux](https://github.com/pact-foundation/pact-go/tree/master/examples/mux)
+- [Go Kit](https://github.com/pact-foundation/pact-go/tree/master/examples/go-kit)
+- [Gin](https://github.com/pact-foundation/pact-go/tree/master/examples/gin)
 
 ### Asynchronous APIs
 
-* [Message Queue](https://github.com/pact-foundation/pact-go/tree/master/examples/messages)
+- [Message Queue](https://github.com/pact-foundation/pact-go/tree/master/examples/messages)
 
 ### Integrated examples
 
@@ -784,10 +783,10 @@ Join us in slack: [![slack](http://slack.pact.io/badge.svg)](http://slack.pact.i
 
 or
 
-* Twitter: [@pact_up]
-* Stack Overflow: stackoverflow.com/questions/tagged/pact
-* Gitter: https://gitter.im/realestate-com-au/pact
-* Gophers #pact [Slack channel]
+- Twitter: [@pact_up]
+- Stack Overflow: stackoverflow.com/questions/tagged/pact
+- Gitter: https://gitter.im/realestate-com-au/pact
+- Gophers #pact [Slack channel]
 
 ## Documentation
 

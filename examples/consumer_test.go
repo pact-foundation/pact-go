@@ -12,14 +12,16 @@ import (
 )
 
 // Example Pact: How to run me!
-// 1. Start the daemon with `./pact-go daemon`
-// 2. cd <pact-go>/examples
-// 3. go test -v -run TestConsumer
+// 1. cd <pact-go>/examples
+// 2. go test -v -run TestConsumer
 func TestConsumer(t *testing.T) {
+	type User struct {
+		Name     string `json:"name" pact:"example=billy"`
+		LastName string `json:"lastName" pact:"example=sampson"`
+	}
 
 	// Create Pact connecting to local Daemon
 	pact := &dsl.Pact{
-		Port:     6666, // Ensure this port matches the daemon port!
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
 		Host:     "localhost",
@@ -29,7 +31,7 @@ func TestConsumer(t *testing.T) {
 	// Pass in test case
 	var test = func() error {
 		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
-		req, err := http.NewRequest("GET", u, strings.NewReader(`{"s":"foo"}`))
+		req, err := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
 		// of application/json. If you don't explicitly set the content-type, you
@@ -52,14 +54,16 @@ func TestConsumer(t *testing.T) {
 		UponReceiving("A request to get foo").
 		WithRequest(dsl.Request{
 			Method:  "GET",
-			Path:    "/foobar",
-			Headers: map[string]string{"Content-Type": "application/json"},
-			Body:    `{"s":"foo"}`,
+			Path:    dsl.String("/foobar"),
+			Headers: dsl.MapMatcher{"Content-Type": dsl.String("application/json")},
+			Body: map[string]string{
+				"name": "billy",
+			},
 		}).
 		WillRespondWith(dsl.Response{
 			Status:  200,
-			Headers: map[string]string{"Content-Type": "application/json"},
-			Body:    `{"lastName":"bar"}`,
+			Headers: dsl.MapMatcher{"Content-Type": dsl.String("application/json")},
+			Body:    dsl.Match(&User{LastName: "sampson"}),
 		})
 
 	// Verify

@@ -18,14 +18,12 @@ var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/pacts", dir)
 
 // Example Provider Pact: How to run me!
-// 1. Start the daemon with `./pact-go daemon`
-// 2. cd <pact-go>/examples
-// 3. go test -v -run TestProvider
+// 1. cd <pact-go>/examples
+// 2. go test -v -run TestProvider
 func TestProvider(t *testing.T) {
 
 	// Create Pact connecting to local Daemon
 	pact := &dsl.Pact{
-		Port:     6666, // Ensure this port matches the daemon port!
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
 	}
@@ -48,7 +46,7 @@ func startServer() {
 
 	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		fmt.Fprintf(w, fmt.Sprintf(`{"lastName":"%s"}`, lastName))
+		fmt.Fprintf(w, fmt.Sprintf(`{"name":"billy", "lastName":"%s"}`, lastName))
 
 		// Break the API by replacing the above and uncommenting one of these
 		// w.WriteHeader(http.StatusUnauthorized)
