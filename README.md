@@ -83,11 +83,11 @@ Read [Getting started with Pact] for more information for beginners.
 
 ## Versions
 
-| Version | Stable     | [Spec] Compatibility | Install            |
-| ------- | ---------- | -------------------- | ------------------ |
-| 1.0.x   | Yes        | 2, 3\*               | See [Installation] |
-| 1.1.x   | No (alpha) | 2, 3\*               | 1.1.x [alpha]      |
-| 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]     |
+| Version | Stable     | [Spec] Compatibility | Install          |
+| ------- | ---------- | -------------------- | ---------------- |
+| 1.0.x   | Yes        | 2, 3\*               | See [master]     |
+| 1.1.x   | No (alpha) | 2, 3\*               | 1.1.x (this doc) |
+| 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]   |
 
 _\*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
 
@@ -802,8 +802,9 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 See [CONTRIBUTING](CONTRIBUTING.md).
 
 [spec]: https://github.com/pact-foundation/pact-specification
+[master]: https://github.com/pact-foundation/pact-go/
 [stable]: https://github.com/pact-foundation/pact-go/tree/release/0.x.x
-[alpha]: https://github.com/pact-foundation/pact-go/tree/release/1.1.x
+[alpha]: https://github.com/pact-foundation/pact-go/tree/release/1.x.x
 [troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
 [pact wiki]: https://github.com/pact-foundation/pact-ruby/wiki
 [getting started with pact]: http://dius.com.au/2016/02/03/microservices-pact/
