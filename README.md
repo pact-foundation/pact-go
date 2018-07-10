@@ -83,11 +83,11 @@ Read [Getting started with Pact] for more information for beginners.
 
 ## Versions
 
-| Version | Stable     | [Spec] Compatibility | Install                           |
-| ------- | ---------- | -------------------- | ------------------                |
-| 1.0.x   | Yes        | 2, 3\*               | See [Installation](#installation) |
-| 1.1.x   | No (alpha) | 2, 3\*               | 1.1.x [alpha]                     |
-| 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]                    |
+| Version | Stable     | [Spec] Compatibility | Install            |
+| ------- | ---------- | -------------------- | ------------------ |
+| 1.0.x   | Yes        | 2, 3\*               | See [installation] |
+| 1.1.x   | No (alpha) | 2, 3\*               | 1.1.x [alpha]      |
+| 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]     |
 
 _\*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
 
@@ -801,21 +801,21 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 
 See [CONTRIBUTING](CONTRIBUTING.md).
 
-[spec]: (https://github.com/pact-foundation/pact-specification)
-[stable]: (https://github.com/pact-foundation/pact-go/tree/release/0.x.x)
-[alpha]: (https://github.com/pact-foundation/pact-go/tree/release/1.1.x)
-[troubleshooting]: (https://github.com/pact-foundation/pact-go/wiki/Troubleshooting)
-[pact wiki]: (https://github.com/pact-foundation/pact-ruby/wiki)
-[getting started with pact]: (http://dius.com.au/2016/02/03/microservices-pact/)
-[pact website]: (http://docs.pact.io/)
-[slack channel]: (https://gophers.slack.com/messages/pact/)
-[@pact_up]: (https://twitter.com/pact_up)
-[pact specification v2]: (https://github.com/pact-foundation/pact-specification/tree/version-2)
-[pact specification v3]: (https://github.com/pact-foundation/pact-specification/tree/version-3)
-[cli tools]: (https://github.com/pact-foundation/pact-ruby-standalone/releases)
-[installation]: (#installation)
-[message support]: (https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues)
-[changelog]: (https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md)
-[pact broker]: (https://github.com/pact-foundation/pact_broker)
+[spec]: https://github.com/pact-foundation/pact-specification
+[stable]: https://github.com/pact-foundation/pact-go/tree/release/0.x.x
+[alpha]: https://github.com/pact-foundation/pact-go/tree/release/1.1.x
+[troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
+[pact wiki]: https://github.com/pact-foundation/pact-ruby/wiki
+[getting started with pact]: http://dius.com.au/2016/02/03/microservices-pact/
+[pact website]: http://docs.pact.io/
+[slack channel]: https://gophers.slack.com/messages/pact/
+[@pact_up]: https://twitter.com/pact_up
+[pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
+[pact specification v3]: https://github.com/pact-foundation/pact-specification/tree/version-3
+[cli tools]: https://github.com/pact-foundation/pact-ruby-standalone/releases
+[installation]: #installation
+[message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
+[changelog]: https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md
+[pact broker]: https://github.com/pact-foundation/pact_broker
 [hosted broker]: pact.dius.com.au
-[can-i-deploy tool]: (https://github.com/pact-foundation/pact_broker/wiki/Provider-verification-results)
+[can-i-deploy tool]: https://github.com/pact-foundation/pact_broker/wiki/Provider-verification-results
