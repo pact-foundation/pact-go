@@ -5,6 +5,20 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.0.0-beta.1 (13 July 2018)
+  * [2635dd0](https://github.com/pact-foundation/pact-go/commit/2635dd0) - feat(upgrade): upgrade to latest CLI tools 1.52.0 (Matt Fellows, Fri Jul 13 15:37:55 2018 +1000)
+  * [9059d31](https://github.com/pact-foundation/pact-go/commit/9059d31) - feat(verifications): parse multiple verifications into tests. Fixes #88 (Matt Fellows, Fri Jul 13 15:30:47 2018 +1000)
+  * [f648890](https://github.com/pact-foundation/pact-go/commit/f648890) - Fix link (#90) (tomoya yokota, Tue Jul 10 19:47:31 2018 +0900)
+  * [0ab057f](https://github.com/pact-foundation/pact-go/commit/0ab057f) - feat(state): update dsl.State to support v3 params (Matt Fellows, Tue May 22 16:33:04 2018 +1000)
+  * [250baaa](https://github.com/pact-foundation/pact-go/commit/250baaa) - feat(state): update dsl.State to support v3 params (Matt Fellows, Tue May 22 16:33:04 2018 +1000)
+  * [d64e50b](https://github.com/pact-foundation/pact-go/commit/d64e50b) - feat(cli): add PACT_DISABLE_TOOL_VALIDITY_CHECK env var (Matt Fellows, Sun May 20 19:44:49 2018 +1000)
+  * [288a771](https://github.com/pact-foundation/pact-go/commit/288a771) - feat(api): v1.x.x daemonless, v3 API 🎉 (Matt Fellows, Sun May 20 17:40:52 2018 +1000)
+  * [9d5d1ab](https://github.com/pact-foundation/pact-go/commit/9d5d1ab) - feat(publisher): add SetClient func (Deseao, Thu May 10 12:07:57 2018 -0500)
+  * [45b72ae](https://github.com/pact-foundation/pact-go/commit/45b72ae) - feat(matching): add auto-match capability (#78) (Alex Ramey, Tue May 8 16:39:00 2018 -0400)
+  * [a6a3e76](https://github.com/pact-foundation/pact-go/commit/a6a3e76) - fix(verification): fix verifier CLI invocation with multiple pacts. Fixes #75 (Matt Fellows, Sat Mar 31 15:14:10 2018 +1100)
+  * [e2362ea](https://github.com/pact-foundation/pact-go/commit/e2362ea) - fix: pass pact-file-write-mode to CLI #71 (Matt Fellows, Wed Mar 21 10:31:00 2018 +1100)
+  * [3bc71f1](https://github.com/pact-foundation/pact-go/commit/3bc71f1) - Fix broken links to realestate-com-au/pact/wiki (#68) (Mohan Raj Rajamanickam, Tue Mar 13 14:28:58 2018 -0700)
+
 ### v1.0.0-beta.1 (20 May 2018)
   * [c45d3cc](https://github.com/pact-foundation/pact-go/commit/c45d3cc) - fix(broker): fix pact retrieval from broker (Matt Fellows, Sun May 20 16:04:41 2018 +1000)
   * [738e20a](https://github.com/pact-foundation/pact-go/commit/738e20a) - feat(message): tidy up Message interface (Matt Fellows, Sun May 20 13:16:00 2018 +1000)
