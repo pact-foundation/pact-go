@@ -246,7 +246,7 @@ func TestHelperProcess(t *testing.T) {
 	}
 
 	// Success :)
-	fmt.Fprintf(os.Stdout, `{"summary_line":"1 examples, 0 failures"}`)
+	fmt.Fprintf(os.Stdout, "{\"summary_line\":\"1 examples, 0 failures\"}\n{\"summary_line\":\"1 examples, 0 failures\"}")
 	os.Exit(0)
 }
 
