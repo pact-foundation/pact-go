@@ -35,17 +35,12 @@ func TestClient_StartServer(t *testing.T) {
 	}
 }
 
-var oldTimeoutDuration = timeoutDuration
-
 func TestClient_StartServerFail(t *testing.T) {
-	timeoutDuration = 50 * time.Millisecond
-
 	client, _ := createClient(false)
 	server := client.StartServer([]string{}, 0)
 	if server.Port != 0 {
 		t.Fatalf("Expected server to be empty %v", server)
 	}
-	timeoutDuration = oldTimeoutDuration
 }
 
 func TestClient_StopServer(t *testing.T) {
@@ -58,7 +53,6 @@ func TestClient_StopServer(t *testing.T) {
 }
 
 func TestClient_StopServerFail(t *testing.T) {
-	timeoutDuration = 50 * time.Millisecond
 	client, _ := createClient(true)
 	res, err := client.StopServer(&types.MockServer{})
 	should := &types.MockServer{}
@@ -68,7 +62,6 @@ func TestClient_StopServerFail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("wanted error, got none")
 	}
-	timeoutDuration = oldTimeoutDuration
 }
 
 func TestClient_VerifyProvider(t *testing.T) {
@@ -213,6 +206,7 @@ func createClient(success bool) (*PactClient, *ServiceMock) {
 	}()
 
 	d := newClient(svc, svc, svc)
+	d.TimeoutDuration = 50 * time.Millisecond
 	return d, svc
 }
 
