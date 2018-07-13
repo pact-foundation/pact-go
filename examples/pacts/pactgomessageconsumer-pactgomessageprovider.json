@@ -60,6 +60,9 @@
             ]
           }
         }
+      },
+      "metaData": {
+        "Content-Type": "application/json; charset=utf-8"
       }
     },
     {
@@ -91,6 +94,9 @@
             ]
           }
         }
+      },
+      "metaData": {
+        "Content-Type": "application/json; charset=utf-8"
       }
     }
   ],
