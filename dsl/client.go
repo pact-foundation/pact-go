@@ -160,15 +160,25 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 
 	err = cmd.Wait()
 
-	decoder := json.NewDecoder(bytes.NewReader(stdOut))
+	// Split by lines, as the content is now JSONL
+	// See https://github.com/pact-foundation/pact-go/issues/88#issuecomment-404686337
+	verifications := strings.Split(string(stdOut), "\n")
 
-	dErr := decoder.Decode(&response)
-	if dErr == nil {
-		return response, err
+	var verification types.ProviderVerifierResponse
+	for _, v := range verifications {
+		v = strings.TrimSpace(v)
+		if v != "" {
+			dErr := json.Unmarshal([]byte(v), &verification)
+			response.Examples = append(response.Examples, verification.Examples...)
+
+			if dErr != nil {
+				err = dErr
+			}
+		}
 	}
 
 	if err == nil {
-		err = dErr
+		return response, err
 	}
 
 	return response, fmt.Errorf("error verifying provider: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
