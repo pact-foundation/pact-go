@@ -17,10 +17,6 @@ import (
 	"github.com/pact-foundation/pact-go/types"
 )
 
-var (
-	timeoutDuration = 10 * time.Second
-)
-
 // PactClient is the main interface into starting/stopping
 // the underlying Pact CLI subsystem
 type PactClient struct {
@@ -36,6 +32,9 @@ type PactClient struct {
 
 	// Address the Daemon is listening on
 	Address string
+
+	// TimeoutDuration specifies how long to wait for Pact CLI to start
+	TimeoutDuration time.Duration
 }
 
 // newClient creates a new Pact client manager with the provided services
@@ -63,8 +62,8 @@ func (p *PactClient) StartServer(args []string, port int) *types.MockServer {
 	svc := p.pactMockSvcManager.NewService(args)
 	cmd := svc.Start()
 
-	waitForPort(port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Mock Server to
-    start on port %d - are you sure it's running?`, port))
+	waitForPort(port, p.getNetworkInterface(), p.Address, p.TimeoutDuration,
+		fmt.Sprintf(`Timed out waiting for Mock Server to start on port %d - are you sure it's running?`, port))
 
 	return &types.MockServer{
 		Pid:  cmd.Process.Pid,
@@ -122,8 +121,8 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 
 	port := getPort(request.ProviderBaseURL)
 
-	waitForPort(port, p.getNetworkInterface(), p.Address, fmt.Sprintf(`Timed out waiting for Provider API to start
-		 on port %d - are you sure it's running?`, port))
+	waitForPort(port, p.getNetworkInterface(), p.Address, p.TimeoutDuration,
+		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
 	// Run command, splitting out stderr and stdout. The command can fail for
 	// several reasons:
@@ -312,7 +311,7 @@ func getPort(rawURL string) int {
 
 // Use this to wait for a port to be running prior
 // to running tests.
-var waitForPort = func(port int, network string, address string, message string) error {
+var waitForPort = func(port int, network string, address string, timeoutDuration time.Duration, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
 	timeout := time.After(timeoutDuration)
 
