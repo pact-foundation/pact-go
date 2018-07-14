@@ -58,11 +58,15 @@ func TestPact_GoKitProvider(t *testing.T) {
 	pact := createPact()
 
 	// Verify the Provider with local Pact Files
-	pact.VerifyProvider(t, types.VerifyRequest{
+	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Pull from pact broker, used in e2e/integrated tests for pact-go release
 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
