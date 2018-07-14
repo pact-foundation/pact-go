@@ -112,14 +112,14 @@ func findConsumers(provider string, request *types.VerifyRequest) error {
 		for _, p := range doc.Links.OldPacts {
 			pactURLs[p.Href] = p.Href
 		}
-
-		fmt.Println("[DEBUG] pacts to verify: ", pactURLs)
 	}
 
 	// Scrub out duplicate pacts across tags (e.g. 'latest' may equal 'prod' pact)
 	for _, p := range pactURLs {
 		request.PactURLs = append(request.PactURLs, p)
 	}
+
+	fmt.Println("[DEBUG] discovered pacts to verify: ", request.PactURLs)
 
 	return nil
 }
