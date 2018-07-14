@@ -48,22 +48,25 @@ func TestServiceManager_removeServiceMonitor(t *testing.T) {
 	mgr := createServiceManager()
 	cmd := fakeExecCommand("", true, "")
 	cmd.Start()
-	mgr.processes = map[int]*exec.Cmd{
+	mgr.processMap.processes = map[int]*exec.Cmd{
 		cmd.Process.Pid: cmd,
 	}
 
 	mgr.commandCompleteChan <- cmd
 	var timeout = time.After(channelTimeout)
 	for {
+		mgr.processMap.Lock()
+		defer mgr.processMap.Unlock()
+
 		select {
 		case <-time.After(10 * time.Millisecond):
-			if len(mgr.processes) == 0 {
+			if len(mgr.processMap.processes) == 0 {
 				return
 			}
 		case <-timeout:
-			if len(mgr.processes) != 0 {
+			if len(mgr.processMap.processes) != 0 {
 				t.Fatalf(`Expected 1 command to be removed from the queue. Have %d
-          Timed out after 500millis`, len(mgr.processes))
+          Timed out after 500millis`, len(mgr.processMap.processes))
 			}
 		}
 	}
@@ -77,15 +80,20 @@ func TestServiceManager_addServiceMonitor(t *testing.T) {
 	var timeout = time.After(channelTimeout)
 
 	for {
+
 		select {
 		case <-time.After(10 * time.Millisecond):
-			if len(mgr.processes) == 1 {
+			mgr.processMap.Lock()
+			defer mgr.processMap.Unlock()
+			if len(mgr.processMap.processes) == 1 {
 				return
 			}
 		case <-timeout:
-			if len(mgr.processes) != 1 {
+			mgr.processMap.Lock()
+			defer mgr.processMap.Unlock()
+			if len(mgr.processMap.processes) != 1 {
 				t.Fatalf(`Expected 1 command to be added to the queue, but got: %d.
-          Timed out after 500millis`, len(mgr.processes))
+          Timed out after 500millis`, len(mgr.processMap.processes))
 			}
 			return
 		}
@@ -99,16 +107,18 @@ func TestServiceManager_addServiceMonitorWithDeadJob(t *testing.T) {
 	var timeout = time.After(channelTimeout)
 
 	for {
+
 		select {
 		case <-time.After(10 * time.Millisecond):
-			if len(mgr.processes) != 0 {
+
+			if len(mgr.processMap.processes) != 0 {
 				t.Fatalf(`Expected 0 command to be added to the queue, but got: %d.
-          Timed out after 5 attempts`, len(mgr.processes))
+        Timed out after 5 attempts`, len(mgr.processMap.processes))
 			}
 		case <-timeout:
-			if len(mgr.processes) != 0 {
+			if len(mgr.processMap.processes) != 0 {
 				t.Fatalf(`Expected 0 command to be added to the queue, but got: %d.
-				Timed out after 50millis`, len(mgr.processes))
+				Timed out after 50millis`, len(mgr.processMap.processes))
 			}
 			return
 		}
@@ -119,20 +129,23 @@ func TestServiceManager_Stop(t *testing.T) {
 	mgr := createServiceManager()
 	cmd := fakeExecCommand("", true, "")
 	cmd.Start()
-	mgr.processes = map[int]*exec.Cmd{
+	mgr.processMap.processes = map[int]*exec.Cmd{
 		cmd.Process.Pid: cmd,
 	}
 
 	mgr.Stop(cmd.Process.Pid)
 	var timeout = time.After(channelTimeout)
 	for {
+		mgr.processMap.Lock()
+		defer mgr.processMap.Unlock()
+
 		select {
 		case <-time.After(10 * time.Millisecond):
-			if len(mgr.processes) == 0 {
+			if len(mgr.processMap.processes) == 0 {
 				return
 			}
 		case <-timeout:
-			if len(mgr.processes) != 0 {
+			if len(mgr.processMap.processes) != 0 {
 				t.Fatalf(`Expected 1 command to be removed from the queue.
           Timed out after 500millis`)
 			}
@@ -148,7 +161,9 @@ func TestServiceManager_List(t *testing.T) {
 	processes := map[int]*exec.Cmd{
 		cmd.Process.Pid: cmd,
 	}
-	mgr.processes = processes
+	mgr.processMap.Lock()
+	mgr.processMap.processes = processes
+	mgr.processMap.Unlock()
 
 	if !reflect.DeepEqual(processes, mgr.List()) {
 		t.Fatalf("Expected mgr.List() to equal processes")
@@ -161,15 +176,20 @@ func TestServiceManager_Start(t *testing.T) {
 	var timeout = time.After(channelTimeout)
 
 	for {
+
 		select {
 		case <-time.After(10 * time.Millisecond):
-			if len(mgr.processes) == 1 {
+			mgr.processMap.Lock()
+			if len(mgr.processMap.processes) == 1 {
+				mgr.processMap.Unlock()
 				return
 			}
 		case <-timeout:
-			if len(mgr.processes) != 1 {
+			mgr.processMap.Lock()
+			defer mgr.processMap.Unlock()
+			if len(mgr.processMap.processes) != 1 {
 				t.Fatalf(`Expected 1 command to be added to the queue, but got: %d.
-          Timed out after 500millis`, len(mgr.processes))
+          Timed out after 500millis`, len(mgr.processMap.processes))
 			}
 			return
 		}
