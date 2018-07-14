@@ -5,13 +5,14 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 )
 
 // ServiceManager is the default implementation of the Service interface.
 type ServiceManager struct {
 	Cmd                 string
-	processes           map[int]*exec.Cmd
+	processMap          processMap
 	Args                []string
 	Env                 []string
 	commandCompleteChan chan *exec.Cmd
@@ -24,7 +25,7 @@ func (s *ServiceManager) Setup() {
 
 	s.commandCreatedChan = make(chan *exec.Cmd)
 	s.commandCompleteChan = make(chan *exec.Cmd)
-	s.processes = make(map[int]*exec.Cmd)
+	s.processMap = processMap{processes: make(map[int]*exec.Cmd)}
 
 	// Listen for service create/kill
 	go s.addServiceMonitor()
@@ -38,7 +39,7 @@ func (s *ServiceManager) addServiceMonitor() {
 		select {
 		case p := <-s.commandCreatedChan:
 			if p != nil && p.Process != nil {
-				s.processes[p.Process.Pid] = p
+				s.processMap.Set(p.Process.Pid, p)
 			}
 		}
 	}
@@ -53,7 +54,7 @@ func (s *ServiceManager) removeServiceMonitor() {
 		case p = <-s.commandCompleteChan:
 			if p != nil && p.Process != nil {
 				p.Process.Signal(os.Interrupt)
-				delete(s.processes, p.Process.Pid)
+				s.processMap.Delete(p.Process.Pid)
 			}
 		}
 	}
@@ -62,7 +63,7 @@ func (s *ServiceManager) removeServiceMonitor() {
 // Stop a Service and returns the exit status.
 func (s *ServiceManager) Stop(pid int) (bool, error) {
 	log.Println("[DEBUG] stopping service with pid", pid)
-	cmd := s.processes[pid]
+	cmd := s.processMap.Get(pid)
 
 	// Remove service from registry
 	go func() {
@@ -96,7 +97,7 @@ func (s *ServiceManager) Stop(pid int) (bool, error) {
 // List all Service PIDs.
 func (s *ServiceManager) List() map[int]*exec.Cmd {
 	log.Println("[DEBUG] listing services")
-	return s.processes
+	return s.processMap.processes
 }
 
 // Command executes the command
@@ -150,4 +151,28 @@ func (s *ServiceManager) Start() *exec.Cmd {
 	s.commandCreatedChan <- cmd
 
 	return cmd
+}
+
+type processMap struct {
+	sync.RWMutex
+	processes map[int]*exec.Cmd
+}
+
+func (pm *processMap) Get(k int) *exec.Cmd {
+	pm.RLock()
+	defer pm.RUnlock()
+	v, _ := pm.processes[k]
+	return v
+}
+
+func (pm *processMap) Set(k int, v *exec.Cmd) {
+	pm.Lock()
+	defer pm.Unlock()
+	pm.processes[k] = v
+}
+
+func (pm *processMap) Delete(k int) {
+	pm.Lock()
+	defer pm.Unlock()
+	delete(pm.processes, k)
 }
