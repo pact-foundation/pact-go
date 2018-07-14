@@ -120,13 +120,11 @@ func (s *ServiceManager) Start() *exec.Cmd {
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Printf("[ERROR] unable to create output pipe for cmd: %s\n", err.Error())
-		os.Exit(1)
 	}
 
 	cmdReaderErr, err := cmd.StderrPipe()
 	if err != nil {
 		log.Printf("[ERROR] unable to create error pipe for cmd: %s\n", err.Error())
-		os.Exit(1)
 	}
 
 	scanner := bufio.NewScanner(cmdReader)
@@ -146,7 +144,6 @@ func (s *ServiceManager) Start() *exec.Cmd {
 	err = cmd.Start()
 	if err != nil {
 		log.Println("[ERROR] service", err.Error())
-		os.Exit(1)
 	}
 
 	// Add service to registry
