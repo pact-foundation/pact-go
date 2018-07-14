@@ -438,6 +438,7 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest)
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
 func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) (types.ProviderVerifierResponse, error) {
+	p.Setup(false)
 	response := types.ProviderVerifierResponse{}
 
 	// Starts the message wrapper API with hooks back to the message handlers

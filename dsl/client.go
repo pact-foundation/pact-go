@@ -47,6 +47,7 @@ func newClient(MockServiceManager client.Service, verificationServiceManager cli
 		pactMockSvcManager:     MockServiceManager,
 		verificationSvcManager: verificationServiceManager,
 		messageSvcManager:      messageServiceManager,
+		TimeoutDuration:        10 * time.Second,
 	}
 }
 
