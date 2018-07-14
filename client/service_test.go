@@ -55,12 +55,12 @@ func TestServiceManager_removeServiceMonitor(t *testing.T) {
 	mgr.commandCompleteChan <- cmd
 	var timeout = time.After(channelTimeout)
 	for {
-		mgr.processMap.Lock()
-		defer mgr.processMap.Unlock()
 
 		select {
 		case <-time.After(10 * time.Millisecond):
+			mgr.processMap.Lock()
 			if len(mgr.processMap.processes) == 0 {
+				mgr.processMap.Unlock()
 				return
 			}
 		case <-timeout:
