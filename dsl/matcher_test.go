@@ -694,9 +694,40 @@ func TestMatch(t *testing.T) {
 			want: Like(1),
 		},
 		{
-			name: "error - unhandled type",
+			name: "map[string]int",
 			args: args{
-				src: make(map[string]string),
+				src: make(map[string]int),
+			},
+			want: map[string]interface{}{
+				`"string"`: Like(1),
+			},
+		},
+		{
+			name: "map[string]struct",
+			args: args{
+				src: map[string]wordDTO{
+					"word1": wordDTO{},
+					"word2": wordDTO{},
+				},
+			},
+			want: map[string]interface{}{
+				`"string"`: Matcher{
+					"word":   Like(`"string"`),
+					"length": Like(1),
+				},
+			},
+		},
+		{
+			name: "invalid map key type - only allow string",
+			args: args{
+				src: make(map[int]string),
+			},
+			wantPanic: true,
+		},
+		{
+			name: "unhandled type: func()",
+			args: args{
+				src: func() {},
 			},
 			wantPanic: true,
 		},
