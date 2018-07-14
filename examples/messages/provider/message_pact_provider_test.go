@@ -70,7 +70,6 @@ var logDir = fmt.Sprintf("%s/log", dir)
 
 // Setup the Pact client.
 func createPact() dsl.Pact {
-	// Create Pact connecting to local Daemon
 	return dsl.Pact{
 		Consumer:          "PactGoMessageConsumer",
 		Provider:          "PactGoMessageProvider",
