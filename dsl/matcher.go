@@ -231,6 +231,13 @@ func match(srcType reflect.Type, params params) Matcher {
 		return match(srcType.Elem(), params)
 	case reflect.Slice, reflect.Array:
 		return EachLike(match(srcType.Elem(), getDefaults()), params.slice.min)
+	case reflect.Map:
+		if srcType.Key().Kind() != reflect.String {
+			panic(fmt.Sprintf("match: unhandled map key type: %v", srcType.Key()))
+		}
+		result := make(map[string]interface{})
+		result[`"string"`] = match(srcType.Elem(), getDefaults())
+		return result
 	case reflect.Struct:
 		result := make(map[string]interface{})
 
