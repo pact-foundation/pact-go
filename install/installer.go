@@ -17,9 +17,9 @@ type Installer struct {
 }
 
 const (
-	mockServiceRange = ">= 2.9.2, < 3.0.0"
+	mockServiceRange = ">= 2.9.8, < 3.0.0"
 	verifierRange    = ">= 1.15.0, < 3.0.0"
-	brokerRange      = ">= 1.14.0, < 2.0.0"
+	brokerRange      = ">= 1.16.0, < 2.0.0"
 )
 
 var versionMap = map[string]string{
