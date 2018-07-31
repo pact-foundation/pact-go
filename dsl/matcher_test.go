@@ -684,14 +684,14 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: float32(1),
 			},
-			want: Like(1),
+			want: Like(1.1),
 		},
 		{
 			name: "base case - float64",
 			args: args{
 				src: float64(1),
 			},
-			want: Like(1),
+			want: Like(1.1),
 		},
 		{
 			name: "error - unhandled type",
