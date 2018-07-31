@@ -251,9 +251,10 @@ func match(srcType reflect.Type, params params) Matcher {
 	case reflect.Bool:
 		return Like(true)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return Like(1)
+	case reflect.Float32, reflect.Float64:
+		return Like(1.1)
 	default:
 		panic(fmt.Sprintf("match: unhandled type: %v", srcType))
 	}
