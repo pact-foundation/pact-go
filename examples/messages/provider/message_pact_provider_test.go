@@ -71,10 +71,9 @@ var logDir = fmt.Sprintf("%s/log", dir)
 // Setup the Pact client.
 func createPact() dsl.Pact {
 	return dsl.Pact{
-		Consumer:          "PactGoMessageConsumer",
-		Provider:          "PactGoMessageProvider",
-		LogDir:            logDir,
-		LogLevel:          "DEBUG",
-		PactFileWriteMode: "update",
+		Consumer: "PactGoMessageConsumer",
+		Provider: "PactGoMessageProvider",
+		LogDir:   logDir,
+		LogLevel: "DEBUG",
 	}
 }

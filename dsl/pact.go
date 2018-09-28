@@ -532,11 +532,10 @@ func (p *Pact) VerifyMessageConsumerRaw(message *Message, handler MessageConsume
 
 	// If no errors, update Message Pact
 	return p.pactClient.UpdateMessagePact(types.PactMessageRequest{
-		Message:           message,
-		Consumer:          p.Consumer,
-		Provider:          p.Provider,
-		PactFileWriteMode: p.PactFileWriteMode,
-		PactDir:           p.PactDir,
+		Message:  message,
+		Consumer: p.Consumer,
+		Provider: p.Provider,
+		PactDir:  p.PactDir,
 	})
 }
 
