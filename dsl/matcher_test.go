@@ -30,6 +30,15 @@ func TestMatcher_TermString(t *testing.T) {
 	}
 }
 
+func TestMatcher_TermGetValue(t *testing.T) {
+	expected := "myawesomeword"
+	match := Term("myawesomeword", `\w+`).GetValue()
+
+	if expected != match {
+		t.Fatalf("Expected Term Value to match. '%s' != '%s'", expected, match)
+	}
+}
+
 func TestMatcher_LikeBasicString(t *testing.T) {
 	expected := formatJSON(`
 		{
@@ -81,6 +90,15 @@ func TestMatcher_LikeNumberAsString(t *testing.T) {
 	match := formatJSON(Like("42"))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	}
+}
+
+func TestMatcher_LikeGetValue(t *testing.T) {
+	expected := "myspecialvalue"
+	match := Like("myspecialvalue").GetValue()
+
+	if expected != match {
+		t.Fatalf("Expected Like Value to match. '%s' != '%s'", expected, match)
 	}
 }
 
@@ -166,6 +184,15 @@ func TestMatcher_EachLikeArray(t *testing.T) {
 	match := formatJSON(EachLike([]int{1, 2, 3}, 1))
 	if expected != match {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
+	}
+}
+
+func TestMatcher_EachLikeGetValue(t *testing.T) {
+	expected := "42"
+	match := EachLike("42", 1).GetValue()
+
+	if expected != match {
+		t.Fatalf("Expected EachLike Value to match. '%s' != '%s'", expected, match)
 	}
 }
 
