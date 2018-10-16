@@ -24,70 +24,95 @@ const (
 var timeExample = time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
 
 type eachLike struct {
-	Type     string      `json:"json_class"`
 	Contents interface{} `json:"contents"`
+	Type     string      `json:"json_class"`
 	Min      int         `json:"min"`
 }
 
+func (m eachLike) GetValue() interface{} {
+	return m.Contents
+}
+
+func (m eachLike) isMatcher() {
+}
+
 type like struct {
-	Type     string      `json:"json_class"`
 	Contents interface{} `json:"contents"`
+	Type     string      `json:"json_class"`
+}
+
+func (m like) GetValue() interface{} {
+	return m.Contents
+}
+
+func (m like) isMatcher() {
 }
 
 type term struct {
-	Type string `json:"json_class"`
-	Data struct {
-		Generate interface{} `json:"generate"`
-		Matcher  struct {
-			Type  string      `json:"json_class"`
-			O     int         `json:"o"`
-			Regex interface{} `json:"s"`
-		} `json:"matcher"`
-	} `json:"data"`
+	Data termData `json:"data"`
+	Type string   `json:"json_class"`
+}
+
+func (m term) GetValue() interface{} {
+	return m.Data.Generate
+}
+
+func (m term) isMatcher() {
+}
+
+type termData struct {
+	Generate interface{} `json:"generate"`
+	Matcher  termMatcher `json:"matcher"`
+}
+
+type termMatcher struct {
+	Type  string      `json:"json_class"`
+	O     int         `json:"o"`
+	Regex interface{} `json:"s"`
 }
 
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater
-func EachLike(content interface{}, minRequired int) Matcher {
-	return Matcher{
-		"json_class": "Pact::ArrayLike",
-		"contents":   content,
-		"min":        minRequired,
+func EachLike(content interface{}, minRequired int) StringMatcher {
+	return eachLike{
+		Type:     "Pact::ArrayLike",
+		Contents: content,
+		Min:      minRequired,
 	}
 }
 
 // Like specifies that the given content type should be matched based
 // on type (int, string etc.) instead of a verbatim match.
-func Like(content interface{}) Matcher {
-	return Matcher{
-		"json_class": "Pact::SomethingLike",
-		"contents":   content,
+func Like(content interface{}) StringMatcher {
+	return like{
+		Type:     "Pact::SomethingLike",
+		Contents: content,
 	}
 }
 
 // Term specifies that the matching should generate a value
 // and also match using a regular expression.
-func Term(generate string, matcher string) Matcher {
-	return Matcher{
-		"json_class": "Pact::Term",
-		"data": map[string]interface{}{
-			"generate": generate,
-			"matcher": map[string]interface{}{
-				"json_class": "Regexp",
-				"o":          0,
-				"s":          matcher,
+func Term(generate string, matcher string) StringMatcher {
+	return term{
+		Type: "Pact::Term",
+		Data: termData{
+			Generate: generate,
+			Matcher: termMatcher{
+				Type:  "Regexp",
+				O:     0,
+				Regex: matcher,
 			},
 		},
 	}
 }
 
 // HexValue defines a matcher that accepts hexidecimal values.
-func HexValue() Matcher {
+func HexValue() StringMatcher {
 	return Regex("3F", hexadecimal)
 }
 
 // Identifier defines a matcher that accepts integer values.
-func Identifier() Matcher {
+func Identifier() StringMatcher {
 	return Like(42)
 }
 
@@ -95,7 +120,7 @@ func Identifier() Matcher {
 var Integer = Identifier
 
 // IPAddress defines a matcher that accepts valid IPv4 addresses.
-func IPAddress() Matcher {
+func IPAddress() StringMatcher {
 	return Regex("127.0.0.1", ipAddress)
 }
 
@@ -103,35 +128,35 @@ func IPAddress() Matcher {
 var IPv4Address = IPAddress
 
 // IPv6Address defines a matcher that accepts IP addresses.
-func IPv6Address() Matcher {
+func IPv6Address() StringMatcher {
 	return Regex("::ffff:192.0.2.128", ipAddress)
 }
 
 // Decimal defines a matcher that accepts any decimal value.
-func Decimal() Matcher {
+func Decimal() StringMatcher {
 	return Like(42.0)
 }
 
 // Timestamp matches a pattern corresponding to the ISO_DATETIME_FORMAT, which
 // is "yyyy-MM-dd'T'HH:mm:ss". The current date and time is used as the eaxmple.
-func Timestamp() Matcher {
+func Timestamp() StringMatcher {
 	return Regex(timeExample.Format(time.RFC3339), timestamp)
 }
 
 // Date matches a pattern corresponding to the ISO_DATE_FORMAT, which
 // is "yyyy-MM-dd". The current date is used as the eaxmple.
-func Date() Matcher {
+func Date() StringMatcher {
 	return Regex(timeExample.Format("2006-01-02"), date)
 }
 
 // Time matches a pattern corresponding to the ISO_DATE_FORMAT, which
 // is "'T'HH:mm:ss". The current tem is used as the eaxmple.
-func Time() Matcher {
+func Time() StringMatcher {
 	return Regex(timeExample.Format("T15:04:05"), timeRegex)
 }
 
 // UUID defines a matcher that accepts UUIDs. Produces a v4 UUID as the example.
-func UUID() Matcher {
+func UUID() StringMatcher {
 	return Regex("fc763eba-0905-41c5-a27f-3934ab26786c", uuid)
 }
 
@@ -187,20 +212,6 @@ func (m Matcher) isMatcher() {}
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
 func (m Matcher) GetValue() interface{} {
-	switch m["json_class"] {
-	default:
-		return nil
-	case "Pact::ArrayLike":
-		return m["contents"]
-	case "Pact::SomethingLike":
-		return m["contents"]
-	case "Pact::Term":
-		data, ok := m["data"].(map[string]interface{})
-		if ok {
-			return data["generate"]
-		}
-	}
-
 	return nil
 }
 
@@ -233,20 +244,20 @@ func objectToString(obj interface{}) string {
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
 // String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
-func Match(src interface{}) Matcher {
+func Match(src interface{}) StringMatcher {
 	return match(reflect.TypeOf(src), getDefaults())
 }
 
 // match recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
-func match(srcType reflect.Type, params params) Matcher {
+func match(srcType reflect.Type, params params) StringMatcher {
 	switch kind := srcType.Kind(); kind {
 	case reflect.Ptr:
 		return match(srcType.Elem(), params)
 	case reflect.Slice, reflect.Array:
 		return EachLike(match(srcType.Elem(), getDefaults()), params.slice.min)
 	case reflect.Struct:
-		result := make(map[string]interface{})
+		result := Matcher{}
 
 		for i := 0; i < srcType.NumField(); i++ {
 			field := srcType.Field(i)

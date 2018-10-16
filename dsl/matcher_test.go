@@ -318,7 +318,7 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 				Matcher{
 					"colour": Term("red", "red|green|blue"),
 					"size":   Like(10),
-					"tag":    EachLike([]Matcher{Like("jumper"), Like("shirt")}, 2),
+					"tag":    EachLike([]StringMatcher{Like("jumper"), Like("shirt")}, 2),
 				},
 				1),
 			1))
@@ -346,7 +346,7 @@ func formatJSON(object interface{}) interface{} {
 
 // Instrument the Matcher type to be able to assert the
 // values and regexs contained within!
-func (m Matcher) getValue() interface{} {
+func getMatcherValue(m interface{}) interface{} {
 	mString := objectToString(m)
 
 	// try like
@@ -369,7 +369,7 @@ func (m Matcher) getValue() interface{} {
 func TestMatcher_SugarMatchers(t *testing.T) {
 
 	type matcherTestCase struct {
-		matcher  Matcher
+		matcher  StringMatcher
 		testCase func(val interface{}) error
 	}
 	matchers := map[string]matcherTestCase{
@@ -483,7 +483,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 	}
 	var err error
 	for k, v := range matchers {
-		if err = v.testCase(v.matcher.getValue()); err != nil {
+		if err = v.testCase(getMatcherValue(v.matcher)); err != nil {
 			t.Fatalf("error validating matcher '%s': %v", k, err)
 		}
 	}
@@ -570,7 +570,7 @@ func TestMatch(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		want      Matcher
+		want      StringMatcher
 		wantPanic bool
 	}{
 		{
@@ -599,7 +599,7 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: wordDTO{},
 			},
-			want: map[string]interface{}{
+			want: Matcher{
 				"word":   Like(`"string"`),
 				"length": Like(1),
 			},
@@ -609,7 +609,7 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: dateDTO{},
 			},
-			want: map[string]interface{}{
+			want: Matcher{
 				"date": Term("2000-01-01", `^\\d{4}-\\d{2}-\\d{2}$`),
 			},
 		},
@@ -618,7 +618,7 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: wordsDTO{},
 			},
-			want: map[string]interface{}{
+			want: Matcher{
 				"words": EachLike(Like(`"string"`), 2),
 			},
 		},
@@ -730,7 +730,7 @@ func TestMatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got Matcher
+			var got StringMatcher
 			var didPanic bool
 			defer func() {
 				if rec := recover(); rec != nil {
