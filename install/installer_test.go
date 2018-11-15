@@ -2,6 +2,7 @@ package install
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -60,6 +61,23 @@ func TestInstaller_CheckVersionFail(t *testing.T) {
 func TestInstaller_getVersionForBinary(t *testing.T) {
 	version := "1.5.0"
 	i := getInstaller(version, nil)
+	v, err := i.GetVersionForBinary("pact-mock-service")
+
+	if err != nil {
+		t.Fatal("error:", err)
+	}
+	if v != version {
+		t.Fatal("Want", version, "got", v)
+	}
+}
+
+func TestInstaller_getVersionForBinaryMultilineOutput(t *testing.T) {
+	version := "1.5.0"
+	actualOutput := fmt.Sprintf(`
+	some other characters sent to stdout
+	%s
+	`, version)
+	i := getInstaller(actualOutput, nil)
 	v, err := i.GetVersionForBinary("pact-mock-service")
 
 	if err != nil {

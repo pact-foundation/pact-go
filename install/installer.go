@@ -82,9 +82,10 @@ func (i *Installer) GetVersionForBinary(binary string) (version string, err erro
 	log.Println("[DEBUG] running binary", binary)
 
 	content, err := i.commander.Output(binary, "version")
-	version = string(content)
+	elements := strings.Split(strings.TrimSpace(string(content)), "\n")
+	version = strings.TrimSpace(elements[len(elements)-1])
 
-	return strings.TrimSpace(version), err
+	return version, err
 }
 
 // commander wraps the exec package, allowing us
