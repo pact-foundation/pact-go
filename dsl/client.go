@@ -120,9 +120,10 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 		return response, err
 	}
 
+	address := getAddress(request.ProviderBaseURL)
 	port := getPort(request.ProviderBaseURL)
 
-	waitForPort(port, p.getNetworkInterface(), p.Address, p.TimeoutDuration,
+	waitForPort(port, p.getNetworkInterface(), address, p.TimeoutDuration,
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
 	// Run command, splitting out stderr and stdout. The command can fail for
@@ -295,8 +296,9 @@ func (p *PactClient) ReifyMessage(request *types.PactReificationRequest) (res *t
 func getPort(rawURL string) int {
 	parsedURL, err := url.Parse(rawURL)
 	if err == nil {
-		if len(strings.Split(parsedURL.Host, ":")) == 2 {
-			port, err := strconv.Atoi(strings.Split(parsedURL.Host, ":")[1])
+		splitHost := strings.Split(parsedURL.Host, ":")
+		if len(splitHost) == 2 {
+			port, err := strconv.Atoi(splitHost[1])
 			if err == nil {
 				return port
 			}
@@ -308,6 +310,17 @@ func getPort(rawURL string) int {
 	}
 
 	return -1
+}
+
+// Get the address given a URL
+func getAddress(rawURL string) string {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return ""
+	}
+
+	splitHost := strings.Split(parsedURL.Host, ":")
+	return splitHost[0]
 }
 
 // Use this to wait for a port to be running prior
