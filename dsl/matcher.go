@@ -187,6 +187,20 @@ func (m Matcher) isMatcher() {}
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
 func (m Matcher) GetValue() interface{} {
+	switch m["json_class"] {
+	default:
+		return nil
+	case "Pact::ArrayLike":
+		return m["contents"]
+	case "Pact::SomethingLike":
+		return m["contents"]
+	case "Pact::Term":
+		data, ok := m["data"].(map[string]interface{})
+		if ok {
+			return data["generate"]
+		}
+	}
+
 	return nil
 }
 
