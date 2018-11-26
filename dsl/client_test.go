@@ -135,6 +135,21 @@ func TestClient_getPort(t *testing.T) {
 	}
 }
 
+func TestClient_getAddress(t *testing.T) {
+	testCases := map[string]string{
+		"http://localhost:8000": "localhost",
+		"http://localhost":      "localhost",
+		"http://127.0.0.1":      "127.0.0.1",
+		":::::":                 "",
+	}
+
+	for host, address := range testCases {
+		if getAddress(host) != address {
+			t.Fatalf("Expected host '%s' to return address '%s' but got '%s'", host, address, getAddress(host))
+		}
+	}
+}
+
 func TestClient_sanitiseRubyResponse(t *testing.T) {
 	var tests = map[string]string{
 		"this is a sentence with a hash # so it should be in tact":                                           "this is a sentence with a hash # so it should be in tact",
