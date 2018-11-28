@@ -209,7 +209,7 @@ func TestMatcher_NestLikeInEachLike(t *testing.T) {
 		  "min": 1
 		}`)
 
-	match := formatJSON(EachLike(Matcher{
+	match := formatJSON(EachLike(StructMatcher{
 		"id": Like(10),
 	}, 1))
 
@@ -240,7 +240,7 @@ func TestMatcher_NestTermInEachLike(t *testing.T) {
 
 	match := formatJSON(
 		EachLike(
-			Matcher{
+			StructMatcher{
 				"colour": Term("red", "red|green")},
 			1))
 
@@ -315,10 +315,10 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 	match := formatJSON(
 		EachLike(
 			EachLike(
-				Matcher{
+				StructMatcher{
 					"colour": Term("red", "red|green|blue"),
 					"size":   Like(10),
-					"tag":    EachLike([]StringMatcher{Like("jumper"), Like("shirt")}, 2),
+					"tag":    EachLike([]Matcher{Like("jumper"), Like("shirt")}, 2),
 				},
 				1),
 			1))
@@ -344,7 +344,7 @@ func formatJSON(object interface{}) interface{} {
 	return string(out.Bytes())
 }
 
-// Instrument the Matcher type to be able to assert the
+// Instrument the StructMatcher type to be able to assert the
 // values and regexs contained within!
 func getMatcherValue(m interface{}) interface{} {
 	mString := objectToString(m)
@@ -369,7 +369,7 @@ func getMatcherValue(m interface{}) interface{} {
 func TestMatcher_SugarMatchers(t *testing.T) {
 
 	type matcherTestCase struct {
-		matcher  StringMatcher
+		matcher  Matcher
 		testCase func(val interface{}) error
 	}
 	matchers := map[string]matcherTestCase{
@@ -570,7 +570,7 @@ func TestMatch(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		want      StringMatcher
+		want      Matcher
 		wantPanic bool
 	}{
 		{
@@ -599,7 +599,7 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: wordDTO{},
 			},
-			want: Matcher{
+			want: StructMatcher{
 				"word":   Like(`"string"`),
 				"length": Like(1),
 			},
@@ -609,7 +609,7 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: dateDTO{},
 			},
-			want: Matcher{
+			want: StructMatcher{
 				"date": Term("2000-01-01", `^\\d{4}-\\d{2}-\\d{2}$`),
 			},
 		},
@@ -618,7 +618,7 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: wordsDTO{},
 			},
-			want: Matcher{
+			want: StructMatcher{
 				"words": EachLike(Like(`"string"`), 2),
 			},
 		},
@@ -730,7 +730,7 @@ func TestMatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got StringMatcher
+			var got Matcher
 			var didPanic bool
 			defer func() {
 				if rec := recover(); rec != nil {

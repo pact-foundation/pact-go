@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Matcher regexes
+// Term Matcher regexes
 const (
 	hexadecimal = `[0-9a-fA-F]+`
 	ipAddress   = `(\d{1,3}\.)+\d{1,3}`
@@ -97,7 +97,7 @@ type termMatcher struct {
 
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater
-func EachLike(content interface{}, minRequired int) StringMatcher {
+func EachLike(content interface{}, minRequired int) Matcher {
 	return eachLike{
 		Contents: content,
 		Min:      minRequired,
@@ -106,7 +106,7 @@ func EachLike(content interface{}, minRequired int) StringMatcher {
 
 // Like specifies that the given content type should be matched based
 // on type (int, string etc.) instead of a verbatim match.
-func Like(content interface{}) StringMatcher {
+func Like(content interface{}) Matcher {
 	return like{
 		Contents: content,
 	}
@@ -114,7 +114,7 @@ func Like(content interface{}) StringMatcher {
 
 // Term specifies that the matching should generate a value
 // and also match using a regular expression.
-func Term(generate string, matcher string) StringMatcher {
+func Term(generate string, matcher string) Matcher {
 	return term{
 		Data: termData{
 			Generate: generate,
@@ -128,12 +128,12 @@ func Term(generate string, matcher string) StringMatcher {
 }
 
 // HexValue defines a matcher that accepts hexidecimal values.
-func HexValue() StringMatcher {
+func HexValue() Matcher {
 	return Regex("3F", hexadecimal)
 }
 
 // Identifier defines a matcher that accepts integer values.
-func Identifier() StringMatcher {
+func Identifier() Matcher {
 	return Like(42)
 }
 
@@ -141,7 +141,7 @@ func Identifier() StringMatcher {
 var Integer = Identifier
 
 // IPAddress defines a matcher that accepts valid IPv4 addresses.
-func IPAddress() StringMatcher {
+func IPAddress() Matcher {
 	return Regex("127.0.0.1", ipAddress)
 }
 
@@ -149,46 +149,46 @@ func IPAddress() StringMatcher {
 var IPv4Address = IPAddress
 
 // IPv6Address defines a matcher that accepts IP addresses.
-func IPv6Address() StringMatcher {
+func IPv6Address() Matcher {
 	return Regex("::ffff:192.0.2.128", ipAddress)
 }
 
 // Decimal defines a matcher that accepts any decimal value.
-func Decimal() StringMatcher {
+func Decimal() Matcher {
 	return Like(42.0)
 }
 
 // Timestamp matches a pattern corresponding to the ISO_DATETIME_FORMAT, which
 // is "yyyy-MM-dd'T'HH:mm:ss". The current date and time is used as the eaxmple.
-func Timestamp() StringMatcher {
+func Timestamp() Matcher {
 	return Regex(timeExample.Format(time.RFC3339), timestamp)
 }
 
 // Date matches a pattern corresponding to the ISO_DATE_FORMAT, which
 // is "yyyy-MM-dd". The current date is used as the eaxmple.
-func Date() StringMatcher {
+func Date() Matcher {
 	return Regex(timeExample.Format("2006-01-02"), date)
 }
 
 // Time matches a pattern corresponding to the ISO_DATE_FORMAT, which
 // is "'T'HH:mm:ss". The current tem is used as the eaxmple.
-func Time() StringMatcher {
+func Time() Matcher {
 	return Regex(timeExample.Format("T15:04:05"), timeRegex)
 }
 
 // UUID defines a matcher that accepts UUIDs. Produces a v4 UUID as the example.
-func UUID() StringMatcher {
+func UUID() Matcher {
 	return Regex("fc763eba-0905-41c5-a27f-3934ab26786c", uuid)
 }
 
 // Regex is a more appropriately named alias for the "Term" matcher
 var Regex = Term
 
-// StringMatcher allows a string or Matcher to be provided in
-// when matching with the DSL
+// Matcher allows various implementations such String or StructMatcher
+// to be provided in when matching with the DSL
 // We use the strategy outlined at http://www.jerf.org/iri/post/2917
 // to create a "sum" or "union" type.
-type StringMatcher interface {
+type Matcher interface {
 	// isMatcher is how we tell the compiler that strings
 	// and other types are the same / allowed
 	isMatcher()
@@ -198,7 +198,7 @@ type StringMatcher interface {
 	GetValue() interface{}
 }
 
-// S is the string primitive wrapper (alias) for the StringMatcher type,
+// S is the string primitive wrapper (alias) for the Matcher type,
 // it allows plain strings to be matched
 // To keep backwards compatible with previous versions
 // we aren't using an alias here
@@ -224,21 +224,21 @@ func (s String) GetValue() interface{} {
 	return s
 }
 
-// Matcher matches a complex object structure, which may itself
+// StructMatcher matches a complex object structure, which may itself
 // contain nested Matchers
-type Matcher map[string]interface{}
+type StructMatcher map[string]interface{}
 
-func (m Matcher) isMatcher() {}
+func (m StructMatcher) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
-func (m Matcher) GetValue() interface{} {
+func (m StructMatcher) GetValue() interface{} {
 	return nil
 }
 
 // MapMatcher allows a map[string]string-like object
 // to also contain complex matchers
-type MapMatcher map[string]StringMatcher
+type MapMatcher map[string]Matcher
 
 // Takes an object and converts it to a JSON representation
 func objectToString(obj interface{}) string {
@@ -265,20 +265,20 @@ func objectToString(obj interface{}) string {
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
 // String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
-func Match(src interface{}) StringMatcher {
+func Match(src interface{}) Matcher {
 	return match(reflect.TypeOf(src), getDefaults())
 }
 
 // match recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
-func match(srcType reflect.Type, params params) StringMatcher {
+func match(srcType reflect.Type, params params) Matcher {
 	switch kind := srcType.Kind(); kind {
 	case reflect.Ptr:
 		return match(srcType.Elem(), params)
 	case reflect.Slice, reflect.Array:
 		return EachLike(match(srcType.Elem(), getDefaults()), params.slice.min)
 	case reflect.Struct:
-		result := Matcher{}
+		result := StructMatcher{}
 
 		for i := 0; i < srcType.NumField(); i++ {
 			field := srcType.Field(i)
