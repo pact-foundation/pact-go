@@ -25,7 +25,6 @@ var timeExample = time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
 
 type eachLike struct {
 	Contents interface{} `json:"contents"`
-	Type     string      `json:"json_class"`
 	Min      int         `json:"min"`
 }
 
@@ -36,9 +35,17 @@ func (m eachLike) GetValue() interface{} {
 func (m eachLike) isMatcher() {
 }
 
+func (m eachLike) MarshalJSON() ([]byte, error) {
+	type marshaler eachLike
+
+	return json.Marshal(struct {
+		Type string `json:"json_class"`
+		marshaler
+	}{"Pact::ArrayLike", marshaler(m)})
+}
+
 type like struct {
 	Contents interface{} `json:"contents"`
-	Type     string      `json:"json_class"`
 }
 
 func (m like) GetValue() interface{} {
@@ -48,9 +55,17 @@ func (m like) GetValue() interface{} {
 func (m like) isMatcher() {
 }
 
+func (m like) MarshalJSON() ([]byte, error) {
+	type marshaler like
+
+	return json.Marshal(struct {
+		Type string `json:"json_class"`
+		marshaler
+	}{"Pact::SomethingLike", marshaler(m)})
+}
+
 type term struct {
 	Data termData `json:"data"`
-	Type string   `json:"json_class"`
 }
 
 func (m term) GetValue() interface{} {
@@ -58,6 +73,15 @@ func (m term) GetValue() interface{} {
 }
 
 func (m term) isMatcher() {
+}
+
+func (m term) MarshalJSON() ([]byte, error) {
+	type marshaler term
+
+	return json.Marshal(struct {
+		Type string `json:"json_class"`
+		marshaler
+	}{"Pact::Term", marshaler(m)})
 }
 
 type termData struct {
@@ -75,7 +99,6 @@ type termMatcher struct {
 // "minRequired" times. Number needs to be 1 or greater
 func EachLike(content interface{}, minRequired int) StringMatcher {
 	return eachLike{
-		Type:     "Pact::ArrayLike",
 		Contents: content,
 		Min:      minRequired,
 	}
@@ -85,7 +108,6 @@ func EachLike(content interface{}, minRequired int) StringMatcher {
 // on type (int, string etc.) instead of a verbatim match.
 func Like(content interface{}) StringMatcher {
 	return like{
-		Type:     "Pact::SomethingLike",
 		Contents: content,
 	}
 }
@@ -94,7 +116,6 @@ func Like(content interface{}) StringMatcher {
 // and also match using a regular expression.
 func Term(generate string, matcher string) StringMatcher {
 	return term{
-		Type: "Pact::Term",
 		Data: termData{
 			Generate: generate,
 			Matcher: termMatcher{
