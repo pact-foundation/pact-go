@@ -261,7 +261,7 @@ func match(srcType reflect.Type, params params) Matcher {
 			return Like(params.str.example)
 		}
 
-		return Like(`"string"`)
+		return Like("string")
 	case reflect.Bool:
 		return Like(true)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,

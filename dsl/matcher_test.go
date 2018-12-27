@@ -578,21 +578,21 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: &str,
 			},
-			want: Like(`"string"`),
+			want: Like("string"),
 		},
 		{
 			name: "recursive case - slice",
 			args: args{
 				src: []string{},
 			},
-			want: EachLike(Like(`"string"`), 1),
+			want: EachLike(Like("string"), 1),
 		},
 		{
 			name: "recursive case - array",
 			args: args{
 				src: [1]string{},
 			},
-			want: EachLike(Like(`"string"`), 1),
+			want: EachLike(Like("string"), 1),
 		},
 		{
 			name: "recursive case - struct",
@@ -600,7 +600,7 @@ func TestMatch(t *testing.T) {
 				src: wordDTO{},
 			},
 			want: map[string]interface{}{
-				"word":   Like(`"string"`),
+				"word":   Like("string"),
 				"length": Like(1),
 			},
 		},
@@ -619,7 +619,7 @@ func TestMatch(t *testing.T) {
 				src: wordsDTO{},
 			},
 			want: map[string]interface{}{
-				"words": EachLike(Like(`"string"`), 2),
+				"words": EachLike(Like("string"), 2),
 			},
 		},
 		{
@@ -627,7 +627,7 @@ func TestMatch(t *testing.T) {
 			args: args{
 				src: "string",
 			},
-			want: Like(`"string"`),
+			want: Like("string"),
 		},
 		{
 			name: "base case - bool",
