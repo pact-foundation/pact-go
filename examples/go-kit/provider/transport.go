@@ -68,8 +68,6 @@ func codeFrom(err error) int {
 	switch err {
 	case ErrNotFound:
 		return http.StatusNotFound
-	case ErrNotFound:
-		return http.StatusNotFound
 	case ErrUnauthorized:
 		return http.StatusUnauthorized
 	default:
