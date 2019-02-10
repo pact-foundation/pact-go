@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	ex "github.com/pact-foundation/pact-go/examples/types"
 )
 
 // Request // Response types
@@ -18,7 +19,7 @@ type loginRequest struct {
 }
 
 type loginResponse struct {
-	User *User `json:"user"`
+	User *ex.User `json:"user"`
 }
 
 // MakeHTTPHandler mounts all of the service endpoints into an http.Handler.

@@ -1,14 +1,14 @@
 {
   "consumer": {
-    "name": "billy"
+    "name": "jmarie"
   },
   "provider": {
-    "name": "bobby"
+    "name": "loginprovider"
   },
   "interactions": [
     {
-      "description": "A request to login with user 'billy'",
-      "providerState": "User billy exists",
+      "description": "A request to login with user 'jmarie'",
+      "providerState": "User jmarie exists",
       "request": {
         "method": "POST",
         "path": "/users/login/1",
@@ -17,8 +17,8 @@
           "Content-Type": "application/json; charset=utf-8"
         },
         "body": {
-          "password": "issilly",
-          "username": "Jean-Marie de La Beaujardière😀😍"
+          "username": "jmarie",
+          "password": "issilly"
         },
         "matchingRules": {
           "$.path": {
@@ -32,12 +32,6 @@
           "$.headers.Content-Type": {
             "match": "regex",
             "regex": "application\\/json"
-          },
-          "$.body.password": {
-            "match": "type"
-          },
-          "$.body.username": {
-            "match": "type"
           }
         }
       },
@@ -50,7 +44,9 @@
         "body": {
           "user": {
             "name": "Jean-Marie de La Beaujardière😀😍",
-            "type": "admin"
+            "password": "password123",
+            "type": "admin",
+            "username": "jmarie"
           }
         },
         "matchingRules": {
@@ -61,19 +57,25 @@
           "$.headers.X-Api-Correlation-Id": {
             "match": "type"
           },
-          "$.body": {
+          "$.body.user.name": {
+            "match": "type"
+          },
+          "$.body.user.password": {
             "match": "type"
           },
           "$.body.user.type": {
             "match": "regex",
-            "regex": "admin|user|guest"
+            "regex": "^(admin|user|guest)$"
+          },
+          "$.body.user.username": {
+            "match": "type"
           }
         }
       }
     },
     {
-      "description": "A request to login with user 'billy'",
-      "providerState": "User billy does not exist",
+      "description": "A request to login with user 'jmarie'",
+      "providerState": "User jmarie does not exist",
       "request": {
         "method": "POST",
         "path": "/users/login/10",
@@ -82,7 +84,7 @@
           "Content-Type": "application/json; charset=utf-8"
         },
         "body": {
-          "username": "Jean-Marie de La Beaujardière😀😍",
+          "username": "jmarie",
           "password": "issilly"
         },
         "matchingRules": {
@@ -106,8 +108,8 @@
       }
     },
     {
-      "description": "A request to login with user 'billy'",
-      "providerState": "User billy is unauthorized",
+      "description": "A request to login with user 'jmarie'",
+      "providerState": "User jmarie is unauthorized",
       "request": {
         "method": "POST",
         "path": "/users/login/10",
@@ -115,7 +117,7 @@
           "Content-Type": "application/json; charset=utf-8"
         },
         "body": {
-          "username": "Jean-Marie de La Beaujardière😀😍",
+          "username": "jmarie",
           "password": "issilly"
         },
         "matchingRules": {

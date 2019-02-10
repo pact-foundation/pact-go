@@ -4,10 +4,10 @@ import "errors"
 
 // User is a representation of a User. Dah.
 type User struct {
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Type     string `json:"type"`
+	Name     string `json:"name" pact:"example=Jean-Marie de La Beaujardière😀😍"`
+	Username string `json:"username" pact:"example=jmarie"`
+	Password string `json:"password" pact:"example=password123"`
+	Type     string `json:"type" pact:"example=admin,regex=^(admin|user|guest)$"`
 }
 
 var (
@@ -23,7 +23,7 @@ var (
 
 // LoginRequest is the login request API struct.
 type LoginRequest struct {
-	Username string `json:"username" pact:"example=Jean-Marie de La Beaujardière😀😍"`
+	Username string `json:"username" pact:"example=jmarie"`
 	Password string `json:"password" pact:"example=issilly"`
 }
 

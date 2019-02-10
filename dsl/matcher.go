@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Matcher regexes
+// Term Matcher regexes
 const (
 	hexadecimal = `[0-9a-fA-F]+`
 	ipAddress   = `(\d{1,3}\.)+\d{1,3}`
@@ -24,58 +24,104 @@ const (
 var timeExample = time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
 
 type eachLike struct {
-	Type     string      `json:"json_class"`
 	Contents interface{} `json:"contents"`
 	Min      int         `json:"min"`
 }
 
+func (m eachLike) GetValue() interface{} {
+	return m.Contents
+}
+
+func (m eachLike) isMatcher() {
+}
+
+func (m eachLike) MarshalJSON() ([]byte, error) {
+	type marshaler eachLike
+
+	return json.Marshal(struct {
+		Type string `json:"json_class"`
+		marshaler
+	}{"Pact::ArrayLike", marshaler(m)})
+}
+
 type like struct {
-	Type     string      `json:"json_class"`
 	Contents interface{} `json:"contents"`
 }
 
+func (m like) GetValue() interface{} {
+	return m.Contents
+}
+
+func (m like) isMatcher() {
+}
+
+func (m like) MarshalJSON() ([]byte, error) {
+	type marshaler like
+
+	return json.Marshal(struct {
+		Type string `json:"json_class"`
+		marshaler
+	}{"Pact::SomethingLike", marshaler(m)})
+}
+
 type term struct {
-	Type string `json:"json_class"`
-	Data struct {
-		Generate interface{} `json:"generate"`
-		Matcher  struct {
-			Type  string      `json:"json_class"`
-			O     int         `json:"o"`
-			Regex interface{} `json:"s"`
-		} `json:"matcher"`
-	} `json:"data"`
+	Data termData `json:"data"`
+}
+
+func (m term) GetValue() interface{} {
+	return m.Data.Generate
+}
+
+func (m term) isMatcher() {
+}
+
+func (m term) MarshalJSON() ([]byte, error) {
+	type marshaler term
+
+	return json.Marshal(struct {
+		Type string `json:"json_class"`
+		marshaler
+	}{"Pact::Term", marshaler(m)})
+}
+
+type termData struct {
+	Generate interface{} `json:"generate"`
+	Matcher  termMatcher `json:"matcher"`
+}
+
+type termMatcher struct {
+	Type  string      `json:"json_class"`
+	O     int         `json:"o"`
+	Regex interface{} `json:"s"`
 }
 
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater
 func EachLike(content interface{}, minRequired int) Matcher {
-	return Matcher{
-		"json_class": "Pact::ArrayLike",
-		"contents":   content,
-		"min":        minRequired,
+	return eachLike{
+		Contents: content,
+		Min:      minRequired,
 	}
 }
 
 // Like specifies that the given content type should be matched based
 // on type (int, string etc.) instead of a verbatim match.
 func Like(content interface{}) Matcher {
-	return Matcher{
-		"json_class": "Pact::SomethingLike",
-		"contents":   content,
+	return like{
+		Contents: content,
 	}
 }
 
 // Term specifies that the matching should generate a value
 // and also match using a regular expression.
 func Term(generate string, matcher string) Matcher {
-	return Matcher{
-		"json_class": "Pact::Term",
-		"data": map[string]interface{}{
-			"generate": generate,
-			"matcher": map[string]interface{}{
-				"json_class": "Regexp",
-				"o":          0,
-				"s":          matcher,
+	return term{
+		Data: termData{
+			Generate: generate,
+			Matcher: termMatcher{
+				Type:  "Regexp",
+				O:     0,
+				Regex: matcher,
 			},
 		},
 	}
@@ -138,11 +184,11 @@ func UUID() Matcher {
 // Regex is a more appropriately named alias for the "Term" matcher
 var Regex = Term
 
-// StringMatcher allows a string or Matcher to be provided in
-// when matching with the DSL
+// Matcher allows various implementations such String or StructMatcher
+// to be provided in when matching with the DSL
 // We use the strategy outlined at http://www.jerf.org/iri/post/2917
 // to create a "sum" or "union" type.
-type StringMatcher interface {
+type Matcher interface {
 	// isMatcher is how we tell the compiler that strings
 	// and other types are the same / allowed
 	isMatcher()
@@ -152,7 +198,7 @@ type StringMatcher interface {
 	GetValue() interface{}
 }
 
-// S is the string primitive wrapper (alias) for the StringMatcher type,
+// S is the string primitive wrapper (alias) for the Matcher type,
 // it allows plain strings to be matched
 // To keep backwards compatible with previous versions
 // we aren't using an alias here
@@ -178,35 +224,21 @@ func (s String) GetValue() interface{} {
 	return s
 }
 
-// Matcher matches a complex object structure, which may itself
+// StructMatcher matches a complex object structure, which may itself
 // contain nested Matchers
-type Matcher map[string]interface{}
+type StructMatcher map[string]interface{}
 
-func (m Matcher) isMatcher() {}
+func (m StructMatcher) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
-func (m Matcher) GetValue() interface{} {
-	switch m["json_class"] {
-	default:
-		return nil
-	case "Pact::ArrayLike":
-		return m["contents"]
-	case "Pact::SomethingLike":
-		return m["contents"]
-	case "Pact::Term":
-		data, ok := m["data"].(map[string]interface{})
-		if ok {
-			return data["generate"]
-		}
-	}
-
+func (m StructMatcher) GetValue() interface{} {
 	return nil
 }
 
 // MapMatcher allows a map[string]string-like object
 // to also contain complex matchers
-type MapMatcher map[string]StringMatcher
+type MapMatcher map[string]Matcher
 
 // Takes an object and converts it to a JSON representation
 func objectToString(obj interface{}) string {
@@ -246,7 +278,7 @@ func match(srcType reflect.Type, params params) Matcher {
 	case reflect.Slice, reflect.Array:
 		return EachLike(match(srcType.Elem(), getDefaults()), params.slice.min)
 	case reflect.Struct:
-		result := make(map[string]interface{})
+		result := StructMatcher{}
 
 		for i := 0; i < srcType.NumField(); i++ {
 			field := srcType.Field(i)

@@ -26,7 +26,7 @@ var pact dsl.Pact
 var form url.Values
 var rr http.ResponseWriter
 var req *http.Request
-var name = "Jean-Marie de La Beaujardière😀😍"
+var name = "jmarie"
 var password = "issilly"
 var like = dsl.Like
 var eachLike = dsl.EachLike
@@ -67,7 +67,7 @@ func TestMain(m *testing.M) {
 		p := dsl.Publisher{}
 
 		err := p.Publish(types.PublishRequest{
-			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
+			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
 			PactBroker:      brokerHost,
 			ConsumerVersion: version,
 			Tags:            []string{"latest", "sit4"},
@@ -106,8 +106,8 @@ func setup() {
 // Create Pact connecting to local Daemon
 func createPact() dsl.Pact {
 	return dsl.Pact{
-		Consumer:                 "billy",
-		Provider:                 "bobby",
+		Consumer:                 "jmarie",
+		Provider:                 "loginprovider",
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
 		LogLevel:                 "DEBUG",
@@ -116,7 +116,7 @@ func createPact() dsl.Pact {
 }
 
 func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
-	var testBillyExists = func() error {
+	var testJmarieExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
 		}
@@ -130,47 +130,41 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 		return nil
 	}
 
-	body :=
-		like(dsl.Matcher{
-			"user": dsl.Matcher{
-				"name": name,
-				"type": term("admin", "admin|user|guest"),
-			},
-		})
-
 	// Pull from pact broker, used in e2e/integrated tests for pact-go release
 	// Setup interactions on the Mock Service. Note that you can have multiple
 	// interactions
 	pact.
 		AddInteraction().
-		Given("User billy exists").
-		UponReceiving("A request to login with user 'billy'").
+		Given("User jmarie exists").
+		UponReceiving("A request to login with user 'jmarie'").
 		WithRequest(request{
 			Method: "POST",
 			Path:   term("/users/login/1", "/users/login/[0-9]+"),
 			Query: dsl.MapMatcher{
 				"foo": term("bar", "[a-zA-Z]+"),
 			},
-			Body:    dsl.Match(loginRequest),
+			Body:    loginRequest,
 			Headers: commonHeaders,
 		}).
 		WillRespondWith(dsl.Response{
 			Status: 200,
-			Body:   body,
+			Body: dsl.Match(ex.LoginResponse{
+				User: &ex.User{},
+			}),
 			Headers: dsl.MapMatcher{
 				"X-Api-Correlation-Id": dsl.Like("100"),
 				"Content-Type":         term("application/json; charset=utf-8", `application\/json`),
 			},
 		})
 
-	err := pact.Verify(testBillyExists)
+	err := pact.Verify(testJmarieExists)
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
 }
 
 func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
-	var testBillyDoesNotExists = func() error {
+	var testJmarieDoesNotExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
 		}
@@ -185,8 +179,8 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 
 	pact.
 		AddInteraction().
-		Given("User billy does not exist").
-		UponReceiving("A request to login with user 'billy'").
+		Given("User jmarie does not exist").
+		UponReceiving("A request to login with user 'jmarie'").
 		WithRequest(request{
 			Method:  "POST",
 			Path:    s("/users/login/10"),
@@ -201,14 +195,14 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 			Headers: commonHeaders,
 		})
 
-	err := pact.Verify(testBillyDoesNotExists)
+	err := pact.Verify(testJmarieDoesNotExists)
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
 }
 
 func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
-	var testBillyUnauthorized = func() error {
+	var testJmarieUnauthorized = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
 		}
@@ -223,8 +217,8 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 
 	pact.
 		AddInteraction().
-		Given("User billy is unauthorized").
-		UponReceiving("A request to login with user 'billy'").
+		Given("User jmarie is unauthorized").
+		UponReceiving("A request to login with user 'jmarie'").
 		WithRequest(request{
 			Method:  "POST",
 			Path:    s("/users/login/10"),
@@ -236,7 +230,7 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 			Headers: commonHeaders,
 		})
 
-	err := pact.Verify(testBillyUnauthorized)
+	err := pact.Verify(testJmarieUnauthorized)
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}

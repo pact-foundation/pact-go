@@ -17,6 +17,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pact-foundation/pact-go/dsl"
+	ex "github.com/pact-foundation/pact-go/examples/types"
 	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
 )
@@ -27,25 +28,25 @@ var logDir = fmt.Sprintf("%s/log", dir)
 var port, _ = utils.GetFreePort()
 
 // Provider States data sets
-var billyExists = &UserRepository{
-	users: map[string]*User{
-		"Jean-Marie de La Beaujardière😀😍": &User{
+var jmarieExists = &UserRepository{
+	users: map[string]*ex.User{
+		"jmarie": &ex.User{
 			Name:     "Jean-Marie de La Beaujardière😀😍",
-			username: "Jean-Marie de La Beaujardière😀😍",
-			password: "issilly",
+			Username: "jmarie",
+			Password: "issilly",
 			Type:     "admin",
 		},
 	},
 }
 
-var billyDoesNotExist = &UserRepository{}
+var jmarieDoesNotExist = &UserRepository{}
 
-var billyUnauthorized = &UserRepository{
-	users: map[string]*User{
-		"Jean-Marie de La Beaujardière😀😍": &User{
+var jmarieUnauthorized = &UserRepository{
+	users: map[string]*ex.User{
+		"jmarie": &ex.User{
 			Name:     "Jean-Marie de La Beaujardière😀😍",
-			username: "Jean-Marie de La Beaujardière😀😍",
-			password: "issilly1",
+			Username: "jmarie",
+			Password: "issilly1",
 			Type:     "blocked",
 		},
 	},
@@ -60,7 +61,7 @@ func TestPact_GoKitProvider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
-		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
+		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
 
@@ -75,7 +76,7 @@ func TestPact_GoKitProvider(t *testing.T) {
 		// Verify the Provider - Specific Published Pacts
 		pact.VerifyProvider(t, types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
+			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/loginprovider/consumer/jmarie/latest/sit4", brokerHost)},
 			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
@@ -114,8 +115,8 @@ func TestPact_GoKitProvider(t *testing.T) {
 // Setup the Pact client.
 func createPact() dsl.Pact {
 	return dsl.Pact{
-		Consumer: "billy",
-		Provider: "bobby",
+		Consumer: "jmarie",
+		Provider: "loginprovider",
 		LogDir:   logDir,
 		PactDir:  pactDir,
 		LogLevel: "DEBUG",
@@ -159,12 +160,12 @@ func startInstrumentedProvider() {
 		svc := s.(*loggingMiddleware).next.(*userService)
 
 		// Setup database for different states
-		if state.State == "User billy exists" {
-			svc.userDatabase = billyExists
-		} else if state.State == "User billy is unauthorized" {
-			svc.userDatabase = billyUnauthorized
+		if state.State == "User jmarie exists" {
+			svc.userDatabase = jmarieExists
+		} else if state.State == "User jmarie is unauthorized" {
+			svc.userDatabase = jmarieUnauthorized
 		} else {
-			svc.userDatabase = billyDoesNotExist
+			svc.userDatabase = jmarieDoesNotExist
 		}
 
 		logger.Log("[DEBUG] configured provider state: ", state.State)

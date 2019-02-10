@@ -7,29 +7,34 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+
+	ex "github.com/pact-foundation/pact-go/examples/types"
 )
 
 // User is a representation of a User. Dah.
-type User struct {
-	Name     string `json:"name"`
-	username string
-	password string
-}
+// type User struct {
+// 	Name     string `json:"name" pact:"example=Jean-Marie de La Beaujardière😀😍"`
+// 	username string `pact:"example=`
+// 	password string
+
+// 	Tags []string `json:"tags" pact:"min=2"`
+// 	Date string   `json:"date" pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
+// }
 
 // Client is a UI for the User Service.
 type Client struct {
-	user *User
+	user *ex.User
 	Host string
 	err  error
 }
 
 // Marshalling format for Users.
 type loginResponse struct {
-	User User `json:"user"`
+	User ex.User `json:"user"`
 }
 
 type templateData struct {
-	User  *User
+	User  *ex.User
 	Error error
 }
 
@@ -37,7 +42,7 @@ var loginTemplatePath = "login.html"
 var templates = template.Must(template.ParseFiles(loginTemplatePath))
 
 // Login handles the login API call to the User Service.
-func (c *Client) login(username string, password string) (*User, error) {
+func (c *Client) login(username string, password string) (*ex.User, error) {
 	loginRequest := fmt.Sprintf(`
     {
       "username":"%s",
