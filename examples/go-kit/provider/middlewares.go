@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	ex "github.com/pact-foundation/pact-go/examples/types"
 )
 
 // Middleware describes a service (as opposed to endpoint) middleware.
@@ -26,7 +27,7 @@ type loggingMiddleware struct {
 }
 
 // Login logs stuff about our login process.
-func (mw loggingMiddleware) Login(u string, p string) (user *User, err error) {
+func (mw loggingMiddleware) Login(u string, p string) (user *ex.User, err error) {
 	defer func(begin time.Time) {
 		mw.logger.Log("method", "Login", "took", time.Since(begin), "err", err)
 	}(time.Now())

@@ -22,7 +22,7 @@ func TestPact_GinProvider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
-		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/billy-bobby.json", pactDir))},
+		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
 		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
 	})
 
@@ -37,7 +37,7 @@ func TestPact_GinProvider(t *testing.T) {
 		// Verify the Provider - Specific Published Pacts
 		pact.VerifyProvider(t, types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/bobby/consumer/billy/latest/sit4", brokerHost)},
+			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/loginprovider/consumer/jmarie/latest/sit4", brokerHost)},
 			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
@@ -88,12 +88,12 @@ func providerStateSetup(c *gin.Context) {
 	var state types.ProviderState
 	if c.BindJSON(&state) == nil {
 		// Setup database for different states
-		if state.State == "User billy exists" {
-			userRepository = billyExists
-		} else if state.State == "User billy is unauthorized" {
-			userRepository = billyUnauthorized
+		if state.State == "User jmarie exists" {
+			userRepository = jmarieExists
+		} else if state.State == "User jmarie is unauthorized" {
+			userRepository = jmarieUnauthorized
 		} else {
-			userRepository = billyDoesNotExist
+			userRepository = jmarieDoesNotExist
 		}
 	}
 }
@@ -105,24 +105,24 @@ var logDir = fmt.Sprintf("%s/log", dir)
 var port, _ = utils.GetFreePort()
 
 // Provider States data sets
-var billyExists = &examples.UserRepository{
+var jmarieExists = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"Jean-Marie de La Beaujardière😀😍": &examples.User{
+		"jmarie": &examples.User{
 			Name:     "Jean-Marie de La Beaujardière😀😍",
-			Username: "Jean-Marie de La Beaujardière😀😍",
+			Username: "jmarie",
 			Password: "issilly",
 			Type:     "admin",
 		},
 	},
 }
 
-var billyDoesNotExist = &examples.UserRepository{}
+var jmarieDoesNotExist = &examples.UserRepository{}
 
-var billyUnauthorized = &examples.UserRepository{
+var jmarieUnauthorized = &examples.UserRepository{
 	Users: map[string]*examples.User{
-		"Jean-Marie de La Beaujardière😀😍": &examples.User{
+		"jmarie": &examples.User{
 			Name:     "Jean-Marie de La Beaujardière😀😍",
-			Username: "Jean-Marie de La Beaujardière😀😍",
+			Username: "jmarie",
 			Password: "issilly1",
 			Type:     "blocked",
 		},
@@ -133,8 +133,8 @@ var billyUnauthorized = &examples.UserRepository{
 func createPact() dsl.Pact {
 	// Create Pact connecting to local Daemon
 	return dsl.Pact{
-		Consumer: "billy",
-		Provider: "bobby",
+		Consumer: "jmarie",
+		Provider: "loginprovider",
 		LogDir:   logDir,
 		PactDir:  pactDir,
 	}

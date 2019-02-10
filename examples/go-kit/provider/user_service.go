@@ -1,14 +1,10 @@
 package provider
 
-import "errors"
+import (
+	"errors"
 
-// User is a representation of a User. Dah.
-type User struct {
-	Name     string `json:"name"`
-	username string
-	password string
-	Type     string `json:"type"`
-}
+	ex "github.com/pact-foundation/pact-go/examples/types"
+)
 
 var (
 	// ErrNotFound represents a resource not found (404)
@@ -23,7 +19,7 @@ var (
 
 // Service provides operations on Users.
 type Service interface {
-	Login(string, string) (*User, error)
+	Login(string, string) (*ex.User, error)
 }
 
 type userService struct {
@@ -34,11 +30,11 @@ type userService struct {
 func NewInmemService() Service {
 	return &userService{
 		userDatabase: &UserRepository{
-			users: map[string]*User{
-				"Jean-Marie de La Beaujardière😀😍": &User{
+			users: map[string]*ex.User{
+				"jmarie": &ex.User{
 					Name:     "Jean-Marie de La Beaujardière😀😍",
-					username: "Jean-Marie de La Beaujardière😀😍",
-					password: "issilly",
+					Username: "jmarie",
+					Password: "issilly",
 					Type:     "admin",
 				},
 			},
@@ -47,12 +43,12 @@ func NewInmemService() Service {
 }
 
 // Login to the system.
-func (u *userService) Login(username string, password string) (user *User, err error) {
+func (u *userService) Login(username string, password string) (user *ex.User, err error) {
 	if user, err = u.userDatabase.ByUsername(username); err != nil {
 		return nil, ErrNotFound
 	}
 
-	if user.username != username || user.password != password {
+	if user.Username != username || user.Password != password {
 		return nil, ErrUnauthorized
 	}
 	return user, nil

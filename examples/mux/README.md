@@ -10,9 +10,9 @@ the Consumer uses to authenticate a User.
 
 We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):
 
-1.  When the user "Billy" exists, and we perform a login, we expect an HTTP `200`
-1.  When the user "Billy" does not exists, and we perform a login, we expect an HTTP `404`
-1.  When the user "Billy" is unauthorized, and we perform a login, we expect an HTTP `403`
+1.  When the user "jmarie" exists, and we perform a login, we expect an HTTP `200`
+1.  When the user "jmarie" does not exists, and we perform a login, we expect an HTTP `404`
+1.  When the user "jmarie" is unauthorized, and we perform a login, we expect an HTTP `403`
 
 # Getting started
 
@@ -44,13 +44,13 @@ go run cmd/usersvc/main.go
 
 # 200
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
-  "username":"billy",
+  "username":"jmarie",
   "password":"issilly"
 }' "http://localhost:8080/users/login/1"
 
 # 403
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
-  "username":"billy",
+  "username":"jmarie",
   "password":"issilly"
 }' "http://localhost:8080/users/login/1"
 
