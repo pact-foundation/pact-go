@@ -15,7 +15,7 @@ var (
 	pactURLPattern        = "%s/pacts/provider/%s/latest"
 	pactURLPatternWithTag = "%s/pacts/provider/%s/latest/%s"
 
-	// ErrNoConsumers is returned when no consumer are not found for a provider.
+	// ErrNoConsumers is returned when no consumer are found for a provider
 	ErrNoConsumers = errors.New("no consumers found")
 
 	// ErrUnauthorized represents a Forbidden (403).

@@ -11,21 +11,12 @@ import (
 	ex "github.com/pact-foundation/pact-go/examples/types"
 )
 
-// User is a representation of a User. Dah.
-// type User struct {
-// 	Name     string `json:"name" pact:"example=Jean-Marie de La Beaujardière😀😍"`
-// 	username string `pact:"example=`
-// 	password string
-
-// 	Tags []string `json:"tags" pact:"min=2"`
-// 	Date string   `json:"date" pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
-// }
-
 // Client is a UI for the User Service.
 type Client struct {
-	user *ex.User
-	Host string
-	err  error
+	user  *ex.User
+	Host  string
+	err   error
+	token string
 }
 
 // Marshalling format for Users.
@@ -40,6 +31,38 @@ type templateData struct {
 
 var loginTemplatePath = "login.html"
 var templates = template.Must(template.ParseFiles(loginTemplatePath))
+
+// getUser finds a user
+func (c *Client) getUser(id string) (*ex.User, error) {
+
+	u := fmt.Sprintf("%s/users/%s", c.Host, id)
+	req, err := http.NewRequest("GET", u, nil)
+
+	// NOTE: by default, request bodies are expected to be sent with a Content-Type
+	// of application/json. If you don't explicitly set the content-type, you
+	// will get a mismatch during Verification.
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", c.token)
+
+	res, err := http.DefaultClient.Do(req)
+
+	if res.StatusCode != 200 || err != nil {
+		return nil, fmt.Errorf("get user failed")
+	}
+
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var response ex.User
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, err
+}
 
 // Login handles the login API call to the User Service.
 func (c *Client) login(username string, password string) (*ex.User, error) {

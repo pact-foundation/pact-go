@@ -9,7 +9,7 @@ type ProviderState struct {
 	States   []string `json:"states"`
 }
 
-// ProviderStates is mapping of consumers to all known states. This is usually
+// ProviderStates is a mapping of consumers to all known states. This is usually
 // a response from an HTTP endpoint (e.g. GET /states) to find all states a
 // provider has.
 type ProviderStates map[string][]string

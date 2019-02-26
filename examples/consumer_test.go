@@ -37,6 +37,8 @@ func TestConsumer(t *testing.T) {
 		// of application/json. If you don't explicitly set the content-type, you
 		// will get a mismatch during Verification.
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer 1234")
+
 		if err != nil {
 			return err
 		}
@@ -55,7 +57,7 @@ func TestConsumer(t *testing.T) {
 		WithRequest(dsl.Request{
 			Method:  "GET",
 			Path:    dsl.String("/foobar"),
-			Headers: dsl.MapMatcher{"Content-Type": dsl.String("application/json")},
+			Headers: dsl.MapMatcher{"Content-Type": dsl.String("application/json"), "Authorization": dsl.String("Bearer 1234")},
 			Body: map[string]string{
 				"name": "billy",
 			},
@@ -63,7 +65,7 @@ func TestConsumer(t *testing.T) {
 		WillRespondWith(dsl.Response{
 			Status:  200,
 			Headers: dsl.MapMatcher{"Content-Type": dsl.String("application/json")},
-			Body:    dsl.Match(&User{LastName: "sampson"}),
+			Body:    dsl.Match(&User{}),
 		})
 
 	// Verify

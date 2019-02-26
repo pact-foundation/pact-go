@@ -15,7 +15,7 @@ func main() {
 	mux.HandleFunc("/users/login/", provider.UserLogin)
 
 	port, _ := utils.GetFreePort()
-	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	ln, err := net.Listen("tcp", fmt.Sprintf("::%d", port))
 	if err != nil {
 		log.Fatal(err)
 	}

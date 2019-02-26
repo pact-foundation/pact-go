@@ -1,0 +1,48 @@
+{
+  "consumer": {
+    "name": "MyConsumer"
+  },
+  "provider": {
+    "name": "MyProvider"
+  },
+  "interactions": [
+    {
+      "description": "A request to get foo",
+      "providerState": "User foo exists",
+      "request": {
+        "method": "GET",
+        "path": "/foobar",
+        "headers": {
+          "Authorization": "Bearer 1234",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "name": "billy"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "lastName": "sampson",
+          "name": "billy"
+        },
+        "matchingRules": {
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

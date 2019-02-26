@@ -89,6 +89,9 @@ func TestMain(m *testing.M) {
 func setup() {
 	pact = createPact()
 
+	// Proactively start service to get access to the port
+	pact.Setup(true)
+
 	// Login form values
 	form = url.Values{}
 	form.Add("username", name)
@@ -99,7 +102,6 @@ func setup() {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.PostForm = form
 
-	// Record response (satisfies http.ResponseWriter)
 	rr = httptest.NewRecorder()
 }
 
@@ -119,6 +121,8 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 	var testJmarieExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
+			// This header will be dynamically replaced at verification time
+			token: "Bearer 1234",
 		}
 		client.loginHandler(rr, req)
 
@@ -167,6 +171,8 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 	var testJmarieDoesNotExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
+			// This header will be dynamically replaced at verification time
+			token: "Bearer 1234",
 		}
 		client.loginHandler(rr, req)
 
@@ -234,4 +240,77 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error on Verify: %v", err)
 	}
+}
+
+func TestPactConsumerGetUser_Authenticated(t *testing.T) {
+	var testJmarieUnauthenticated = func() error {
+		client := Client{
+			Host:  fmt.Sprintf("http://localhost:%d", pact.Server.Port),
+			token: "Bearer 1234",
+		}
+		client.getUser("10")
+
+		if client.user != nil {
+			return fmt.Errorf("Expected user to be nil but got: %v", client.user)
+		}
+
+		return nil
+	}
+
+	pact.
+		AddInteraction().
+		Given("User jmarie is authenticated").
+		UponReceiving("A request to login with user 'jmarie'").
+		WithRequest(request{
+			Method: "GET",
+			Path:   s("/users/10"),
+			Headers: dsl.MapMatcher{
+				"Authorization": s("Bearer 1234"),
+			},
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  200,
+			Headers: commonHeaders,
+			Body:    dsl.Match(ex.User{}),
+		})
+
+	err := pact.Verify(testJmarieUnauthenticated)
+	if err != nil {
+		t.Fatalf("Error on Verify: %v", err)
+	}
+
+}
+func TestPactConsumerGetUser_Unauthenticated(t *testing.T) {
+	var testJmarieUnauthenticated = func() error {
+		client := Client{
+			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
+		}
+		client.getUser("10")
+
+		if client.user != nil {
+			return fmt.Errorf("Expected user to be nil but got: %v", client.user)
+		}
+
+		return nil
+	}
+
+	pact.
+		AddInteraction().
+		Given("User jmarie is unauthenticated").
+		UponReceiving("A request to login with user 'jmarie'").
+		WithRequest(request{
+			Method:  "GET",
+			Path:    s("/users/10"),
+			Headers: commonHeaders,
+		}).
+		WillRespondWith(dsl.Response{
+			Status:  401,
+			Headers: commonHeaders,
+		})
+
+	err := pact.Verify(testJmarieUnauthenticated)
+	if err != nil {
+		t.Fatalf("Error on Verify: %v", err)
+	}
+
 }

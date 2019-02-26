@@ -2,7 +2,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -31,40 +30,45 @@ func TestProvider(t *testing.T) {
 	// Start provider API in the background
 	go startServer()
 
+	// Authorization middleware
+	f := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Header.Add("Authorization", "Bearer 1234-dynamic-value")
+			next.ServeHTTP(w, r)
+		})
+	}
+
 	// Verify the Provider with local Pact Files
 	pact.VerifyProvider(t, types.VerifyRequest{
-		ProviderBaseURL:        "http://localhost:8000",
-		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
-		ProviderStatesSetupURL: "http://localhost:8000/setup",
-		CustomProviderHeaders:  []string{"Authorization: basic e5e5e5e5e5e5e5"},
+		ProviderBaseURL:       "http://localhost:8000",
+		PactURLs:              []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
+		CustomProviderHeaders: []string{"X-API-Token: abcd"},
+		RequestFilter:         f,
+		StateHandlers: types.StateHandlers{
+			"User foo exists": func() error {
+				fmt.Println("WOO state handler invoked!")
+
+				// name = "billy"
+				return nil
+			},
+		},
 	})
 }
 
+var name = "not the right last name"
+
 func startServer() {
 	mux := http.NewServeMux()
-	lastName := "billy"
 
 	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		fmt.Fprintf(w, fmt.Sprintf(`{"name":"billy", "lastName":"%s"}`, lastName))
+		fmt.Println("Request headers", req.Header)
+		fmt.Fprintf(w, fmt.Sprintf(`{"name":"%s", "lastName": "jones"}`, name))
 
 		// Break the API by replacing the above and uncommenting one of these
 		// w.WriteHeader(http.StatusUnauthorized)
 		// fmt.Fprintf(w, `{"s":"baz"}`)
 	})
 
-	// This function handles state requests for a particular test
-	// In this case, we ensure that the user being requested is available
-	// before the Verification process invokes the API.
-	mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
-		var s *types.ProviderState
-		decoder := json.NewDecoder(req.Body)
-		decoder.Decode(&s)
-		if s.State == "User foo exists" {
-			lastName = "bar"
-		}
-
-		w.Header().Add("Content-Type", "application/json")
-	})
-	log.Fatal(http.ListenAndServe(":8000", mux))
+	log.Fatal(http.ListenAndServe("localhost:8000", mux))
 }

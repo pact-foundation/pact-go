@@ -1,8 +1,11 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"log"
+
+	"github.com/pact-foundation/pact-go/proxy"
 )
 
 // VerifyRequest contains the verification params.
@@ -23,7 +26,9 @@ type VerifyRequest struct {
 	// Deprecation notice: no longer valid/required
 	ProviderStatesURL string
 
-	// URL to post currentp provider state to on the Provider API.
+	// Deprecated: For backward compatibility ProviderStatesSetupURL is
+	// still supported. Use StateHandlers instead.
+	// URL to post current provider state to on the Provider API.
 	ProviderStatesSetupURL string
 
 	// Username when authenticating to a Pact Broker.
@@ -38,15 +43,32 @@ type VerifyRequest struct {
 	// ProviderVersion is the semantical version of the Provider API.
 	ProviderVersion string
 
+	// CustomProviderHeaders are headers to add during pact verification `requests`.
+	// eg 'Authorization: Basic cGFjdDpwYWN0'.
+	//
+	// NOTE: Use this feature very carefully, as anything in here is not captured
+	// in the contract (e.g. time-bound tokens)
+	//
+	// NOTE: This should be used very carefully and deliberately, as anything you do here
+	// runs the risk of changing the contract and breaking the real system.
+	CustomProviderHeaders []string
+
+	// StateHandlers contain a mapped list of message states to functions
+	// that are used to setup a given provider state prior to the message
+	// verification step.
+	StateHandlers StateHandlers
+
+	// RequestFilter is a piece of middleware that will intercept requests/responses
+	// from the provider in order to modify it. This is useful in situations where
+	// you need to override a value due to time sensitivity - such as a OAuth Bearer
+	// token.
+	// NOTE: This should be used very carefully and deliberately, as anything you do here
+	// runs the risk of changing the contract and breaking the real system.
+	RequestFilter proxy.Middleware
+
 	// Verbose increases verbosity of output
 	// Deprecated
 	Verbose bool
-
-	// CustomProviderHeaders are header to add to provider state set up
-	// and pact verification `requests`. eg 'Authorization: Basic cGFjdDpwYWN0'.
-	// NOTE: Use this feature very carefully, as anything in here is not captured
-	// in the contract (e.g. time-bound tokens)
-	CustomProviderHeaders []string
 
 	// Arguments to the VerificationProvider
 	// Deprecated: This will be deleted after the native library replaces Ruby deps.
@@ -80,11 +102,13 @@ func (v *VerifyRequest) Validate() error {
 	}
 
 	if v.ProviderStatesSetupURL != "" {
+		log.Println("[WARN] verifier: ProviderStatesSetupURL is deprecated and will be removed in future versions")
 		v.Args = append(v.Args, "--provider-states-setup-url", v.ProviderStatesSetupURL)
 	}
 
 	// Field is deprecated, leave here to see deprecation notice
 	if v.ProviderStatesURL != "" {
+		log.Println("[WARN] verifier: ProviderStatesURL is deprecated and will be removed in future versions")
 		v.Args = append(v.Args, "--provider-states-url", v.ProviderStatesURL)
 	}
 
@@ -94,6 +118,10 @@ func (v *VerifyRequest) Validate() error {
 
 	if v.BrokerPassword != "" {
 		v.Args = append(v.Args, "--broker-password", v.BrokerPassword)
+	}
+
+	if v.BrokerURL != "" && ((v.BrokerUsername == "" && v.BrokerPassword != "") || (v.BrokerUsername != "" && v.BrokerPassword == "")) {
+		return errors.New("both 'BrokerUsername' and 'BrokerPassword' must be supplied if one given")
 	}
 
 	if v.ProviderVersion != "" {

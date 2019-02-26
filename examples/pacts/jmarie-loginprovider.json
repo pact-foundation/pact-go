@@ -139,6 +139,77 @@
           }
         }
       }
+    },
+    {
+      "description": "A request to login with user 'jmarie'",
+      "providerState": "User jmarie is authenticated",
+      "request": {
+        "method": "GET",
+        "path": "/users/10",
+        "headers": {
+          "Authorization": "Bearer 1234"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "name": "Jean-Marie de La Beaujardière😀😍",
+          "password": "password123",
+          "type": "admin",
+          "username": "jmarie"
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          },
+          "$.body.name": {
+            "match": "type"
+          },
+          "$.body.password": {
+            "match": "type"
+          },
+          "$.body.type": {
+            "match": "regex",
+            "regex": "^(admin|user|guest)$"
+          },
+          "$.body.username": {
+            "match": "type"
+          }
+        }
+      }
+    },
+    {
+      "description": "A request to login with user 'jmarie'",
+      "providerState": "User jmarie is unauthenticated",
+      "request": {
+        "method": "GET",
+        "path": "/users/10",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "$.headers.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        }
+      }
     }
   ],
   "metadata": {
