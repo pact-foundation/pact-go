@@ -17,6 +17,32 @@ import (
 	"github.com/pact-foundation/pact-go/types"
 )
 
+// Client is the interface
+type Client interface {
+	// StartServer starts a remote Pact Mock Server.
+	StartServer(args []string, port int) *types.MockServer
+
+	// ListServers lists all known Mock Servers
+	ListServers() []*types.MockServer
+
+	// StopServer stops a remote Pact Mock Server.
+	StopServer(server *types.MockServer) (*types.MockServer, error)
+
+	// RemoveAllServers stops all remote Pact Mock Servers.
+	RemoveAllServers(server *types.MockServer) *[]types.MockServer
+
+	// VerifyProvider runs the verification process against a running Provider.
+	VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error)
+
+	// UpdateMessagePact adds a pact message to a contract file
+	UpdateMessagePact(request types.PactMessageRequest) error
+
+	// ReifyMessage takes a structured object, potentially containing nested Matchers
+	// and returns an object with just the example (generated) content
+	// The object may be a simple JSON primitive e.g. string or number or a complex object
+	ReifyMessage(request *types.PactReificationRequest) (res *types.ReificationResponse, err error)
+}
+
 // PactClient is the main interface into starting/stopping
 // the underlying Pact CLI subsystem
 type PactClient struct {

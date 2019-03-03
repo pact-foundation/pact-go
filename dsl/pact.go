@@ -32,7 +32,7 @@ type Pact struct {
 	Server *types.MockServer
 
 	// Pact RPC Client.
-	pactClient *PactClient
+	pactClient Client
 
 	// Consumer is the name of the Consumer/Client.
 	Consumer string
@@ -157,12 +157,9 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	}
 
 	if p.pactClient == nil {
-		p.pactClient = NewClient()
-		p.pactClient.TimeoutDuration = p.ClientTimeout
-	}
-
-	if p.PactFileWriteMode == "" {
-		p.PactFileWriteMode = "overwrite"
+		c := NewClient()
+		c.TimeoutDuration = p.ClientTimeout
+		p.pactClient = c
 	}
 
 	if p.PactFileWriteMode == "" {
@@ -409,7 +406,7 @@ var checkCliCompatibility = func() {
 func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.RequestURI == "/__setup" {
+			if r.URL.Path == "/__setup" {
 				var s *types.ProviderState
 				decoder := json.NewDecoder(r.Body)
 				decoder.Decode(&s)
@@ -435,6 +432,8 @@ func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware 
 			}
 
 			log.Println("[DEBUG] skipping state handler for request", r.RequestURI)
+
+			// Pass through to application
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -454,7 +453,12 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 			return
 		}
 
-		json.Unmarshal(body, &message)
+		err = json.Unmarshal(body, &message)
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
 		// Setup any provider state
 		for _, state := range message.States {

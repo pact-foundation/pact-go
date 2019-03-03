@@ -240,6 +240,23 @@ func (m StructMatcher) GetValue() interface{} {
 // to also contain complex matchers
 type MapMatcher map[string]Matcher
 
+// UnmarshalJSON is a custom JSON parser for MapMatcher
+// It treats the matchers as strings
+func (m *MapMatcher) UnmarshalJSON(bytes []byte) (err error) {
+	sk := make(map[string]string)
+	err = json.Unmarshal(bytes, &sk)
+	if err != nil {
+		return
+	}
+
+	*m = make(map[string]Matcher)
+	for k, v := range sk {
+		(*m)[k] = String(v)
+	}
+
+	return
+}
+
 // Takes an object and converts it to a JSON representation
 func objectToString(obj interface{}) string {
 	switch content := obj.(type) {

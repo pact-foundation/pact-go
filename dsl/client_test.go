@@ -16,7 +16,7 @@ import (
 )
 
 func TestClient_List(t *testing.T) {
-	client, _ := createClient(true)
+	client, _ := createMockClient(true)
 	servers := client.ListServers()
 
 	if len(servers) != 3 {
@@ -25,7 +25,7 @@ func TestClient_List(t *testing.T) {
 }
 
 func TestClient_StartServer(t *testing.T) {
-	client, svc := createClient(true)
+	client, svc := createMockClient(true)
 	defer stubPorts()()
 
 	port, _ := utils.GetFreePort()
@@ -36,7 +36,7 @@ func TestClient_StartServer(t *testing.T) {
 }
 
 func TestClient_StartServerFail(t *testing.T) {
-	client, _ := createClient(false)
+	client, _ := createMockClient(false)
 	server := client.StartServer([]string{}, 0)
 	if server.Port != 0 {
 		t.Fatalf("Expected server to be empty %v", server)
@@ -44,7 +44,7 @@ func TestClient_StartServerFail(t *testing.T) {
 }
 
 func TestClient_StopServer(t *testing.T) {
-	client, svc := createClient(true)
+	client, svc := createMockClient(true)
 
 	client.StopServer(&types.MockServer{})
 	if svc.ServiceStopCount != 1 {
@@ -53,7 +53,7 @@ func TestClient_StopServer(t *testing.T) {
 }
 
 func TestClient_StopServerFail(t *testing.T) {
-	client, _ := createClient(true)
+	client, _ := createMockClient(true)
 	res, err := client.StopServer(&types.MockServer{})
 	should := &types.MockServer{}
 	if !reflect.DeepEqual(res, should) {
@@ -65,7 +65,7 @@ func TestClient_StopServerFail(t *testing.T) {
 }
 
 func TestClient_VerifyProvider(t *testing.T) {
-	client, _ := createClient(true)
+	client, _ := createMockClient(true)
 
 	ms := setupMockServer(true, t)
 	defer ms.Close()
@@ -85,7 +85,7 @@ func TestClient_VerifyProvider(t *testing.T) {
 }
 
 func TestClient_VerifyProviderFailValidation(t *testing.T) {
-	client, _ := createClient(true)
+	client, _ := createMockClient(true)
 
 	req := types.VerifyRequest{}
 	_, err := client.VerifyProvider(req)
@@ -100,7 +100,7 @@ func TestClient_VerifyProviderFailValidation(t *testing.T) {
 }
 
 func TestClient_VerifyProviderFailExecution(t *testing.T) {
-	client, _ := createClient(false)
+	client, _ := createMockClient(false)
 
 	ms := setupMockServer(true, t)
 	defer ms.Close()
@@ -187,9 +187,13 @@ func waitForPortInTest(port int, t *testing.T) {
 // but executes actual client code. This means we don't spin up the real
 // mock service but execute our code in isolation.
 //
+// Use this when you want too exercise the client code, but not shell out to Ruby.
+// Where possible, you should consider creating a mockClient{} object and
+// stubbing out the required behaviour.
+//
 // Stubbing the exec.Cmd interface is hard, see fakeExec* functions for
 // the magic.
-func createClient(success bool) (*PactClient, *ServiceMock) {
+func createMockClient(success bool) (*PactClient, *ServiceMock) {
 	execFunc := fakeExecSuccessCommand
 	if !success {
 		execFunc = fakeExecFailCommand
