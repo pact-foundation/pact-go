@@ -100,7 +100,7 @@ func (s *ServiceManager) List() map[int]*exec.Cmd {
 	return s.processMap.processes
 }
 
-// Command executes the command
+// Command creates an os command to be run
 func (s *ServiceManager) Command() *exec.Cmd {
 	cmd := exec.Command(s.Cmd, s.Args...)
 	env := os.Environ()

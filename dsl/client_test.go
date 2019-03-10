@@ -94,7 +94,7 @@ func TestClient_VerifyProviderFailValidation(t *testing.T) {
 		t.Fatal("Expected a error but got none")
 	}
 
-	if !strings.Contains(err.Error(), "Pact URLs is mandatory") {
+	if !strings.Contains(err.Error(), "One of 'PactURLs' or 'BrokerURL' must be specified") {
 		t.Fatalf("Expected a proper error message but got '%s'", err.Error())
 	}
 }
@@ -224,7 +224,7 @@ func createMockClient(success bool) (*PactClient, *ServiceMock) {
 		}
 	}()
 
-	d := newClient(svc, svc, svc)
+	d := newClient(svc, svc, svc, svc)
 	d.TimeoutDuration = 50 * time.Millisecond
 	return d, svc
 }

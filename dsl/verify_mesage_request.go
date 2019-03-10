@@ -22,6 +22,9 @@ type VerifyMessageRequest struct {
 	// Password when authenticating to a Pact Broker.
 	BrokerPassword string
 
+	// BrokerToken is required when authenticating using the Bearer token mechanism
+	BrokerToken string
+
 	// PublishVerificationResults to the Pact Broker.
 	PublishVerificationResults bool
 

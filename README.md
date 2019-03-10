@@ -48,12 +48,17 @@ Read [Getting started with Pact] for more information for beginners.
     - [Consumer Side Testing](#consumer-side-testing)
     - [Provider API Testing](#provider-api-testing)
       - [Provider Verification](#provider-verification)
-      - [API with Authorization](#api-with-authorization)
+      - [Provider States](#provider-states)
+      - [Before and After Hooks](#before-and-after-hooks)
+      - [Request Filtering](#request-filtering)
+        - [Example: API with Authorization](#example-api-with-authorization)
+      - [Lifecycle of a provider verification](#lifecycle-of-a-provider-verification)
     - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
       - [Publishing from Go code](#publishing-from-go-code)
       - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
       - [Publishing from the CLI](#publishing-from-the-cli)
       - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+      - [Using the Pact Broker with Bearer Token authentication](#using-the-pact-broker-with-bearer-token-authentication)
   - [Asynchronous API Testing](#asynchronous-api-testing)
     - [Consumer](#consumer)
     - [Provider (Producer)](#provider-producer)
@@ -83,6 +88,7 @@ Read [Getting started with Pact] for more information for beginners.
 
 ## Versions
 
+<details><summary>Specification Compatibility</summary>
 | Version | Stable     | [Spec] Compatibility | Install            |
 | ------- | ---------- | -------------------- | ------------------ |
 | 1.0.x   | Yes        | 2, 3\*               | See [installation] |
@@ -90,6 +96,8 @@ Read [Getting started with Pact] for more information for beginners.
 | 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]     |
 
 _\*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
+
+</details>
 
 ## Installation
 
@@ -187,15 +195,15 @@ func TestConsumer(t *testing.T) {
 	// Set up our expected interactions.
 	pact.
 		AddInteraction().
-		Given("User foo exists").
-		UponReceiving("A request to get foo").
+		Given("User 1 exists").
+		UponReceiving("A request to get user 1").
 		WithRequest(dsl.Request{
 			Method:  "GET",
-			Path:    dsl.String("/foobar"),
+			Path:    dsl.String("/users/1"),
 			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
 		}).
 		WillRespondWith(dsl.Response{
-      Status:  200,
+			Status:  200,
 			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
 			Body:    dsl.Match(&Foo{})
 		})
@@ -222,42 +230,19 @@ Here is the Provider test process broker down:
     started in its own goroutine:
 
     ```go
+    var lastName = "" // User doesn't exist
     func startServer() {
       mux := http.NewServeMux()
-      lastName := "billy"
 
-      mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
+      mux.HandleFunc("/users", func(w http.ResponseWriter, req *http.Request) {
         w.Header().Add("Content-Type", "application/json")
         fmt.Fprintf(w, fmt.Sprintf(`{"lastName":"%s"}`, lastName))
-
-        // Break the API by replacing the above and uncommenting one of these
-        // w.WriteHeader(http.StatusUnauthorized)
-        // fmt.Fprintf(w, `{"s":"baz"}`)
-      })
-
-      // This function handles state requests for a particular test
-      // In this case, we ensure that the user being requested is available
-      // before the Verification process invokes the API.
-      mux.HandleFunc("/setup", func(w http.ResponseWriter, req *http.Request) {
-        var s *types.ProviderState
-        decoder := json.NewDecoder(req.Body)
-        decoder.Decode(&s)
-        if s.State == "User foo exists" {
-          lastName = "bar"
-        }
-
-        w.Header().Add("Content-Type", "application/json")
       })
       log.Fatal(http.ListenAndServe(":8000", mux))
     }
     ```
 
-Note that the server has a `/setup` endpoint that is given a `types.ProviderState` and allows the
-verifier to setup any
-[provider states](http://docs.pact.io/documentation/provider_states.html) before
-each test is run.
-
-2.  Verify provider API
+2)  Verify provider API
 
     You can now tell Pact to read in your Pact files and verify that your API will
     satisfy the requirements of each of your known consumers:
@@ -278,7 +263,14 @@ each test is run.
       pact.VerifyProvider(t, types.VerifyRequest{
         ProviderBaseURL:        "http://localhost:8000",
         PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
-        ProviderStatesSetupURL: "http://localhost:8000/setup",
+        StateHandlers: types.StateHandlers{
+          // Setup any state required by the test
+          // in this case, we ensure there is a "user" in the system
+          "User foo exists": func() error {
+            lastName = "crickets"
+            return nil
+          },
+        },
       })
     }
     ```
@@ -303,32 +295,29 @@ When validating a Provider, you have 3 options to provide the Pact files:
     pact.VerifyProvider(t, types.VerifyRequest{
     	ProviderBaseURL:        "http://myproviderhost",
     	PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
-    	ProviderStatesSetupURL: "http://myproviderhost/setup",
     	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
     	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
     })
     ```
 
-1.  Use `PactBroker` to automatically find all of the latest consumers:
+1.  Use `BrokerURL` to automatically find all of the latest consumers:
 
     ```go
     pact.VerifyProvider(t, types.VerifyRequest{
     	ProviderBaseURL:        "http://myproviderhost",
     	BrokerURL:              "http://brokerHost",
-    	ProviderStatesSetupURL: "http://myproviderhost/setup",
     	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
     	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
     })
     ```
 
-1.  Use `PactBroker` and `Tags` to automatically find all of the latest consumers:
+1.  Use `BrokerURL` and `Tags` to automatically find all of the latest consumers:
 
     ```go
     pact.VerifyProvider(t, types.VerifyRequest{
     	ProviderBaseURL:        "http://myproviderhost",
     	BrokerURL:              "http://brokerHost",
-    	Tags:                   []string{"latest", "sit4"},
-    	ProviderStatesSetupURL: "http://myproviderhost/setup",
+    	Tags:                   []string{"master", "prod"},
     	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
     	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
     })
@@ -341,15 +330,78 @@ in development.
 See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
 for more on this strategy.
 
-For more on provider states, refer to http://docs.pact.io/documentation/provider_states.html.
+#### Provider States
 
-#### API with Authorization
+If you have defined any states (as denoted by a `Given()`) in your consumer tests, the `Verifier` can put the provider into the correct state prior to sending the actual request for validation. For example, the provider can use the state to mock away certain database queries. To support this, set up a `StateHandler` for each state using hooks on the `StateHandlers` property. Here is an example:
 
-Sometimes you may need to add things to the requests that can't be persisted in a pact file. Examples of these would be authentication tokens, which have a small life span. e.g. an OAuth bearer token: `Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42`.
+```go
+pact.VerifyProvider(t, types.VerifyRequest{
+	...
+  StateHandlers: types.StateHandlers{
+		"User jmarie exists": func() error {
+			userRepository = jmarieExists
+			return nil
+		},
+		"User jmarie is unauthenticated": func() error {
+			userRepository = jmarieUnauthorized
+			token = "invalid"
 
-For this case, we have a facility that should be carefully used during verification - the ability to specificy custom headers to be sent during provider verification. The property to achieve this is `CustomProviderHeaders`.
+			return nil
+		},
+		"User jmarie does not exist": func() error {
+			fmt.Println("state handler")
+			userRepository = jmarieDoesNotExist
+			return nil
+		},
+		...
+	},
+})
+```
 
-For example, to have an `Authorization` header sent as part of the verification request, modify the `VerifyRequest` parameter as per below:
+As you can see, for each state (`"User jmarie exists"` etc.) we configure the local datastore differently. If this option is not configured, the `Verifier` will ignore the provider states defined in the pact and log a warning.
+
+Note that if the State Handler errors, the test will exit early with a failure.
+
+Read more about [Provider States](https://docs.pact.io/getting_started/provider_states).
+
+#### Before and After Hooks
+
+Sometimes, it's useful to be able to do things before or after a test has run, such as reset a database, log a metric etc. A `BeforeHook` runs before any other part of the Pact test lifecycle, and a `AfterHook` runs as the last step before returning the verification result back to the test.
+
+You can add them to your Verification as follows:
+
+```go
+	pact.VerifyProvider(t, types.VerifyRequest{
+		...
+		BeforeHook: func() error {
+			fmt.Println("before hook, do something")
+			return nil
+		},
+		AfterHook: func() error {
+			fmt.Println("after hook, do something")
+			return nil
+		},
+	})
+```
+
+If the Hook errors, the test will fail.
+
+#### Request Filtering
+
+Sometimes you may need to add things to the requests that can't be persisted in a pact file. Examples of these are authentication tokens with a small life span. e.g. an OAuth bearer token: `Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42`.
+
+For these cases, we have two facilities that should be carefully used during verification:
+
+1. the ability to specify custom headers to be sent during provider verification. The flag to achieve this is `CustomProviderHeaders`.
+1. the ability to modify a request/response and change the payload. The parameter to achieve this is `RequestFilter`.
+
+Read on for more.
+
+##### Example: API with Authorization
+
+**Custom Headers**:
+
+This header will always be sent for each and every request, and can't be dynamic. For example:
 
 ```go
   pact.VerifyProvider(t, types.VerifyRequest{
@@ -360,7 +412,34 @@ For example, to have an `Authorization` header sent as part of the verification 
 
 As you can see, this is your opportunity to modify\add to headers being sent to the Provider API, for example to create a valid time-bound token.
 
+**Request Filters**
+
+_WARNING_: This should only be attempted once you know what you're doing!
+
+Request filters are custom middleware, that are executed for each request, allowing `token` to change between invocations. Request filters can change the request coming in, _and_ the response back to the verifier. It is common to pair this with `StateHandlers` as per above, that can set/expire the token
+for different test cases:
+
+```go
+  pact.VerifyProvider(t, types.VerifyRequest{
+    ...
+    RequestFilter: func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+			next.ServeHTTP(w, r)
+		})
+	}
+  })
+```
+
 _Important Note_: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
+
+#### Lifecycle of a provider verification
+
+For each _interaction_ in a pact file, the order of execution is as follows:
+
+`BeforeHook` -> `StateHandler` -> `RequestFilter (pre)`, `Execute Provider Test` -> `RequestFilter (post)` -> `AfterHook`
+
+If any of the middleware or hooks fail, the tests will also fail.
 
 ### Publishing pacts to a Pact Broker and Tagging Pacts
 
@@ -379,7 +458,7 @@ err := p.Publish(types.PublishRequest{
 	PactURLs:	[]string{"./pacts/my_consumer-my_provider.json"},
 	PactBroker:	"http://pactbroker:8000",
 	ConsumerVersion: "1.0.0",
-	Tags:		[]string{"latest", "dev"},
+	Tags:		[]string{"master", "dev"},
 })
 ```
 
@@ -418,10 +497,17 @@ curl -v \
 #### Using the Pact Broker with Basic authentication
 
 The following flags are required to use basic authentication when
-publishing or retrieving Pact files to/from a Pact Broker:
+publishing or retrieving Pact files with a Pact Broker:
 
 - `BrokerUsername` - the username for Pact Broker basic authentication.
 - `BrokerPassword` - the password for Pact Broker basic authentication.
+
+#### Using the Pact Broker with Bearer Token authentication
+
+The following flags are required to use bearer token authentication when
+publishing or retrieving Pact files with a Pact Broker:
+
+- `BrokerToken` - the token to authenticate with (excluding the `"Bearer"` prefix)
 
 ## Asynchronous API Testing
 

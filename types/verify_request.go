@@ -8,6 +8,9 @@ import (
 	"github.com/pact-foundation/pact-go/proxy"
 )
 
+// Hook functions are used to tap into the lifecycle of a Consumer or Provider test
+type Hook func() error
+
 // VerifyRequest contains the verification params.
 type VerifyRequest struct {
 	// URL to hit during provider verification.
@@ -22,20 +25,23 @@ type VerifyRequest struct {
 	// Tags to find in Broker for matrix-based testing
 	Tags []string
 
-	// URL to retrieve valid Provider States.
-	// Deprecation notice: no longer valid/required
-	ProviderStatesURL string
-
+	// ProviderStatesSetupURL is the endpoint to post current provider state
+	// to on the Provider API.
 	// Deprecated: For backward compatibility ProviderStatesSetupURL is
 	// still supported. Use StateHandlers instead.
-	// URL to post current provider state to on the Provider API.
 	ProviderStatesSetupURL string
+
+	// Provider is the name of the Providing service.
+	Provider string
 
 	// Username when authenticating to a Pact Broker.
 	BrokerUsername string
 
 	// Password when authenticating to a Pact Broker.
 	BrokerPassword string
+
+	// BrokerToken is required when authenticating using the Bearer token mechanism
+	BrokerToken string
 
 	// PublishVerificationResults to the Pact Broker.
 	PublishVerificationResults bool
@@ -57,6 +63,14 @@ type VerifyRequest struct {
 	// that are used to setup a given provider state prior to the message
 	// verification step.
 	StateHandlers StateHandlers
+
+	// BeforeHook allows you to configure your provider prior to the individual test execution
+	// e.g. setup temporary tokens, prepare data
+	BeforeHook Hook
+
+	// AfterHook allows you to configure your provider prior to the test execution
+	// e.g. reset the database state
+	AfterHook Hook
 
 	// RequestFilter is a piece of middleware that will intercept requests/responses
 	// from the provider in order to modify it. This is useful in situations where
@@ -83,8 +97,10 @@ func (v *VerifyRequest) Validate() error {
 
 	if len(v.PactURLs) != 0 {
 		v.Args = append(v.Args, v.PactURLs...)
-	} else {
-		return fmt.Errorf("Pact URLs is mandatory")
+	}
+
+	if len(v.PactURLs) == 0 && v.BrokerURL == "" {
+		return fmt.Errorf("One of 'PactURLs' or 'BrokerURL' must be specified")
 	}
 
 	if len(v.CustomProviderHeaders) != 0 {
@@ -102,14 +118,7 @@ func (v *VerifyRequest) Validate() error {
 	}
 
 	if v.ProviderStatesSetupURL != "" {
-		log.Println("[WARN] verifier: ProviderStatesSetupURL is deprecated and will be removed in future versions")
 		v.Args = append(v.Args, "--provider-states-setup-url", v.ProviderStatesSetupURL)
-	}
-
-	// Field is deprecated, leave here to see deprecation notice
-	if v.ProviderStatesURL != "" {
-		log.Println("[WARN] verifier: ProviderStatesURL is deprecated and will be removed in future versions")
-		v.Args = append(v.Args, "--provider-states-url", v.ProviderStatesURL)
 	}
 
 	if v.BrokerUsername != "" {
@@ -124,8 +133,20 @@ func (v *VerifyRequest) Validate() error {
 		return errors.New("both 'BrokerUsername' and 'BrokerPassword' must be supplied if one given")
 	}
 
+	if v.BrokerURL != "" {
+		v.Args = append(v.Args, "--pact-broker-base-url", v.BrokerURL)
+	}
+
+	if v.BrokerToken != "" {
+		v.Args = append(v.Args, "--broker-token", v.BrokerToken)
+	}
+
 	if v.ProviderVersion != "" {
 		v.Args = append(v.Args, "--provider_app_version", v.ProviderVersion)
+	}
+
+	if v.Provider != "" {
+		v.Args = append(v.Args, "--provider", v.Provider)
 	}
 
 	if v.PublishVerificationResults {
@@ -135,5 +156,6 @@ func (v *VerifyRequest) Validate() error {
 	if v.Verbose {
 		log.Println("[DEBUG] verifier: ignoring deprecated Verbose flag")
 	}
+
 	return nil
 }

@@ -3,7 +3,7 @@
 This folder contains a number of examples in different frameworks to demonstrate
 how Pact could be used in each.
 
-Each Provider API currently exposes a single `Login` endpoint at `POST /users/login/1`,
+Each Provider API currently exposes a single `Login` endpoint at `POST /login/1`,
 which the [Consumer](consumer/goconsumer) uses to authenticate a User.
 
 We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):

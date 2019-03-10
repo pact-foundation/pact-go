@@ -17,7 +17,7 @@ import (
 	"github.com/pact-foundation/pact-go/utils"
 )
 
-// The actual Provider test itself
+// The Provider verification
 func TestPact_MuxProvider(t *testing.T) {
 	go startInstrumentedProvider()
 
@@ -25,9 +25,18 @@ func TestPact_MuxProvider(t *testing.T) {
 
 	// Verify the Provider with local Pact Files
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
-		ProviderBaseURL:        fmt.Sprintf("http://localhost:%d", port),
-		PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
-		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d/setup", port),
+		ProviderBaseURL: fmt.Sprintf("http://localhost:%d", port),
+		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
+		StateHandlers:   stateHandlers,
+		RequestFilter:   fixBearerToken,
+		BeforeHook: func() error {
+			fmt.Println("before hook")
+			return nil
+		},
+		AfterHook: func() error {
+			fmt.Println("after hook")
+			return nil
+		},
 	})
 
 	if err != nil {
@@ -38,51 +47,92 @@ func TestPact_MuxProvider(t *testing.T) {
 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
 		var brokerHost = os.Getenv("PACT_BROKER_HOST")
 
-		// Verify the Provider - Specific Published Pacts
-		pact.VerifyProvider(t, types.VerifyRequest{
-			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-			PactURLs:                   []string{fmt.Sprintf("%s/pacts/provider/loginprovider/consumer/jmarie/latest/sit4", brokerHost)},
-			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
-			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
-			PublishVerificationResults: true,
-			ProviderVersion:            "1.0.0",
-		})
-
 		// Verify the Provider - Latest Published Pacts for any known consumers
-		pact.VerifyProvider(t, types.VerifyRequest{
+		_, err := pact.VerifyProvider(t, types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
 			BrokerURL:                  brokerHost,
-			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
 			ProviderVersion:            "1.0.0",
+			StateHandlers:              stateHandlers,
+			RequestFilter:              fixBearerToken,
 		})
+
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		// Verify the Provider - Tag-based Published Pacts for any known consumers
-		pact.VerifyProvider(t, types.VerifyRequest{
+		_, err = pact.VerifyProvider(t, types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-			ProviderStatesSetupURL:     fmt.Sprintf("http://127.0.0.1:%d/setup", port),
 			BrokerURL:                  brokerHost,
-			Tags:                       []string{"latest", "sit4"},
+			Tags:                       []string{"master", "sit4"},
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
 			ProviderVersion:            "1.0.0",
+			StateHandlers:              stateHandlers,
+			RequestFilter:              fixBearerToken,
 		})
+
+		if err != nil {
+			t.Fatal(err)
+		}
 
 	} else {
 		t.Log("Skipping pulling from broker as PACT_INTEGRATED_TESTS is not set")
 	}
 }
 
+var token = "" // token will be dynamic based on state etc.
+
+// Simulates the neeed to set a time-bound authorization token,
+// such as an OAuth bearer token
+func fixBearerToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("request filter - before")
+		r.Header.Set("Authorization", token)
+		next.ServeHTTP(w, r)
+		fmt.Println("request filter - after")
+	})
+}
+
+var stateHandlers = types.StateHandlers{
+	"User jmarie exists": func() error {
+		userRepository = jmarieExists
+		return nil
+	},
+	"User jmarie is authenticated": func() error {
+		userRepository = jmarieExists
+		token = fmt.Sprintf("Bearer %s", getAuthToken())
+		return nil
+	},
+	"User jmarie is unauthorized": func() error {
+		userRepository = jmarieUnauthorized
+		token = "invalid"
+
+		return nil
+	},
+	"User jmarie is unauthenticated": func() error {
+		userRepository = jmarieUnauthorized
+		token = "invalid"
+
+		return nil
+	},
+	"User jmarie does not exist": func() error {
+		fmt.Println("state handler")
+		userRepository = jmarieDoesNotExist
+		return nil
+	},
+}
+
 // Starts the provider API with hooks for provider states.
 // This essentially mirrors the main.go file, with extra routes added.
 func startInstrumentedProvider() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/users/login/", UserLogin)
-	mux.HandleFunc("/setup", providerStateSetupFunc)
+	mux.HandleFunc("/users/", isAuthenticated(GetUser))
+	mux.HandleFunc("/login/", UserLogin)
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
@@ -138,6 +188,7 @@ var jmarieExists = &examples.UserRepository{
 			Username: "jmarie",
 			Password: "issilly",
 			Type:     "admin",
+			ID:       10,
 		},
 	},
 }
@@ -151,17 +202,18 @@ var jmarieUnauthorized = &examples.UserRepository{
 			Username: "jmarie",
 			Password: "issilly1",
 			Type:     "blocked",
+			ID:       10,
 		},
 	},
 }
 
 // Setup the Pact client.
 func createPact() dsl.Pact {
-	// Create Pact connecting to local Daemon
 	return dsl.Pact{
 		Consumer: "jmarie",
 		Provider: "loginprovider",
 		LogDir:   logDir,
 		PactDir:  pactDir,
+		// DisableToolValidityCheck: true,
 	}
 }

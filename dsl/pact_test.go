@@ -244,6 +244,7 @@ func TestPact_Teardown(t *testing.T) {
 
 func TestPact_TeardownFail(t *testing.T) {
 	c := &mockClient{}
+
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c, Server: &types.MockServer{}}
 	pact.Teardown()
 }
@@ -263,6 +264,14 @@ func TestPact_VerifyProviderRaw(t *testing.T) {
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 		RequestFilter:   dummyMiddleware,
+		BeforeHook: func() error {
+			fmt.Println("aeuaoseu")
+			return nil
+		},
+		AfterHook: func() error {
+			fmt.Println("aeuaoseu")
+			return nil
+		},
 	})
 
 	if err != nil {
@@ -337,22 +346,6 @@ func TestPact_VerifyProviderBroker(t *testing.T) {
 	}
 }
 
-func TestPact_VerifyProviderBrokerNoConsumers(t *testing.T) {
-	s := setupMockBroker(false)
-	defer s.Close()
-	c, _ := createMockClient(true)
-
-	pact := &Pact{LogLevel: "DEBUG", pactClient: c, Provider: "providernotexist"}
-	_, err := pact.VerifyProviderRaw(types.VerifyRequest{
-		ProviderBaseURL: "http://www.foo.com",
-		BrokerURL:       s.URL,
-	})
-
-	if err == nil {
-		t.Fatalf("expected error but got none")
-	}
-}
-
 func TestPact_VerifyProviderRawFail(t *testing.T) {
 	c, _ := createMockClient(false)
 	defer stubPorts()()
@@ -390,6 +383,116 @@ func TestPact_AddInteraction(t *testing.T) {
 	}
 }
 
+func TestPact_BeforeHook(t *testing.T) {
+	var called bool
+
+	req, err := http.NewRequest("GET", "/__setup", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	mw := beforeHookMiddleware(func() error {
+		called = true
+		return nil
+	})
+	mw(dummyHandler("X-Dummy-Handler")).ServeHTTP(rr, req)
+
+	// Expect hook to be called
+	if !called {
+		t.Error("expected state handler to have been called")
+	}
+
+	// expect http handler to NOT have been called
+	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+		t.Error("expected http handler to be invoked")
+	}
+}
+func TestPact_BeforeHookNotSetupPath(t *testing.T) {
+	var called bool
+
+	req, err := http.NewRequest("GET", "/blah", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	mw := beforeHookMiddleware(func() error {
+		called = true
+		return nil
+	})
+	mw(dummyHandler("X-Dummy-Handler")).ServeHTTP(rr, req)
+
+	// Expect hook not to be called
+	if called {
+		t.Error("expected state handler to not have been called")
+	}
+
+	// expect http handler to NOT have been called
+	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+		t.Error("expected http handler to be invoked")
+	}
+}
+func TestPact_AfterHook(t *testing.T) {
+	var called bool
+
+	req, err := http.NewRequest("GET", "/blah", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	mw := afterHookMiddleware(func() error {
+		called = true
+		return nil
+	})
+	mw(dummyHandler("X-Dummy-Handler")).ServeHTTP(rr, req)
+
+	// Expect hook to be called
+	if !called {
+		t.Error("expected state handler to have been called")
+	}
+
+	// expect http handler to NOT have been called
+	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+		t.Error("expected http handler to be invoked")
+	}
+}
+func TestPact_AfterHookSetupPath(t *testing.T) {
+	var called bool
+
+	req, err := http.NewRequest("GET", "/__setup", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	mw := afterHookMiddleware(func() error {
+		called = true
+		return nil
+	})
+
+	mw(dummyHandler("X-Dummy-Handler")).ServeHTTP(rr, req)
+
+	// Expect state handler
+	if called {
+		t.Error("expected state handler to not have been called")
+	}
+
+	// expect http handler to NOT have been called
+	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+		t.Error("expected http handler to be invoked")
+	}
+}
+
 func TestPact_StateHandlerMiddlewareStateHandlerExists(t *testing.T) {
 	var called bool
 
@@ -401,7 +504,6 @@ func TestPact_StateHandlerMiddlewareStateHandlerExists(t *testing.T) {
 		},
 	}
 
-	// TODO: parameterise the __setup
 	req, err := http.NewRequest("POST", "/__setup", strings.NewReader(`{
 		"states": ["state x"],
 		"consumer": "test",
@@ -433,7 +535,6 @@ func TestPact_StateHandlerMiddlewareStateHandlerNotExists(t *testing.T) {
 
 	handlers := map[string]types.StateHandler{}
 
-	// TODO: parameterise the __setup
 	req, err := http.NewRequest("POST", "/__setup", strings.NewReader(`{
 		"states": ["state x"],
 		"consumer": "test",
@@ -467,7 +568,6 @@ func TestPact_StateHandlerMiddlewareStateHandlerError(t *testing.T) {
 		},
 	}
 
-	// TODO: parameterise the __setup
 	req, err := http.NewRequest("POST", "/__setup", strings.NewReader(`{
 		"states": ["state x"],
 		"consumer": "test",
@@ -497,7 +597,6 @@ func TestPact_StateHandlerMiddlewareStateHandlerError(t *testing.T) {
 func TestPact_StateHandlerMiddlewarePassThroughInvalidPath(t *testing.T) {
 	handlers := map[string]types.StateHandler{}
 
-	// TODO: parameterise the __setup
 	req, err := http.NewRequest("POST", "/someotherpath", strings.NewReader(`{ }`))
 
 	if err != nil {

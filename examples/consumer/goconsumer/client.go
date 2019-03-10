@@ -72,7 +72,7 @@ func (c *Client) login(username string, password string) (*ex.User, error) {
       "password": "%s"
     }`, username, password)
 
-	res, err := http.Post(fmt.Sprintf("%s/users/login/10?foo=anything", c.Host), "application/json; charset=utf-8", bytes.NewReader([]byte(loginRequest)))
+	res, err := http.Post(fmt.Sprintf("%s/login/10?foo=anything", c.Host), "application/json; charset=utf-8", bytes.NewReader([]byte(loginRequest)))
 	if res.StatusCode != 200 || err != nil {
 		return nil, fmt.Errorf("login failed")
 	}

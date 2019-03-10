@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/types"
-	"github.com/pact-foundation/pact-go/utils"
 )
 
 func createMockRemoteServer(valid bool) (*httptest.Server, string) {
@@ -97,428 +96,51 @@ func createMockRemoteServerWithAuth(valid bool) *httptest.Server {
 	return ts
 }
 
-func TestPublish_validate(t *testing.T) {
-	dir, _ := os.Getwd()
-	testFile := fmt.Sprintf(filepath.Join(dir, "publish_test.go"))
-
-	p := &Publisher{
-		request: types.PublishRequest{},
-	}
-
-	err := p.validate()
-	if err.Error() != "PactURLs is mandatory" {
-		t.Fatalf("Expected a different error but got '%s'", err.Error())
-	}
-
-	p = &Publisher{
-		request: types.PublishRequest{
-			PactURLs: []string{testFile},
-		},
-	}
-
-	err = p.validate()
-	if err.Error() != "PactBroker is mandatory" {
-		t.Fatalf("Expected a different error but got '%s'", err.Error())
-	}
-
-	p = &Publisher{
-		request: types.PublishRequest{
-			PactBroker: "http://foo.com",
-			PactURLs:   []string{testFile},
-		},
-	}
-
-	err = p.validate()
-	if err.Error() != "ConsumerVersion is mandatory" {
-		t.Fatalf("Expected a different error but got '%s'", err.Error())
-	}
-
-	p = &Publisher{
-		request: types.PublishRequest{
-			PactBroker: "http://foo.com",
-			PactURLs: []string{
-				testFile,
-			},
-			ConsumerVersion: "1.0.0",
-			BrokerUsername:  "userwithoutpass",
-		},
-	}
-
-	err = p.validate()
-	if err.Error() != "Must provide both or none of BrokerUsername and BrokerPassword" {
-		t.Fatalf("Expected a different error but got '%s'", err.Error())
-	}
-
-	p = &Publisher{
-		request: types.PublishRequest{
-			PactBroker: "http://foo.com",
-			PactURLs: []string{
-				testFile,
-			},
-			ConsumerVersion: "1.0.0",
-			BrokerPassword:  "passwithoutuser",
-		},
-	}
-
-	err = p.validate()
-	if err.Error() != "Must provide both or none of BrokerUsername and BrokerPassword" {
-		t.Fatalf("Expected a different error but got '%s'", err.Error())
-	}
-
-	p = &Publisher{
-		request: types.PublishRequest{
-			PactURLs: []string{
-				"aoeuaoeu",
-			},
-		},
-	}
-
-	err = p.validate()
-	if err == nil {
-		t.Fatal("Expected error but got none")
-	}
-
-	p = &Publisher{
-		request: types.PublishRequest{
-			PactBroker: "http://foo.com",
-			PactURLs: []string{
-				testFile,
-			},
-			ConsumerVersion: "1.0.0",
-		},
-	}
-
-	err = p.validate()
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-
-	p = &Publisher{
-		request: types.PublishRequest{
-			PactBroker: "http://foo.com",
-			PactURLs: []string{
-				testFile,
-			},
-			ConsumerVersion: "1.0.0",
-		},
-	}
-
-	err = p.validate()
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-}
-
-func TestPublish_readLocalPactFile(t *testing.T) {
-	file := createSimplePact(true)
-	defer os.Remove(file.Name())
-	p := &Publisher{request: types.PublishRequest{}}
-
-	f, _, err := p.readLocalPactFile(file.Name())
-
-	if err != nil {
-		t.Fatalf("Err: %v", err)
-	}
-
-	if f.Consumer.Name != "Some Consumer" {
-		t.Fatalf("Expected Consumer name to be 'Some Consumer'")
-	}
-
-	if f.Provider.Name != "Some Provider" {
-		t.Fatalf("Expected Provider name to be 'Some Provider'")
-	}
-}
-
-func TestPublish_readLocalPactFileFail(t *testing.T) {
-	p := &Publisher{request: types.PublishRequest{}}
-	_, _, err := p.readLocalPactFile("thisfileprobablydoesntexist")
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-
-	brokenFile := createSimplePact(false)
-	defer os.Remove(brokenFile.Name())
-
-	_, _, err = p.readLocalPactFile(brokenFile.Name())
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-}
-
-func TestPublish_readRemotePactFile(t *testing.T) {
-	p := &Publisher{request: types.PublishRequest{}}
-	s, url := createMockRemoteServer(true)
-	defer s.Close()
-
-	f, _, err := p.readRemotePactFile(url)
-
-	if err != nil {
-		t.Fatalf("Err: %v", err)
-	}
-
-	if f.Consumer.Name != "Some Consumer" {
-		t.Fatalf("Expected Consumer name to be 'Some Consumer'")
-	}
-
-	if f.Provider.Name != "Some Provider" {
-		t.Fatalf("Expected Provider name to be 'Some Provider'")
-	}
-}
-
-func TestPublish_readRemotePactFileFail(t *testing.T) {
-	p := &Publisher{request: types.PublishRequest{}}
-	s, url := createMockRemoteServer(false)
-	defer s.Close()
-
-	_, _, err := p.readRemotePactFile(url)
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-
-	_, _, err = p.readRemotePactFile(fmt.Sprintf("%s/iknowthisfiledoesntexist", url))
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-}
-
-func TestPublish_readPactFile(t *testing.T) {
-	p := &Publisher{request: types.PublishRequest{}}
-	s, url := createMockRemoteServer(true)
-	defer s.Close()
-
-	f, _, err := p.readPactFile(url)
-
-	if err != nil {
-		t.Fatalf("Err: %v", err)
-	}
-
-	if f.Consumer.Name != "Some Consumer" {
-		t.Fatalf("Expected Consumer name to be 'Some Consumer'")
-	}
-
-	if f.Provider.Name != "Some Provider" {
-		t.Fatalf("Expected Provider name to be 'Some Provider'")
-	}
-
-	localFile := createSimplePact(true)
-	f, _, err = p.readPactFile(localFile.Name())
-
-	if err != nil {
-		t.Fatalf("Err: %v", err)
-	}
-
-	if f.Consumer.Name != "Some Consumer" {
-		t.Fatalf("Expected Consumer name to be 'Some Consumer'")
-	}
-
-	if f.Provider.Name != "Some Provider" {
-		t.Fatalf("Expected Provider name to be 'Some Provider'")
-	}
-}
-
-func TestPublish_readPactFileFail(t *testing.T) {
-	p := &Publisher{request: types.PublishRequest{}}
-	s, url := createMockRemoteServer(false)
-	defer s.Close()
-
-	_, _, err := p.readPactFile(url)
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-
-	_, _, err = p.readPactFile(fmt.Sprintf("%s/iknowthisfiledoesntexist", url))
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-}
-
 func TestPublish_Publish(t *testing.T) {
-	p := &Publisher{}
-
-	f := createSimplePact(true)
-	broker := setupMockServer(true, t)
-	defer broker.Close()
-
-	err := p.Publish(types.PublishRequest{
-		PactURLs:        []string{f.Name()},
-		PactBroker:      broker.URL,
+	c := newMockClient()
+	p := Publisher{
+		pactClient: c,
+	}
+	r := types.PublishRequest{
+		PactURLs:        []string{"/tmp/file.json"},
+		PactBroker:      "http://foo.com",
 		ConsumerVersion: "1.0.0",
-	})
+	}
+	err := p.Publish(r)
 
 	if err != nil {
-		t.Fatalf("Error: %v", err)
+		t.Fatal(err)
 	}
 }
-
 func TestPublish_PublishFail(t *testing.T) {
-	p := &Publisher{}
-
-	broker := setupMockServer(true, t)
-	defer broker.Close()
-
-	err := p.Publish(types.PublishRequest{
-		PactURLs:        []string{"aoeuaoeuaoeu"},
-		PactBroker:      broker.URL,
+	c := newMockClient()
+	c.PublishPactsError = fmt.Errorf("unable to publish to broker")
+	p := Publisher{
+		pactClient: c,
+	}
+	r := types.PublishRequest{
+		PactURLs:        []string{"/tmp/file.json"},
+		PactBroker:      "http://foo.com",
 		ConsumerVersion: "1.0.0",
-	})
+	}
+	err := p.Publish(r)
 
 	if err == nil {
-		t.Fatalf("Expected error but got none")
+		t.Fatal("want error, got none")
 	}
+}
 
-	err = p.Publish(types.PublishRequest{
-		PactURLs:        []string{"http://localhost:1234/foo/bar"},
-		PactBroker:      broker.URL,
+func TestPublish_PublishFailIntegration(t *testing.T) {
+	p := Publisher{}
+
+	r := types.PublishRequest{
+		PactURLs:        []string{"/tmp/file.json"},
+		PactBroker:      "a", // this will actually try to publish, should fail
 		ConsumerVersion: "1.0.0",
-	})
+	}
+	err := p.Publish(r)
 
 	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-
-	// real file but broken broker
-	f := createSimplePact(true)
-	brokenBroker := setupMockServer(false, t)
-	defer broker.Close()
-	err = p.Publish(types.PublishRequest{
-		PactURLs:        []string{f.Name()},
-		PactBroker:      brokenBroker.URL,
-		ConsumerVersion: "1.0.0",
-	})
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-
-	if strings.TrimSpace(err.Error()) != strings.TrimSpace("something went wrong") {
-		t.Fatalf("Expected error to be 'something went wrong' but got: %s", err.Error())
-	}
-}
-
-func TestPublish_callFail(t *testing.T) {
-	p := &Publisher{}
-	err := p.call("GET", "%%%", nil)
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-}
-
-func TestPublish_callFailNoBroker(t *testing.T) {
-	p := &Publisher{}
-	port, _ := utils.GetFreePort()
-	err := p.call("GET", fmt.Sprintf("http://localhost:%d/", port), nil)
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-}
-
-func TestPublish_PublishWithTags(t *testing.T) {
-	p := &Publisher{}
-
-	f := createSimplePact(true)
-	broker := setupMockServer(true, t)
-	defer broker.Close()
-
-	err := p.Publish(types.PublishRequest{
-		PactURLs:        []string{f.Name()},
-		PactBroker:      broker.URL,
-		ConsumerVersion: "1.0.0",
-		Tags:            []string{"latest"},
-	})
-
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-}
-
-func TestPublish_PublishWithAuth(t *testing.T) {
-	p := &Publisher{}
-
-	f := createSimplePact(true)
-	broker := createMockRemoteServerWithAuth(true)
-	defer broker.Close()
-
-	err := p.Publish(types.PublishRequest{
-		PactURLs:        []string{f.Name()},
-		PactBroker:      broker.URL,
-		ConsumerVersion: "1.0.0",
-		BrokerUsername:  "foo",
-		BrokerPassword:  "bar",
-	})
-
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-}
-
-func TestPublish_PublishWithAuthFail(t *testing.T) {
-	p := &Publisher{}
-
-	f := createSimplePact(true)
-	broker := createMockRemoteServerWithAuth(true)
-	defer broker.Close()
-
-	err := p.Publish(types.PublishRequest{
-		PactURLs:        []string{f.Name()},
-		PactBroker:      broker.URL,
-		ConsumerVersion: "1.0.0",
-		BrokerUsername:  "foo",
-		BrokerPassword:  "fail",
-	})
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-}
-
-func TestPublish_tagRequest(t *testing.T) {
-	p := &Publisher{}
-	f := createSimplePact(true)
-
-	broker := setupMockServer(true, t)
-	defer broker.Close()
-
-	err := p.tagRequest("Some Consumer", types.PublishRequest{
-		PactURLs:        []string{f.Name()},
-		PactBroker:      broker.URL,
-		ConsumerVersion: "1.0.0",
-		Tags:            []string{"latest"},
-	})
-
-	if err != nil {
-		t.Fatalf("Error: %v", err)
-	}
-}
-
-func TestPublish_tagRequestFail(t *testing.T) {
-	p := &Publisher{}
-	f := createSimplePact(true)
-
-	broker := setupMockServer(false, t)
-	defer broker.Close()
-
-	err := p.tagRequest("Some Consumer", types.PublishRequest{
-		PactURLs:        []string{f.Name()},
-		PactBroker:      broker.URL,
-		ConsumerVersion: "1.0.0",
-		Tags:            []string{"latest"},
-	})
-
-	if err == nil {
-		t.Fatalf("Expected error but got none")
-	}
-}
-
-func TestPublish_SetClient(t *testing.T) {
-	p := &Publisher{}
-	client := &http.Client{}
-	p.SetClient(client)
-	if p.client != client {
-		t.Fatalf("SetClient Failed To Set Client On Publisher")
+		t.Fatal("want error, got none")
 	}
 }

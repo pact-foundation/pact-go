@@ -29,7 +29,7 @@ type Client interface {
 	StopServer(server *types.MockServer) (*types.MockServer, error)
 
 	// RemoveAllServers stops all remote Pact Mock Servers.
-	RemoveAllServers(server *types.MockServer) *[]types.MockServer
+	RemoveAllServers(server *types.MockServer) []*types.MockServer
 
 	// VerifyProvider runs the verification process against a running Provider.
 	VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error)
@@ -41,6 +41,9 @@ type Client interface {
 	// and returns an object with just the example (generated) content
 	// The object may be a simple JSON primitive e.g. string or number or a complex object
 	ReifyMessage(request *types.PactReificationRequest) (res *types.ReificationResponse, err error)
+
+	// PublishPacts publishes pact files to a Pact Broker
+	PublishPacts(request types.PublishRequest) error
 }
 
 // PactClient is the main interface into starting/stopping
@@ -49,6 +52,7 @@ type PactClient struct {
 	pactMockSvcManager     client.Service
 	verificationSvcManager client.Service
 	messageSvcManager      client.Service
+	publishSvcManager      client.Service
 
 	// Track mock servers
 	Servers []MockService
@@ -64,22 +68,24 @@ type PactClient struct {
 }
 
 // newClient creates a new Pact client manager with the provided services
-func newClient(MockServiceManager client.Service, verificationServiceManager client.Service, messageServiceManager client.Service) *PactClient {
+func newClient(MockServiceManager client.Service, verificationServiceManager client.Service, messageServiceManager client.Service, publishServiceManager client.Service) *PactClient {
 	MockServiceManager.Setup()
 	verificationServiceManager.Setup()
 	messageServiceManager.Setup()
+	publishServiceManager.Setup()
 
 	return &PactClient{
 		pactMockSvcManager:     MockServiceManager,
 		verificationSvcManager: verificationServiceManager,
 		messageSvcManager:      messageServiceManager,
+		publishSvcManager:      publishServiceManager,
 		TimeoutDuration:        10 * time.Second,
 	}
 }
 
 // NewClient creates a new Pact client manager with defaults
 func NewClient() *PactClient {
-	return newClient(&client.MockService{}, &client.VerificationService{}, &client.MessageService{})
+	return newClient(&client.MockService{}, &client.VerificationService{}, &client.MessageService{}, &client.PublishService{})
 }
 
 // StartServer starts a remote Pact Mock Server.
@@ -124,7 +130,7 @@ func (p *PactClient) StopServer(server *types.MockServer) (*types.MockServer, er
 }
 
 // RemoveAllServers stops all remote Pact Mock Servers.
-func (p *PactClient) RemoveAllServers(server *types.MockServer) *[]types.MockServer {
+func (p *PactClient) RemoveAllServers(server *types.MockServer) []*types.MockServer {
 	log.Println("[DEBUG] client: stop server")
 
 	for _, s := range p.verificationSvcManager.List() {
@@ -136,6 +142,7 @@ func (p *PactClient) RemoveAllServers(server *types.MockServer) *[]types.MockSer
 }
 
 // VerifyProvider runs the verification process against a running Provider.
+// TODO: extract/refactor the stdout/error streaems from these functions
 func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	log.Println("[DEBUG] client: verifying a provider")
 	var response types.ProviderVerifierResponse
@@ -194,8 +201,14 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 	var verification types.ProviderVerifierResponse
 	for _, v := range verifications {
 		v = strings.TrimSpace(v)
-		if v != "" {
+
+		// TODO: fix once https://github.com/pact-foundation/pact-provider-verifier/issues/26
+		//       is addressed
+		// logging to stdout breaks the JSON response
+		// https://github.com/pact-foundation/pact-ruby/commit/06fa61581512ba5570c315d089f2c0fc23c8cb11
+		if v != "" && strings.Index(v, "INFO") != 0 {
 			dErr := json.Unmarshal([]byte(v), &verification)
+
 			response.Examples = append(response.Examples, verification.Examples...)
 
 			if dErr != nil {
@@ -252,6 +265,20 @@ func (p *PactClient) UpdateMessagePact(request types.PactMessageRequest) error {
 	}
 
 	return fmt.Errorf("error creating message: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
+}
+
+// PublishPacts publishes a set of pacts to a pact broker
+func (p *PactClient) PublishPacts(request types.PublishRequest) error {
+	svc := p.publishSvcManager.NewService(request.Args)
+	log.Println("[DEBUG] about to publish pacts")
+	cmd := svc.Start()
+
+	log.Println("[DEBUG] waiting for response")
+	err := cmd.Wait()
+
+	log.Println("[DEBUG] response from publish", err)
+
+	return err
 }
 
 // ReifyMessage takes a structured object, potentially containing nested Matchers

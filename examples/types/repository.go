@@ -13,3 +13,13 @@ func (u *UserRepository) ByUsername(username string) (*User, error) {
 	}
 	return nil, ErrNotFound
 }
+
+// ByID finds a user by their ID
+func (u *UserRepository) ByID(ID int) (*User, error) {
+	for _, user := range u.Users {
+		if user.ID == ID {
+			return user, nil
+		}
+	}
+	return nil, ErrNotFound
+}

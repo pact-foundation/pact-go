@@ -296,18 +296,11 @@ func (p *Pact) WritePact() error {
 
 // VerifyProviderRaw reads the provided pact files and runs verification against
 // a running Provider API, providing raw response from the Verification process.
+//
+// Order of events: beforeHook, stateHandlers, requestFilter(pre <execute provider> post), afterHook
 func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	p.Setup(false)
 	var res types.ProviderVerifierResponse
-
-	// If we provide a Broker, we go to it to find consumers
-	if request.BrokerURL != "" {
-		log.Println("[DEBUG] pact provider verification - finding all consumers from broker: ", request.BrokerURL)
-		err := findConsumers(p.Provider, &request)
-		if err != nil {
-			return types.ProviderVerifierResponse{}, err
-		}
-	}
 
 	u, err := url.Parse(request.ProviderBaseURL)
 
@@ -315,8 +308,18 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 		return res, err
 	}
 
-	m := []proxy.Middleware{
-		stateHandlerMiddleware(request.StateHandlers),
+	m := []proxy.Middleware{}
+
+	if request.BeforeHook != nil {
+		m = append(m, beforeHookMiddleware(request.BeforeHook))
+	}
+
+	if request.AfterHook != nil {
+		m = append(m, afterHookMiddleware(request.AfterHook))
+	}
+
+	if len(request.StateHandlers) > 0 {
+		m = append(m, stateHandlerMiddleware(request.StateHandlers))
 	}
 
 	if request.RequestFilter != nil {
@@ -351,9 +354,14 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 		Tags:                       request.Tags,
 		BrokerUsername:             request.BrokerUsername,
 		BrokerPassword:             request.BrokerPassword,
+		BrokerToken:                request.BrokerToken,
 		PublishVerificationResults: request.PublishVerificationResults,
 		ProviderVersion:            request.ProviderVersion,
 		ProviderStatesSetupURL:     setupURL,
+	}
+
+	if request.Provider == "" {
+		verificationRequest.Provider = p.Provider
 	}
 
 	portErr := waitForPort(port, "tcp", "localhost", p.ClientTimeout,
@@ -398,11 +406,53 @@ var checkCliCompatibility = func() {
 	}
 }
 
+// beforeHookMiddleware is invoked before any other, only on the __setup
+// request (to avoid duplication)
+func beforeHookMiddleware(beforeHook types.Hook) proxy.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/__setup" {
+
+				log.Println("[DEBUG] executing before hook")
+				err := beforeHook()
+
+				if err != nil {
+					log.Println("[ERROR] error executing before hook:", err)
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// afterHookMiddleware is invoked after any other, and is the last
+// function to be called prior to returning to the test suite. It is
+// therefore not invoked on __setup
+func afterHookMiddleware(afterHook types.Hook) proxy.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			next.ServeHTTP(w, r)
+
+			if r.URL.Path != "/__setup" {
+				log.Println("[DEBUG] executing after hook")
+				err := afterHook()
+
+				if err != nil {
+					log.Println("[ERROR] error executing after hook:", err)
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+			}
+		})
+	}
+}
+
+// stateHandlerMiddleware responds to the various states that are
+// given during provider verification
+//
 // statehandler accepts a state object from the verifier and executes
 // any state handlers associated with the provider.
 // It will not execute further middleware if it is the designted "state" request
-// TODO: path = /__setup and header must be "X-..." ?
-// TODO: make configuration by the pact DSL
 func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -420,7 +470,7 @@ func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware 
 					} else {
 						// Execute state handler
 						if err := sf(); err != nil {
-							log.Printf("[WARN] state handler for '%v' return error: %v", state, err)
+							log.Printf("[ERROR] state handler for '%v' errored: %v", state, err)
 							w.WriteHeader(http.StatusInternalServerError)
 							return
 						}
@@ -561,8 +611,10 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) (types.Pro
 		Tags:                       request.Tags,
 		BrokerUsername:             request.BrokerUsername,
 		BrokerPassword:             request.BrokerPassword,
+		BrokerToken:                request.BrokerToken,
 		PublishVerificationResults: request.PublishVerificationResults,
 		ProviderVersion:            request.ProviderVersion,
+		Provider:                   p.Provider,
 	}
 
 	mux.HandleFunc("/", messageVerificationHandler(request.MessageHandlers, request.StateHandlers))
@@ -584,7 +636,8 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) (types.Pro
 		return response, portErr
 	}
 
-	return p.VerifyProviderRaw(verificationRequest)
+	log.Println("[DEBUG] pact provider verification")
+	return p.pactClient.VerifyProvider(verificationRequest)
 }
 
 // VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable

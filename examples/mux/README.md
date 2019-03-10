@@ -5,7 +5,7 @@ Example using the standard libraries Mux Router.
 The following example is a simple Login UI ([Consumer](#consumer)) that calls a
 User Service ([Provider](#provider)) using JSON over HTTP.
 
-The API currently exposes a single `Login` endpoint at `POST /users/login/:id`, which
+The API currently exposes a single `Login` endpoint at `POST //login/:id`, which
 the Consumer uses to authenticate a User.
 
 We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):
@@ -25,7 +25,7 @@ go get ./...
 
 ## Provider
 
-The "Provider" is a real HTTP API containing the `/users/login/:id` API call:
+The "Provider" is a real HTTP API containing the `//login/:id` API call:
 
 ```
 cd provider
@@ -46,17 +46,17 @@ go run cmd/usersvc/main.go
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"jmarie",
   "password":"issilly"
-}' "http://localhost:8080/users/login/1"
+}' "http://localhost:8080//login/1"
 
 # 403
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"jmarie",
   "password":"issilly"
-}' "http://localhost:8080/users/login/1"
+}' "http://localhost:8080//login/1"
 
 # 404
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"someoneelse",
   "password":"issilly"
-}' "http://localhost:8080/users/login/1"
+}' "http://localhost:8080//login/1"
 ```

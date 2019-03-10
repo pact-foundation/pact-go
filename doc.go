@@ -161,7 +161,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 	response, err = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
 		BrokerURL:              brokerHost,
-		Tags:                   []string{"latest", "sit4"},
+		Tags:                   []string{"master", "sit4"},
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
@@ -233,7 +233,7 @@ Publishing using Go code:
 		PactBroker:             "http://pactbroker:8000",
 		PactURLs:               []string{"./pacts/my_consumer-my_provider.json"},
 		ConsumerVersion:        "1.0.0",
-		Tags:                   []string{"latest", "dev"},
+		Tags:                   []string{"master", "dev"},
 	})
 
 Publishing from the CLI:

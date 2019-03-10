@@ -57,7 +57,6 @@ func TestMain(m *testing.M) {
 
 	// Enable when running E2E/integration tests before a release
 	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
-		brokerHost := os.Getenv("PACT_BROKER_HOST")
 		version := "1.0.0"
 		if os.Getenv("TRAVIS_BUILD_NUMBER") != "" {
 			version = fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_BUILD_NUMBER"), time.Now().Unix())
@@ -68,15 +67,16 @@ func TestMain(m *testing.M) {
 
 		err := p.Publish(types.PublishRequest{
 			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
-			PactBroker:      brokerHost,
+			PactBroker:      os.Getenv("PACT_BROKER_HOST"),
 			ConsumerVersion: version,
-			Tags:            []string{"latest", "sit4"},
+			Tags:            []string{"dev", "prod"},
 			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
 		})
 
 		if err != nil {
 			log.Println("ERROR: ", err)
+			os.Exit(1)
 		}
 	} else {
 		log.Println("Skipping publishing")
@@ -143,7 +143,7 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 		UponReceiving("A request to login with user 'jmarie'").
 		WithRequest(request{
 			Method: "POST",
-			Path:   term("/users/login/1", "/users/login/[0-9]+"),
+			Path:   term("/login/10", "/login/[0-9]+"),
 			Query: dsl.MapMatcher{
 				"foo": term("bar", "[a-zA-Z]+"),
 			},
@@ -158,6 +158,7 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 			Headers: dsl.MapMatcher{
 				"X-Api-Correlation-Id": dsl.Like("100"),
 				"Content-Type":         term("application/json; charset=utf-8", `application\/json`),
+				"X-Auth-Token":         dsl.Like("1234"),
 			},
 		})
 
@@ -189,7 +190,7 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 		UponReceiving("A request to login with user 'jmarie'").
 		WithRequest(request{
 			Method:  "POST",
-			Path:    s("/users/login/10"),
+			Path:    s("/login/10"),
 			Body:    loginRequest,
 			Headers: commonHeaders,
 			Query: dsl.MapMatcher{
@@ -227,7 +228,7 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 		UponReceiving("A request to login with user 'jmarie'").
 		WithRequest(request{
 			Method:  "POST",
-			Path:    s("/users/login/10"),
+			Path:    s("/login/10"),
 			Body:    loginRequest,
 			Headers: commonHeaders,
 		}).
@@ -260,7 +261,7 @@ func TestPactConsumerGetUser_Authenticated(t *testing.T) {
 	pact.
 		AddInteraction().
 		Given("User jmarie is authenticated").
-		UponReceiving("A request to login with user 'jmarie'").
+		UponReceiving("A request to get user 'jmarie'").
 		WithRequest(request{
 			Method: "GET",
 			Path:   s("/users/10"),

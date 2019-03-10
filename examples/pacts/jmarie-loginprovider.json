@@ -11,7 +11,7 @@
       "providerState": "User jmarie exists",
       "request": {
         "method": "POST",
-        "path": "/users/login/1",
+        "path": "/login/10",
         "query": "foo=bar",
         "headers": {
           "Content-Type": "application/json; charset=utf-8"
@@ -23,7 +23,7 @@
         "matchingRules": {
           "$.path": {
             "match": "regex",
-            "regex": "\\/users\\/login\\/[0-9]+"
+            "regex": "\\/login\\/[0-9]+"
           },
           "$.query.foo[0]": {
             "match": "regex",
@@ -39,10 +39,12 @@
         "status": 200,
         "headers": {
           "Content-Type": "application/json; charset=utf-8",
-          "X-Api-Correlation-Id": "100"
+          "X-Api-Correlation-Id": "100",
+          "X-Auth-Token": "1234"
         },
         "body": {
           "user": {
+            "id": 1,
             "name": "Jean-Marie de La Beaujardière😀😍",
             "password": "password123",
             "type": "admin",
@@ -55,6 +57,12 @@
             "regex": "application\\/json"
           },
           "$.headers.X-Api-Correlation-Id": {
+            "match": "type"
+          },
+          "$.headers.X-Auth-Token": {
+            "match": "type"
+          },
+          "$.body.user.id": {
             "match": "type"
           },
           "$.body.user.name": {
@@ -78,7 +86,7 @@
       "providerState": "User jmarie does not exist",
       "request": {
         "method": "POST",
-        "path": "/users/login/10",
+        "path": "/login/10",
         "query": "foo=anything",
         "headers": {
           "Content-Type": "application/json; charset=utf-8"
@@ -112,7 +120,7 @@
       "providerState": "User jmarie is unauthorized",
       "request": {
         "method": "POST",
-        "path": "/users/login/10",
+        "path": "/login/10",
         "headers": {
           "Content-Type": "application/json; charset=utf-8"
         },
@@ -141,7 +149,7 @@
       }
     },
     {
-      "description": "A request to login with user 'jmarie'",
+      "description": "A request to get user 'jmarie'",
       "providerState": "User jmarie is authenticated",
       "request": {
         "method": "GET",
@@ -156,6 +164,7 @@
           "Content-Type": "application/json; charset=utf-8"
         },
         "body": {
+          "id": 1,
           "name": "Jean-Marie de La Beaujardière😀😍",
           "password": "password123",
           "type": "admin",
@@ -165,6 +174,9 @@
           "$.headers.Content-Type": {
             "match": "regex",
             "regex": "application\\/json"
+          },
+          "$.body.id": {
+            "match": "type"
           },
           "$.body.name": {
             "match": "type"

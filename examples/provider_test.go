@@ -31,6 +31,9 @@ func TestProvider(t *testing.T) {
 	go startServer()
 
 	// Authorization middleware
+	// This is your chance to modify the request before it hits your provider
+	// NOTE: this should be used very carefully, as it has the potential to
+	// _change_ the contract
 	f := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.Header.Add("Authorization", "Bearer 1234-dynamic-value")
@@ -46,16 +49,16 @@ func TestProvider(t *testing.T) {
 		RequestFilter:         f,
 		StateHandlers: types.StateHandlers{
 			"User foo exists": func() error {
-				fmt.Println("WOO state handler invoked!")
+				fmt.Println("'User foo exiss' state handler invoked")
 
-				// name = "billy"
+				name = "billy"
 				return nil
 			},
 		},
 	})
 }
 
-var name = "not the right last name"
+var name = "some other name"
 
 func startServer() {
 	mux := http.NewServeMux()

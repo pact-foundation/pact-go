@@ -12,7 +12,6 @@ func TestVerifyRequest_ValidRequest(t *testing.T) {
 		BrokerPassword:             "1234",
 		ProviderBaseURL:            "http://localhost:8080",
 		ProviderStatesSetupURL:     "http://localhost:8080/setup",
-		ProviderStatesURL:          "http://localhost:8080/states",
 		ProviderVersion:            "1.0.0",
 		PublishVerificationResults: true,
 		Verbose:                    true,
