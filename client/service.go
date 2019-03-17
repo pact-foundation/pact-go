@@ -1,6 +1,6 @@
 /*
-Package client implements the raw interface to the Pact CLI tools: The Pact Mock Service and Provider Verification
-"binaries."
+Package client is an internal package, implementing the raw interface to the
+Pact CLI tools: The Pact Mock Service and Provider Verification "binaries."
 
 See https://github.com/pact-foundation/pact-provider-verifier and
 https://github.com/bethesque/pact-mock_service for more on the Ruby "binaries".

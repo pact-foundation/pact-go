@@ -26,11 +26,11 @@ func TestPact_GinProvider(t *testing.T) {
 		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
 		StateHandlers:   stateHandlers,
 		RequestFilter:   fixBearerToken,
-		BeforeHook: func() error {
+		BeforeEach: func() error {
 			fmt.Println("before hook")
 			return nil
 		},
-		AfterHook: func() error {
+		AfterEach: func() error {
 			fmt.Println("after hook")
 			return nil
 		},
@@ -61,21 +61,21 @@ func TestPact_GinProvider(t *testing.T) {
 		}
 
 		// Verify the Provider - Tag-based Published Pacts for any known consumers
-		// _, err = pact.VerifyProvider(t, types.VerifyRequest{
-		// 	ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-		// 	BrokerURL:                  brokerHost,
-		// 	Tags:                       []string{"master", "sit4"},
-		// 	BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
-		// 	BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
-		// 	PublishVerificationResults: true,
-		// 	ProviderVersion:            "1.0.0",
-		// 	StateHandlers:              stateHandlers,
-		// 	RequestFilter:              fixBearerToken,
-		// })
+		_, err = pact.VerifyProvider(t, types.VerifyRequest{
+			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
+			BrokerURL:                  brokerHost,
+			Tags:                       []string{"prod"},
+			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+			PublishVerificationResults: true,
+			ProviderVersion:            "1.0.0",
+			StateHandlers:              stateHandlers,
+			RequestFilter:              fixBearerToken,
+		})
 
-		// if err != nil {
-		// 	t.Fatal(err)
-		// }
+		if err != nil {
+			t.Fatal(err)
+		}
 
 	} else {
 		t.Log("Skipping pulling from broker as PACT_INTEGRATED_TESTS is not set")
@@ -130,7 +130,7 @@ func fixBearerToken(next http.Handler) http.Handler {
 func startProvider() {
 	router := gin.Default()
 	router.POST("/login/:id", UserLogin)
-	router.GET("/users/:id", isAuthenticated(), GetUser)
+	router.GET("/users/:id", IsAuthenticated(), GetUser)
 
 	router.Run(fmt.Sprintf(":%d", port))
 }

@@ -89,6 +89,7 @@ Read [Getting started with Pact] for more information for beginners.
 ## Versions
 
 <details><summary>Specification Compatibility</summary>
+
 | Version | Stable     | [Spec] Compatibility | Install            |
 | ------- | ---------- | -------------------- | ------------------ |
 | 1.0.x   | Yes        | 2, 3\*               | See [installation] |
@@ -149,70 +150,60 @@ We'll run through a simple example to get an understanding the concepts:
 The simple example looks like this:
 
 ```go
-package main
-
-import (
-	"fmt"
-	"log"
-	"net/http"
-	"strings"
-	"testing"
-
-	"github.com/pact-foundation/pact-go/dsl"
-)
-
-// Example Pact: How to run me!
-// 1. cd <pact-go>/examples
-// 2. go test -v -run TestConsumer
 func TestConsumer(t *testing.T) {
+	type 	 struct {
+		Name     string `json:"name" pact:"example=billy"`
+		LastName string `json:"lastName" pact:"example=sampson"`
+	}
 
-	// Create Pact client
+	// Create Pact connecting to local Daemon
 	pact := &dsl.Pact{
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
+		Host:     "localhost",
 	}
 	defer pact.Teardown()
 
-	// Pass in test case
-	var test = func() error {
+	// Pass in test case. This is the component that makes the external HTTP call
+	var test = func() (err error) {
 		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
-		req, err := http.NewRequest("GET", u, strings.NewReader(`{"s":"foo"}`))
+		req, _ := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
 		// of application/json. If you don't explicitly set the content-type, you
 		// will get a mismatch during Verification.
 		req.Header.Set("Content-Type", "application/json")
-		if err != nil {
-			return err
-		}
-		if _, err = http.DefaultClient.Do(req); err != nil {
-			return err
-		}
+		req.Header.Set("Authorization", "Bearer 1234")
 
-		return err
+		_, err = http.DefaultClient.Do(req); err != nil {
+		return
 	}
 
 	// Set up our expected interactions.
 	pact.
 		AddInteraction().
-		Given("User 1 exists").
-		UponReceiving("A request to get user 1").
+		Given("User foo exists").
+		UponReceiving("A request to get foo").
 		WithRequest(dsl.Request{
 			Method:  "GET",
-			Path:    dsl.String("/users/1"),
-			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
+			Path:    dsl.String("/foobar"),
+			Headers: dsl.MapMatcher{"Content-Type": dsl.String("application/json"), "Authorization": dsl.String("Bearer 1234")},
+			Body: map[string]string{
+				"name": "billy",
+			},
 		}).
 		WillRespondWith(dsl.Response{
 			Status:  200,
-			Headers: dsl.MapMatcher{"Content-Type": "application/json"},
-			Body:    dsl.Match(&Foo{})
+			Headers: dsl.MapMatcher{"Content-Type": dsl.String("application/json")},
+			Body:    dsl.Match(&User{}),
 		})
 
-	// Verify
+	// Run the test, verify it did what we expected and capture the contract
 	if err := pact.Verify(test); err != nil {
 		log.Fatalf("Error on Verify: %v", err)
 	}
 }
+
 ```
 
 ### Provider API Testing
@@ -259,7 +250,7 @@ Here is the Provider test process broker down:
       // Start provider API in the background
       go startServer()
 
-      // Verify the Provider with local Pact Files
+      // Verify the Provider using the locally saved Pact Files
       pact.VerifyProvider(t, types.VerifyRequest{
         ProviderBaseURL:        "http://localhost:8000",
         PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
@@ -281,9 +272,6 @@ and giving you granular test reporting. If you don't like this behaviour, you ma
 Note that `PactURLs` may be a list of local pact files or remote based
 urls (e.g. from a
 [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
-
-See the `Skip()'ed` [integration tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_test.go)
-for a more complete E2E example.
 
 #### Provider Verification
 
@@ -311,7 +299,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
     })
     ```
 
-1.  Use `BrokerURL` and `Tags` to automatically find all of the latest consumers:
+1.  Use `BrokerURL` and `Tags` to automatically find all of the latest consumers given one or more tags:
 
     ```go
     pact.VerifyProvider(t, types.VerifyRequest{
@@ -366,18 +354,18 @@ Read more about [Provider States](https://docs.pact.io/getting_started/provider_
 
 #### Before and After Hooks
 
-Sometimes, it's useful to be able to do things before or after a test has run, such as reset a database, log a metric etc. A `BeforeHook` runs before any other part of the Pact test lifecycle, and a `AfterHook` runs as the last step before returning the verification result back to the test.
+Sometimes, it's useful to be able to do things before or after a test has run, such as reset a database, log a metric etc. A `BeforeEach` runs before any other part of the Pact test lifecycle, and a `AfterEach` runs as the last step before returning the verification result back to the test.
 
 You can add them to your Verification as follows:
 
 ```go
 	pact.VerifyProvider(t, types.VerifyRequest{
 		...
-		BeforeHook: func() error {
+		BeforeEach: func() error {
 			fmt.Println("before hook, do something")
 			return nil
 		},
-		AfterHook: func() error {
+		AfterEach: func() error {
 			fmt.Println("after hook, do something")
 			return nil
 		},
@@ -437,7 +425,7 @@ _Important Note_: You should only use this feature for things that can not be pe
 
 For each _interaction_ in a pact file, the order of execution is as follows:
 
-`BeforeHook` -> `StateHandler` -> `RequestFilter (pre)`, `Execute Provider Test` -> `RequestFilter (post)` -> `AfterHook`
+`BeforeEach` -> `StateHandler` -> `RequestFilter (pre)`, `Execute Provider Test` -> `RequestFilter (post)` -> `AfterEach`
 
 If any of the middleware or hooks fail, the tests will also fail.
 
@@ -756,7 +744,6 @@ for more matching examples.
 
 - [API Consumer](https://github.com/pact-foundation/pact-go/tree/master/examples/)
 - [Golang ServeMux](https://github.com/pact-foundation/pact-go/tree/master/examples/mux)
-- [Go Kit](https://github.com/pact-foundation/pact-go/tree/master/examples/go-kit)
 - [Gin](https://github.com/pact-foundation/pact-go/tree/master/examples/gin)
 
 ### Asynchronous APIs

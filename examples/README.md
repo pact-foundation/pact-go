@@ -6,11 +6,13 @@ how Pact could be used in each.
 Each Provider API currently exposes a single `Login` endpoint at `POST /login/1`,
 which the [Consumer](consumer/goconsumer) uses to authenticate a User.
 
-We test 3 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states):
+We test 5 scenarios, highlighting the use of [Provider States](/pact-foundation/pact-go#provider#provider-states), [Hooks](/pact-foundation/pact-go#before-and-after-hooks) and [RequestFilters](/pact-foundation/pact-go#request-filters):
 
 1.  When the user "jmarie" exists, and we perform a login, we expect an HTTP `200`
 1.  When the user "jmarie" does not exists, and we perform a login, we expect an HTTP `404`
 1.  When the user "jmarie" is unauthorized, and we perform a login, we expect an HTTP `403`
+1.  When the user is authenticated, and we request to get the user 'jmarie', we expect an HTTP `200`
+1.  When the user is unauthenticated, and we request to get the user 'jmarie', we expect an HTTP `401`
 
 # Getting started
 
@@ -23,7 +25,7 @@ go get ./...
 
 ## Providers
 
-1.  [Go-Kit](go-kit)
+1.  [Mux](mux)
 2.  [Gin](gin)
 
 ## Consumer
@@ -46,12 +48,12 @@ This will generate a Pact file in `./pacts/jmarie-loginprovider.json`.
 
 ### Running the Consumer
 
-Before you can run the consumer make sure the provider is
-[running](#running-the-provider).
+Before you can run the consumer make sure one of the providers is
+running first. You can then run:
 
 ```
 go run cmd/web/main.go
 ```
 
 Hit http://localhost:8081/ in your browser. You can use the username/password
-combination of "billy" / "issilly" to authenticate.
+combination of "jmarie" / "issilly" to authenticate.

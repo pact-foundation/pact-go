@@ -64,13 +64,13 @@ type VerifyRequest struct {
 	// verification step.
 	StateHandlers StateHandlers
 
-	// BeforeHook allows you to configure your provider prior to the individual test execution
+	// BeforeEach allows you to configure your provider prior to the individual test execution
 	// e.g. setup temporary tokens, prepare data
-	BeforeHook Hook
+	BeforeEach Hook
 
-	// AfterHook allows you to configure your provider prior to the test execution
+	// AfterEach allows you to configure your provider prior to the test execution
 	// e.g. reset the database state
-	AfterHook Hook
+	AfterEach Hook
 
 	// RequestFilter is a piece of middleware that will intercept requests/responses
 	// from the provider in order to modify it. This is useful in situations where

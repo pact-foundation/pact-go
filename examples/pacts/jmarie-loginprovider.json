@@ -195,7 +195,7 @@
       }
     },
     {
-      "description": "A request to login with user 'jmarie'",
+      "description": "A request to get with user 'jmarie'",
       "providerState": "User jmarie is unauthenticated",
       "request": {
         "method": "GET",

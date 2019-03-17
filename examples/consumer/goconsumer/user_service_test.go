@@ -298,7 +298,7 @@ func TestPactConsumerGetUser_Unauthenticated(t *testing.T) {
 	pact.
 		AddInteraction().
 		Given("User jmarie is unauthenticated").
-		UponReceiving("A request to login with user 'jmarie'").
+		UponReceiving("A request to get with user 'jmarie'").
 		WithRequest(request{
 			Method:  "GET",
 			Path:    s("/users/10"),

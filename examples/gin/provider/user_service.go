@@ -34,7 +34,7 @@ func getAuthToken() string {
 }
 
 // Simple authentication middleware
-func isAuthenticated() gin.HandlerFunc {
+func IsAuthenticated() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println(c.GetHeader("Authorization"))
 

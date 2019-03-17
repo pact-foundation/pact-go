@@ -264,11 +264,11 @@ func TestPact_VerifyProviderRaw(t *testing.T) {
 		ProviderBaseURL: "http://www.foo.com",
 		PactURLs:        []string{"foo.json", "bar.json"},
 		RequestFilter:   dummyMiddleware,
-		BeforeHook: func() error {
+		BeforeEach: func() error {
 			fmt.Println("aeuaoseu")
 			return nil
 		},
-		AfterHook: func() error {
+		AfterEach: func() error {
 			fmt.Println("aeuaoseu")
 			return nil
 		},
@@ -383,7 +383,7 @@ func TestPact_AddInteraction(t *testing.T) {
 	}
 }
 
-func TestPact_BeforeHook(t *testing.T) {
+func TestPact_BeforeEach(t *testing.T) {
 	var called bool
 
 	req, err := http.NewRequest("GET", "/__setup", nil)
@@ -394,7 +394,7 @@ func TestPact_BeforeHook(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	mw := beforeHookMiddleware(func() error {
+	mw := BeforeEachMiddleware(func() error {
 		called = true
 		return nil
 	})
@@ -410,7 +410,7 @@ func TestPact_BeforeHook(t *testing.T) {
 		t.Error("expected http handler to be invoked")
 	}
 }
-func TestPact_BeforeHookNotSetupPath(t *testing.T) {
+func TestPact_BeforeEachNotSetupPath(t *testing.T) {
 	var called bool
 
 	req, err := http.NewRequest("GET", "/blah", nil)
@@ -421,7 +421,7 @@ func TestPact_BeforeHookNotSetupPath(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	mw := beforeHookMiddleware(func() error {
+	mw := BeforeEachMiddleware(func() error {
 		called = true
 		return nil
 	})
@@ -437,7 +437,7 @@ func TestPact_BeforeHookNotSetupPath(t *testing.T) {
 		t.Error("expected http handler to be invoked")
 	}
 }
-func TestPact_AfterHook(t *testing.T) {
+func TestPact_AfterEach(t *testing.T) {
 	var called bool
 
 	req, err := http.NewRequest("GET", "/blah", nil)
@@ -448,7 +448,7 @@ func TestPact_AfterHook(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	mw := afterHookMiddleware(func() error {
+	mw := AfterEachMiddleware(func() error {
 		called = true
 		return nil
 	})
@@ -464,7 +464,7 @@ func TestPact_AfterHook(t *testing.T) {
 		t.Error("expected http handler to be invoked")
 	}
 }
-func TestPact_AfterHookSetupPath(t *testing.T) {
+func TestPact_AfterEachSetupPath(t *testing.T) {
 	var called bool
 
 	req, err := http.NewRequest("GET", "/__setup", nil)
@@ -475,7 +475,7 @@ func TestPact_AfterHookSetupPath(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	mw := afterHookMiddleware(func() error {
+	mw := AfterEachMiddleware(func() error {
 		called = true
 		return nil
 	})

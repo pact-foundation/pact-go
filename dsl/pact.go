@@ -297,7 +297,7 @@ func (p *Pact) WritePact() error {
 // VerifyProviderRaw reads the provided pact files and runs verification against
 // a running Provider API, providing raw response from the Verification process.
 //
-// Order of events: beforeHook, stateHandlers, requestFilter(pre <execute provider> post), afterHook
+// Order of events: BeforeEach, stateHandlers, requestFilter(pre <execute provider> post), AfterEach
 func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	p.Setup(false)
 	var res types.ProviderVerifierResponse
@@ -310,12 +310,12 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 
 	m := []proxy.Middleware{}
 
-	if request.BeforeHook != nil {
-		m = append(m, beforeHookMiddleware(request.BeforeHook))
+	if request.BeforeEach != nil {
+		m = append(m, BeforeEachMiddleware(request.BeforeEach))
 	}
 
-	if request.AfterHook != nil {
-		m = append(m, afterHookMiddleware(request.AfterHook))
+	if request.AfterEach != nil {
+		m = append(m, AfterEachMiddleware(request.AfterEach))
 	}
 
 	if len(request.StateHandlers) > 0 {
@@ -406,15 +406,15 @@ var checkCliCompatibility = func() {
 	}
 }
 
-// beforeHookMiddleware is invoked before any other, only on the __setup
+// BeforeEachMiddleware is invoked before any other, only on the __setup
 // request (to avoid duplication)
-func beforeHookMiddleware(beforeHook types.Hook) proxy.Middleware {
+func BeforeEachMiddleware(BeforeEach types.Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/__setup" {
 
 				log.Println("[DEBUG] executing before hook")
-				err := beforeHook()
+				err := BeforeEach()
 
 				if err != nil {
 					log.Println("[ERROR] error executing before hook:", err)
@@ -426,17 +426,17 @@ func beforeHookMiddleware(beforeHook types.Hook) proxy.Middleware {
 	}
 }
 
-// afterHookMiddleware is invoked after any other, and is the last
+// AfterEachMiddleware is invoked after any other, and is the last
 // function to be called prior to returning to the test suite. It is
 // therefore not invoked on __setup
-func afterHookMiddleware(afterHook types.Hook) proxy.Middleware {
+func AfterEachMiddleware(AfterEach types.Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r)
 
 			if r.URL.Path != "/__setup" {
 				log.Println("[DEBUG] executing after hook")
-				err := afterHook()
+				err := AfterEach()
 
 				if err != nil {
 					log.Println("[ERROR] error executing after hook:", err)

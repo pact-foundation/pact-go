@@ -29,11 +29,11 @@ func TestPact_MuxProvider(t *testing.T) {
 		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
 		StateHandlers:   stateHandlers,
 		RequestFilter:   fixBearerToken,
-		BeforeHook: func() error {
+		BeforeEach: func() error {
 			fmt.Println("before hook")
 			return nil
 		},
-		AfterHook: func() error {
+		AfterEach: func() error {
 			fmt.Println("after hook")
 			return nil
 		},
@@ -67,7 +67,7 @@ func TestPact_MuxProvider(t *testing.T) {
 		_, err = pact.VerifyProvider(t, types.VerifyRequest{
 			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
 			BrokerURL:                  brokerHost,
-			Tags:                       []string{"master", "sit4"},
+			Tags:                       []string{"prod"},
 			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 			PublishVerificationResults: true,
@@ -131,7 +131,7 @@ var stateHandlers = types.StateHandlers{
 // This essentially mirrors the main.go file, with extra routes added.
 func startInstrumentedProvider() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/users/", isAuthenticated(GetUser))
+	mux.HandleFunc("/users/", IsAuthenticated(GetUser))
 	mux.HandleFunc("/login/", UserLogin)
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))

@@ -1,27 +1,24 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
 
 	"github.com/pact-foundation/pact-go/examples/mux/provider"
-	"github.com/pact-foundation/pact-go/utils"
 )
 
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login/", provider.UserLogin)
-	mux.HandleFunc("/users/", provider.GetUser)
+	mux.HandleFunc("/users/", provider.IsAuthenticated(provider.GetUser))
 
-	port, _ := utils.GetFreePort()
-	ln, err := net.Listen("tcp", fmt.Sprintf("::%d", port))
+	ln, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer ln.Close()
 
-	log.Printf("API starting: port %d (%s)", port, ln.Addr())
+	log.Printf("API starting: port %d (%s)", 8080, ln.Addr())
 	log.Printf("API terminating: %v", http.Serve(ln, mux))
 }

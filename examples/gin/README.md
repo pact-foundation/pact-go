@@ -27,7 +27,7 @@ go get ./...
 ## Provider
 
 The "Provider" is a real Go Kit Endpoint (following the Profile Service [example](https://github.com/go-kit/kit/tree/master/examples/profilesvc)),
-exposing a single `//login/:id` API call:
+exposing a single `/login/:id` API call:
 
 ```
 cd provider
@@ -48,17 +48,17 @@ go run cmd/usersvc/main.go
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"jmarie",
   "password":"issilly"
-}' "http://localhost:8080//login/1"
+}' "http://localhost:8080//ogin/1"
 
 # 403
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"jmarie",
   "password":"issilly"
-}' "http://localhost:8080//login/1"
+}' "http://localhost:8080/login/1"
 
 # 404
 curl -v -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
   "username":"someoneelse",
   "password":"issilly"
-}' "http://localhost:8080//login/1"
+}' "http://localhost:8080/login/1"
 ```

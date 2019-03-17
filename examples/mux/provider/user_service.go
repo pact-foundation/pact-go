@@ -30,7 +30,7 @@ func getAuthToken() string {
 }
 
 // Simple authentication middleware
-func isAuthenticated(h http.HandlerFunc) http.HandlerFunc {
+func IsAuthenticated(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") == fmt.Sprintf("Bearer %s", getAuthToken()) {
 			h.ServeHTTP(w, r)
