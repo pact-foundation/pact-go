@@ -167,7 +167,10 @@ func TestConsumer(t *testing.T) {
 	// Pass in test case. This is the component that makes the external HTTP call
 	var test = func() (err error) {
 		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
-		req, _ := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
+		req, err := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
+		if err != nil {
+			return err
+		}
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
 		// of application/json. If you don't explicitly set the content-type, you
@@ -175,8 +178,9 @@ func TestConsumer(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer 1234")
 
-		_, err = http.DefaultClient.Do(req); err != nil {
-		return
+		if _, err = http.DefaultClient.Do(req); err != nil {
+			return err
+		}
 	}
 
 	// Set up our expected interactions.

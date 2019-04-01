@@ -14,7 +14,7 @@ Please provide the following information with your issue to enable us to respond
 You can run the E2E tests by:
 
 ```sh
-make package # Assemble the latest Pact Go from Ruby and compile Go
+make tools   # Assemble the latest Pact Go from Ruby and compile Go
 make pact    # Run the Pact tests - consumer + provider
 ```
 
