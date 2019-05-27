@@ -289,6 +289,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
     	PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
     	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
     	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
     })
     ```
 
@@ -300,6 +301,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
     	BrokerURL:              "http://brokerHost",
     	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
     	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
     })
     ```
 
@@ -312,6 +314,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
     	Tags:                   []string{"master", "prod"},
     	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
     	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
     })
     ```
 

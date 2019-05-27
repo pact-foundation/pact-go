@@ -144,9 +144,10 @@ When validating a Provider, you have 3 options to provide the Pact files:
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+		BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
 	})
 
-2. Use "PactBroker" to automatically find all of the latest consumers:
+	2. Use "PactBroker" to automatically find all of the latest consumers:
 
 	response, err = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
@@ -154,9 +155,10 @@ When validating a Provider, you have 3 options to provide the Pact files:
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+		BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
 	})
 
-3. Use "PactBroker" and "Tags" to automatically find all of the latest consumers:
+	3. Use "PactBroker" and "Tags" to automatically find all of the latest consumers:
 
 	response, err = pact.VerifyProvider(types.VerifyRequest{
 		ProviderBaseURL:        "http://myproviderhost",
@@ -165,6 +167,7 @@ When validating a Provider, you have 3 options to provide the Pact files:
 		ProviderStatesSetupURL: "http://myproviderhost/setup",
 		BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+		BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
 	})
 
 Options 2 and 3 are particularly useful when you want to validate that your
