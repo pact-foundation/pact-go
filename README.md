@@ -864,9 +864,7 @@ Join us in slack: [![slack](http://slack.pact.io/badge.svg)](http://slack.pact.i
 or
 
 - Twitter: [@pact_up]
-- Stack Overflow: stackoverflow.com/questions/tagged/pact
-- Gitter: https://gitter.im/realestate-com-au/pact
-- Gophers #pact [Slack channel]
+- Stack Overflow: https://stackoverflow.com/questions/tagged/pact
 
 ## Documentation
 
