@@ -76,13 +76,5 @@ func (v *VerifyMessageRequest) Validate() error {
 		v.Args = append(v.Args, "--publish_verification_results", "true")
 	}
 
-	if v.Provider != "" {
-		v.Args = append(v.Args, "--provider", v.Provider)
-	}
-
-	for tag := range v.Tags {
-		v.Args = append(v.Args, "--consumer-version-tag", tag)
-	}
-
 	return nil
 }
