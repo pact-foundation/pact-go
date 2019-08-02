@@ -157,7 +157,7 @@ func (v *VerifyRequest) Validate() error {
 		log.Println("[DEBUG] verifier: ignoring deprecated Verbose flag")
 	}
 
-	for tag := range v.Tags {
+	for _, tag := range v.Tags {
 		v.Args = append(v.Args, "--consumer-version-tag", tag)
 	}
 
