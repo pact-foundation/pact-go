@@ -357,6 +357,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 		BrokerToken:                request.BrokerToken,
 		PublishVerificationResults: request.PublishVerificationResults,
 		ProviderVersion:            request.ProviderVersion,
+		Provider:                   request.Provider,
 		ProviderStatesSetupURL:     setupURL,
 		CustomProviderHeaders:      request.CustomProviderHeaders,
 	}
