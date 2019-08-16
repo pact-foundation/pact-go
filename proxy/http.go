@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	"github.com/pact-foundation/pact-go/utils"
 )
@@ -25,12 +26,18 @@ type Options struct {
 	// TargetAddress is the host:port component to proxy
 	TargetAddress string
 
+	// TargetPath is the path on the target to proxy
+	TargetPath string
+
 	// ProxyPort is the port to make available for proxying
 	// Defaults to a random port
 	ProxyPort int
 
 	// Middleware to apply to the Proxy
 	Middleware []Middleware
+
+	// Internal request prefix for proxy to not rewrite
+	InternalRequestPathPrefix string
 }
 
 // loggingMiddleware logs requests to the proxy
@@ -59,13 +66,16 @@ func chainHandlers(mw ...Middleware) Middleware {
 // HTTPReverseProxy provides a default setup for proxying
 // internal components within the framework
 func HTTPReverseProxy(options Options) (int, error) {
+	log.Println("[DEBUG] starting new proxy with opts", options)
 	port := options.ProxyPort
 	var err error
 
-	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
+	url := &url.URL{
 		Scheme: options.TargetScheme,
 		Host:   options.TargetAddress,
-	})
+		Path:   options.TargetPath,
+	}
+	proxy := createProxy(url, options.InternalRequestPathPrefix)
 
 	if port == 0 {
 		port, err = utils.GetFreePort()
@@ -81,4 +91,49 @@ func HTTPReverseProxy(options Options) (int, error) {
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), wrapper(proxy))
 
 	return port, nil
+}
+
+// Adapted from https://github.com/golang/go/blob/master/src/net/http/httputil/reverseproxy.go
+func createProxy(target *url.URL, ignorePrefix string) *httputil.ReverseProxy {
+	targetQuery := target.RawQuery
+	director := func(req *http.Request) {
+		if !strings.HasPrefix(req.URL.Path, ignorePrefix) {
+			log.Println("[DEBUG] setting proxy to target")
+			log.Println("[DEBUG] incoming request", req.URL)
+			req.URL.Scheme = target.Scheme
+			req.URL.Host = target.Host
+			req.Host = target.Host
+
+			req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
+			log.Println("[DEBUG] outgoing request", req.URL)
+			if targetQuery == "" || req.URL.RawQuery == "" {
+				req.URL.RawQuery = targetQuery + req.URL.RawQuery
+			} else {
+				req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
+			}
+			if _, ok := req.Header["User-Agent"]; !ok {
+				req.Header.Set("User-Agent", "Pact Go")
+			}
+		} else {
+			log.Println("[DEBUG] setting proxy to internal server")
+			req.URL.Scheme = "http"
+			req.URL.Host = "localhost"
+			req.Host = "localhost"
+		}
+	}
+	return &httputil.ReverseProxy{Director: director}
+}
+
+// From httputil package
+// https://github.com/golang/go/blob/master/src/net/http/httputil/reverseproxy.go
+func singleJoiningSlash(a, b string) string {
+	aslash := strings.HasSuffix(a, "/")
+	bslash := strings.HasPrefix(b, "/")
+	switch {
+	case aslash && bslash:
+		return a + b[1:]
+	case !aslash && !bslash:
+		return a + "/" + b
+	}
+	return a + b
 }

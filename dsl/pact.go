@@ -328,9 +328,11 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 
 	// Configure HTTP Verification Proxy
 	opts := proxy.Options{
-		TargetAddress: fmt.Sprintf("%s:%s", u.Hostname(), u.Port()),
-		TargetScheme:  u.Scheme,
-		Middleware:    m,
+		TargetAddress:             fmt.Sprintf("%s:%s", u.Hostname(), u.Port()),
+		TargetScheme:              u.Scheme,
+		TargetPath:                u.Path,
+		Middleware:                m,
+		InternalRequestPathPrefix: providerStatesSetupPath,
 	}
 
 	// Starts the message wrapper API with hooks back to the state handlers
@@ -342,13 +344,13 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 	// Backwards compatibility, setup old provider states URL if given
 	// Otherwise point to proxy
 	setupURL := request.ProviderStatesSetupURL
-	if request.ProviderStatesSetupURL == "" {
-		setupURL = fmt.Sprintf("%s://localhost:%d/__setup", u.Scheme, port)
+	if request.ProviderStatesSetupURL == "" && len(request.StateHandlers) > 0 {
+		setupURL = fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath)
 	}
 
 	// Construct verifier request
 	verificationRequest := types.VerifyRequest{
-		ProviderBaseURL:            fmt.Sprintf("%s://localhost:%d", u.Scheme, port), //
+		ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:                   request.PactURLs,
 		BrokerURL:                  request.BrokerURL,
 		Tags:                       request.Tags,
@@ -413,7 +415,7 @@ var checkCliCompatibility = func() {
 func BeforeEachMiddleware(BeforeEach types.Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/__setup" {
+			if r.URL.Path == providerStatesSetupPath {
 
 				log.Println("[DEBUG] executing before hook")
 				err := BeforeEach()
@@ -458,7 +460,7 @@ func AfterEachMiddleware(AfterEach types.Hook) proxy.Middleware {
 func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/__setup" {
+			if r.URL.Path == providerStatesSetupPath {
 				var s *types.ProviderState
 				decoder := json.NewDecoder(r.Body)
 				decoder.Decode(&s)
@@ -706,3 +708,5 @@ func (p *Pact) VerifyMessageConsumer(t *testing.T, message *Message, handler Mes
 
 	return err
 }
+
+const providerStatesSetupPath = "/__setup"
