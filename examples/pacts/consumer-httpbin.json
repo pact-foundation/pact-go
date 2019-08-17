@@ -27,13 +27,25 @@
       }
     },
     {
-      "description": "A request to the GET 301 status service",
+      "description": "A GET request to the bearer service",
       "request": {
         "method": "GET",
-        "path": "/status/301"
+        "path": "/bearer",
+        "headers": {
+          "Authorization": "Bearer 1234"
+        }
       },
       "response": {
-        "status": 301
+        "status": 200,
+        "body": {
+          "authenticated": true,
+          "token": "1234"
+        },
+        "matchingRules": {
+          "$.body.token": {
+            "match": "type"
+          }
+        }
       }
     }
   ],

@@ -18,8 +18,9 @@ func TestPact_GinProvider(t *testing.T) {
 
 	// Verify the Provider with local Pact Files
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
-		ProviderBaseURL: "https://httpbin.org",
-		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/consumer-httpbin.json", pactDir))},
+		ProviderBaseURL:       "https://httpbin.org",
+		PactURLs:              []string{filepath.ToSlash(fmt.Sprintf("%s/consumer-httpbin.json", pactDir))},
+		CustomProviderHeaders: []string{"Authorization: Bearer SOME_TOKEN"},
 	})
 
 	if err != nil {
