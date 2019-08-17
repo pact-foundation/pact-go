@@ -238,6 +238,7 @@ func (p *Pact) Teardown() *Pact {
 func (p *Pact) Verify(integrationTest func() error) error {
 	p.Setup(true)
 	log.Println("[DEBUG] pact verify")
+	var err error
 
 	// Check if we are verifying messages or if we actually have interactions
 	if len(p.Interactions) == 0 {
@@ -250,15 +251,23 @@ func (p *Pact) Verify(integrationTest func() error) error {
 		Provider: p.Provider,
 	}
 
+	// Cleanup all interactions
+	defer func(mockServer *MockService) {
+		log.Println("[DEBUG] clearing interactions")
+
+		p.Interactions = make([]*Interaction, 0)
+		err = mockServer.DeleteInteractions()
+	}(mockServer)
+
 	for _, interaction := range p.Interactions {
-		err := mockServer.AddInteraction(interaction)
+		err = mockServer.AddInteraction(interaction)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Run the integration test
-	err := integrationTest()
+	err = integrationTest()
 	if err != nil {
 		return err
 	}
@@ -269,10 +278,7 @@ func (p *Pact) Verify(integrationTest func() error) error {
 		return err
 	}
 
-	// Clear out interations
-	p.Interactions = make([]*Interaction, 0)
-
-	return mockServer.DeleteInteractions()
+	return err
 }
 
 // WritePact should be called writes when all tests have been performed for a
