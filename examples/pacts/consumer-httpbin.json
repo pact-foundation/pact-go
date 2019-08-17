@@ -1,0 +1,45 @@
+{
+  "consumer": {
+    "name": "consumer"
+  },
+  "provider": {
+    "name": "httpbin"
+  },
+  "interactions": [
+    {
+      "description": "A request to the GET echo service",
+      "request": {
+        "method": "GET",
+        "path": "/get"
+      },
+      "response": {
+        "status": 200
+      }
+    },
+    {
+      "description": "A request to the GET 404 status service",
+      "request": {
+        "method": "GET",
+        "path": "/status/404"
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "A request to the GET 301 status service",
+      "request": {
+        "method": "GET",
+        "path": "/status/301"
+      },
+      "response": {
+        "status": 301
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
