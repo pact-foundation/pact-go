@@ -34,57 +34,7 @@ Read [Getting started with Pact] for more information for beginners.
 
 ## Table of Contents
 
-<!-- TOC -->
-
-- [Pact Go](#pact-go)
-  - [Introduction](#introduction)
-  - [Table of Contents](#table-of-contents)
-  - [Versions](#versions)
-  - [Installation](#installation)
-    - [Go get](#go-get)
-    - [Installation on \*nix](#installation-on-\nix)
-  - [Using Pact](#using-pact)
-  - [HTTP API Testing](#http-api-testing)
-    - [Consumer Side Testing](#consumer-side-testing)
-    - [Provider API Testing](#provider-api-testing)
-      - [Provider Verification](#provider-verification)
-      - [Provider States](#provider-states)
-      - [Before and After Hooks](#before-and-after-hooks)
-      - [Request Filtering](#request-filtering)
-        - [Example: API with Authorization](#example-api-with-authorization)
-      - [Lifecycle of a provider verification](#lifecycle-of-a-provider-verification)
-    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
-      - [Publishing from Go code](#publishing-from-go-code)
-      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
-      - [Publishing from the CLI](#publishing-from-the-cli)
-      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-      - [Using the Pact Broker with Bearer Token authentication](#using-the-pact-broker-with-bearer-token-authentication)
-  - [Asynchronous API Testing](#asynchronous-api-testing)
-    - [Consumer](#consumer)
-    - [Provider (Producer)](#provider-producer)
-    - [Pact Broker Integration](#pact-broker-integration)
-  - [Matching](#matching)
-    - [Matching on types](#matching-on-types)
-    - [Matching on arrays](#matching-on-arrays)
-    - [Matching by regular expression](#matching-by-regular-expression)
-    - [Match common formats](#match-common-formats)
-      - [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
-  - [Examples](#examples)
-    - [HTTP APIs](#http-apis)
-    - [Asynchronous APIs](#asynchronous-apis)
-    - [Integrated examples](#integrated-examples)
-  - [Troubleshooting](#troubleshooting)
-    - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-    - [Output Logging](#output-logging)
-    - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
-    - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
-    - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
-  - [Contact](#contact)
-  - [Documentation](#documentation)
-  - [Roadmap](#roadmap)
-  - [Contributing](#contributing)
-
-<!-- /TOC -->
+<!-- TOC -->autoauto- [Pact Go](#pact-go)auto  - [Introduction](#introduction)auto  - [Table of Contents](#table-of-contents)auto  - [Versions](#versions)auto  - [Installation](#installation)auto    - [Go get](#go-get)auto    - [Installation on \*nix](#installation-on-\nix)auto  - [Using Pact](#using-pact)auto  - [HTTP API Testing](#http-api-testing)auto    - [Consumer Side Testing](#consumer-side-testing)auto    - [Provider API Testing](#provider-api-testing)auto      - [Provider Verification](#provider-verification)auto      - [Provider States](#provider-states)auto      - [Before and After Hooks](#before-and-after-hooks)auto      - [Request Filtering](#request-filtering)auto        - [Example: API with Authorization](#example-api-with-authorization)auto      - [Lifecycle of a provider verification](#lifecycle-of-a-provider-verification)auto    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)auto      - [Publishing from Go code](#publishing-from-go-code)auto      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)auto      - [Publishing from the CLI](#publishing-from-the-cli)auto      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)auto      - [Using the Pact Broker with Bearer Token authentication](#using-the-pact-broker-with-bearer-token-authentication)auto  - [Asynchronous API Testing](#asynchronous-api-testing)auto    - [Consumer](#consumer)auto    - [Provider (Producer)](#provider-producer)auto    - [Pact Broker Integration](#pact-broker-integration)auto  - [Matching](#matching)auto    - [Matching on types](#matching-on-types)auto    - [Matching on arrays](#matching-on-arrays)auto    - [Matching by regular expression](#matching-by-regular-expression)auto    - [Match common formats](#match-common-formats)auto      - [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)auto  - [Examples](#examples)auto    - [HTTP APIs](#http-apis)auto    - [Asynchronous APIs](#asynchronous-apis)auto    - [Integrated examples](#integrated-examples)auto  - [Troubleshooting](#troubleshooting)auto      - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)auto      - [Output Logging](#output-logging)auto      - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)auto      - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)auto      - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)auto  - [Contact](#contact)auto  - [Documentation](#documentation)auto  - [Roadmap](#roadmap)auto  - [Contributing](#contributing)autoauto<!-- /TOC -->
 
 ## Versions
 
@@ -688,18 +638,18 @@ This example will result in a response body from the mock server that looks like
 
 Often times, you find yourself having to re-write regular expressions for common formats. We've created a number of them for you to save you the time:
 
-| method                                                         | description                                                                                     |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `Identifier()`                                                 | Match an ID (e.g. 42)                                                                           |
-| `Integer()`                                                    | Match all numbers that are integers (both ints and longs)                                       |
-| `Decimal()`                                                    | Match all real numbers (floating point and decimal)                                             |
-| `HexValue()`                                                   | Match all hexadecimal encoded strings                                                           |
-| `Date()`                                                       | Match string containing basic ISO8601 dates (e.g. 2016-01-01)                                   |
-| `Timestamp()`                                                  | Match a string containing an RFC3339 formatted timestapm (e.g. Mon, 31 Oct 2016 15:21:41 -0400) |
-| `Time()`                                                       | Match string containing times in ISO date format (e.g. T22:44:30.652Z)                          |
-| `ipIPv4Address | Match string containing IP4 formatted address |
-| `IPv6Address()`                                                | Match string containing IP6 formatted address                                                   |
-| `UUID()`                                                       | Match strings containing UUIDs                                                                  |
+| method          | description                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| `Identifier()`  | Match an ID (e.g. 42)                                                                           |
+| `Integer()`     | Match all numbers that are integers (both ints and longs)                                       |
+| `Decimal()`     | Match all real numbers (floating point and decimal)                                             |
+| `HexValue()`    | Match all hexadecimal encoded strings                                                           |
+| `Date()`        | Match string containing basic ISO8601 dates (e.g. 2016-01-01)                                   |
+| `Timestamp()`   | Match a string containing an RFC3339 formatted timestapm (e.g. Mon, 31 Oct 2016 15:21:41 -0400) |
+| `Time()`        | Match string containing times in ISO date format (e.g. T22:44:30.652Z)                          |
+| `IPv4Address()` | Match string containing IP4 formatted address                                                   |
+| `IPv6Address()` | Match string containing IP6 formatted address                                                   |
+| `UUID()`        | Match strings containing UUIDs                                                                  |
 
 #### Auto-generate matchers from struct tags
 
