@@ -43,6 +43,10 @@ type VerifyRequest struct {
 	// BrokerToken is required when authenticating using the Bearer token mechanism
 	BrokerToken string
 
+	// FailIfNoPactsFound configures the framework to return an error
+	// if no pacts were found when looking up from a broker
+	FailIfNoPactsFound bool
+
 	// PublishVerificationResults to the Pact Broker.
 	PublishVerificationResults bool
 

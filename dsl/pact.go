@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -386,6 +387,20 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 // automatic failure reporting for nice, simple tests.
 func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	res, err := p.VerifyProviderRaw(request)
+
+	if len(res.Examples) == 0 {
+		message := "No pacts found to verifify"
+
+		if len(request.Tags) > 0 {
+			message = fmt.Sprintf("%s. Check the tags provided (%s) for your broker (%s) are correct", message, strings.Join(request.Tags, ","), request.BrokerURL)
+		}
+
+		if request.FailIfNoPactsFound {
+			t.Errorf(message)
+		} else {
+			t.Logf(message)
+		}
+	}
 
 	for _, example := range res.Examples {
 		t.Run(example.Description, func(st *testing.T) {
