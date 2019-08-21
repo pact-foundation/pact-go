@@ -1,12 +1,15 @@
 package proxy
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/pact-foundation/pact-go/utils"
 )
@@ -76,6 +79,7 @@ func HTTPReverseProxy(options Options) (int, error) {
 		Path:   options.TargetPath,
 	}
 	proxy := createProxy(url, options.InternalRequestPathPrefix)
+	proxy.Transport = debugTransport{}
 
 	if port == 0 {
 		port, err = utils.GetFreePort()
@@ -91,6 +95,41 @@ func HTTPReverseProxy(options Options) (int, error) {
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), wrapper(proxy))
 
 	return port, nil
+}
+
+// https://stackoverflow.com/questions/52986853/how-to-debug-httputil-newsinglehostreverseproxy
+// Set the proxy.Transport field to an implementation that dumps the request before delegating to the default transport:
+
+type debugTransport struct{}
+
+func (debugTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	b, err := httputil.DumpRequestOut(r, false)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("[TRACE] proxy outgoing request\n", string(b))
+
+	var DefaultTransport http.RoundTripper = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	res, err := DefaultTransport.RoundTrip(r)
+	b, err = httputil.DumpResponse(res, false)
+	log.Println("[TRACE] proxied server response\n", string(b))
+
+	return res, err
 }
 
 // Adapted from https://github.com/golang/go/blob/master/src/net/http/httputil/reverseproxy.go
