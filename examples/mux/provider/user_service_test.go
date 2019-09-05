@@ -19,7 +19,7 @@ import (
 
 // The Provider verification
 func TestPact_MuxProvider(t *testing.T) {
-	go startInstrumentedProvider()
+	startProvider()
 
 	pact := createPact()
 
@@ -129,7 +129,7 @@ var stateHandlers = types.StateHandlers{
 
 // Starts the provider API with hooks for provider states.
 // This essentially mirrors the main.go file, with extra routes added.
-func startInstrumentedProvider() {
+func startProvider() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/users/", IsAuthenticated(GetUser))
 	mux.HandleFunc("/login/", UserLogin)

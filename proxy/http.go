@@ -41,6 +41,10 @@ type Options struct {
 
 	// Internal request prefix for proxy to not rewrite
 	InternalRequestPathPrefix string
+
+	// Custom TLS Configuration for communicating with a Provider
+	// Useful when verifying self-signed services, MASSL etc.
+	CustomTLSConfig *tls.Config
 }
 
 // loggingMiddleware logs requests to the proxy
@@ -78,8 +82,11 @@ func HTTPReverseProxy(options Options) (int, error) {
 		Host:   options.TargetAddress,
 		Path:   options.TargetPath,
 	}
+
+	// TODO: may be able to revert to the default single proxy
+	//       and just override the transport!
 	proxy := createProxy(url, options.InternalRequestPathPrefix)
-	proxy.Transport = debugTransport{}
+	proxy.Transport = customTransport{tlsConfig: options.CustomTLSConfig}
 
 	if port == 0 {
 		port, err = utils.GetFreePort()
@@ -100,30 +107,35 @@ func HTTPReverseProxy(options Options) (int, error) {
 // https://stackoverflow.com/questions/52986853/how-to-debug-httputil-newsinglehostreverseproxy
 // Set the proxy.Transport field to an implementation that dumps the request before delegating to the default transport:
 
-type debugTransport struct{}
+type customTransport struct {
+	tlsConfig *tls.Config
+}
 
-func (debugTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+func (c customTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	b, err := httputil.DumpRequestOut(r, false)
 	if err != nil {
 		return nil, err
 	}
 	log.Println("[TRACE] proxy outgoing request\n", string(b))
 
-	var DefaultTransport http.RoundTripper = &http.Transport{
+	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
 			DualStack: true,
 		}).DialContext,
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
+
+	if c.tlsConfig != nil {
+		log.Println("[DEBUG] applying custom TLS config")
+		transport.TLSClientConfig = c.tlsConfig
+	}
+	var DefaultTransport http.RoundTripper = transport
 
 	res, err := DefaultTransport.RoundTrip(r)
 	b, err = httputil.DumpResponse(res, false)

@@ -2,21 +2,18 @@ package provider
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
-
+	"os"
 	"github.com/pact-foundation/pact-go/dsl"
-	"github.com/pact-foundation/pact-go/types"
 	"github.com/pact-foundation/pact-go/utils"
+	"github.com/pact-foundation/pact-go/types"
 )
 
 // An external HTTPS provider
-func TestPact_GinProvider(t *testing.T) {
-
+func TestPact_ExternalHttpsProvider(t *testing.T) {
 	pact := createPact()
 
-	// Verify the Provider with local Pact Files
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:       "https://httpbin.org",
 		PactURLs:              []string{filepath.ToSlash(fmt.Sprintf("%s/consumer-httpbin.json", pactDir))},
@@ -37,8 +34,8 @@ var port, _ = utils.GetFreePort()
 // Setup the Pact client.
 func createPact() dsl.Pact {
 	return dsl.Pact{
-		Consumer:                 "jmarie",
-		Provider:                 "loginprovider",
+		Consumer:                 "consumer",
+		Provider:                 "httpbinprovider",
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
 		DisableToolValidityCheck: true,

@@ -340,6 +340,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 		TargetPath:                u.Path,
 		Middleware:                m,
 		InternalRequestPathPrefix: providerStatesSetupPath,
+		CustomTLSConfig:           request.CustomTLSConfig,
 	}
 
 	// Starts the message wrapper API with hooks back to the state handlers
@@ -459,7 +460,7 @@ func AfterEachMiddleware(AfterEach types.Hook) proxy.Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r)
 
-			if r.URL.Path != "/__setup" {
+			if r.URL.Path != providerStatesSetupPath {
 				log.Println("[DEBUG] executing after hook")
 				err := AfterEach()
 

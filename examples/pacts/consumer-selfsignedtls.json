@@ -1,0 +1,25 @@
+{
+  "consumer": {
+    "name": "consumer"
+  },
+  "provider": {
+    "name": "httpbin"
+  },
+  "interactions": [
+    {
+      "description": "A request to the hello self-signed API",
+      "request": {
+        "method": "GET",
+        "path": "/hello"
+      },
+      "response": {
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

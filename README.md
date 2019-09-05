@@ -382,7 +382,7 @@ _Important Note_: You should only use this feature for things that can not be pe
 
 For each _interaction_ in a pact file, the order of execution is as follows:
 
-`BeforeEach` -> `StateHandler` -> `RequestFilter (pre)`, `Execute Provider Test` -> `RequestFilter (post)` -> `AfterEach`
+`BeforeEach` -> `StateHandler` -> `RequestFilter (pre)` -> `Execute Provider Test` -> `RequestFilter (post)` -> `AfterEach`
 
 If any of the middleware or hooks fail, the tests will also fail.
 
@@ -806,6 +806,27 @@ and the function used to run provider verification is `go test -run TestMessageP
 cd examples/message/provider
 PACT_DESCRIPTION="a user" PACT_PROVIDER_STATE="user with id 127 exists" go test -v .
 ```
+
+### Verifying APIs with a self-signed certificate
+
+Supply your own TLS configuration to customise the behaviour of the runtime:
+
+```go
+	_, err := pact.VerifyProvider(t, types.VerifyRequest{
+		ProviderBaseURL: "https://localhost:8080",
+		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/consumer-selfsignedtls.json", pactDir))},
+		CustomTLSConfig: &tls.Config{
+			RootCAs: getCaCertPool(), // Specify a custom CA pool
+			// InsecureSkipVerify: true, // Disable SSL verification altogether
+		},
+	})
+```
+
+See [self-signed certificate](https://github.com/pact-foundation/pact-go/examles/customTls/self_signed_certificate_test.go) for an example.
+
+### Testing AWS API Gateway APIs
+
+AWS changed their certificate authority last year, and not all OSs have the latest CA chains. If you can't update to the latest certificate bunidles, see "Verifying APIs with a self-signed certificate" for how to work around this.
 
 ## Contact
 

@@ -31,7 +31,7 @@ export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
 export PATH="../build/pact/bin:${PATH}"
 
 step "Running E2E regression and example projects"
-examples=("github.com/pact-foundation/pact-go/examples/consumer/goconsumer" "github.com/pact-foundation/pact-go/examples/go-kit/provider" "github.com/pact-foundation/pact-go/examples/mux/provider" "github.com/pact-foundation/pact-go/examples/gin/provider" "github.com/pact-foundation/pact-go/examples/messages/consumer" "github.com/pact-foundation/pact-go/examples/messages/provider" "github.com/pact-foundation/pact-go/examples/httpbin")
+examples=("github.com/pact-foundation/pact-go/examples/consumer/goconsumer" "github.com/pact-foundation/pact-go/examples/go-kit/provider" "github.com/pact-foundation/pact-go/examples/mux/provider" "github.com/pact-foundation/pact-go/examples/gin/provider" "github.com/pact-foundation/pact-go/examples/messages/consumer" "github.com/pact-foundation/pact-go/examples/messages/provider" "github.com/pact-foundation/pact-go/examples/httpbin" "github.com/pact-foundation/pact-go/examples/customTls")
 
 for example in "${examples[@]}"
 do

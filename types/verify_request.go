@@ -1,6 +1,7 @@
 package types
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -83,6 +84,10 @@ type VerifyRequest struct {
 	// NOTE: This should be used very carefully and deliberately, as anything you do here
 	// runs the risk of changing the contract and breaking the real system.
 	RequestFilter proxy.Middleware
+
+	// Custom TLS Configuration to use when making the requests to/from
+	// the Provider API. Useful for setting custom certificates, MASSL etc.
+	CustomTLSConfig *tls.Config
 
 	// Verbose increases verbosity of output
 	// Deprecated
