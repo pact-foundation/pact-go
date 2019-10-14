@@ -70,7 +70,7 @@ foreach ($package in $packages) {
 Write-Host "--> Testing E2E examples"
 $env:PACT_INTEGRATED_TESTS=1
 
-$examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider")
+$examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider", "github.com/pact-foundation/pact-go/examples/httpbin", "github.com/pact-foundation/pact-go/examples/customTls")
 foreach ($example in $examples) {
   Write-Host "Installing dependencies for example: $example"
   cd "$env:GOPATH\src\$example"

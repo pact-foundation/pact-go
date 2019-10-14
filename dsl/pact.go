@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -237,6 +238,7 @@ func (p *Pact) Teardown() *Pact {
 func (p *Pact) Verify(integrationTest func() error) error {
 	p.Setup(true)
 	log.Println("[DEBUG] pact verify")
+	var err error
 
 	// Check if we are verifying messages or if we actually have interactions
 	if len(p.Interactions) == 0 {
@@ -249,15 +251,23 @@ func (p *Pact) Verify(integrationTest func() error) error {
 		Provider: p.Provider,
 	}
 
+	// Cleanup all interactions
+	defer func(mockServer *MockService) {
+		log.Println("[DEBUG] clearing interactions")
+
+		p.Interactions = make([]*Interaction, 0)
+		err = mockServer.DeleteInteractions()
+	}(mockServer)
+
 	for _, interaction := range p.Interactions {
-		err := mockServer.AddInteraction(interaction)
+		err = mockServer.AddInteraction(interaction)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Run the integration test
-	err := integrationTest()
+	err = integrationTest()
 	if err != nil {
 		return err
 	}
@@ -268,10 +278,7 @@ func (p *Pact) Verify(integrationTest func() error) error {
 		return err
 	}
 
-	// Clear out interations
-	p.Interactions = make([]*Interaction, 0)
-
-	return mockServer.DeleteInteractions()
+	return err
 }
 
 // WritePact should be called writes when all tests have been performed for a
@@ -328,9 +335,12 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 
 	// Configure HTTP Verification Proxy
 	opts := proxy.Options{
-		TargetAddress: fmt.Sprintf("%s:%s", u.Hostname(), u.Port()),
-		TargetScheme:  u.Scheme,
-		Middleware:    m,
+		TargetAddress:             fmt.Sprintf("%s:%s", u.Hostname(), u.Port()),
+		TargetScheme:              u.Scheme,
+		TargetPath:                u.Path,
+		Middleware:                m,
+		InternalRequestPathPrefix: providerStatesSetupPath,
+		CustomTLSConfig:           request.CustomTLSConfig,
 	}
 
 	// Starts the message wrapper API with hooks back to the state handlers
@@ -342,13 +352,13 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 	// Backwards compatibility, setup old provider states URL if given
 	// Otherwise point to proxy
 	setupURL := request.ProviderStatesSetupURL
-	if request.ProviderStatesSetupURL == "" {
-		setupURL = fmt.Sprintf("%s://localhost:%d/__setup", u.Scheme, port)
+	if request.ProviderStatesSetupURL == "" && len(request.StateHandlers) > 0 {
+		setupURL = fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath)
 	}
 
 	// Construct verifier request
 	verificationRequest := types.VerifyRequest{
-		ProviderBaseURL:            fmt.Sprintf("%s://localhost:%d", u.Scheme, port), //
+		ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", port),
 		PactURLs:                   request.PactURLs,
 		BrokerURL:                  request.BrokerURL,
 		Tags:                       request.Tags,
@@ -385,6 +395,20 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
 	res, err := p.VerifyProviderRaw(request)
 
+	if len(res.Examples) == 0 {
+		message := "No pacts found to verifify"
+
+		if len(request.Tags) > 0 {
+			message = fmt.Sprintf("%s. Check the tags provided (%s) for your broker (%s) are correct", message, strings.Join(request.Tags, ","), request.BrokerURL)
+		}
+
+		if request.FailIfNoPactsFound {
+			t.Errorf(message)
+		} else {
+			t.Logf(message)
+		}
+	}
+
 	for _, example := range res.Examples {
 		t.Run(example.Description, func(st *testing.T) {
 			st.Log(example.FullDescription)
@@ -413,7 +437,7 @@ var checkCliCompatibility = func() {
 func BeforeEachMiddleware(BeforeEach types.Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/__setup" {
+			if r.URL.Path == providerStatesSetupPath {
 
 				log.Println("[DEBUG] executing before hook")
 				err := BeforeEach()
@@ -436,7 +460,7 @@ func AfterEachMiddleware(AfterEach types.Hook) proxy.Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r)
 
-			if r.URL.Path != "/__setup" {
+			if r.URL.Path != providerStatesSetupPath {
 				log.Println("[DEBUG] executing after hook")
 				err := AfterEach()
 
@@ -458,7 +482,7 @@ func AfterEachMiddleware(AfterEach types.Hook) proxy.Middleware {
 func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/__setup" {
+			if r.URL.Path == providerStatesSetupPath {
 				var s *types.ProviderState
 				decoder := json.NewDecoder(r.Body)
 				decoder.Decode(&s)
@@ -706,3 +730,5 @@ func (p *Pact) VerifyMessageConsumer(t *testing.T, message *Message, handler Mes
 
 	return err
 }
+
+const providerStatesSetupPath = "/__setup"
