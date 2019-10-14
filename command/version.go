@@ -12,7 +12,7 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number of Pact Go",
 	Long:  `All software has versions. This is Pact Go's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Pact Go CLI v1.0.0-beta.7, using CLI tools version", cliToolsVersion)
+		fmt.Println("Pact Go CLI v1.0.0-beta.8, using CLI tools version", cliToolsVersion)
 	},
 }
 
