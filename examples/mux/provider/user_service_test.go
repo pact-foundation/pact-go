@@ -19,7 +19,7 @@ import (
 
 // The Provider verification
 func TestPact_MuxProvider(t *testing.T) {
-	startProvider()
+	go startProvider()
 
 	pact := createPact()
 
