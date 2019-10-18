@@ -111,7 +111,7 @@ See below for how to automate this:
 
 ### Go get
 
-Since `1.x.x` Pact is go-gettable, and uses tags for versioning, so `dep ensure --add github.com/pact-foundation/pact-go@1.0.0-beta` or `go get gopkg.in/pact-foundation/pact-go.v1` is now possible.
+Since `1.x.x` Pact is go-gettable, and uses tags for versioning, so `dep ensure --add github.com/pact-foundation/pact-go@1.0.0` or `go get gopkg.in/pact-foundation/pact-go.v1` is now possible.
 
 See the [Changelog] for versions to pin to and their history.
 
@@ -123,7 +123,7 @@ The following will install pact binaries into `/opt/pact/bin`:
 cd /opt
 curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash
 export PATH=$PATH:/opt/pact/bin
-go get -d github.com/pact-foundation/pact-go
+go get github.com/pact-foundation/pact-go@v1
 ```
 
 Test the installation:
