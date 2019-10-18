@@ -105,7 +105,7 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 
 1.  Download the latest [CLI tools] of the standalone tools and ensure the binaries are on your `PATH`:
 1.  Unzip the package into a known location, and ensuring the `pact` and other binaries in the `bin` directory are on the `PATH`.
-1.  Run `go get -d github.com/pact-foundation/pact-go` to install the source packages
+1.  Run `go get github.com/pact-foundation/pact-go@v1` to install the source packages
 
 See below for how to automate this:
 
