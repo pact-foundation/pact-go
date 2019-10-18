@@ -44,6 +44,22 @@ func TestVerifyRequest_BrokerUsernameWithoutPassword(t *testing.T) {
 		PactURLs:        []string{"http://localhost:1234/path/to/pact"},
 		ProviderBaseURL: "http://localhost:8080",
 		BrokerURL:       "http://localhost:1234",
+		ProviderVersion: "1.0.0.",
+		BrokerPassword:  "1234",
+	}
+
+	err := r.Validate()
+
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+}
+
+func TestVerifyRequest_BrokerURLWithoutVersion(t *testing.T) {
+	r := VerifyRequest{
+		PactURLs:        []string{"http://localhost:1234/path/to/pact"},
+		ProviderBaseURL: "http://localhost:8080",
+		BrokerURL:       "http://localhost:1234",
 		BrokerPassword:  "1234",
 	}
 

@@ -150,6 +150,10 @@ func (v *VerifyRequest) Validate() error {
 		v.Args = append(v.Args, "--broker-token", v.BrokerToken)
 	}
 
+	if v.BrokerURL != "" && v.ProviderVersion == "" {
+		return errors.New("both 'ProviderVersion' must be supplied if 'BrokerURL' given")
+	}
+
 	if v.ProviderVersion != "" {
 		v.Args = append(v.Args, "--provider_app_version", v.ProviderVersion)
 	}
