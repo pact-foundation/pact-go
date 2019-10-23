@@ -312,11 +312,20 @@ func match(srcType reflect.Type, params params) Matcher {
 
 		return Like("string")
 	case reflect.Bool:
+		if params.boolean.defined {
+			return Like(params.boolean.value)
+		}
 		return Like(true)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if params.number.integer != 0 {
+			return Like(params.number.integer)
+		}
 		return Like(1)
 	case reflect.Float32, reflect.Float64:
+		if params.number.float != 0 {
+			return Like(params.number.float)
+		}
 		return Like(1.1)
 	default:
 		panic(fmt.Sprintf("match: unhandled type: %v", srcType))
@@ -327,8 +336,19 @@ func match(srcType reflect.Type, params params) Matcher {
 // struct fields. They are passed back into match() along with their
 // associated type to serve as parameters for the dsl functions.
 type params struct {
-	slice sliceParams
-	str   stringParams
+	slice   sliceParams
+	str     stringParams
+	number  numberParams
+	boolean boolParams
+}
+
+type numberParams struct {
+	integer int
+	float   float32
+}
+type boolParams struct {
+	value   bool
+	defined bool
 }
 
 type sliceParams struct {
@@ -360,6 +380,20 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 	}
 
 	switch kind := srcType.Kind(); kind {
+	case reflect.Bool:
+		if _, err := fmt.Sscanf(pactTag, "example=%t", &params.boolean.value); err != nil {
+			triggerInvalidPactTagPanic(pactTag, err)
+		}
+		params.boolean.defined = true
+	case reflect.Float32, reflect.Float64:
+		if _, err := fmt.Sscanf(pactTag, "example=%g", &params.number.float); err != nil {
+			triggerInvalidPactTagPanic(pactTag, err)
+		}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if _, err := fmt.Sscanf(pactTag, "example=%d", &params.number.integer); err != nil {
+			triggerInvalidPactTagPanic(pactTag, err)
+		}
 	case reflect.Slice:
 		if _, err := fmt.Sscanf(pactTag, "min=%d", &params.slice.min); err != nil {
 			triggerInvalidPactTagPanic(pactTag, err)
