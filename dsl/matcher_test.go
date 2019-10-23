@@ -617,7 +617,7 @@ func TestMatch(t *testing.T) {
 				src: dateDTO{},
 			},
 			want: StructMatcher{
-				"date": Term("2000-01-01", `^\\d{4}-\\d{2}-\\d{2}$`),
+				"date": Term("2000-01-01", `^\d{4}-\d{2}-\d{2}$`),
 			},
 		},
 		{
@@ -863,7 +863,7 @@ func Test_pluckParams(t *testing.T) {
 				},
 				str: stringParams{
 					example: "33",
-					regEx:   `\\d{2}`,
+					regEx:   `\d{2}`,
 				},
 			},
 		},

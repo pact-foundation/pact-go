@@ -412,7 +412,7 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 			if _, err := fmt.Sscanf(components[0], "example=%s", &params.str.example); err != nil {
 				triggerInvalidPactTagPanic(pactTag, err)
 			}
-			params.str.regEx = strings.Replace(components[1], `\`, `\\`, -1)
+			params.str.regEx = components[1]
 
 		} else if exampleRegex.Match([]byte(pactTag)) {
 			components := strings.Split(pactTag, "example=")
