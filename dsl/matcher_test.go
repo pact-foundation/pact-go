@@ -563,6 +563,13 @@ func TestMatch(t *testing.T) {
 	type wordsDTO struct {
 		Words []string `json:"words" pact:"min=2"`
 	}
+	type boolDTO struct {
+		Boolean bool `json:"boolean" pact:"example=true"`
+	}
+	type numberDTO struct {
+		Integer int     `json:"integer" pact:"example=42"`
+		Float   float32 `json:"float" pact:"example=6.66"`
+	}
 	str := "str"
 	type args struct {
 		src interface{}
@@ -610,7 +617,7 @@ func TestMatch(t *testing.T) {
 				src: dateDTO{},
 			},
 			want: StructMatcher{
-				"date": Term("2000-01-01", `^\\d{4}-\\d{2}-\\d{2}$`),
+				"date": Term("2000-01-01", `^\d{4}-\d{2}-\d{2}$`),
 			},
 		},
 		{
@@ -620,6 +627,25 @@ func TestMatch(t *testing.T) {
 			},
 			want: StructMatcher{
 				"words": EachLike(Like("string"), 2),
+			},
+		},
+		{
+			name: "recursive case - struct with bool",
+			args: args{
+				src: boolDTO{},
+			},
+			want: StructMatcher{
+				"boolean": Like(true),
+			},
+		},
+		{
+			name: "recursive case - struct with int and float",
+			args: args{
+				src: numberDTO{},
+			},
+			want: StructMatcher{
+				"integer": Like(42),
+				"float":   Like(float32(6.66)),
 			},
 		},
 		{
@@ -837,7 +863,7 @@ func Test_pluckParams(t *testing.T) {
 				},
 				str: stringParams{
 					example: "33",
-					regEx:   `\\d{2}`,
+					regEx:   `\d{2}`,
 				},
 			},
 		},
