@@ -5,6 +5,13 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.0.1 (24 October 2019)
+  * [2a4dcc8](https://github.com/pact-foundation/pact-go/commit/2a4dcc8) - fix: remove double escaping for regex matcher. Fixes #119 (Matt Fellows, Wed Oct 23 22:11:16 2019 +1100)
+  * [649c7a8](https://github.com/pact-foundation/pact-go/commit/649c7a8) - feat(matcher): add support for int, float + bool to dsl.Match (Matt Fellows, Wed Oct 23 17:14:55 2019 +1100)
+  * [cb2a377](https://github.com/pact-foundation/pact-go/commit/cb2a377) - fix: fail if ProviderVersion not provided but BrokerURL is supplied (Matt Fellows, Fri Oct 18 16:02:12 2019 +1100)
+  * [f97b6bd](https://github.com/pact-foundation/pact-go/commit/f97b6bd) - docs: update go version in readme (Matt Fellows, Fri Oct 18 16:01:44 2019 +1100)
+  * [dda1b80](https://github.com/pact-foundation/pact-go/commit/dda1b80) - docs: specific the v1 prefix when installing Pact Go (Matt Fellows, Fri Oct 18 14:55:29 2019 +1100)
+
 ### v1.0.0 (18 October 2019)
   * [f8ed328](https://github.com/pact-foundation/pact-go/commit/f8ed328) - docs: fix TOC and example in readme (Matt Fellows, Fri Oct 18 14:40:50 2019 +1100)
   * [54d3c64](https://github.com/pact-foundation/pact-go/commit/54d3c64) - example: remove go-kit example (Matt Fellows, Mon Oct 14 23:56:54 2019 +1100)
