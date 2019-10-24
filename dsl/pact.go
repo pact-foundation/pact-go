@@ -209,7 +209,7 @@ func (p *Pact) setupLogging() {
 			p.LogLevel = "INFO"
 		}
 		p.logFilter = &logutils.LevelFilter{
-			Levels:   []logutils.LogLevel{"DEBUG", "INFO", "WARN", "ERROR"},
+			Levels:   []logutils.LogLevel{"TRACE", "DEBUG", "INFO", "WARN", "ERROR"},
 			MinLevel: logutils.LogLevel(p.LogLevel),
 			Writer:   os.Stderr,
 		}
