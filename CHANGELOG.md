@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.0.2 (24 October 2019)
+  * [7851c37](https://github.com/pact-foundation/pact-go/commit/7851c37) - fix: add TRACE log level to ensure output is filtered (Matt Fellows, Thu Oct 24 16:33:45 2019 +1100)
+
 ### v1.0.1 (24 October 2019)
   * [2a4dcc8](https://github.com/pact-foundation/pact-go/commit/2a4dcc8) - fix: remove double escaping for regex matcher. Fixes #119 (Matt Fellows, Wed Oct 23 22:11:16 2019 +1100)
   * [649c7a8](https://github.com/pact-foundation/pact-go/commit/649c7a8) - feat(matcher): add support for int, float + bool to dsl.Match (Matt Fellows, Wed Oct 23 17:14:55 2019 +1100)
