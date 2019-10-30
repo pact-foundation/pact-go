@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.0.3 (30 October 2019)
+  * [94da099](https://github.com/pact-foundation/pact-go/commit/94da099) - chore: set log level in Publish command (Matt Fellows, Wed Oct 30 15:23:16 2019 +1100)
+
 ### v1.0.2 (24 October 2019)
   * [7851c37](https://github.com/pact-foundation/pact-go/commit/7851c37) - fix: add TRACE log level to ensure output is filtered (Matt Fellows, Thu Oct 24 16:33:45 2019 +1100)
 
