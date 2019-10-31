@@ -17,7 +17,7 @@ echo "mode: count" > profile.cov
 for dir in $(find . -maxdepth 3 -not -path './.git*' -not -path '*/_*' -not -path '_*' -type d -not -path './examples*' -not -path './vendor*' -not -path './output*' -not -path './dist*' -not -path './build*' -not -path './bin*' -not -path './scripts*' -not -path './pact-*'); do
   if ls $dir/*.go &> /dev/null; then
     go test -covermode=count -coverprofile=$dir/profile.tmp $dir
-    if [ $? = 1 ]; then
+    if [ $? != 0 ]; then
       echo "Test failure, exiting"
       exit 1
     fi
