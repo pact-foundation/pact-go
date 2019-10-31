@@ -69,6 +69,7 @@ Read [Getting started with Pact] for more information for beginners.
         - [Matching by regular expression](#matching-by-regular-expression)
         - [Match common formats](#match-common-formats)
             - [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
+    - [Tutorial (60 minutes)](#tutorial-60-minutes)
     - [Examples](#examples)
         - [HTTP APIs](#http-apis)
         - [Asynchronous APIs](#asynchronous-apis)
@@ -92,7 +93,7 @@ Read [Getting started with Pact] for more information for beginners.
 <details><summary>Specification Compatibility</summary>
 
 | Version | Stable     | [Spec] Compatibility | Install            |
-| ------- | ---------- | -------------------- | ------------------ |
+|---------|------------|----------------------|--------------------|
 | 1.0.x   | Yes        | 2, 3\*               | See [installation] |
 | 1.1.x   | No (alpha) | 2, 3\*               | 1.1.x [alpha]      |
 | 0.x.x   | Yes        | Up to v2             | 0.x.x [stable]     |
@@ -692,7 +693,7 @@ This example will result in a response body from the mock server that looks like
 Often times, you find yourself having to re-write regular expressions for common formats. We've created a number of them for you to save you the time:
 
 | method          | description                                                                                     |
-| --------------- | ----------------------------------------------------------------------------------------------- |
+|-----------------|-------------------------------------------------------------------------------------------------|
 | `Identifier()`  | Match an ID (e.g. 42)                                                                           |
 | `Integer()`     | Match all numbers that are integers (both ints and longs)                                       |
 | `Decimal()`     | Match all real numbers (floating point and decimal)                                             |
@@ -747,6 +748,10 @@ See [dsl.Match](https://github.com/pact-foundation/pact-go/blob/master/dsl/match
 
 See the [matcher tests](https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)
 for more matching examples.
+
+## Tutorial (60 minutes)
+
+Learn everything in Pact Go in 60 minutes: https://github.com/pact-foundation/pact-workshop-go
 
 ## Examples
 
