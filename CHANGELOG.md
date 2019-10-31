@@ -5,6 +5,10 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.0.4 (01 November 2019)
+  * [faab07c](https://github.com/pact-foundation/pact-go/commit/faab07c) - fix: os package missing in Publish. Fixes #121 (Matt Fellows, Fri Nov 1 08:32:17 2019 +1100)
+  * [d844d45](https://github.com/pact-foundation/pact-go/commit/d844d45) - fix: test suite should fail if non-zero exit code (Matt Fellows, Fri Nov 1 08:31:25 2019 +1100)
+
 ### v1.0.3 (30 October 2019)
   * [94da099](https://github.com/pact-foundation/pact-go/commit/94da099) - chore: set log level in Publish command (Matt Fellows, Wed Oct 30 15:23:16 2019 +1100)
 
