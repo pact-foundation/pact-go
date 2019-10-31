@@ -2,9 +2,10 @@ package dsl
 
 import (
 	"log"
+	"os"
 
-	"github.com/pact-foundation/pact-go/types"
 	"github.com/hashicorp/logutils"
+	"github.com/pact-foundation/pact-go/types"
 )
 
 // PactFile is a simple representation of a Pact file to be able to
@@ -30,7 +31,7 @@ type Publisher struct {
 	LogLevel string
 
 	// Used to detect if logging has been configured.
-	logFilter *logutils.LevelFilter	
+	logFilter *logutils.LevelFilter
 }
 
 // Publish sends the Pacts to a broker, optionally tagging them
