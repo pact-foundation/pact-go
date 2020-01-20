@@ -412,9 +412,16 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) (types.
 	for _, example := range res.Examples {
 		t.Run(example.Description, func(st *testing.T) {
 			st.Log(example.FullDescription)
+
 			if example.Status != "passed" {
-				t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+				if strings.Contains(example.FullDescription, "[PENDING]") {
+					t.Logf("NOTICE: This interaction is in a pending state because it has not yet been successfully verified by %s. If this verification fails, it will not cause the overall build to fail. Read more at https://pact.io/pending", p.Provider)
+					t.Logf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+				} else {
+					t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+				}
 			}
+
 		})
 	}
 
