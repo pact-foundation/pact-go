@@ -5,6 +5,11 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.1.0 (22 January 2020)
+  * [35af37d](https://github.com/pact-foundation/pact-go/commit/35af37d) - chore: bump minimum versions of standalone libs (Matt Fellows, Wed Jan 22 10:52:10 2020 +1100)
+  * [ad9fe09](https://github.com/pact-foundation/pact-go/commit/ad9fe09) - feat(pending): support initial pending pacts implementation (Matt Fellows, Mon Jan 20 17:16:16 2020 +1100)
+  * [a88e2e2](https://github.com/pact-foundation/pact-go/commit/a88e2e2) - chore: add a code of conduct (Matt Fellows, Tue Dec 3 10:45:26 2019 +1100)
+
 ### v1.0.4 (01 November 2019)
   * [faab07c](https://github.com/pact-foundation/pact-go/commit/faab07c) - fix: os package missing in Publish. Fixes #121 (Matt Fellows, Fri Nov 1 08:32:17 2019 +1100)
   * [d844d45](https://github.com/pact-foundation/pact-go/commit/d844d45) - fix: test suite should fail if non-zero exit code (Matt Fellows, Fri Nov 1 08:31:25 2019 +1100)
