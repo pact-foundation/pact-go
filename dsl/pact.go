@@ -305,9 +305,10 @@ func (p *Pact) WritePact() error {
 // a running Provider API, providing raw response from the Verification process.
 //
 // Order of events: BeforeEach, stateHandlers, requestFilter(pre <execute provider> post), AfterEach
-func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
+func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	p.Setup(false)
-	var res types.ProviderVerifierResponse
+	// todo make
+	var res []types.ProviderVerifierResponse
 
 	u, err := url.Parse(request.ProviderBaseURL)
 
@@ -409,19 +410,23 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]type
 		}
 	}
 
-	for _, example := range res.Examples {
-		t.Run(example.Description, func(st *testing.T) {
-			st.Log(example.FullDescription)
+	for _, test := range res {
+		t.Run("Running pact test - todo put the name of the pact being tested here", func(pactTest *testing.T) {
+			for _, example := range res.Examples {
+				t.Run(example.Description, func(st *testing.T) {
+					st.Log(example.FullDescription)
 
-			if example.Status != "passed" {
-				if strings.Contains(example.FullDescription, "[PENDING]") {
-					t.Logf("NOTICE: This interaction is in a pending state because it has not yet been successfully verified by %s. If this verification fails, it will not cause the overall build to fail. Read more at https://pact.io/pending", p.Provider)
-					t.Logf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-				} else {
-					t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-				}
+					if example.Status != "passed" {
+						if strings.Contains(example.FullDescription, "[PENDING]") {
+							t.Logf("NOTICE: This interaction is in a pending state because it has not yet been successfully verified by %s. If this verification fails, it will not cause the overall build to fail. Read more at https://pact.io/pending", p.Provider)
+							t.Logf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+						} else {
+							t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+						}
+					}
+
+				})
 			}
-
 		})
 	}
 
