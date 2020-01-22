@@ -23,8 +23,13 @@ type VerifyRequest struct {
 	// Pact Broker URL for broker-based verification
 	BrokerURL string
 
-	// Tags to find in Broker for matrix-based testing
+	ConsumerVersionSelectors []ConsumerVersionSelector
+
+	// Retrieve the latest pacts with this consumer version tag
 	Tags []string
+
+	// Tags to apply to the provider application version
+	ProviderTags []string
 
 	// ProviderStatesSetupURL is the endpoint to post current provider state
 	// to on the Provider API.
@@ -88,6 +93,9 @@ type VerifyRequest struct {
 	// Custom TLS Configuration to use when making the requests to/from
 	// the Provider API. Useful for setting custom certificates, MASSL etc.
 	CustomTLSConfig *tls.Config
+
+	// Allow pending pacts to be included in verification (see pact.io/pending)
+	AllowPending bool
 
 	// Verbose increases verbosity of output
 	// Deprecated
@@ -172,6 +180,14 @@ func (v *VerifyRequest) Validate() error {
 
 	for _, tag := range v.Tags {
 		v.Args = append(v.Args, "--consumer-version-tag", tag)
+	}
+
+	for _, tag := range v.ProviderTags {
+		v.Args = append(v.Args, "--provider-version-tag", tag)
+	}
+
+	if v.AllowPending {
+		v.Args = append(v.Args, "--enable-pending")
 	}
 
 	return nil

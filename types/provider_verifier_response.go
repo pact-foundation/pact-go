@@ -13,6 +13,7 @@ type ProviderVerifierResponse struct {
 		LineNumber      int         `json:"line_number"`
 		RunTime         float64     `json:"run_time"`
 		PendingMessage  interface{} `json:"pending_message"`
+		Mismatches      []string    `json:"mismatches"`
 		Exception       struct {
 			Class     string   `json:"class"`
 			Message   string   `json:"message"`
@@ -25,6 +26,11 @@ type ProviderVerifierResponse struct {
 		FailureCount                 int     `json:"failure_count"`
 		PendingCount                 int     `json:"pending_count"`
 		ErrorsOutsideOfExamplesCount int     `json:"errors_outside_of_examples_count"`
+		Notices                      []struct {
+			text string `json:"text"`
+		} `json:"notices"`
 	} `json:"summary"`
 	SummaryLine string `json:"summary_line"`
 }
+
+// TODO: lift this up a level to have multiple "responses" per pact?

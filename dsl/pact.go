@@ -392,7 +392,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) (types.ProviderVer
 // VerifyProvider accepts an instance of `*testing.T`
 // running the provider verification with granular test reporting and
 // automatic failure reporting for nice, simple tests.
-func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
+func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	res, err := p.VerifyProviderRaw(request)
 
 	if len(res.Examples) == 0 {

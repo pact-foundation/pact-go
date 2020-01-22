@@ -32,7 +32,7 @@ type Client interface {
 	RemoveAllServers(server *types.MockServer) []*types.MockServer
 
 	// VerifyProvider runs the verification process against a running Provider.
-	VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error)
+	VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error)
 
 	// UpdateMessagePact adds a pact message to a contract file
 	UpdateMessagePact(request types.PactMessageRequest) error
@@ -143,9 +143,9 @@ func (p *PactClient) RemoveAllServers(server *types.MockServer) []*types.MockSer
 
 // VerifyProvider runs the verification process against a running Provider.
 // TODO: extract/refactor the stdout/error streaems from these functions
-func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
+func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	log.Println("[DEBUG] client: verifying a provider")
-	var response types.ProviderVerifierResponse
+	var response []types.ProviderVerifierResponse
 
 	// Convert request into flags, and validate request
 	err := request.Validate()
@@ -199,7 +199,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 	verifications := strings.Split(string(stdOut), "\n")
 
 	var verification types.ProviderVerifierResponse
-	for _, v := range verifications {
+	for i, v := range verifications {
 		v = strings.TrimSpace(v)
 
 		// TODO: fix once https://github.com/pact-foundation/pact-provider-verifier/issues/26
@@ -209,7 +209,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 		if v != "" && strings.Index(v, "INFO") != 0 {
 			dErr := json.Unmarshal([]byte(v), &verification)
 
-			response.Examples = append(response.Examples, verification.Examples...)
+			response[i] = verification
 
 			if dErr != nil {
 				err = dErr
