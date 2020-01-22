@@ -1,3 +1,5 @@
+// +build consumer
+
 package provider
 
 import (
@@ -23,7 +25,7 @@ var commonHeaders = dsl.MapMatcher{
 
 var pact = createPact()
 
-func TestMessageConsumer_UserExists(t *testing.T) {
+func TestExampleMessageConsumer_UserExists(t *testing.T) {
 	message := pact.AddMessage()
 	message.
 		Given("user with id 127 exists").
@@ -41,7 +43,7 @@ func TestMessageConsumer_UserExists(t *testing.T) {
 	pact.VerifyMessageConsumer(t, message, userHandlerWrapper)
 }
 
-func TestMessageConsumer_Order(t *testing.T) {
+func TestExampleMessageConsumer_Order(t *testing.T) {
 	message := pact.AddMessage()
 	message.
 		Given("an order exists").
@@ -53,7 +55,7 @@ func TestMessageConsumer_Order(t *testing.T) {
 	pact.VerifyMessageConsumer(t, message, orderHandlerWrapper)
 }
 
-func TestMessageConsumer_Fail(t *testing.T) {
+func TestExampleMessageConsumer_Fail(t *testing.T) {
 	t.Skip()
 	message := pact.AddMessage()
 	message.
@@ -111,6 +113,6 @@ func createPact() dsl.Pact {
 		Provider: "PactGoMessageProvider",
 		LogDir:   logDir,
 		PactDir:  pactDir,
-		LogLevel: "DEBUG",
+		LogLevel: "INFO",
 	}
 }

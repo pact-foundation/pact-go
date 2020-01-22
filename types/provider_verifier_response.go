@@ -13,7 +13,14 @@ type ProviderVerifierResponse struct {
 		LineNumber      int         `json:"line_number"`
 		RunTime         float64     `json:"run_time"`
 		PendingMessage  interface{} `json:"pending_message"`
-		Exception       struct {
+		Mismatches      []string    `json:"mismatches"`
+		Pact            struct {
+			ConsumerName     string `json:"consumer_name"`
+			ProviderName     string `json:"provider_name"`
+			URL              string `json:"url"`
+			ShortDescription string `json:"short_description"`
+		} `json:"pact"`
+		Exception struct {
 			Class     string   `json:"class"`
 			Message   string   `json:"message"`
 			Backtrace []string `json:"backtrace"`
@@ -25,6 +32,10 @@ type ProviderVerifierResponse struct {
 		FailureCount                 int     `json:"failure_count"`
 		PendingCount                 int     `json:"pending_count"`
 		ErrorsOutsideOfExamplesCount int     `json:"errors_outside_of_examples_count"`
+		Notices                      []struct {
+			Text string `json:"text"`
+			When string `json:"when"`
+		} `json:"notices"`
 	} `json:"summary"`
 	SummaryLine string `json:"summary_line"`
 }

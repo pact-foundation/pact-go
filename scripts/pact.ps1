@@ -5,7 +5,8 @@ $exitCode = 0
 if (!($env:GOPATH)) {
   $env:GOPATH = "c:\go"
 }
-$env:PACT_BROKER_HOST = "https://test.pact.dius.com.au"
+$env:PACT_BROKER_PROTO = "https"
+$env:PACT_BROKER_URL = "test.pact.dius.com.au"
 $env:PACT_BROKER_USERNAME = "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 $env:PACT_BROKER_PASSWORD = "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
 
@@ -68,7 +69,6 @@ foreach ($package in $packages) {
 
 # Run integration tests
 Write-Host "--> Testing E2E examples"
-$env:PACT_INTEGRATED_TESTS=1
 
 $examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider", "github.com/pact-foundation/pact-go/examples/httpbin", "github.com/pact-foundation/pact-go/examples/customTls")
 foreach ($example in $examples) {

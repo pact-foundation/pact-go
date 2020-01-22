@@ -1,8 +1,32 @@
-version: '3.6'
+version: "3"
 
 services:
-  pact:
-    build: ./
-    command: bash
-    volumes:
-      - .:/go/src/github.com/pact-foundation/pact-go
+  httpbin:
+    image: kennethreitz/httpbin
+    ports:
+      - "8000:80"
+
+  postgres:
+    image: postgres
+    healthcheck:
+      test: psql postgres --command "select 1" -U postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+
+  broker_app:
+    image: dius/pact-broker
+    links:
+      - postgres
+    ports:
+      - 80:80
+    environment:
+      PACT_BROKER_BASIC_AUTH_USERNAME: pact_workshop
+      PACT_BROKER_BASIC_AUTH_PASSWORD: pact_workshop
+      PACT_BROKER_DATABASE_USERNAME: postgres
+      PACT_BROKER_DATABASE_PASSWORD: password
+      PACT_BROKER_DATABASE_HOST: postgres
+      PACT_BROKER_DATABASE_NAME: postgres

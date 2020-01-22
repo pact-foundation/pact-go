@@ -1,23 +1,30 @@
+// +build provider
+
 package provider
 
 import (
+	"crypto/tls"
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
-	"os"
+
 	"github.com/pact-foundation/pact-go/dsl"
-	"github.com/pact-foundation/pact-go/utils"
 	"github.com/pact-foundation/pact-go/types"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 // An external HTTPS provider
-func TestPact_ExternalHttpsProvider(t *testing.T) {
+func TestExample_ExternalHttpsProvider(t *testing.T) {
 	pact := createPact()
 
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
-		ProviderBaseURL:       "https://httpbin.org",
+		ProviderBaseURL:       "http://localhost:8000",
 		PactURLs:              []string{filepath.ToSlash(fmt.Sprintf("%s/consumer-httpbin.json", pactDir))},
 		CustomProviderHeaders: []string{"Authorization: Bearer SOME_TOKEN"},
+		CustomTLSConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
 	})
 
 	if err != nil {
@@ -39,6 +46,5 @@ func createPact() dsl.Pact {
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
 		DisableToolValidityCheck: true,
-		LogLevel:                 "DEBUG",
 	}
 }

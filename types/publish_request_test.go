@@ -9,7 +9,7 @@ import (
 
 func TestPublishRequest_Validate(t *testing.T) {
 	dir, _ := os.Getwd()
-	testFile := fmt.Sprintf(filepath.Join(dir, "publish_test.go"))
+	testFile := fmt.Sprint(filepath.Join(dir, "publish_test.go"))
 
 	p := PublishRequest{}
 	err := p.Validate()
