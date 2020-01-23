@@ -23,7 +23,7 @@ type VerifyRequest struct {
 	// Pact Broker URL for broker-based verification
 	BrokerURL string
 
-	ConsumerVersionSelectors []ConsumerVersionSelector
+	// ConsumerVersionSelectors []ConsumerVersionSelector
 
 	// Retrieve the latest pacts with this consumer version tag
 	Tags []string

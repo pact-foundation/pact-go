@@ -307,8 +307,7 @@ func (p *Pact) WritePact() error {
 // Order of events: BeforeEach, stateHandlers, requestFilter(pre <execute provider> post), AfterEach
 func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	p.Setup(false)
-	// todo make
-	var res []types.ProviderVerifierResponse
+	res := make([]types.ProviderVerifierResponse, 0)
 
 	u, err := url.Parse(request.ProviderBaseURL)
 
@@ -396,7 +395,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderV
 func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	res, err := p.VerifyProviderRaw(request)
 
-	if len(res.Examples) == 0 {
+	if len(res) == 0 {
 		message := "No pacts found to verifify"
 
 		if len(request.Tags) > 0 {
@@ -411,20 +410,20 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]type
 	}
 
 	for _, test := range res {
-		t.Run("Running pact test - todo put the name of the pact being tested here", func(pactTest *testing.T) {
-			for _, example := range res.Examples {
+		t.Run(fmt.Sprintf("Running pact test - todo put the name of the pact being tested here: %s", test.SummaryLine), func(pactTest *testing.T) {
+			for _, example := range test.Examples {
 				t.Run(example.Description, func(st *testing.T) {
 					st.Log(example.FullDescription)
 
 					if example.Status != "passed" {
-						if strings.Contains(example.FullDescription, "[PENDING]") {
+						if example.Status == "pending" {
 							t.Logf("NOTICE: This interaction is in a pending state because it has not yet been successfully verified by %s. If this verification fails, it will not cause the overall build to fail. Read more at https://pact.io/pending", p.Provider)
 							t.Logf("%s\n%s\n", example.FullDescription, example.Exception.Message)
 						} else {
 							t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+							st.Error("Check to ensure that all message expectations have corresponding message handlers")
 						}
 					}
-
 				})
 			}
 		})
@@ -605,15 +604,25 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 // A Message Producer is analagous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
-func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest) (res types.ProviderVerifierResponse, err error) {
+func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest) (res []types.ProviderVerifierResponse, err error) {
 	res, err = p.VerifyMessageProviderRaw(request)
 
-	for _, example := range res.Examples {
-		t.Run(example.Description, func(st *testing.T) {
-			st.Log(example.FullDescription)
-			if example.Status != "passed" {
-				st.Errorf("%s\n", example.Exception.Message)
-				st.Error("Check to ensure that all message expectations have corresponding message handlers")
+	for _, test := range res {
+		t.Run(fmt.Sprintf("Running pact test - todo put the name of the pact being tested here: %s", test.SummaryLine), func(pactTest *testing.T) {
+			for _, example := range test.Examples {
+				t.Run(example.Description, func(st *testing.T) {
+					st.Log(example.FullDescription)
+
+					if example.Status != "passed" {
+						if example.Status == "pending" {
+							t.Logf("NOTICE: This interaction is in a pending state because it has not yet been successfully verified by %s. If this verification fails, it will not cause the overall build to fail. Read more at https://pact.io/pending", p.Provider)
+							t.Logf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+						} else {
+							t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+							st.Error("Check to ensure that all message expectations have corresponding message handlers")
+						}
+					}
+				})
 			}
 		})
 	}
@@ -626,9 +635,9 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest)
 // A Message Producer is analagous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
-func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) (types.ProviderVerifierResponse, error) {
+func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.ProviderVerifierResponse, error) {
 	p.Setup(false)
-	response := types.ProviderVerifierResponse{}
+	response := make([]types.ProviderVerifierResponse, 0)
 
 	// Starts the message wrapper API with hooks back to the message handlers
 	// This maps the 'description' field of a message pact, to a function handler

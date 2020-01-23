@@ -145,7 +145,7 @@ func (p *PactClient) RemoveAllServers(server *types.MockServer) []*types.MockSer
 // TODO: extract/refactor the stdout/error streaems from these functions
 func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	log.Println("[DEBUG] client: verifying a provider")
-	var response []types.ProviderVerifierResponse
+	response := make([]types.ProviderVerifierResponse, 0)
 
 	// Convert request into flags, and validate request
 	err := request.Validate()
@@ -199,7 +199,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	verifications := strings.Split(string(stdOut), "\n")
 
 	var verification types.ProviderVerifierResponse
-	for i, v := range verifications {
+	for _, v := range verifications {
 		v = strings.TrimSpace(v)
 
 		// TODO: fix once https://github.com/pact-foundation/pact-provider-verifier/issues/26
@@ -209,7 +209,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 		if v != "" && strings.Index(v, "INFO") != 0 {
 			dErr := json.Unmarshal([]byte(v), &verification)
 
-			response[i] = verification
+			response = append(response, verification)
 
 			if dErr != nil {
 				err = dErr

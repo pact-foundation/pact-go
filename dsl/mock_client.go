@@ -9,7 +9,7 @@ import (
 
 // Mock Client for testing the DSL package
 type mockClient struct {
-	VerifyProviderResponse   types.ProviderVerifierResponse
+	VerifyProviderResponse   []types.ProviderVerifierResponse
 	VerifyProviderError      error
 	Servers                  []*types.MockServer
 	StopServerResponse       *types.MockServer
@@ -57,7 +57,7 @@ func (p *mockClient) RemoveAllServers(server *types.MockServer) []*types.MockSer
 }
 
 // VerifyProvider runs the verification process against a running Provider.
-func (p *mockClient) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
+func (p *mockClient) VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	return p.VerifyProviderResponse, p.VerifyProviderError
 }
 
