@@ -1,17 +1,19 @@
+// +build provider
+
 package provider
 
 import (
 	"fmt"
+	"github.com/pact-foundation/pact-go/dsl"
+	"github.com/pact-foundation/pact-go/types"
+	"github.com/pact-foundation/pact-go/utils"
+	"os"
 	"path/filepath"
 	"testing"
-	"os"
-	"github.com/pact-foundation/pact-go/dsl"
-	"github.com/pact-foundation/pact-go/utils"
-	"github.com/pact-foundation/pact-go/types"
 )
 
 // An external HTTPS provider
-func TestPact_ExternalHttpsProvider(t *testing.T) {
+func TestExample_ExternalHttpsProvider(t *testing.T) {
 	pact := createPact()
 
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{

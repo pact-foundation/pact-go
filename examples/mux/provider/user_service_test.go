@@ -1,3 +1,5 @@
+// +build provider
+
 package provider
 
 import (
@@ -18,7 +20,7 @@ import (
 )
 
 // The Provider verification
-func TestPact_MuxProvider(t *testing.T) {
+func TestExample_MuxProvider(t *testing.T) {
 	go startProvider()
 
 	pact := createPact()
@@ -44,45 +46,40 @@ func TestPact_MuxProvider(t *testing.T) {
 	}
 
 	// Pull from pact broker, used in e2e/integrated tests for pact-go release
-	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
-		var brokerHost = os.Getenv("PACT_BROKER_HOST")
 
-		// Verify the Provider - Latest Published Pacts for any known consumers
-		_, err := pact.VerifyProvider(t, types.VerifyRequest{
-			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-			BrokerURL:                  brokerHost,
-			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
-			PublishVerificationResults: true,
-			ProviderVersion:            "1.0.0",
-			StateHandlers:              stateHandlers,
-			RequestFilter:              fixBearerToken,
-		})
+	// Verify the Provider - Latest Published Pacts for any known consumers
+	_, err = pact.VerifyProvider(t, types.VerifyRequest{
+		ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
+		BrokerURL:                  fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
+		BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+		PublishVerificationResults: true,
+		ProviderVersion:            "1.0.0",
+		StateHandlers:              stateHandlers,
+		RequestFilter:              fixBearerToken,
+	})
 
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Verify the Provider - Tag-based Published Pacts for any known consumers
-		_, err = pact.VerifyProvider(t, types.VerifyRequest{
-			ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-			BrokerURL:                  brokerHost,
-			Tags:                       []string{"prod"},
-			BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
-			PublishVerificationResults: true,
-			ProviderVersion:            "1.0.0",
-			StateHandlers:              stateHandlers,
-			RequestFilter:              fixBearerToken,
-		})
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-	} else {
-		t.Log("Skipping pulling from broker as PACT_INTEGRATED_TESTS is not set")
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	// Verify the Provider - Tag-based Published Pacts for any known consumers
+	_, err = pact.VerifyProvider(t, types.VerifyRequest{
+		ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
+		BrokerURL:                  fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
+		Tags:                       []string{"prod"},
+		BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+		PublishVerificationResults: true,
+		ProviderVersion:            "1.0.0",
+		StateHandlers:              stateHandlers,
+		RequestFilter:              fixBearerToken,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
 }
 
 var token = "" // token will be dynamic based on state etc.

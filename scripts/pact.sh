@@ -24,7 +24,6 @@ if [ ! -d "build/pact" ]; then
 fi
 
 cd ${curDir}
-export PACT_INTEGRATED_TESTS=1
 export PACT_BROKER_HOST="https://test.pact.dius.com.au"
 export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"

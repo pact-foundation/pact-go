@@ -1,3 +1,5 @@
+// +build provider
+
 package provider
 
 import (
@@ -13,7 +15,7 @@ import (
 var user *types.User
 
 // The actual Provider test itself
-func TestMessageProvider_Success(t *testing.T) {
+func TestExampleMessageProvider_Success(t *testing.T) {
 	pact := createPact()
 
 	// Map test descriptions to message producer (handlers)

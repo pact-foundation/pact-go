@@ -1,3 +1,5 @@
+// +build consumer
+
 // Package main contains a runnable Consumer Pact test example.
 package main
 

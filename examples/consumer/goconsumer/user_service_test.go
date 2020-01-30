@@ -1,3 +1,5 @@
+// +build consumer
+
 package goconsumer
 
 import (
@@ -56,30 +58,28 @@ func TestMain(m *testing.M) {
 	pact.Teardown()
 
 	// Enable when running E2E/integration tests before a release
-	if os.Getenv("PACT_INTEGRATED_TESTS") != "" {
-		version := "1.0.0"
-		if os.Getenv("TRAVIS_BUILD_NUMBER") != "" {
-			version = fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_BUILD_NUMBER"), time.Now().Unix())
-		}
+	version := "1.0.0"
+	if os.Getenv("TRAVIS_BUILD_NUMBER") != "" {
+		version = fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_BUILD_NUMBER"), time.Now().Unix())
+	}
 
-		// Publish the Pacts...
-		p := dsl.Publisher{}
+	// Publish the Pacts...
+	p := dsl.Publisher{
+		// LogLevel: "INFO",
+	}
 
-		err := p.Publish(types.PublishRequest{
-			PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
-			PactBroker:      os.Getenv("PACT_BROKER_HOST"),
-			ConsumerVersion: version,
-			Tags:            []string{"dev", "prod"},
-			BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
-			BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
-		})
+	err := p.Publish(types.PublishRequest{
+		PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
+		PactBroker:      fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
+		ConsumerVersion: version,
+		Tags:            []string{"dev", "prod"},
+		BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
+	})
 
-		if err != nil {
-			log.Println("ERROR: ", err)
-			os.Exit(1)
-		}
-	} else {
-		log.Println("Skipping publishing")
+	if err != nil {
+		log.Println("ERROR: ", err)
+		os.Exit(1)
 	}
 
 	os.Exit(code)
@@ -112,12 +112,12 @@ func createPact() dsl.Pact {
 		Provider:                 "loginprovider",
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
-		LogLevel:                 "DEBUG",
+		LogLevel:                 "INFO",
 		DisableToolValidityCheck: true,
 	}
 }
 
-func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
+func TestExampleConsumerLoginHandler_UserExists(t *testing.T) {
 	var testJmarieExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
@@ -168,7 +168,7 @@ func TestPactConsumerLoginHandler_UserExists(t *testing.T) {
 	}
 }
 
-func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
+func TestExampleConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 	var testJmarieDoesNotExists = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
@@ -208,7 +208,7 @@ func TestPactConsumerLoginHandler_UserDoesNotExist(t *testing.T) {
 	}
 }
 
-func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
+func TestExampleConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 	var testJmarieUnauthorized = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
@@ -243,7 +243,7 @@ func TestPactConsumerLoginHandler_UserUnauthorised(t *testing.T) {
 	}
 }
 
-func TestPactConsumerGetUser_Authenticated(t *testing.T) {
+func TestExampleConsumerGetUser_Authenticated(t *testing.T) {
 	var testJmarieUnauthenticated = func() error {
 		client := Client{
 			Host:  fmt.Sprintf("http://localhost:%d", pact.Server.Port),
@@ -281,7 +281,7 @@ func TestPactConsumerGetUser_Authenticated(t *testing.T) {
 	}
 
 }
-func TestPactConsumerGetUser_Unauthenticated(t *testing.T) {
+func TestExampleConsumerGetUser_Unauthenticated(t *testing.T) {
 	var testJmarieUnauthenticated = func() error {
 		client := Client{
 			Host: fmt.Sprintf("http://localhost:%d", pact.Server.Port),
