@@ -7,7 +7,7 @@ TEST?=./...
 ci:: docker deps clean bin test pact goveralls
 
 docker:
-	@echo "--- 🛠 Starting docker"
+	echo "--- 🛠 Starting docker"
 	docker-compose up -d
 
 bin:
