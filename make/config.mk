@@ -1,4 +1,4 @@
-SHELL = "/bin/bash"
+SHELL = "/bin/sh"
 
 export PATH := $(PWD)/pact/bin:$(PATH)
 export PATH
