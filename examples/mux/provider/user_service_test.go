@@ -211,6 +211,7 @@ func createPact() dsl.Pact {
 		Provider: "loginprovider",
 		LogDir:   logDir,
 		PactDir:  pactDir,
+		LogLevel: "DEBUG",
 		// DisableToolValidityCheck: true,
 	}
 }

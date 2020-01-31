@@ -103,6 +103,7 @@ type Pact struct {
 
 // AddMessage creates a new asynchronous consumer expectation
 func (p *Pact) AddMessage() *Message {
+	p.setupLogging()
 	log.Println("[DEBUG] pact add message")
 
 	m := &Message{}

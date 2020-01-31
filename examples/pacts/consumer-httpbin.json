@@ -1,0 +1,57 @@
+{
+  "consumer": {
+    "name": "consumer"
+  },
+  "provider": {
+    "name": "httpbin"
+  },
+  "interactions": [
+    {
+      "description": "A request to the GET echo service",
+      "request": {
+        "method": "GET",
+        "path": "/get"
+      },
+      "response": {
+        "status": 200
+      }
+    },
+    {
+      "description": "A request to the GET 404 status service",
+      "request": {
+        "method": "GET",
+        "path": "/status/404"
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "A GET request to the bearer service",
+      "request": {
+        "method": "GET",
+        "path": "/bearer",
+        "headers": {
+          "Authorization": "Bearer 1234"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "authenticated": true,
+          "token": "1234"
+        },
+        "matchingRules": {
+          "$.body.token": {
+            "match": "type"
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

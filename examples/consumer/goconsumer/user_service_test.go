@@ -64,9 +64,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Publish the Pacts...
-	p := dsl.Publisher{
-		// LogLevel: "INFO",
-	}
+	p := dsl.Publisher{}
 
 	err := p.Publish(types.PublishRequest{
 		PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
@@ -112,7 +110,6 @@ func createPact() dsl.Pact {
 		Provider:                 "loginprovider",
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
-		LogLevel:                 "INFO",
 		DisableToolValidityCheck: true,
 	}
 }

@@ -1,6 +1,8 @@
 package dsl
 
 import (
+	"fmt"
+
 	"github.com/pact-foundation/pact-go/types"
 )
 
@@ -58,6 +60,7 @@ func (p *mockClient) RemoveAllServers(server *types.MockServer) []*types.MockSer
 
 // VerifyProvider runs the verification process against a running Provider.
 func (p *mockClient) VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
+	fmt.Println("VERIFY PROVIDER ===================")
 	return p.VerifyProviderResponse, p.VerifyProviderError
 }
 

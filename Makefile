@@ -4,37 +4,67 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: clean bin test pact goveralls
+ci:: docker deps clean bin test pact goveralls
+
+docker:
+	@echo "--- 🛠 Starting docker"
+	docker-compose up -d
+
+bin:
+	gox -os="darwin" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
+	gox -os="windows" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
+	gox -os="linux" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
+	gox -os="linux" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
+	echo "==> Results:"
+	ls -hl build/
+
+clean:
+	rm -rf build output dist
+
+deps:
+	@echo "--- 🐿 Fetching build dependencies "
+	go get github.com/axw/gocov/gocov
+	go get github.com/mattn/goveralls
+	go get golang.org/x/tools/cmd/cover
+	go get github.com/modocache/gover
+	go get github.com/mitchellh/gox
+
+goveralls:
+	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
 
 install:
 	@if [ ! -d pact/bin ]; then\
-		echo "--- Installing Pact CLI dependencies";\
+		echo "--- 🐿 Installing Pact CLI dependencies";\
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash;\
     fi
 
-bin:
-	@sh -c "$(CURDIR)/scripts/build.sh"
-
-clean:
-	@sh -c "$(CURDIR)/scripts/clean.sh"
-
-test:
-	@echo "--- ✅ Running tests"
-	go test -count=1 $(TEST)
+pact: install docker
+	@echo "--- 🔨 Running Pact examples "
+	go test -tags=consumer -count=1 -v github.com/pact-foundation/pact-go/examples/./... -run TestExample
+	go test -tags=provider -count=1 -v github.com/pact-foundation/pact-go/examples/./... -run TestExample
 
 release:
+	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
-pact: install
-	@echo "--- 🔨Running Pact examples "
-	go test  -tags=consumer -count=1 -v github.com/pact-foundation/pact-go/examples/./... -run TestExample
-	go test  -tags=provider -count=1 -v github.com/pact-foundation/pact-go/examples/./... -run TestExample
+test: deps
+	@echo "--- ✅ Running tests"
+	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
+	@echo "mode: count" > coverage.txt
+	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
+		do \
+			go test -race -coverprofile=profile.out -covermode=atomic $$d; \
+			if [ -f profile.out ]; then \
+					cat profile.out | tail -n +2 >> coverage.txt; \
+					rm profile.out; \
+			fi; \
+	done; \
+
+	go tool cover -func coverage.txt
+
 
 testrace:
 	go test -race $(TEST) $(TESTARGS)
-
-goveralls:
-	"$(CURDIR)/scripts/goveralls.sh"
 
 updatedeps:
 	go get -d -v -p 2 ./...

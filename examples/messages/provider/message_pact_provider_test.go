@@ -76,6 +76,5 @@ func createPact() dsl.Pact {
 		Consumer: "PactGoMessageConsumer",
 		Provider: "PactGoMessageProvider",
 		LogDir:   logDir,
-		LogLevel: "DEBUG",
 	}
 }

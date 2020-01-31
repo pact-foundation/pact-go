@@ -6,15 +6,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/pact-foundation/pact-go/dsl"
-	"github.com/pact-foundation/pact-go/types"
-	"github.com/pact-foundation/pact-go/utils"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/pact-foundation/pact-go/dsl"
+	"github.com/pact-foundation/pact-go/types"
+	"github.com/pact-foundation/pact-go/utils"
 )
 
 // An external HTTPS provider
@@ -70,7 +71,6 @@ func createPact() dsl.Pact {
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
 		DisableToolValidityCheck: true,
-		LogLevel:                 "DEBUG",
 	}
 }
 

@@ -5,7 +5,8 @@ $exitCode = 0
 if (!($env:GOPATH)) {
   $env:GOPATH = "c:\go"
 }
-$env:PACT_BROKER_HOST = "https://test.pact.dius.com.au"
+$env:PACT_BROKER_PROTO = "https"
+$env:PACT_BROKER_URL = "test.pact.dius.com.au"
 $env:PACT_BROKER_USERNAME = "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
 $env:PACT_BROKER_PASSWORD = "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
 

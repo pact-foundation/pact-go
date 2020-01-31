@@ -2,7 +2,6 @@ package dsl
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -265,11 +264,9 @@ func TestPact_VerifyProviderRaw(t *testing.T) {
 		PactURLs:        []string{"foo.json", "bar.json"},
 		RequestFilter:   dummyMiddleware,
 		BeforeEach: func() error {
-			fmt.Println("aeuaoseu")
 			return nil
 		},
 		AfterEach: func() error {
-			fmt.Println("aeuaoseu")
 			return nil
 		},
 	})
@@ -280,8 +277,8 @@ func TestPact_VerifyProviderRaw(t *testing.T) {
 }
 
 func TestPact_VerifyProvider(t *testing.T) {
-	c, _ := createMockClient(true)
-	defer stubPorts()()
+	c := newMockClient()
+	c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
 	exampleTest := &testing.T{}
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 
@@ -296,8 +293,9 @@ func TestPact_VerifyProvider(t *testing.T) {
 }
 
 func TestPact_VerifyProviderFail(t *testing.T) {
-	c, _ := createMockClient(false)
-	defer stubPorts()()
+	c := newMockClient()
+	c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
+	c.VerifyProviderError = errors.New("error executing provider verification")
 	exampleTest := &testing.T{}
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 
@@ -312,8 +310,9 @@ func TestPact_VerifyProviderFail(t *testing.T) {
 }
 
 func TestPact_VerifyProviderFailBadURL(t *testing.T) {
-	c, _ := createMockClient(false)
-	defer stubPorts()()
+	c := newMockClient()
+	c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
+	c.VerifyProviderError = errors.New("error executing provider verification")
 	exampleTest := &testing.T{}
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 
@@ -649,7 +648,6 @@ func createMessageHandlers(invoked *int, err error) MessageHandlers {
 	return map[string]MessageHandler{
 		"a message": func(m Message) (interface{}, error) {
 			*invoked++
-			fmt.Println("message handler")
 
 			return nil, err
 		},
@@ -659,7 +657,6 @@ func createMessageHandlers(invoked *int, err error) MessageHandlers {
 func createStateHandlers(invoked *int, err error) StateHandlers {
 	return map[string]StateHandler{
 		"state x": func(s State) error {
-			fmt.Println("state handler")
 			*invoked++
 
 			return err
@@ -895,9 +892,9 @@ func TestPact_VerifyMessageConsumerSuccess(t *testing.T) {
 }
 
 func TestPact_VerifyMessageProviderSuccess(t *testing.T) {
-	c, _ := createMockClient(true)
+	c := newMockClient()
+	c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
 	var called = 0
-	defer stubPorts()()
 	exampleTest := &testing.T{}
 
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
@@ -929,7 +926,6 @@ func captureOutput(action func()) string {
 }
 
 func stubPorts() func() {
-	log.Println("Stubbing port timeout")
 	old := waitForPort
 	waitForPort = func(int, string, string, time.Duration, string) error {
 		return nil

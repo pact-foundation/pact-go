@@ -21,9 +21,6 @@ func TestExample_GinProvider(t *testing.T) {
 
 	pact := createPact()
 
-	// Pull from pact broker, used in e2e/integrated tests for pact-go release
-	var brokerHost = os.Getenv("PACT_BROKER_URL")
-
 	// Verify the Provider - Latest Published Pacts for any known consumers
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
@@ -152,6 +149,5 @@ func createPact() dsl.Pact {
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
 		DisableToolValidityCheck: true,
-		LogLevel:                 "INFO",
 	}
 }
