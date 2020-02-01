@@ -1,5 +1,3 @@
-SHELL = "/bin/sh"
-
 export PATH := $(PWD)/pact/bin:$(PATH)
 export PATH
 export PACT_BROKER_PROTO=http

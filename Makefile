@@ -10,7 +10,7 @@ docker:
 	echo $(PATH)
 	echo "--- 🛠 Starting docker"
 	which docker-compose
-	/usr/local/bin/docker-compose up -d
+	docker-compose up -d
 
 bin:
 	gox -os="darwin" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
