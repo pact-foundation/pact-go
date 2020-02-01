@@ -7,11 +7,6 @@ go:
 services:
   - docker
 
-script:
-  - which docker-compose
-  - docker-compose version
-  - make
-
 env:
   global:
     secure: LN8/2VY4tvHcCzIVlpy+x3KIlkFNGrwQmQadLR3oT0nJWmkZQhE5f+InAPaQNDm3siJcNG0wLCo0iLw6JN1esF/VQPrsHrW3MAkbKyNsdYnSZUZJ6Zs6MmBoigHy4qWuFayGhChgMHqhyXf6q8B5KhJb3vKKn/WW4nsU8tfpk1jdr8mdRcFEfjViQake5vZUb93gy3sXJxz6NlEaYZcrY25c/iOd06oOQZlCCyz5FhkArBKK95jbeMr5LO/5Xlkg1pIHE571Distoc4e3+ZfzW/yQCsgrZNcLElV96mvRHw/x8k2Bb7UgXQbNPX/mxV7bJCHVjhmIkwP8JKOFEs9AD0nWWjXWA1PlG7MdQoZTCoAnZWUCCsMVDDg/sg7/Vlzf+szYCoz0NE2v0Z1+v9h/itljaSHa0H9u2G/mkvZio377ou0AK54OIXDcPP0BmXvA8uJV6U3hCubWOnF0uwSCrysKEThxD/OFm90IIyLY8LKlsgHsFTkSTiApI//xRfm4NBF1sSg4V2FCzAMJx6596ekIcWgfoVUpSiOKiktwXnZha6XtHENDJeGuNpywowPInvYDZHCHYscCnre6MKTMttmb/q4JgSJEnn2vatRwXQbglzXhCDH7dw/a/75LSUT5Exj0f2HWpxDy+pi+nzITxZoFT+syNFwDvSRMT/wKLU=
