@@ -8,6 +8,7 @@ ci:: docker deps clean bin test pact goveralls
 
 docker:
 	echo "--- 🛠 Starting docker"
+	which docker-compose
 	docker-compose up -d
 
 bin:
