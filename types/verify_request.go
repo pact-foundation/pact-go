@@ -99,7 +99,7 @@ type VerifyRequest struct {
 	CustomTLSConfig *tls.Config
 
 	// Allow pending pacts to be included in verification (see pact.io/pending)
-	AllowPending bool
+	EnablePending bool
 
 	// Verbose increases verbosity of output
 	// Deprecated
@@ -135,7 +135,7 @@ func (v *VerifyRequest) Validate() error {
 				return fmt.Errorf("invalid consumer version selector specified: %v", err)
 			}
 
-			v.Args = append(v.Args, "--consumer-version-selector", string(body))
+			v.Args = append(v.Args, "--consumer-version-selector", fmt.Sprintf("'%s'", string(body)))
 		}
 	}
 
@@ -205,7 +205,7 @@ func (v *VerifyRequest) Validate() error {
 		v.Args = append(v.Args, "--provider-version-tag", tag)
 	}
 
-	if v.AllowPending {
+	if v.EnablePending {
 		v.Args = append(v.Args, "--enable-pending")
 	}
 

@@ -7,6 +7,7 @@ import "fmt"
 // See https://docs.pact.io/selectors for more
 type ConsumerVersionSelector struct {
 	Pacticipant string `json:"pacticipant"`
+	Tag         string `json:"tag"`
 	Version     string `json:"version"`
 	Latest      bool   `json:"latest"`
 	All         bool   `json:"all"`

@@ -371,6 +371,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderV
 		Provider:                   request.Provider,
 		ProviderStatesSetupURL:     setupURL,
 		CustomProviderHeaders:      request.CustomProviderHeaders,
+		ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
 	}
 
 	if request.Provider == "" {

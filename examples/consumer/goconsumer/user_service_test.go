@@ -58,19 +58,22 @@ func TestMain(m *testing.M) {
 	pact.Teardown()
 
 	// Enable when running E2E/integration tests before a release
-	version := "1.0.0"
+	version := "1.0.1"
 	if os.Getenv("TRAVIS_BUILD_NUMBER") != "" {
 		version = fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_BUILD_NUMBER"), time.Now().Unix())
 	}
 
 	// Publish the Pacts...
-	p := dsl.Publisher{}
+	p := dsl.Publisher{
+		LogLevel: "DEBUG",
+	}
 
 	err := p.Publish(types.PublishRequest{
 		PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
 		PactBroker:      fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
 		ConsumerVersion: version,
 		Tags:            []string{"dev", "prod"},
+		BrokerToken:     os.Getenv("PACT_BROKER_TOKEN"),
 		BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
 	})
