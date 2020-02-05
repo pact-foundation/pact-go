@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -23,7 +24,10 @@ type VerifyRequest struct {
 	// Pact Broker URL for broker-based verification
 	BrokerURL string
 
-	// ConsumerVersionSelectors []ConsumerVersionSelector
+	// Selectors are the way we specify which pacticipants and
+	// versions we want to use when configuring verifications
+	// See https://docs.pact.io/selectors for more
+	ConsumerVersionSelectors []ConsumerVersionSelector
 
 	// Retrieve the latest pacts with this consumer version tag
 	Tags []string
@@ -111,6 +115,7 @@ type VerifyRequest struct {
 // and should not be used outside of this library.
 func (v *VerifyRequest) Validate() error {
 	v.Args = []string{}
+	var err error
 
 	if len(v.PactURLs) != 0 {
 		v.Args = append(v.Args, v.PactURLs...)
@@ -118,6 +123,20 @@ func (v *VerifyRequest) Validate() error {
 
 	if len(v.PactURLs) == 0 && v.BrokerURL == "" {
 		return fmt.Errorf("One of 'PactURLs' or 'BrokerURL' must be specified")
+	}
+
+	if len(v.ConsumerVersionSelectors) != 0 {
+		for _, selector := range v.ConsumerVersionSelectors {
+			if err = selector.Validate(); err != nil {
+				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+			}
+			body, err := json.Marshal(selector)
+			if err != nil {
+				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+			}
+
+			v.Args = append(v.Args, "--consumer-version-selector", string(body))
+		}
 	}
 
 	if len(v.CustomProviderHeaders) != 0 {

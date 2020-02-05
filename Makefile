@@ -7,7 +7,7 @@ TEST?=./...
 ci:: docker deps clean bin test pact goveralls
 
 docker:
-	echo "--- 🛠 Starting docker"
+	@echo "--- 🛠 Starting docker"
 	docker-compose up -d
 
 bin:
@@ -15,14 +15,14 @@ bin:
 	gox -os="windows" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="linux" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="linux" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
-	echo "==> Results:"
+	@echo "==> Results:"
 	ls -hl build/
 
 clean:
 	rm -rf build output dist
 
 deps:
-	echo "--- 🐿 Fetching build dependencies "
+	@echo "--- 🐿  Fetching build dependencies "
 	go get github.com/axw/gocov/gocov
 	go get github.com/mattn/goveralls
 	go get golang.org/x/tools/cmd/cover
@@ -39,18 +39,18 @@ install:
     fi
 
 pact: install docker
-	echo "--- 🔨 Running Pact examples "
-	go test -tags=consumer -count=1 -v github.com/pact-foundation/pact-go/examples/./... -run TestExample
-	go test -tags=provider -count=1 -v github.com/pact-foundation/pact-go/examples/./... -run TestExample
+	@echo "--- 🔨 Running Pact examples "
+	go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+	go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 
 release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
 test: deps
-	echo "--- ✅ Running tests"
+	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
-	echo "mode: count" > coverage.txt
+	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
 			go test -race -coverprofile=profile.out -covermode=atomic $$d; \
