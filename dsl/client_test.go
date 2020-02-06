@@ -188,7 +188,7 @@ func waitForPortInTest(port int, t *testing.T) {
 // mock service but execute our code in isolation.
 //
 // Use this when you want too exercise the client code, but not shell out to Ruby.
-// Where possible, you should consider creating a mockClient{} object and
+// Where possible, outside of these tess, you should consider creating a mockClient{} object and
 // stubbing out the required behaviour.
 //
 // Stubbing the exec.Cmd interface is hard, see fakeExec* functions for

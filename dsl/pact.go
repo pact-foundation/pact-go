@@ -590,7 +590,7 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 		resBody, errM := json.Marshal(wrappedResponse)
 		if errM != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			fmt.Println("[ERROR] error marshalling objcet:", errM)
+			log.Println("[ERROR] error marshalling objcet:", errM)
 			return
 		}
 
