@@ -412,7 +412,13 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]type
 	}
 
 	for _, test := range res {
-		t.Run(fmt.Sprintf("Running pact test - todo put the name of the pact being tested here: %s", test.SummaryLine), func(pactTest *testing.T) {
+
+		t.Run(generateTestCaseName(test), func(pactTest *testing.T) {
+			for _, notice := range test.Summary.Notices {
+				if notice.When == "before_verification" {
+					t.Logf("notice: %s", notice.Text)
+				}
+			}
 			for _, example := range test.Examples {
 				t.Run(example.Description, func(st *testing.T) {
 					st.Log(example.FullDescription)
@@ -427,6 +433,11 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]type
 						}
 					}
 				})
+			}
+			for _, notice := range test.Summary.Notices {
+				if notice.When == "after_verification" {
+					t.Logf("notice: %s", notice.Text)
+				}
 			}
 		})
 	}
@@ -599,6 +610,13 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 	}
 }
 
+func generateTestCaseName(res types.ProviderVerifierResponse) string {
+	if len(res.Examples) > 1 {
+		return fmt.Sprintf("Pact between %s and %s %s", res.Examples[0].Pact.ConsumerName, res.Examples[0].Pact.ProviderName, res.Examples[0].Pact.ShortDescription)
+	}
+	return "Running pact test"
+}
+
 // VerifyMessageProvider accepts an instance of `*testing.T`
 // running provider message verification with granular test reporting and
 // automatic failure reporting for nice, simple tests.
@@ -610,7 +628,12 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest)
 	res, err = p.VerifyMessageProviderRaw(request)
 
 	for _, test := range res {
-		t.Run(fmt.Sprintf("Running pact test - todo put the name of the pact being tested here: %s", test.SummaryLine), func(pactTest *testing.T) {
+		t.Run(generateTestCaseName(test), func(pactTest *testing.T) {
+			for _, notice := range test.Summary.Notices {
+				if notice.When == "before_verification" {
+					t.Logf("notice: %s", notice.Text)
+				}
+			}
 			for _, example := range test.Examples {
 				t.Run(example.Description, func(st *testing.T) {
 					st.Log(example.FullDescription)
@@ -625,6 +648,11 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest)
 						}
 					}
 				})
+			}
+			for _, notice := range test.Summary.Notices {
+				if notice.When == "after_verification" {
+					t.Logf("notice: %s", notice.Text)
+				}
 			}
 		})
 	}

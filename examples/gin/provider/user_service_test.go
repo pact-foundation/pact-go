@@ -92,7 +92,6 @@ var stateHandlers = types.StateHandlers{
 		return nil
 	},
 	"User jmarie does not exist": func() error {
-		fmt.Println("state handler")
 		userRepository = jmarieDoesNotExist
 		return nil
 	},
@@ -102,10 +101,8 @@ var stateHandlers = types.StateHandlers{
 // such as an OAuth bearer token
 func fixBearerToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("request filter - before")
 		r.Header.Set("Authorization", token)
 		next.ServeHTTP(w, r)
-		fmt.Println("request filter - after")
 	})
 }
 
@@ -160,6 +157,5 @@ func createPact() dsl.Pact {
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
 		DisableToolValidityCheck: true,
-		LogLevel: "DEBUG",
 	}
 }

@@ -194,7 +194,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 
 	err = cmd.Wait()
 
-	// Split by lines, as the content is now JSONL
+	// Split by lines, as the content is JSONL formatted
 	// See https://github.com/pact-foundation/pact-go/issues/88#issuecomment-404686337
 	verifications := strings.Split(string(stdOut), "\n")
 

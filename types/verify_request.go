@@ -135,7 +135,7 @@ func (v *VerifyRequest) Validate() error {
 				return fmt.Errorf("invalid consumer version selector specified: %v", err)
 			}
 
-			v.Args = append(v.Args, "--consumer-version-selector", fmt.Sprintf("'%s'", string(body)))
+			v.Args = append(v.Args, "--consumer-version-selector", string(body))
 		}
 	}
 
