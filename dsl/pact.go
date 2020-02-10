@@ -372,6 +372,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderV
 		ProviderStatesSetupURL:     setupURL,
 		CustomProviderHeaders:      request.CustomProviderHeaders,
 		ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
+		EnablePending:              request.EnablePending,
 	}
 
 	if request.Provider == "" {
@@ -411,36 +412,7 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]type
 		}
 	}
 
-	for _, test := range res {
-
-		t.Run(generateTestCaseName(test), func(pactTest *testing.T) {
-			for _, notice := range test.Summary.Notices {
-				if notice.When == "before_verification" {
-					t.Logf("notice: %s", notice.Text)
-				}
-			}
-			for _, example := range test.Examples {
-				t.Run(example.Description, func(st *testing.T) {
-					st.Log(example.FullDescription)
-
-					if example.Status != "passed" {
-						if example.Status == "pending" {
-							t.Logf("NOTICE: This interaction is in a pending state because it has not yet been successfully verified by %s. If this verification fails, it will not cause the overall build to fail. Read more at https://pact.io/pending", p.Provider)
-							t.Logf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-						} else {
-							t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-							st.Error("Check to ensure that all message expectations have corresponding message handlers")
-						}
-					}
-				})
-			}
-			for _, notice := range test.Summary.Notices {
-				if notice.When == "after_verification" {
-					t.Logf("notice: %s", notice.Text)
-				}
-			}
-		})
-	}
+	runTestCases(t, res)
 
 	return res, err
 }
@@ -627,6 +599,12 @@ func generateTestCaseName(res types.ProviderVerifierResponse) string {
 func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest) (res []types.ProviderVerifierResponse, err error) {
 	res, err = p.VerifyMessageProviderRaw(request)
 
+	runTestCases(t, res)
+
+	return
+}
+
+func runTestCases(t *testing.T, res []types.ProviderVerifierResponse) {
 	for _, test := range res {
 		t.Run(generateTestCaseName(test), func(pactTest *testing.T) {
 			for _, notice := range test.Summary.Notices {
@@ -635,16 +613,19 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest)
 				}
 			}
 			for _, example := range test.Examples {
-				t.Run(example.Description, func(st *testing.T) {
+				testCase := example.Description
+				if example.Status == "pending" {
+					testCase = fmt.Sprintf("Pending %s", example.Description)
+				}
+
+				t.Run(testCase, func(st *testing.T) {
 					st.Log(example.FullDescription)
 
 					if example.Status != "passed" {
 						if example.Status == "pending" {
-							t.Logf("NOTICE: This interaction is in a pending state because it has not yet been successfully verified by %s. If this verification fails, it will not cause the overall build to fail. Read more at https://pact.io/pending", p.Provider)
-							t.Logf("%s\n%s\n", example.FullDescription, example.Exception.Message)
+							st.Skip(example.Exception.Message)
 						} else {
-							t.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
-							st.Error("Check to ensure that all message expectations have corresponding message handlers")
+							st.Errorf("%s\n%s\n", example.FullDescription, example.Exception.Message)
 						}
 					}
 				})
@@ -656,8 +637,6 @@ func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest)
 			}
 		})
 	}
-
-	return
 }
 
 // VerifyMessageProviderRaw runs provider message verification.

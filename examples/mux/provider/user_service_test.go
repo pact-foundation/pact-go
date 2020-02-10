@@ -32,11 +32,9 @@ func TestExample_MuxProvider(t *testing.T) {
 		StateHandlers:   stateHandlers,
 		RequestFilter:   fixBearerToken,
 		BeforeEach: func() error {
-			fmt.Println("before hook")
 			return nil
 		},
 		AfterEach: func() error {
-			fmt.Println("after hook")
 			return nil
 		},
 	})
@@ -88,10 +86,8 @@ var token = "" // token will be dynamic based on state etc.
 // such as an OAuth bearer token
 func fixBearerToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("request filter - before")
 		r.Header.Set("Authorization", token)
 		next.ServeHTTP(w, r)
-		fmt.Println("request filter - after")
 	})
 }
 
@@ -118,7 +114,6 @@ var stateHandlers = types.StateHandlers{
 		return nil
 	},
 	"User jmarie does not exist": func() error {
-		fmt.Println("state handler")
 		userRepository = jmarieDoesNotExist
 		return nil
 	},

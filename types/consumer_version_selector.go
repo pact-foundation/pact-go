@@ -14,8 +14,12 @@ type ConsumerVersionSelector struct {
 }
 
 func (c *ConsumerVersionSelector) Validate() error {
-	if c.Pacticipant == "" {
+	if c.All && c.Pacticipant == "" {
 		return fmt.Errorf("must provide a Pacticpant")
+	}
+
+	if c.Pacticipant != "" && c.Tag == "" {
+		return fmt.Errorf("must provide at least a Tag if Pacticpant specified")
 	}
 
 	return nil

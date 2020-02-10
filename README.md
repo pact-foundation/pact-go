@@ -347,7 +347,6 @@ pact.VerifyProvider(t, types.VerifyRequest{
 			return nil
 		},
 		"User jmarie does not exist": func() error {
-			fmt.Println("state handler")
 			userRepository = jmarieDoesNotExist
 			return nil
 		},

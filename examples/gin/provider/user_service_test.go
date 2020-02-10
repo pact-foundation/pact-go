@@ -21,44 +21,49 @@ func TestExample_GinProvider(t *testing.T) {
 
 	pact := createPact()
 
+	// Pending integration test
+	var pending bool
+	if os.Getenv("PENDING") != "" {
+		pending = true
+	}
+
 	// Verify the Provider - Latest Published Pacts for any known consumers
-	// _, err := pact.VerifyProvider(t, types.VerifyRequest{
-	// 	ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-	// 	BrokerURL:                  fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
-	// BrokerToken:                os.Getenv("PACT_BROKER_TOKEN"),
-	// BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
-	// BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
-	// 	PublishVerificationResults: true,
-	// 	ProviderVersion:            "1.0.0",
-	// 	StateHandlers:              stateHandlers,
-	// 	RequestFilter:              fixBearerToken,
-	// 	AllowPending:               false,
-	// })
-
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// Verify the Provider - Tag-based Published Pacts for any known consumers
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
 		BrokerURL:                  fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
-		ConsumerVersionSelectors: []types.ConsumerVersionSelector{
-			types.ConsumerVersionSelector{
-				Tag: "dev",
-				Pacticipant: "jmarie",
-				// All: true,
-				// Latest: true,
-			},
-		},
 		BrokerToken:                os.Getenv("PACT_BROKER_TOKEN"),
-		BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
-		BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
+		BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
 		PublishVerificationResults: true,
 		ProviderVersion:            "1.0.0",
 		StateHandlers:              stateHandlers,
 		RequestFilter:              fixBearerToken,
-		EnablePending:               true,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify the Provider - Tag-based Published Pacts for any known consumers
+	_, err = pact.VerifyProvider(t, types.VerifyRequest{
+		ProviderBaseURL: fmt.Sprintf("http://127.0.0.1:%d", port),
+		BrokerURL:       fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
+		// Use ConsumerVersionSelectors instead of Tags for
+		// ConsumerVersionSelectors: []types.ConsumerVersionSelector{
+		// 	types.ConsumerVersionSelector{
+		// 		Tag:         "dev",
+		// 		Pacticipant: "jmarie",
+		// 		All:         true, // Enable this
+		// 	},
+		// },
+		BrokerToken:                os.Getenv("PACT_BROKER_TOKEN"),
+		BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
+		BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
+		PublishVerificationResults: true,
+		ProviderVersion:            "1.0.0",
+		StateHandlers:              stateHandlers,
+		RequestFilter:              fixBearerToken,
+		EnablePending:              pending,
 	})
 
 	if err != nil {

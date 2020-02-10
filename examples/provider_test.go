@@ -49,8 +49,6 @@ func TestProvider(t *testing.T) {
 		RequestFilter:         f,
 		StateHandlers: types.StateHandlers{
 			"User foo exists": func() error {
-				fmt.Println("'User foo exiss' state handler invoked")
-
 				name = "billy"
 				return nil
 			},
@@ -65,7 +63,6 @@ func startServer() {
 
 	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		fmt.Println("Request headers", req.Header)
 		fmt.Fprintf(w, fmt.Sprintf(`{"name":"%s", "lastName": "jones"}`, name))
 
 		// Break the API by replacing the above and uncommenting one of these
