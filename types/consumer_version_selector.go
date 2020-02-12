@@ -13,6 +13,7 @@ type ConsumerVersionSelector struct {
 	All         bool   `json:"all"`
 }
 
+// Validate the selector configuration
 func (c *ConsumerVersionSelector) Validate() error {
 	if c.All && c.Pacticipant == "" {
 		return fmt.Errorf("must provide a Pacticpant")
@@ -20,6 +21,10 @@ func (c *ConsumerVersionSelector) Validate() error {
 
 	if c.Pacticipant != "" && c.Tag == "" {
 		return fmt.Errorf("must provide at least a Tag if Pacticpant specified")
+	}
+
+	if c.All && c.Latest {
+		return fmt.Errorf("cannot select both All and Latest")
 	}
 
 	return nil

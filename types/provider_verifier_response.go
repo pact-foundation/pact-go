@@ -39,5 +39,3 @@ type ProviderVerifierResponse struct {
 	} `json:"summary"`
 	SummaryLine string `json:"summary_line"`
 }
-
-// TODO: lift this up a level to have multiple "responses" per pact?

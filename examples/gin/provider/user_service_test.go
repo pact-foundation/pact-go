@@ -27,6 +27,17 @@ func TestExample_GinProvider(t *testing.T) {
 		pending = true
 	}
 
+	selectors := make([]types.ConsumerVersionSelector, 0)
+	if os.Getenv("SELECTORS") != "" {
+		selectors = []types.ConsumerVersionSelector{
+			types.ConsumerVersionSelector{
+				Tag:         "dev",
+				Pacticipant: "jmarie",
+				All:         true,
+			},
+		}
+	}
+
 	// Verify the Provider - Latest Published Pacts for any known consumers
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
@@ -49,13 +60,7 @@ func TestExample_GinProvider(t *testing.T) {
 		ProviderBaseURL: fmt.Sprintf("http://127.0.0.1:%d", port),
 		BrokerURL:       fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
 		// Use ConsumerVersionSelectors instead of Tags for
-		// ConsumerVersionSelectors: []types.ConsumerVersionSelector{
-		// 	types.ConsumerVersionSelector{
-		// 		Tag:         "dev",
-		// 		Pacticipant: "jmarie",
-		// 		All:         true, // Enable this
-		// 	},
-		// },
+		ConsumerVersionSelectors:   selectors,
 		BrokerToken:                os.Getenv("PACT_BROKER_TOKEN"),
 		BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
@@ -67,7 +72,7 @@ func TestExample_GinProvider(t *testing.T) {
 	})
 
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal()
 	}
 }
 

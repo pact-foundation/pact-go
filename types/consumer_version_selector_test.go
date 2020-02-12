@@ -14,6 +14,7 @@ func TestConsumerVersionSelectorValidate(t *testing.T) {
 	}{
 		{name: "no pacticipant", selector: ConsumerVersionSelector{}, err: false},
 		{name: "no pacticipant and all set", selector: ConsumerVersionSelector{All: true}, err: true},
+		{name: "all and latest set", selector: ConsumerVersionSelector{All: true}, err: true},
 		{name: "pacticipant only", selector: ConsumerVersionSelector{Pacticipant: "foo"}, err: true},
 		{name: "pacticipant and tag", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo"}, err: false},
 		{name: "pacticipant, tag and all set", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo", All: true}, err: false},
