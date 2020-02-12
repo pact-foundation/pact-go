@@ -40,14 +40,8 @@ install:
 
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"
-
-	# Run the consumer test, and then verify all of the providers
 	go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 	go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
-	
-	# Update the consumer test (add new field) and show pending status
-	PENDING=1 go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
-	PENDING=1go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample_GinProvider
 
 release:
 	echo "--- 🚀 Releasing it"
