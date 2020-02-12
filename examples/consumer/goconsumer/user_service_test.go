@@ -60,10 +60,7 @@ func TestMain(m *testing.M) {
 	pact.Teardown()
 
 	// Enable when running E2E/integration tests before a release
-	version := "1.0.3"
-	if os.Getenv("TRAVIS_BUILD_NUMBER") != "" {
-		version = fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_BUILD_NUMBER"), time.Now().Unix())
-	}
+	version := fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_COMMIT"), time.Now().Unix())
 
 	// Publish the Pacts...
 	p := dsl.Publisher{
@@ -166,7 +163,6 @@ func TestExampleConsumerLoginHandler_UserExists(t *testing.T) {
 				"X-Api-Correlation-Id": dsl.Like("100"),
 				"Content-Type":         term("application/json; charset=utf-8", `application\/json`),
 				"X-Auth-Token":         dsl.Like("1234"),
-				"some new thing 2":     dsl.Like("1234"),
 			},
 		})
 

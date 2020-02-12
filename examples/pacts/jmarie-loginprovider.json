@@ -40,8 +40,7 @@
         "headers": {
           "Content-Type": "application/json; charset=utf-8",
           "X-Api-Correlation-Id": "100",
-          "X-Auth-Token": "1234",
-          "some new thing 2": "1234"
+          "X-Auth-Token": "1234"
         },
         "body": {
           "user": {
@@ -61,9 +60,6 @@
             "match": "type"
           },
           "$.headers.X-Auth-Token": {
-            "match": "type"
-          },
-          "$.headers.some new thing 2": {
             "match": "type"
           },
           "$.body.user.id": {
