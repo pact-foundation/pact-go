@@ -63,7 +63,6 @@ test: deps
 
 	go tool cover -func coverage.txt
 
-
 testrace:
 	go test -race $(TEST) $(TESTARGS)
 
