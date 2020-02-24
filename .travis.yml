@@ -1,5 +1,5 @@
 language: go
-dist: bionic
+dist: xenial
 
 go:
 - 1.9.x
