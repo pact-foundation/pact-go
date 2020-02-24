@@ -32,15 +32,45 @@ deps:
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
 
+# uname_output=$(uname); \
+# case $uname_output in; \
+# 	'Linux'); \
+# 		linux_uname_output=$(uname -m); \
+# 		case $linux_uname_output in; \
+# 			'x86_64'); \
+# 				os='linux-x86_64'; \
+# 				;;; \
+# 			'i686'); \
+# 				os='linux-x86'; \
+# 				;;; \
+# 			*); \
+# 				echo "Sorry, you'll need to install the pact-ruby-standalone manually."; \
+# 				exit 1; \
+# 				;;; \
+# 		esac; \
+# 		;;; \
+# 	'Darwin'); \
+# 		os='osx'; \
+# 		;;; \
+# 	*); \
+# 	echo "Sorry, you'll need to install the pact-ruby-standalone manually."; \
+# 	exit 1; \
+# 		;;; \
+# esac; \
+
 install:
 	@if [ ! -d pact/bin ]; then\
 		echo "--- 🐿 Installing Pact CLI dependencies"; \
-		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash; \
+		os=linux-x86_64; \
+		response=$(curl -s -v https://github.com/pact-foundation/pact-ruby-standalone/releases/latest 2>&1); \
+		tag=$(echo "$response" | grep -o "Location: .*" | sed -e 's/[[:space:]]*$//' | grep -o "Location: .*" | grep -o '[^/]*$'); \
+		version=${tag#v}; \
+		curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/${tag}/pact-${version}-${os}.tar.gz; \
+		tar xzf pact-${version}-${os}.tar.gz; \
+		rm pact-${version}-${os}.tar.gz; \
   fi
 
-pact:
-	echo "uname -m:"
-	uname -m
+pact: install docker
 	@echo "--- 🔨 Running Pact examples"
 	go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 	go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
