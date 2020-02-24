@@ -1,9 +1,9 @@
 language: go
-dist: xenial
+dist: bionic
 
+# - 1.10.x # Something wrong with this specific version of Go, see https://travis-ci.org/pact-foundation/pact-go/builds/654255952
 go:
 - 1.9.x
-- 1.10.x
 - 1.11.x
 - 1.12.x
 
