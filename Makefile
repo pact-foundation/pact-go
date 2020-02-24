@@ -33,13 +33,14 @@ goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
 
 install:
-	ls -larth pact || echo "pact folder doesnt exit"
 	@if [ ! -d pact/bin ]; then\
 		echo "--- 🐿 Installing Pact CLI dependencies"; \
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash; \
   fi
 
-pact: install docker
+pact:
+	echo "uname -m:"
+	uname -m
 	@echo "--- 🔨 Running Pact examples"
 	go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 	go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
