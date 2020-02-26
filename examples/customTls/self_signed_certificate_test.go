@@ -23,6 +23,8 @@ func TestExample_SelfSignedTLSProvider(t *testing.T) {
 	go startServer()
 
 	pact := createPact()
+	// time.Sleep(100 * time.Second)
+
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL: fmt.Sprintf("https://localhost:%d", port),
 		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/consumer-selfsignedtls.json", pactDir))},
@@ -86,3 +88,10 @@ func getCaCertPool() *x509.CertPool {
 
 	return caCertPool
 }
+
+// Generate a certificate with self-signed CA
+// openssl genrsa -des3 -out ca.key 2048
+// openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.pem
+// openssl genrsa -out server-key.pem 2048
+// openssl req -new -key server-key.pem -out server.csr // Set "localhost" as the common name
+// openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server-cert.pem -days 3650 -sha256
