@@ -33,9 +33,6 @@ install:
   - set Path=c:\go\bin;c:\gopath\bin;C:\Program Files (x86)\Bazaar\;C:\Program Files\Mercurial\%Path%
   - go version
   - go env
-  # Fetch dependencies using `dep`
-  - go get github.com/golang/dep/cmd/dep
-  - dep ensure -v -vendor-only
 
 build: false
 deploy: false
