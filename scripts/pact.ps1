@@ -15,7 +15,6 @@ if (Test-Path "$pactDir") {
   rmdir -Recurse -Force $pactDir
 }
 
-
 # Install CLI Tools
 Write-Host "--> Creating ${pactDir}"
 New-Item -Force -ItemType Directory $pactDir
@@ -52,7 +51,7 @@ Get-ChildItem $pactBinariesPath
 pact-broker version
 
 
-# Run t sts
+# Run tests
 Write-Host "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
 $curDir=$pwd
@@ -70,20 +69,8 @@ foreach ($package in $packages) {
 # Run integration tests
 Write-Host "--> Testing E2E examples"
 
-$examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider", "github.com/pact-foundation/pact-go/examples/httpbin", "github.com/pact-foundation/pact-go/examples/customTls")
-foreach ($example in $examples) {
-  Write-Host "Installing dependencies for example: $example"
-  cd "$env:GOPATH\src\$example"
-  go get ./...
-  Write-Host "Running tests for $example"
-  go test -v .
-  if ($LastExitCode -ne 0) {
-    Write-Host "ERROR: Test failed, logging failure"
-    $exitCode=1
-  }
-}
-cd $curDir
-
+go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 
 # Shutdown
 Write-Host "Shutting down any remaining pact processes :)"
