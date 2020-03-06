@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestVerifyRequestValidate(t *testing.T) {
@@ -86,11 +87,11 @@ func TestVerifyRequestValidate(t *testing.T) {
 				PactURLs:                 []string{"http://localhost:1234/path/to/pact"},
 				ProviderBaseURL:          "http://localhost:8080",
 				ConsumerVersionSelectors: []ConsumerVersionSelector{ConsumerVersionSelector{}},
-			}, err: true},
+			}, err: false},
 			{name: "pacticipant only", request: VerifyRequest{
 				PactURLs:                 []string{"http://localhost:1234/path/to/pact"},
 				ProviderBaseURL:          "http://localhost:8080",
-				ConsumerVersionSelectors: []ConsumerVersionSelector{ConsumerVersionSelector{Pacticipant: "foo"}},
+				ConsumerVersionSelectors: []ConsumerVersionSelector{ConsumerVersionSelector{Pacticipant: "foo", Tag: "test"}},
 			}, err: false},
 		}
 		for _, tt := range tests {
