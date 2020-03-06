@@ -138,6 +138,10 @@ func (c customTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	var DefaultTransport http.RoundTripper = transport
 
 	res, err := DefaultTransport.RoundTrip(r)
+	if err != nil {
+		log.Println("[ERROR]", err)
+		return nil, err
+	}
 	b, err = httputil.DumpResponse(res, false)
 	log.Println("[TRACE] proxied server response\n", string(b))
 
