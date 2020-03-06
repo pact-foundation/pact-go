@@ -30,6 +30,7 @@ install:
   # Download the latest pact standalone
   - msiexec /i go%GOVERSION%.windows-amd64.msi /q
   - choco install bzr docker-compose
+  - Start-Service docker
   - docker-compose up -d
   - set Path=c:\go\bin;c:\gopath\bin;C:\Program Files (x86)\Bazaar\;C:\Program Files\Mercurial\%Path%
   - go version
