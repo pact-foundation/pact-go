@@ -34,9 +34,9 @@ goveralls:
 
 install:
 	@if [ ! -d pact/bin ]; then\
-		echo "--- 🐿 Installing Pact CLI dependencies";\
-		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash;\
-    fi
+		@echo "--- 🐿 Installing Pact CLI dependencies"; \
+		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
+  fi
 
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"
@@ -47,7 +47,7 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
-test: deps
+test: deps install
 	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
 	@echo "mode: count" > coverage.txt
