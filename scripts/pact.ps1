@@ -5,10 +5,10 @@ $exitCode = 0
 if (!($env:GOPATH)) {
   $env:GOPATH = "c:\go"
 }
-$env:PACT_BROKER_PROTO = "https"
-$env:PACT_BROKER_URL = "test.pact.dius.com.au"
-$env:PACT_BROKER_USERNAME = "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
-$env:PACT_BROKER_PASSWORD = "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
+$env:PACT_BROKER_PROTO = "http"
+$env:PACT_BROKER_URL = "localhost"
+$env:PACT_BROKER_USERNAME = "pact_workshop"
+$env:PACT_BROKER_PASSWORD = "pact_workshop"
 
 if (Test-Path "$pactDir") {
   Write-Host "-> Deleting old pact directory"
