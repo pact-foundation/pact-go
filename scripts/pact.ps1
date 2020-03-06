@@ -69,6 +69,7 @@ foreach ($package in $packages) {
 # Run integration tests
 Write-Host "--> Testing E2E examples"
 Write-Host "Running consumer tests"
+docker-compose up -d
 Start-Service docker
 go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 if ($LastExitCode -ne 0) {
