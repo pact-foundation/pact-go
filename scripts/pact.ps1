@@ -68,9 +68,19 @@ foreach ($package in $packages) {
 
 # Run integration tests
 Write-Host "--> Testing E2E examples"
-
+Write-Host "Running consumer tests"
 go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+if ($LastExitCode -ne 0) {
+  Write-Host "ERROR: Test failed, logging failure"
+  $exitCode=1
+}
+
+Write-Host "Running provider tests"
 go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+if ($LastExitCode -ne 0) {
+  Write-Host "ERROR: Test failed, logging failure"
+  $exitCode=1
+}
 
 # Shutdown
 Write-Host "Shutting down any remaining pact processes :)"
