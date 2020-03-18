@@ -2,7 +2,6 @@ package dsl
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/types"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -160,75 +160,77 @@ func TestPact_VerifyFail(t *testing.T) {
 }
 
 func TestPact_Setup(t *testing.T) {
-	pact := &Pact{LogLevel: "DEBUG"}
 	defer stubPorts()()
-	pact.Setup(true)
-	if pact.Server == nil {
-		t.Fatalf("expected server to be created")
-	}
 
-	pact2 := &Pact{LogLevel: "DEBUG"}
-	pact2.Setup(false)
-	if pact2.Server != nil {
-		t.Fatalf("expected server to be nil")
-	}
-	if pact2.pactClient == nil {
-		t.Fatalf("expected non-nil client")
-	}
-}
+	t.Run("ports", func(t *testing.T) {
+		c, _ := createMockClient(true)
 
-func TestPact_SetupWithMockServerPort(t *testing.T) {
-	c, _ := createMockClient(true)
-	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768", pactClient: c}
-	defer stubPorts()()
-	pact.Setup(true)
+		tests := []struct {
+			name          string
+			wantPort      int
+			wantNilServer bool
+			setup         bool
+			pact          *Pact
+		}{
+			{
+				name:     "start server",
+				wantPort: -1, // any port
+				pact:     &Pact{LogLevel: "DEBUG"},
+				setup:    true,
+			},
+			{
+				name:          "don't start server",
+				wantPort:      0,
+				pact:          &Pact{LogLevel: "DEBUG"},
+				setup:         false,
+				wantNilServer: true,
+			},
+			{
+				name:     "specific port",
+				wantPort: 32768,
+				pact:     &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768", pactClient: c},
+				setup:    true,
+			},
+			{
+				name:     "port csv",
+				wantPort: 32768,
+				pact:     &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768,32769", pactClient: c},
+				setup:    true,
+			},
+			{
+				name:     "port range",
+				wantPort: 32768,
+				pact:     &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768-32770", pactClient: c},
+				setup:    true,
+			},
+			{
+				name:     "invalid range",
+				wantPort: 0,
+				pact:     &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "abc-32770", pactClient: c},
+				setup:    true,
+			},
+		}
 
-	if pact.Server == nil {
-		t.Fatalf("expected server to be created")
-	}
-	if pact.Server.Port != 32768 {
-		t.Fatalf("expected mock daemon to be started on specific port")
-	}
-}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				tt.pact.Setup(tt.setup)
 
-func TestPact_SetupWithMockServerPortCSV(t *testing.T) {
-	c, _ := createMockClient(true)
-	defer stubPorts()()
-	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768,32769", pactClient: c}
-	pact.Setup(true)
+				if tt.wantNilServer {
+					assert.Nil(t, tt.pact.Server, "expected server to be nil")
+				} else {
+					assert.NotNil(t, tt.pact.Server, "expected server to be created")
+				}
 
-	if pact.Server == nil {
-		t.Fatalf("expected server to be created")
-	}
-	if pact.Server.Port != 32768 {
-		t.Fatalf("expected mock daemon to be started on specific port")
-	}
-}
+				if tt.wantPort == -1 {
+					assert.Greater(t, tt.pact.Server.Port, 0, "expected mock service to start on a port")
+				} else if tt.wantPort != 0 {
+					assert.Equal(t, tt.wantPort, tt.pact.Server.Port, "expected mock daemon to be started on specific port")
+				}
 
-func TestPact_SetupWithMockServerPortRange(t *testing.T) {
-	c, _ := createMockClient(true)
-	defer stubPorts()()
-	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "32768-32770", pactClient: c}
-	pact.Setup(true)
-	if pact.Server == nil {
-		t.Fatalf("expected server to be created")
-	}
-	if pact.Server.Port != 32768 {
-		t.Fatal("expected mock daemon to be started on specific port, got", 32768)
-	}
-}
-
-func TestPact_Invalidrange(t *testing.T) {
-	c, _ := createMockClient(true)
-	defer stubPorts()()
-	pact := &Pact{LogLevel: "DEBUG", AllowedMockServerPorts: "abc-32770", pactClient: c}
-	pact.Setup(true)
-	if pact.Server == nil {
-		t.Fatalf("expected server to be created")
-	}
-	if pact.Server.Port != 0 {
-		t.Fatalf("expected mock daemon to be started on specific port")
-	}
+				assert.NotNil(t, tt.pact.pactClient)
+			})
+		}
+	})
 }
 
 func TestPact_Teardown(t *testing.T) {
@@ -265,11 +267,9 @@ func TestPact_VerifyProviderRaw(t *testing.T) {
 		PactURLs:        []string{"foo.json", "bar.json"},
 		RequestFilter:   dummyMiddleware,
 		BeforeEach: func() error {
-			fmt.Println("aeuaoseu")
 			return nil
 		},
 		AfterEach: func() error {
-			fmt.Println("aeuaoseu")
 			return nil
 		},
 	})
@@ -280,8 +280,8 @@ func TestPact_VerifyProviderRaw(t *testing.T) {
 }
 
 func TestPact_VerifyProvider(t *testing.T) {
-	c, _ := createMockClient(true)
-	defer stubPorts()()
+	c := newMockClient()
+	c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
 	exampleTest := &testing.T{}
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 
@@ -296,8 +296,9 @@ func TestPact_VerifyProvider(t *testing.T) {
 }
 
 func TestPact_VerifyProviderFail(t *testing.T) {
-	c, _ := createMockClient(false)
-	defer stubPorts()()
+	c := newMockClient()
+	c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
+	c.VerifyProviderError = errors.New("error executing provider verification")
 	exampleTest := &testing.T{}
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 
@@ -312,8 +313,9 @@ func TestPact_VerifyProviderFail(t *testing.T) {
 }
 
 func TestPact_VerifyProviderFailBadURL(t *testing.T) {
-	c, _ := createMockClient(false)
-	defer stubPorts()()
+	c := newMockClient()
+	c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
+	c.VerifyProviderError = errors.New("error executing provider verification")
 	exampleTest := &testing.T{}
 	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
 
@@ -649,7 +651,6 @@ func createMessageHandlers(invoked *int, err error) MessageHandlers {
 	return map[string]MessageHandler{
 		"a message": func(m Message) (interface{}, error) {
 			*invoked++
-			fmt.Println("message handler")
 
 			return nil, err
 		},
@@ -659,7 +660,6 @@ func createMessageHandlers(invoked *int, err error) MessageHandlers {
 func createStateHandlers(invoked *int, err error) StateHandlers {
 	return map[string]StateHandler{
 		"state x": func(s State) error {
-			fmt.Println("state handler")
 			*invoked++
 
 			return err
@@ -667,250 +667,279 @@ func createStateHandlers(invoked *int, err error) StateHandlers {
 	}
 }
 
-func TestPact_MessageVerificationHandler(t *testing.T) {
-	var called = 0
+func TestPact_MessageVerification(t *testing.T) {
 
-	req, err := http.NewRequest("POST", "/", strings.NewReader(message))
+	t.Run("invalid message", func(t *testing.T) {
+		var called = 0
 
-	if err != nil {
-		t.Fatal(err)
-	}
+		req, err := http.NewRequest("POST", "/", strings.NewReader("{broken"))
 
-	rr := httptest.NewRecorder()
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, nil))
-	h.ServeHTTP(rr, req)
+		rr := httptest.NewRecorder()
 
-	// Expect state handler
-	if called != 2 {
-		t.Error("expected state handler and message handler to have been called", called)
-	}
-}
+		h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, nil))
+		h.ServeHTTP(rr, req)
 
-func TestPact_MessageVerificationHandlerInvalidMessage(t *testing.T) {
-	var called = 0
-
-	req, err := http.NewRequest("POST", "/", strings.NewReader("{broken"))
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, nil))
-	h.ServeHTTP(rr, req)
-
-	// Expect state handler
-	if rr.Code != http.StatusBadRequest {
-		t.Errorf("expected 500 but got %v", rr.Code)
-	}
-}
-
-func TestPact_MessageVerificationHandlerMessageNotFound(t *testing.T) {
-	var called = 0
-	var badMessage = `{
-		"content": {"foo": "bar"},
-		"description": "a message not found"
-	}`
-
-	req, err := http.NewRequest("POST", "/", strings.NewReader(badMessage))
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, nil))
-	h.ServeHTTP(rr, req)
-
-	// Expect state handler
-	if rr.Code != http.StatusNotFound {
-		t.Errorf("expected 404 but got %v", rr.Code)
-	}
-}
-
-func TestPact_MessageVerificationHandlerStateHandlerFail(t *testing.T) {
-	var called = 0
-
-	req, err := http.NewRequest("POST", "/", strings.NewReader(message))
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, errors.New("state handler failed")))
-	h.ServeHTTP(rr, req)
-
-	// Expect state handler
-	if rr.Code != http.StatusInternalServerError {
-		t.Errorf("expected 500 but got %v", rr.Code)
-	}
-}
-
-func TestPact_MessageVerificationHandlerMessageHandlerFail(t *testing.T) {
-	var called = 0
-
-	req, err := http.NewRequest("POST", "/", strings.NewReader(message))
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	h := messageVerificationHandler(createMessageHandlers(&called, errors.New("message handler failed")), createStateHandlers(&called, nil))
-	h.ServeHTTP(rr, req)
-
-	// Expect state handler
-	if rr.Code != http.StatusServiceUnavailable {
-		t.Errorf("expected 503 but got %v", rr.Code)
-	}
-}
-
-func TestPact_VerifyMessageConsumerRawFailToReify(t *testing.T) {
-	pact := &Pact{}
-
-	message := pact.AddMessage()
-	message.
-		Given("user with id 1 exists").
-		ExpectsToReceive("a user").
-		WithContent(map[string]interface{}{
-			"id": Like(1),
-		})
-
-	client, _ := createMockClient(false)
-
-	pact.pactClient = client
-
-	var invoked bool
-	h := func(m Message) error {
-		invoked = true
-		return nil
-	}
-	err := pact.VerifyMessageConsumerRaw(message, h)
-
-	if err == nil {
-		t.Fatalf("expected error but got none")
-	}
-
-	if invoked {
-		t.Fatalf("expected handler not to be invoked")
-	}
-}
-
-func TestPact_VerifyMessageConsumerRawSuccess(t *testing.T) {
-	pact := &Pact{}
-
-	message := pact.AddMessage()
-	message.
-		Given("user with id 1 exists").
-		ExpectsToReceive("a user").
-		WithContent(map[string]interface{}{
-			"foo": "bar",
-		})
-		// TODO: replace the createMockClient below and mock out properly
-		// AsType(idType{})
-
-	c, _ := createMockClient(true)
-
-	pact.pactClient = c
-
-	var invoked bool
-	h := func(m Message) error {
-		invoked = true
-		return nil
-	}
-
-	err := pact.VerifyMessageConsumerRaw(message, h)
-
-	if err != nil {
-		t.Fatalf("expected no error but got %v", err)
-	}
-
-	if !invoked {
-		t.Fatalf("expected handler to be invoked")
-	}
-}
-
-func TestPact_VerifyMessageConsumerFail(t *testing.T) {
-	pact := &Pact{}
-
-	message := pact.AddMessage()
-	message.
-		Given("user with id 1 exists").
-		ExpectsToReceive("a user").
-		WithContent(map[string]interface{}{
-			"foo": "bar",
-		})
-
-	c, _ := createMockClient(true)
-
-	pact.pactClient = c
-
-	h := func(m Message) error {
-		return errors.New("message handler failed")
-	}
-	exampleTest := &testing.T{}
-	err := pact.VerifyMessageConsumer(exampleTest, message, h)
-
-	if err == nil {
-		t.Fatalf("expected error but got none")
-	}
-}
-
-func TestPact_VerifyMessageConsumerSuccess(t *testing.T) {
-	pact := &Pact{}
-
-	message := pact.AddMessage()
-	message.
-		Given("user with id 1 exists").
-		ExpectsToReceive("a user").
-		WithContent(map[string]interface{}{
-			"foo": "bar",
-		})
-
-	c, _ := createMockClient(true)
-
-	pact.pactClient = c
-
-	var invoked bool
-	h := func(m Message) error {
-		invoked = true
-		return nil
-	}
-	exampleTest := &testing.T{}
-	err := pact.VerifyMessageConsumer(exampleTest, message, h)
-
-	if err != nil {
-		t.Fatalf("expected no error but got %v", err)
-	}
-
-	if !invoked {
-		t.Fatalf("expected handler to be invoked")
-	}
-}
-
-func TestPact_VerifyMessageProviderSuccess(t *testing.T) {
-	c, _ := createMockClient(true)
-	var called = 0
-	defer stubPorts()()
-	exampleTest := &testing.T{}
-
-	pact := &Pact{LogLevel: "DEBUG", pactClient: c}
-
-	_, err := pact.VerifyMessageProvider(exampleTest, VerifyMessageRequest{
-		PactURLs:        []string{"foo.json", "bar.json"},
-		MessageHandlers: createMessageHandlers(&called, nil),
-		StateHandlers:   createStateHandlers(&called, nil),
+		// Expect state handler
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("expected 500 but got %v", rr.Code)
+		}
 	})
 
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
+	t.Run("message not found", func(t *testing.T) {
+		var called = 0
+		var badMessage = `{
+			"content": {"foo": "bar"},
+			"description": "a message not found"
+		}`
+
+		req, err := http.NewRequest("POST", "/", strings.NewReader(badMessage))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, nil))
+		h.ServeHTTP(rr, req)
+
+		// Expect state handler
+		if rr.Code != http.StatusNotFound {
+			t.Errorf("expected 404 but got %v", rr.Code)
+		}
+	})
+
+	t.Run("state handler fail", func(t *testing.T) {
+		var called = 0
+
+		req, err := http.NewRequest("POST", "/", strings.NewReader(message))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, errors.New("state handler failed")))
+		h.ServeHTTP(rr, req)
+
+		// Expect state handler
+		if rr.Code != http.StatusInternalServerError {
+			t.Errorf("expected 500 but got %v", rr.Code)
+		}
+	})
+
+	t.Run("message handler fail", func(t *testing.T) {
+		var called = 0
+
+		req, err := http.NewRequest("POST", "/", strings.NewReader(message))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		h := messageVerificationHandler(createMessageHandlers(&called, errors.New("message handler failed")), createStateHandlers(&called, nil))
+		h.ServeHTTP(rr, req)
+
+		// Expect state handler
+		if rr.Code != http.StatusServiceUnavailable {
+			t.Errorf("expected 503 but got %v", rr.Code)
+		}
+	})
+
+	t.Run("fail to reify", func(t *testing.T) {
+		pact := &Pact{}
+
+		message := pact.AddMessage()
+		message.
+			Given("user with id 1 exists").
+			ExpectsToReceive("a user").
+			WithContent(map[string]interface{}{
+				"id": Like(1),
+			})
+
+		c := newMockClient()
+		c.ReifyMessageError = errors.New("failed to reify")
+		pact.pactClient = c
+
+		var invoked bool
+		h := func(m Message) error {
+			invoked = true
+			return nil
+		}
+		err := pact.VerifyMessageConsumerRaw(message, h)
+
+		if err == nil {
+			t.Fatalf("expected error but got none")
+		}
+
+		if invoked {
+			t.Fatalf("expected handler not to be invoked")
+		}
+	})
+
+	t.Run("consumer test success (raw)", func(t *testing.T) {
+		pact := &Pact{}
+
+		message := pact.AddMessage()
+		message.
+			Given("user with id 1 exists").
+			ExpectsToReceive("a user").
+			WithContent(map[string]interface{}{
+				"foo": "bar",
+			})
+
+		c := newMockClient()
+
+		pact.pactClient = c
+
+		var invoked bool
+		h := func(m Message) error {
+			invoked = true
+			return nil
+		}
+
+		err := pact.VerifyMessageConsumerRaw(message, h)
+
+		assert.NoError(t, err)
+		assert.True(t, invoked, "expected handler to be invoked")
+	})
+
+	t.Run("consumer test fail", func(t *testing.T) {
+		pact := &Pact{}
+
+		message := pact.AddMessage()
+		message.
+			Given("user with id 1 exists").
+			ExpectsToReceive("a user").
+			WithContent(map[string]interface{}{
+				"foo": "bar",
+			})
+
+		c := newMockClient()
+
+		pact.pactClient = c
+
+		h := func(m Message) error {
+			return errors.New("message handler failed")
+		}
+		exampleTest := &testing.T{}
+		err := pact.VerifyMessageConsumer(exampleTest, message, h)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("consumer test success", func(t *testing.T) {
+		pact := &Pact{}
+
+		message := pact.AddMessage()
+		message.
+			Given("user with id 1 exists").
+			ExpectsToReceive("a user").
+			WithContent(map[string]interface{}{
+				"foo": "bar",
+			})
+
+		c := newMockClient()
+
+		pact.pactClient = c
+
+		var invoked bool
+		h := func(m Message) error {
+			invoked = true
+			return nil
+		}
+		exampleTest := &testing.T{}
+		err := pact.VerifyMessageConsumer(exampleTest, message, h)
+
+		assert.NoError(t, err)
+		assert.True(t, invoked, "expected handler to be invoked")
+	})
+
+	t.Run("consumer test success with type decoding", func(t *testing.T) {
+		pact := &Pact{
+			LogLevel: "DEBUG",
+		}
+
+		type FooType struct {
+			Foo string `json:"foo"`
+		}
+
+		contentBytes := []byte(`{"foo":"bar"}`)
+		content := map[string]interface{}{
+			"foo": "bar",
+		}
+		c := newMockClient()
+		c.ReifyMessageResponse = &types.ReificationResponse{
+			ResponseRaw: contentBytes,
+		}
+		pact.pactClient = c
+		var invoked bool
+
+		message := pact.AddMessage()
+		message.
+			Given("user with id 1 exists").
+			ExpectsToReceive("a user").
+			WithContent(content).AsType(&FooType{
+			Foo: "baz",
+		})
+
+		h := func(m Message) error {
+			invoked = true
+
+			assert.IsType(t, &FooType{}, m.Content)
+
+			return nil
+		}
+		exampleTest := &testing.T{}
+		err := pact.VerifyMessageConsumer(exampleTest, message, h)
+
+		assert.NoError(t, err)
+		assert.True(t, invoked, "expected handler to be invoked")
+	})
+
+	t.Run("provider test success", func(t *testing.T) {
+		c := newMockClient()
+		c.VerifyProviderResponse = make([]types.ProviderVerifierResponse, 0)
+		var called = 0
+		exampleTest := &testing.T{}
+
+		pact := &Pact{LogLevel: "DEBUG", pactClient: c}
+
+		_, err := pact.VerifyMessageProvider(exampleTest, VerifyMessageRequest{
+			PactURLs:        []string{"foo.json", "bar.json"},
+			MessageHandlers: createMessageHandlers(&called, nil),
+			StateHandlers:   createStateHandlers(&called, nil),
+		})
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("message verification handler", func(t *testing.T) {
+		var called = 0
+
+		req, err := http.NewRequest("POST", "/", strings.NewReader(message))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		h := messageVerificationHandler(createMessageHandlers(&called, nil), createStateHandlers(&called, nil))
+		h.ServeHTTP(rr, req)
+
+		// Expect state handler
+		if called != 2 {
+			t.Error("expected state handler and message handler to have been called", called)
+		}
+	})
 }
 
 // Capture output from a log write
@@ -929,7 +958,6 @@ func captureOutput(action func()) string {
 }
 
 func stubPorts() func() {
-	log.Println("Stubbing port timeout")
 	old := waitForPort
 	waitForPort = func(int, string, string, time.Duration, string) error {
 		return nil

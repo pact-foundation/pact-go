@@ -44,7 +44,7 @@
         },
         "body": {
           "user": {
-            "id": 1,
+            "id": 10,
             "name": "Jean-Marie de La Beaujardière😀😍",
             "password": "password123",
             "type": "admin",
@@ -164,7 +164,7 @@
           "Content-Type": "application/json; charset=utf-8"
         },
         "body": {
-          "id": 1,
+          "id": 10,
           "name": "Jean-Marie de La Beaujardière😀😍",
           "password": "password123",
           "type": "admin",

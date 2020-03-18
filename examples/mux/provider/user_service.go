@@ -29,7 +29,7 @@ func getAuthToken() string {
 	return time.Now().Format("2006-01-02")
 }
 
-// Simple authentication middleware
+// IsAuthenticated is a simple authentication middleware
 func IsAuthenticated(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") == fmt.Sprintf("Bearer %s", getAuthToken()) {

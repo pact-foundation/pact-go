@@ -347,7 +347,6 @@ pact.VerifyProvider(t, types.VerifyRequest{
 			return nil
 		},
 		"User jmarie does not exist": func() error {
-			fmt.Println("state handler")
 			userRepository = jmarieDoesNotExist
 			return nil
 		},
@@ -769,11 +768,7 @@ Learn everything in Pact Go in 60 minutes: https://github.com/pact-foundation/pa
 There are number of examples we use as end-to-end integration test prior to releasing a new binary, including publishing to a Pact Broker. To enable them, set the following environment variables
 
 ```sh
-cd $GOPATH/src/github.com/pact-foundation/pact-go/examples
-export PACT_INTEGRATED_TESTS=1
-export PACT_BROKER_USERNAME="dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
-export PACT_BROKER_PASSWORD="O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
-export PACT_BROKER_HOST="https://test.pact.dius.com.au"
+make pact
 ```
 
 Once these variables have been exported, cd into one of the directories containing a test and run `go test -v .`:

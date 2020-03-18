@@ -36,8 +36,6 @@ func getAuthToken() string {
 // Simple authentication middleware
 func IsAuthenticated() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println(c.GetHeader("Authorization"))
-
 		if c.GetHeader("Authorization") == fmt.Sprintf("Bearer %s", getAuthToken()) {
 			c.Next()
 		} else {
@@ -66,7 +64,6 @@ func UserLogin(c *gin.Context) {
 
 // GetUser fetches a user if authenticated and exists
 func GetUser(c *gin.Context) {
-	fmt.Println("GET USER!")
 	c.Header("X-Api-Correlation-Id", "1234")
 
 	id, _ := strconv.Atoi(c.Param("id"))

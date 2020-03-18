@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -23,8 +24,16 @@ type VerifyRequest struct {
 	// Pact Broker URL for broker-based verification
 	BrokerURL string
 
-	// Tags to find in Broker for matrix-based testing
+	// Selectors are the way we specify which pacticipants and
+	// versions we want to use when configuring verifications
+	// See https://docs.pact.io/selectors for more
+	ConsumerVersionSelectors []ConsumerVersionSelector
+
+	// Retrieve the latest pacts with this consumer version tag
 	Tags []string
+
+	// Tags to apply to the provider application version
+	ProviderTags []string
 
 	// ProviderStatesSetupURL is the endpoint to post current provider state
 	// to on the Provider API.
@@ -89,6 +98,9 @@ type VerifyRequest struct {
 	// the Provider API. Useful for setting custom certificates, MASSL etc.
 	CustomTLSConfig *tls.Config
 
+	// Allow pending pacts to be included in verification (see pact.io/pending)
+	EnablePending bool
+
 	// Verbose increases verbosity of output
 	// Deprecated
 	Verbose bool
@@ -103,6 +115,7 @@ type VerifyRequest struct {
 // and should not be used outside of this library.
 func (v *VerifyRequest) Validate() error {
 	v.Args = []string{}
+	var err error
 
 	if len(v.PactURLs) != 0 {
 		v.Args = append(v.Args, v.PactURLs...)
@@ -110,6 +123,20 @@ func (v *VerifyRequest) Validate() error {
 
 	if len(v.PactURLs) == 0 && v.BrokerURL == "" {
 		return fmt.Errorf("One of 'PactURLs' or 'BrokerURL' must be specified")
+	}
+
+	if len(v.ConsumerVersionSelectors) != 0 {
+		for _, selector := range v.ConsumerVersionSelectors {
+			if err = selector.Validate(); err != nil {
+				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+			}
+			body, err := json.Marshal(selector)
+			if err != nil {
+				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+			}
+
+			v.Args = append(v.Args, "--consumer-version-selector", string(body))
+		}
 	}
 
 	if len(v.CustomProviderHeaders) != 0 {
@@ -172,6 +199,14 @@ func (v *VerifyRequest) Validate() error {
 
 	for _, tag := range v.Tags {
 		v.Args = append(v.Args, "--consumer-version-tag", tag)
+	}
+
+	for _, tag := range v.ProviderTags {
+		v.Args = append(v.Args, "--provider-version-tag", tag)
+	}
+
+	if v.EnablePending {
+		v.Args = append(v.Args, "--enable-pending")
 	}
 
 	return nil

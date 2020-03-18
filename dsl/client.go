@@ -32,7 +32,7 @@ type Client interface {
 	RemoveAllServers(server *types.MockServer) []*types.MockServer
 
 	// VerifyProvider runs the verification process against a running Provider.
-	VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error)
+	VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error)
 
 	// UpdateMessagePact adds a pact message to a contract file
 	UpdateMessagePact(request types.PactMessageRequest) error
@@ -143,9 +143,9 @@ func (p *PactClient) RemoveAllServers(server *types.MockServer) []*types.MockSer
 
 // VerifyProvider runs the verification process against a running Provider.
 // TODO: extract/refactor the stdout/error streaems from these functions
-func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.ProviderVerifierResponse, error) {
+func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	log.Println("[DEBUG] client: verifying a provider")
-	var response types.ProviderVerifierResponse
+	response := make([]types.ProviderVerifierResponse, 0)
 
 	// Convert request into flags, and validate request
 	err := request.Validate()
@@ -194,7 +194,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 
 	err = cmd.Wait()
 
-	// Split by lines, as the content is now JSONL
+	// Split by lines, as the content is JSONL formatted
 	// See https://github.com/pact-foundation/pact-go/issues/88#issuecomment-404686337
 	verifications := strings.Split(string(stdOut), "\n")
 
@@ -209,7 +209,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) (types.Provider
 		if v != "" && strings.Index(v, "INFO") != 0 {
 			dErr := json.Unmarshal([]byte(v), &verification)
 
-			response.Examples = append(response.Examples, verification.Examples...)
+			response = append(response, verification)
 
 			if dErr != nil {
 				err = dErr

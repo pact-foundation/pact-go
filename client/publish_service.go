@@ -22,7 +22,7 @@ type PublishService struct {
 //    --provider-app-version
 //    --custom-provider-headers
 func (v *PublishService) NewService(args []string) Service {
-	log.Printf("[DEBUG] starting verification service with args: %v\n", args)
+	log.Printf("[DEBUG] starting publish service with args: %v\n", args)
 
 	v.Args = []string{
 		"publish",

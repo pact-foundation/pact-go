@@ -5,15 +5,15 @@ $exitCode = 0
 if (!($env:GOPATH)) {
   $env:GOPATH = "c:\go"
 }
-$env:PACT_BROKER_HOST = "https://test.pact.dius.com.au"
-$env:PACT_BROKER_USERNAME = "dXfltyFMgNOFZAxr8io9wJ37iUpY42M"
-$env:PACT_BROKER_PASSWORD = "O5AIZWxelWbLvqMd8PkAVycBJh2Psyg1"
+$env:PACT_BROKER_PROTO = "http"
+$env:PACT_BROKER_URL = "localhost"
+$env:PACT_BROKER_USERNAME = "pact_workshop"
+$env:PACT_BROKER_PASSWORD = "pact_workshop"
 
 if (Test-Path "$pactDir") {
   Write-Host "-> Deleting old pact directory"
   rmdir -Recurse -Force $pactDir
 }
-
 
 # Install CLI Tools
 Write-Host "--> Creating ${pactDir}"
@@ -51,7 +51,7 @@ Get-ChildItem $pactBinariesPath
 pact-broker version
 
 
-# Run t sts
+# Run tests
 Write-Host "--> Running tests"
 $packages = go list github.com/pact-foundation/pact-go/... |  where {$_ -inotmatch 'vendor'} | where {$_ -inotmatch 'examples'}
 $curDir=$pwd
@@ -68,22 +68,20 @@ foreach ($package in $packages) {
 
 # Run integration tests
 Write-Host "--> Testing E2E examples"
-$env:PACT_INTEGRATED_TESTS=1
-
-$examples=@("github.com/pact-foundation/pact-go/examples/consumer/goconsumer", "github.com/pact-foundation/pact-go/examples/go-kit/provider", "github.com/pact-foundation/pact-go/examples/mux/provider", "github.com/pact-foundation/pact-go/examples/gin/provider", "github.com/pact-foundation/pact-go/examples/httpbin", "github.com/pact-foundation/pact-go/examples/customTls")
-foreach ($example in $examples) {
-  Write-Host "Installing dependencies for example: $example"
-  cd "$env:GOPATH\src\$example"
-  go get ./...
-  Write-Host "Running tests for $example"
-  go test -v .
-  if ($LastExitCode -ne 0) {
-    Write-Host "ERROR: Test failed, logging failure"
-    $exitCode=1
-  }
+Write-Host "Running consumer tests"
+docker-compose up -d
+go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+if ($LastExitCode -ne 0) {
+  Write-Host "ERROR: Test failed, logging failure"
+  $exitCode=1
 }
-cd $curDir
 
+Write-Host "Running provider tests"
+go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+if ($LastExitCode -ne 0) {
+  Write-Host "ERROR: Test failed, logging failure"
+  $exitCode=1
+}
 
 # Shutdown
 Write-Host "Shutting down any remaining pact processes :)"

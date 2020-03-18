@@ -1,3 +1,5 @@
+// +build consumer
+
 // Package main contains a runnable Consumer Pact test example.
 package main
 
@@ -72,6 +74,4 @@ func TestConsumer(t *testing.T) {
 	if err := pact.Verify(test); err != nil {
 		log.Fatalf("Error on Verify: %v", err)
 	}
-
-	fmt.Println("Test Passed!")
 }

@@ -2,7 +2,6 @@
 *.o
 *.a
 *.so
-
 # Folders
 _obj
 _test
@@ -32,7 +31,6 @@ pact-mock-service
 pact-provider-verifier
 
 *.out
-*.cov
 *.iml
 *.idea
 *.bak
@@ -43,9 +41,10 @@ pacts
 logs
 log
 tmp
+coverage.txt
 
 # IDE
 .vscode
 
 # Dependencies
-vendor
+pact

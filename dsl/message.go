@@ -1,7 +1,7 @@
 package dsl
 
 import (
-	"fmt"
+	"log"
 	"reflect"
 )
 
@@ -90,7 +90,7 @@ func (p *Message) WithContent(content interface{}) *Message {
 // AsType specifies that the content sent through to the
 // consumer handler should be sent as the given type
 func (p *Message) AsType(t interface{}) *Message {
-	fmt.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
+	log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
 	p.Type = t
 
 	return p
