@@ -5,6 +5,26 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.2.0 (18 March 2020)
+  * [b85181f](https://github.com/pact-foundation/pact-go/commit/b85181f) - build(windows): add docker compose for local testing (Matt Fellows, Fri Mar 6 21:07:44 2020 +1100)
+  * [fa558a6](https://github.com/pact-foundation/pact-go/commit/fa558a6) - fix: missing err check for http proxy (Matt Fellows, Fri Mar 6 16:52:58 2020 +1100)
+  * [9b03624](https://github.com/pact-foundation/pact-go/commit/9b03624) - chore: add -x to install for debugging (Matt Fellows, Fri Mar 6 15:49:36 2020 +1100)
+  * [d25becc](https://github.com/pact-foundation/pact-go/commit/d25becc) - build(windows): fail build if commands fail, because, Windows (Matt Fellows, Fri Mar 6 15:31:47 2020 +1100)
+  * [3310f72](https://github.com/pact-foundation/pact-go/commit/3310f72) - fix: broken consumer selector test (Matt Fellows, Fri Mar 6 15:19:34 2020 +1100)
+  * [bc0a4fd](https://github.com/pact-foundation/pact-go/commit/bc0a4fd) - build: use go mod instead of 'dep' in windows builds (Matt Fellows, Fri Mar 6 15:00:58 2020 +1100)
+  * [fec0bf0](https://github.com/pact-foundation/pact-go/commit/fec0bf0) - chore: add missing vendored dependencies (Matt Fellows, Fri Mar 6 14:57:50 2020 +1100)
+  * [ed61c16](https://github.com/pact-foundation/pact-go/commit/ed61c16) - build: update appveyor go version (Matt Fellows, Fri Mar 6 14:38:19 2020 +1100)
+  * [fc2566e](https://github.com/pact-foundation/pact-go/commit/fc2566e) - chore: add 1.13.x to build matrix (Matt Fellows, Thu Feb 27 09:55:06 2020 +1100)
+  * [8d96456](https://github.com/pact-foundation/pact-go/commit/8d96456) - fix: update self-signed certificates to expire in 10 years (Matt Fellows, Mon Feb 24 15:21:03 2020 +1100)
+  * [9a0fdf3](https://github.com/pact-foundation/pact-go/commit/9a0fdf3) - feat: pending pacts + selectors (Matt Fellows, Wed Jan 22 17:28:19 2020 +1100)
+  * [d457b86](https://github.com/pact-foundation/pact-go/commit/d457b86) - docs: update how to release notes (Matt Fellows, Wed Jan 22 10:54:11 2020 +1100)
+  * [c47a181](https://github.com/pact-foundation/pact-go/commit/c47a181) - chore: bump minimum versions of standalone libs (Matt Fellows, Wed Jan 22 10:52:10 2020 +1100)
+  * [aa4db89](https://github.com/pact-foundation/pact-go/commit/aa4db89) - fix: cleanup pact tests (Matt Fellows, Wed Feb 12 14:27:25 2020 +1100)
+  * [2060e2c](https://github.com/pact-foundation/pact-go/commit/2060e2c) - fix: remove pending/selectors from pact examples (Matt Fellows, Wed Feb 12 13:53:50 2020 +1100)
+  * [a3bb53c](https://github.com/pact-foundation/pact-go/commit/a3bb53c) - wip (Matt Fellows, Wed Feb 5 17:29:03 2020 +1100)
+  * [cdc7464](https://github.com/pact-foundation/pact-go/commit/cdc7464) - feat: add consumer version selectors (Matt Fellows, Wed Feb 5 11:25:37 2020 +1100)
+  * [9fa7706](https://github.com/pact-foundation/pact-go/commit/9fa7706) - docs: update how to release notes (Matt Fellows, Wed Jan 22 10:54:11 2020 +1100)
+
 ### v1.1.0 (22 January 2020)
   * [35af37d](https://github.com/pact-foundation/pact-go/commit/35af37d) - chore: bump minimum versions of standalone libs (Matt Fellows, Wed Jan 22 10:52:10 2020 +1100)
   * [ad9fe09](https://github.com/pact-foundation/pact-go/commit/ad9fe09) - feat(pending): support initial pending pacts implementation (Matt Fellows, Mon Jan 20 17:16:16 2020 +1100)
