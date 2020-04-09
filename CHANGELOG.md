@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.3.0 (09 April 2020)
+  * [50b56b7](https://github.com/pact-foundation/pact-go/commit/50b56b7) - feat: add support for wip pacts (Matt Fellows, Thu Apr 9 10:18:06 2020 +1000)
+
 ### v1.2.0 (18 March 2020)
   * [b85181f](https://github.com/pact-foundation/pact-go/commit/b85181f) - build(windows): add docker compose for local testing (Matt Fellows, Fri Mar 6 21:07:44 2020 +1100)
   * [fa558a6](https://github.com/pact-foundation/pact-go/commit/fa558a6) - fix: missing err check for http proxy (Matt Fellows, Fri Mar 6 16:52:58 2020 +1100)
