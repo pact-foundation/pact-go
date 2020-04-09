@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/pact-foundation/pact-go/proxy"
 )
@@ -100,6 +101,9 @@ type VerifyRequest struct {
 
 	// Allow pending pacts to be included in verification (see pact.io/pending)
 	EnablePending bool
+
+	// Pull in new WIP pacts from _any_ tag (see pact.io/wip)
+	IncludeWIPPactsSince *time.Time
 
 	// Verbose increases verbosity of output
 	// Deprecated
@@ -207,6 +211,10 @@ func (v *VerifyRequest) Validate() error {
 
 	if v.EnablePending {
 		v.Args = append(v.Args, "--enable-pending")
+	}
+
+	if v.IncludeWIPPactsSince != nil {
+		v.Args = append(v.Args, "--include-wip-pacts-since", v.IncludeWIPPactsSince.Format(time.RFC3339))
 	}
 
 	return nil
