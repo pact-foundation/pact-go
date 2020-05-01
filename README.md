@@ -252,7 +252,6 @@ Here is the Provider test process broker down:
 
       // Create Pact connecting to local Daemon
       pact := &dsl.Pact{
-        Consumer: "MyConsumer",
         Provider: "MyProvider",
       }
 
