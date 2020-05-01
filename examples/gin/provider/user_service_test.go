@@ -162,7 +162,6 @@ var jmarieUnauthorized = &examples.UserRepository{
 // Setup the Pact client.
 func createPact() dsl.Pact {
 	return dsl.Pact{
-		Consumer:                 "jmarie",
 		Provider:                 "loginprovider",
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
