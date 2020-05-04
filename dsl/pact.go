@@ -373,6 +373,10 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderV
 		CustomProviderHeaders:      request.CustomProviderHeaders,
 		ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
 		EnablePending:              request.EnablePending,
+		ProviderTags:               request.ProviderTags,
+		Verbose:                    request.Verbose,
+		FailIfNoPactsFound:         request.FailIfNoPactsFound,
+		IncludeWIPPactsSince:       request.IncludeWIPPactsSince,
 	}
 
 	if request.Provider == "" {
