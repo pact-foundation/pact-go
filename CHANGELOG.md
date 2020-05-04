@@ -5,6 +5,13 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.4.0 (04 May 2020)
+  * [ac9f226](https://github.com/pact-foundation/pact-go/commit/ac9f226) - fix: pass arguments to the provider verifier (Matt Fellows, Mon May 4 11:16:29 2020 +1000)
+  * [1238fba](https://github.com/pact-foundation/pact-go/commit/1238fba) - chore: remove consumer setting in provider examples (Matt Fellows, Fri May 1 10:53:29 2020 +1000)
+  * [320272d](https://github.com/pact-foundation/pact-go/commit/320272d) - docs: no need to specify consumer in provider test (Matt Fellows, Fri May 1 10:35:58 2020 +1000)
+  * [c255974](https://github.com/pact-foundation/pact-go/commit/c255974) - docs: update WIP pacts description (Matt Fellows, Wed Apr 15 15:16:49 2020 +1000)
+  * [a53da07](https://github.com/pact-foundation/pact-go/commit/a53da07) - docs: pending and WIP pacts (Matt Fellows, Thu Apr 9 11:06:38 2020 +1000)
+
 ### v1.3.0 (09 April 2020)
   * [50b56b7](https://github.com/pact-foundation/pact-go/commit/50b56b7) - feat: add support for wip pacts (Matt Fellows, Thu Apr 9 10:18:06 2020 +1000)
 
