@@ -432,6 +432,7 @@ for different test cases:
 _Important Note_: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
 
 #### Pending Pacts
+_NOTE_: This feature is currently only available on [Pactflow]
 
 Pending pacts is a feature that allows consumers to publish new contracts or changes to existing contracts without breaking Provider's builds. It does so by flagging the contract as "unverified" in the Pact Broker the first time a contract is published. A Provider can then enable a behaviour (via `EnablePending: true`) that will still perform a verification (and thus share the results back to the broker) but _not_ fail the verification step itself.
 
@@ -440,6 +441,8 @@ This enables safe introduction of new contracts into the system, without breakin
 See the [docs](https://docs.pact.io/pending) and this [article](http://blog.pact.io/2020/02/24/how-we-have-fixed-the-biggest-problem-with-the-pact-workflow/) for more background.
 
 #### WIP Pacts
+
+_NOTE_: This feature is currently only available on [Pactflow]
 
 WIP Pacts builds upon pending pacts, enabling provider tests to pull in _any_ contracts applicable to the provider regardless of the `tag` it was given. This is useful, because often times consumers won't follow the exact same tagging convention and so their workflow would be interrupted. This feature enables any pacts determined to be "work in progress" to be verified by the Provider, without causing a build failure. You can enable this behaviour by specifying a valid `time.Time` field for `IncludeWIPPactsSince`. This sets the start window for which new WIP pacts will be pulled down for verification, regardless of the tag.
 
@@ -935,3 +938,4 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 [pact broker]: https://github.com/pact-foundation/pact_broker
 [hosted broker]: pact.dius.com.au
 [can-i-deploy tool]: https://github.com/pact-foundation/pact_broker/wiki/Provider-verification-results
+[Pactflow]: https://pactflow.io
