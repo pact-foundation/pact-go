@@ -1,6 +1,7 @@
 package dsl
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -179,24 +180,43 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	if err != nil {
 		return response, err
 	}
+
+	// Buffered channel: wait for all reading to complete
+	done := make(chan struct{}, 2)
+	verifications := []string{}
+	var stdErr strings.Builder
+
+	// Split by lines, as the content is JSONL formatted
+	// Each pact is verified by line, and the results (as JSON) sent to stdout.
+	// See https://github.com/pact-foundation/pact-go/issues/88#issuecomment-404686337
+	stdOutScanner := bufio.NewScanner(stdOutPipe)
+	go func() {
+		for stdOutScanner.Scan() {
+			verifications = append(verifications, stdOutScanner.Text())
+		}
+
+		done <- struct{}{}
+	}()
+
+	// Scrape errors
+	stdErrScanner := bufio.NewScanner(stdErrPipe)
+	go func() {
+		for stdErrScanner.Scan() {
+			stdErr.WriteString(fmt.Sprintf("%s\n", stdOutScanner.Text()))
+		}
+
+		done <- struct{}{}
+	}()
+
 	err = cmd.Start()
 	if err != nil {
 		return response, err
 	}
-	stdOut, err := ioutil.ReadAll(stdOutPipe)
-	if err != nil {
-		return response, err
-	}
-	stdErr, err := ioutil.ReadAll(stdErrPipe)
-	if err != nil {
-		return response, err
-	}
+
+	// Wait for watch goroutine before Cmd.Wait(), race condition!
+	<-done
 
 	err = cmd.Wait()
-
-	// Split by lines, as the content is JSONL formatted
-	// See https://github.com/pact-foundation/pact-go/issues/88#issuecomment-404686337
-	verifications := strings.Split(string(stdOut), "\n")
 
 	var verification types.ProviderVerifierResponse
 	for _, v := range verifications {
@@ -221,7 +241,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 		return response, err
 	}
 
-	return response, fmt.Errorf("error verifying provider: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr, stdOut)
+	return response, fmt.Errorf("error verifying provider: %s\n\nSTDERR:\n%s\n\nSTDOUT:\n%s", err, stdErr.String(), strings.Join(verifications, "\n"))
 }
 
 // UpdateMessagePact adds a pact message to a contract file
