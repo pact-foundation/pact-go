@@ -5,6 +5,11 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.4.1 (22 May 2020)
+  * [0dfbb4b](https://github.com/pact-foundation/pact-go/commit/0dfbb4b) - fix: remove deadlock for large provider tests (Matt Fellows, Thu May 21 22:06:06 2020 +1000)
+  * [118452e](https://github.com/pact-foundation/pact-go/commit/118452e) - chore: fix typo for no pacts error (Dom Udall, Tue May 19 14:11:03 2020 +0100)
+  * [11629f8](https://github.com/pact-foundation/pact-go/commit/11629f8) - docs: make it clear that WIP/Pending pacts only available on Pactflow currently (Matt Fellows, Mon May 11 10:11:21 2020 +1000)
+
 ### v1.4.0 (04 May 2020)
   * [ac9f226](https://github.com/pact-foundation/pact-go/commit/ac9f226) - fix: pass arguments to the provider verifier (Matt Fellows, Mon May 4 11:16:29 2020 +1000)
   * [1238fba](https://github.com/pact-foundation/pact-go/commit/1238fba) - chore: remove consumer setting in provider examples (Matt Fellows, Fri May 1 10:53:29 2020 +1000)
