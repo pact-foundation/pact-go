@@ -202,7 +202,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	stdErrScanner := bufio.NewScanner(stdErrPipe)
 	go func() {
 		for stdErrScanner.Scan() {
-			stdErr.WriteString(fmt.Sprintf("%s\n", stdOutScanner.Text()))
+			stdErr.WriteString(fmt.Sprintf("%s\n", stdErrScanner.Text()))
 		}
 
 		done <- struct{}{}
