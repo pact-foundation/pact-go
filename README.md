@@ -822,9 +822,11 @@ should you want to control log level in your tests, you can set it like so:
 ```go
 pact := Pact{
   ...
-	LogLevel: "DEBUG", // One of DEBUG, INFO, ERROR, NONE
+	LogLevel: "DEBUG", // One of TRACE, DEBUG, INFO, ERROR, NONE
 }
 ```
+
+`TRACE` level logging will print the entire request/response cycle.
 
 #### Check if the CLI tools are up to date
 
