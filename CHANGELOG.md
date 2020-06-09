@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.4.3 (09 June 2020)
+  * [4710769](https://github.com/pact-foundation/pact-go/commit/4710769) - chore: allow response body to be traced (Matt Fellows, Tue Jun 9 10:46:04 2020 +1000)
+
 ### v1.4.2 (09 June 2020)
   * [41c3c52](https://github.com/pact-foundation/pact-go/commit/41c3c52) - fix: use stderr scanner on captureing stderr (Shin'ya UEOKA, Mon Jun 8 23:07:01 2020 +0000)
 
