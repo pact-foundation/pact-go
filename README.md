@@ -1,3 +1,5 @@
+<!-- Please use absolute URLs for all links so that they work when the content of this page is rendered in docs.pact.io -->
+
 # Pact Go
 
 Golang version of [Pact](http://pact.io). Pact is a contract testing framework for HTTP APIs and non-HTTP asynchronous messaging systems.
@@ -902,16 +904,16 @@ AWS changed their certificate authority last year, and not all OSs have the late
 
 ## Contact
 
-Join us in slack: [![slack](http://slack.pact.io/badge.svg)](http://slack.pact.io)
+Join us in slack: [![slack](https://slack.pact.io/badge.svg)](https://slack.pact.io)
 
 or
 
-- Twitter: [@pact_up]
-- Stack Overflow: https://stackoverflow.com/questions/tagged/pact
+- Twitter: [@pact_up](https://twitter.com/pact_up)
+- Stack Overflow: [stackoverflow.com/questions/tagged/pact](https://stackoverflow.com/questions/tagged/pact)
 
 ## Documentation
 
-Additional documentation can be found at the main [Pact website](http://pact.io) and in the [Pact Wiki].
+Additional documentation can be found at the main [Pact website](https://pact.io) and in the [Pact Wiki].
 
 ## Roadmap
 
@@ -920,7 +922,7 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 
 ## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md).
+See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRIBUTING.md).
 
 [spec]: https://github.com/pact-foundation/pact-specification
 [stable]: https://github.com/pact-foundation/pact-go/tree/release/0.x.x
