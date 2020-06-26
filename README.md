@@ -12,7 +12,7 @@ DSL for the consumer project, and interaction playback and verification for the 
 [![Coverage Status](https://coveralls.io/repos/github/pact-foundation/pact-go/badge.svg?branch=HEAD)](https://coveralls.io/github/pact-foundation/pact-go?branch=HEAD)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
-[![slack](http://slack.pact.io/badge.svg)](http://slack.pact.io)
+[![slack](https://slack.pact.io/badge.svg)](https://slack.pact.io)
 
 ## Introduction
 
