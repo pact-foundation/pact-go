@@ -913,7 +913,7 @@ or
 
 ## Documentation
 
-Additional documentation can be found at the main [Pact website](https://pact.io) and in the [Pact Wiki].
+Additional documentation can be found at the main [Pact website](https://pact.io).
 
 ## Roadmap
 
@@ -928,7 +928,6 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [stable]: https://github.com/pact-foundation/pact-go/tree/release/0.x.x
 [alpha]: https://github.com/pact-foundation/pact-go/tree/release/1.1.x
 [troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
-[pact wiki]: https://github.com/pact-foundation/pact-ruby/wiki
 [getting started with pact]: http://dius.com.au/2016/02/03/microservices-pact/
 [pact website]: https://docs.pact.io/
 [slack channel]: https://gophers.slack.com/messages/pact/
@@ -941,5 +940,5 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [changelog]: https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md
 [pact broker]: https://github.com/pact-foundation/pact_broker
 [hosted broker]: https://pact.dius.com.au
-[can-i-deploy tool]: https://github.com/pact-foundation/pact_broker/wiki/Provider-verification-results
+[can-i-deploy tool]: https://docs.pact.io/can_i_deploy
 [Pactflow]: https://pactflow.io
