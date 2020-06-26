@@ -930,7 +930,7 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
 [pact wiki]: https://github.com/pact-foundation/pact-ruby/wiki
 [getting started with pact]: http://dius.com.au/2016/02/03/microservices-pact/
-[pact website]: http://docs.pact.io/
+[pact website]: https://docs.pact.io/
 [slack channel]: https://gophers.slack.com/messages/pact/
 [@pact_up]: https://twitter.com/pact_up
 [pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
@@ -940,6 +940,6 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
 [changelog]: https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md
 [pact broker]: https://github.com/pact-foundation/pact_broker
-[hosted broker]: pact.dius.com.au
+[hosted broker]: https://pact.dius.com.au
 [can-i-deploy tool]: https://github.com/pact-foundation/pact_broker/wiki/Provider-verification-results
 [Pactflow]: https://pactflow.io
