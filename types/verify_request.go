@@ -105,6 +105,15 @@ type VerifyRequest struct {
 	// Pull in new WIP pacts from _any_ tag (see pact.io/wip)
 	IncludeWIPPactsSince *time.Time
 
+	// Specify an output directory to log all of the verification request/responses
+	// seen by the verification process. Useful to debug issues with your contract
+	// and API
+	PactLogDir string
+
+	// Specify the log verbosity of the CLI verifier process spawned through verification
+	// Useful for debugging issues with the framework itself
+	PactLogLevel string
+
 	// Verbose increases verbosity of output
 	// Deprecated
 	Verbose bool
@@ -215,6 +224,14 @@ func (v *VerifyRequest) Validate() error {
 
 	if v.IncludeWIPPactsSince != nil {
 		v.Args = append(v.Args, "--include-wip-pacts-since", v.IncludeWIPPactsSince.Format(time.RFC3339))
+	}
+
+	if v.PactLogDir != "" {
+		v.Args = append(v.Args, "--log-dir", v.PactLogDir)
+	}
+
+	if v.PactLogLevel != "" {
+		v.Args = append(v.Args, "--log-level", v.PactLogLevel)
 	}
 
 	return nil
