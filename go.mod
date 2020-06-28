@@ -16,7 +16,7 @@ require (
 	github.com/modocache/gover v0.0.0-20171022184752-b58185e213c5 // indirect
 	github.com/spf13/cobra v0.0.0-20160604044732-f447048345b6
 	github.com/spf13/pflag v0.0.0-20160427162146-cb88ea77998c // indirect
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.6.1
 	github.com/ugorji/go v1.1.1 // indirect
 	golang.org/x/tools v0.0.0-20200626171337-aa94e735be7f // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
