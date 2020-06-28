@@ -13,6 +13,7 @@ DSL for the consumer project, and interaction playback and verification for the 
 [![Go Report Card](https://goreportcard.com/badge/github.com/pact-foundation/pact-go)](https://goreportcard.com/report/github.com/pact-foundation/pact-go)
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
 [![slack](https://slack.pact.io/badge.svg)](https://slack.pact.io)
+[![Known Vulnerabilities](https://snyk.io/test/github/pact-foundation/pact-go/badge.svg?targetFile=Gopkg.lock)](https://snyk.io/test/github/pact-foundation/pact-go?targetFile=Gopkg.lock)
 
 ## Introduction
 
