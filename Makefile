@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: docker deps clean bin test pact goveralls
+ci:: docker deps snyk clean bin test pact goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -21,7 +21,7 @@ bin:
 clean:
 	rm -rf build output dist
 
-deps:
+deps: snyk-install
 	@echo "--- 🐿  Fetching build dependencies "
 	go get github.com/axw/gocov/gocov
 	go get github.com/mattn/goveralls
@@ -68,5 +68,11 @@ testrace:
 
 updatedeps:
 	go get -d -v -p 2 ./...
+
+snyk-install:
+	npm i -g snyk
+
+snyk:
+	snyk test
 
 .PHONY: install bin default dev test pact updatedeps clean release
