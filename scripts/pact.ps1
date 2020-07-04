@@ -70,14 +70,14 @@ foreach ($package in $packages) {
 Write-Host "--> Testing E2E examples"
 Write-Host "Running consumer tests"
 docker-compose up -d
-go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
 if ($LastExitCode -ne 0) {
   Write-Host "ERROR: Test failed, logging failure"
   $exitCode=1
 }
 
 Write-Host "Running provider tests"
-go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
 if ($LastExitCode -ne 0) {
   Write-Host "ERROR: Test failed, logging failure"
   $exitCode=1

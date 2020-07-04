@@ -1,4 +1,4 @@
-package dsl
+package v3
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"testing"
 )
 
+/*
 func TestMatcher_TermString(t *testing.T) {
 	expected := formatJSON(`
 		{
@@ -326,6 +327,7 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
 }
+*/
 
 // Format a JSON document to make comparison easier.
 func formatJSON(object interface{}) interface{} {
@@ -489,6 +491,8 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 	}
 }
 
+/*
+// Examples
 func ExampleLike_string() {
 	match := Like("myspecialvalue")
 	fmt.Println(formatJSON(match))
@@ -551,6 +555,7 @@ func ExampleEachLike() {
 	//	"min": 1
 	//}
 }
+*/
 
 func TestMatch(t *testing.T) {
 	type wordDTO struct {
@@ -971,30 +976,5 @@ func Test_pluckParams(t *testing.T) {
 			}()
 			got = pluckParams(tt.args.srcType, tt.args.pactTag)
 		})
-	}
-}
-
-func TestMatcher_term(t *testing.T) {
-	matcher := map[string]interface{}{
-		"id": Like(127),
-	}
-
-	expectedBody := formatJSON(`{
-		"id": 127
-	}`)
-	expectedMatchingRules := matchingRuleType{
-		"$.body.id": map[string]interface{}{
-			"match": "type",
-		},
-	}
-
-	body := PactBodyBuilder(matcher)
-	result := formatJSONObject(body.Body)
-
-	if expectedBody != result {
-		t.Fatalf("got '%v' wanted '%v'", result, expectedBody)
-	}
-	if !reflect.DeepEqual(body.MatchingRules, expectedMatchingRules) {
-		t.Fatalf("got '%v' wanted '%v'", body.MatchingRules, expectedMatchingRules)
 	}
 }
