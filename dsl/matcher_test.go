@@ -973,3 +973,43 @@ func Test_pluckParams(t *testing.T) {
 		})
 	}
 }
+
+func TestMatcher_ArrayMinLike(t *testing.T) {
+	matcher := map[string]interface{}{
+		"users": ArrayMinLike(map[string]interface{}{
+			"user": Regex("\\s+", "someusername")}, 3)}
+
+	expectedBody := formatJSON(`{
+		"users": [
+			{
+				"user": "someusername"
+			},
+			{
+				"user": "someusername"
+			},
+			{
+				"user": "someusername"
+			}
+		]
+	}`)
+	expectedMatchingRules := matchingRuleType{
+		"$.body.users": map[string]interface{}{
+			"match": "type",
+			"min":   3,
+		},
+		"$.body.users[*].user": map[string]interface{}{
+			"match": "regex",
+			"regex": "\\s+",
+		},
+	}
+
+	body := PactBodyBuilder(matcher)
+	result := formatJSONObject(body.Body)
+
+	if expectedBody != result {
+		t.Fatalf("got '%v' wanted '%v'", result, expectedBody)
+	}
+	if !reflect.DeepEqual(body.MatchingRules, expectedMatchingRules) {
+		t.Fatalf("got '%v' wanted '%v'", body.MatchingRules, expectedMatchingRules)
+	}
+}

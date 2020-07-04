@@ -1,11 +1,69 @@
 package dsl
 
+// Example matching rule / generated doc
+// {
+//     "method": "POST",
+//     "path": "/",
+//     "query": "",
+//     "headers": {"Content-Type": "application/json"},
+//     "matchingRules": {
+//       "$.body.animals": {"min": 1, "match": "type"},
+//       "$.body.animals[*].*": {"match": "type"},
+//       "$.body.animals[*].children": {"min": 1, "match": "type"},
+//       "$.body.animals[*].children[*].*": {"match": "type"}
+//     },
+//     "body": {
+//       "animals": [
+//         {
+//           "name" : "Fred",
+//           "children": [
+//             {
+//               "age": 9
+//             }
+//           ]
+//         }
+//       ]
+//     }
+// 	}
+
+// Matcher types supported by JVM:
+//
+// method	                    description
+// string, stringValue				Match a string value (using string equality)
+// number, numberValue				Match a number value (using Number.equals)*
+// booleanValue								Match a boolean value (using equality)
+// stringType									Will match all Strings
+// numberType									Will match all numbers*
+// integerType								Will match all numbers that are integers (both ints and longs)*
+// decimalType								Will match all real numbers (floating point and decimal)*
+// booleanType								Will match all boolean values (true and false)
+// stringMatcher							Will match strings using the provided regular expression
+// timestamp									Will match string containing timestamps. If a timestamp format is not given, will match an ISO timestamp format
+// date												Will match string containing dates. If a date format is not given, will match an ISO date format
+// time												Will match string containing times. If a time format is not given, will match an ISO time format
+// ipAddress									Will match string containing IP4 formatted address.
+// id													Will match all numbers by type
+// hexValue										Will match all hexadecimal encoded strings
+// uuid												Will match strings containing UUIDs
+
+// RULES I'd like to follow:
+// 0. Allow the option of string bodies for simple things
+// 1. Have all of the matchers deal with interfaces{} for their values (or a Matcher/Builder type interface)
+//    - Interfaces may turn out to be primitives like strings, ints etc. (valid JSON values I guess)
+// 2. Make all matcher values serialise as map[string]interface{} to be able to easily convert to JSON,
+//    and allows simpler interspersing of builder logic
+//    - can we embed builders in maps??
+// 3. Keep the matchers/builders simple, and orchestrate them from another class/func/place
+//    Candidates are:
+//    - Interaction
+//    - Some new DslBuilder thingo
 import (
 	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -25,7 +83,8 @@ var timeExample = time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
 
 type eachLike struct {
 	Contents interface{} `json:"contents"`
-	Min      int         `json:"min"`
+	Min      int         `json:"min,omitempty"`
+	Max      int         `json:"max,omitempty"`
 }
 
 func (m eachLike) GetValue() interface{} {
@@ -42,6 +101,27 @@ func (m eachLike) MarshalJSON() ([]byte, error) {
 		Type string `json:"json_class"`
 		marshaler
 	}{"Pact::ArrayLike", marshaler(m)})
+}
+
+func (m eachLike) Type() MatcherClass {
+	if m.Max != 0 {
+		return ArrayMaxLikeMatcher
+	}
+	return ArrayMinLikeMatcher
+}
+
+func (m eachLike) MatchingRule() matcherType {
+	matcher := matcherType{
+		"match": "type",
+	}
+
+	if m.Max != 0 {
+		matcher["max"] = m.Max
+	} else {
+		matcher["min"] = m.Min
+	}
+
+	return matcher
 }
 
 type like struct {
@@ -64,6 +144,16 @@ func (m like) MarshalJSON() ([]byte, error) {
 	}{"Pact::SomethingLike", marshaler(m)})
 }
 
+func (m like) Type() MatcherClass {
+	return LikeMatcher
+}
+
+func (m like) MatchingRule() matcherType {
+	return matcherType{
+		"match": "type",
+	}
+}
+
 type term struct {
 	Data termData `json:"data"`
 }
@@ -84,6 +174,17 @@ func (m term) MarshalJSON() ([]byte, error) {
 	}{"Pact::Term", marshaler(m)})
 }
 
+func (m term) Type() MatcherClass {
+	return RegexMatcher
+}
+
+func (m term) MatchingRule() matcherType {
+	return matcherType{
+		"match": "regex",
+		"regex": m.Data.Matcher.Regex,
+	}
+}
+
 type termData struct {
 	Generate interface{} `json:"generate"`
 	Matcher  termMatcher `json:"matcher"`
@@ -97,10 +198,22 @@ type termMatcher struct {
 
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater
-func EachLike(content interface{}, minRequired int) Matcher {
+func EachLike(content interface{}, min int) Matcher {
 	return eachLike{
 		Contents: content,
-		Min:      minRequired,
+		Min:      min,
+	}
+}
+
+var ArrayMinLike = EachLike
+
+// ArrayMaxLike matches nested arrays in request bodies.
+// Ensure that each item in the list matches the provided example and the list
+// is no greater than the provided max.
+func ArrayMaxLike(content interface{}, max int) Matcher {
+	return eachLike{
+		Contents: content,
+		Max:      max,
 	}
 }
 
@@ -196,12 +309,33 @@ type Matcher interface {
 	// GetValue returns the raw generated value for the matcher
 	// without any of the matching detail context
 	GetValue() interface{}
+
+	Type() MatcherClass
+
+	// Generate the matching rule for this Matcher
+	MatchingRule() matcherType
 }
+
+// MatcherClass is used to differentiate the various matchers when serialising
+type MatcherClass int
+
+// Matcher Types
+const (
+	// LikeMatcher is the ID for the Like Matcher
+	LikeMatcher MatcherClass = iota
+
+	// RegexMatcher is the ID for the Term Matcher
+	RegexMatcher
+
+	// ArrayMinLikeMatcher is the ID for the ArrayMinLike Matcher
+	ArrayMinLikeMatcher
+
+	// ArrayMaxLikeMatcher is the ID for the ArrayMaxLikeMatcher Matcher
+	ArrayMaxLikeMatcher
+)
 
 // S is the string primitive wrapper (alias) for the Matcher type,
 // it allows plain strings to be matched
-// To keep backwards compatible with previous versions
-// we aren't using an alias here
 type S string
 
 func (s S) isMatcher() {}
@@ -212,17 +346,19 @@ func (s S) GetValue() interface{} {
 	return s
 }
 
+func (s S) Type() MatcherClass {
+	return LikeMatcher
+}
+
+func (s S) MatchingRule() matcherType {
+	return matcherType{
+		"match": "type",
+	}
+}
+
 // String is the longer named form of the string primitive wrapper,
 // it allows plain strings to be matched
-type String string
-
-func (s String) isMatcher() {}
-
-// GetValue returns the raw generated value for the matcher
-// without any of the matching detail context
-func (s String) GetValue() interface{} {
-	return s
-}
+type String = S
 
 // StructMatcher matches a complex object structure, which may itself
 // contain nested Matchers
@@ -234,6 +370,16 @@ func (m StructMatcher) isMatcher() {}
 // without any of the matching detail context
 func (m StructMatcher) GetValue() interface{} {
 	return nil
+}
+
+func (s StructMatcher) Type() MatcherClass {
+	return LikeMatcher
+}
+
+func (s StructMatcher) MatchingRule() matcherType {
+	return matcherType{
+		"match": "type",
+	}
 }
 
 // MapMatcher allows a map[string]string-like object
@@ -430,4 +576,148 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 
 func triggerInvalidPactTagPanic(tag string, err error) {
 	panic(fmt.Sprintf("match: encountered invalid pact tag %q . . . parsing failed with error: %v", tag, err))
+}
+
+// matcherType is essentially a key value JSON pairs for serialisation
+type matcherType map[string]interface{}
+
+// Matching Rule
+type matchingRuleType map[string]matcherType
+
+// PactBody is what will be serialised to the Pactfile in the request body examples and matching rules
+// given a structure containing matchers.
+// TODO: any matching rules will need to be merged with other aspects (e.g. headers, path).
+// ...still very much spike/POC code
+type PactBody struct {
+	// Matching rules used by the verifier to confirm Provider confirms to Pact.
+	MatchingRules matchingRuleType `json:"matchingRules"`
+
+	// Generated test body for the consumer testing via the Mock Server.
+	Body map[string]interface{} `json:"body"`
+}
+
+// PactBodyBuilder takes a map containing recursive Matchers and generates the rules
+// to be serialised into the Pact file.
+func PactBodyBuilder(root map[string]interface{}) PactBody {
+	dsl := PactBody{}
+	_, dsl.Body, dsl.MatchingRules = build("", root, make(map[string]interface{}),
+		"$.body", make(matchingRuleType))
+
+	return dsl
+}
+
+const pathSep = "."
+const allListItems = "[*]"
+const startList = "["
+const endList = "]"
+
+// Recurse the Matcher tree and build up an example body and set of matchers for
+// the Pact file. Ideally this stays as a pure function, but probably might need
+// to store matchers externally.
+//
+// See PactBody.groovy line 96 for inspiration/logic.
+//
+// Arguments:
+// 	- key           => Current key in the body to set
+// 	- value         => Value held in the next Matcher (which may be another Matcher)
+// 	- body          => Current state of the body map
+// 	- path          => Path to the current key
+//  - matchingRules => Current set of matching rules
+func build(key string, value interface{}, body map[string]interface{}, path string,
+	matchingRules matchingRuleType) (string, map[string]interface{}, matchingRuleType) {
+	log.Println("[DEBUG] dsl generator: recursing => key:", key, ", body:", body, ", value: ", value)
+
+	switch t := value.(type) {
+
+	case Matcher:
+		switch t.Type() {
+
+		// ArrayLike Matchers
+		case ArrayMinLikeMatcher, ArrayMaxLikeMatcher:
+			times := 1
+
+			m := t.(eachLike)
+			if m.Max > 0 {
+				times = m.Max
+			} else if m.Min > 0 {
+				times = m.Min
+			}
+
+			arrayMap := make(map[string]interface{})
+			minArray := make([]interface{}, times)
+
+			build("0", t.GetValue, arrayMap, path+buildPath(key, allListItems), matchingRules)
+			log.Println("[DEBUG] dsl generator: adding matcher (arrayLike) =>", path+buildPath(key, ""))
+			matchingRules[path+buildPath(key, "")] = m.MatchingRule()
+
+			// TODO: Need to understand the .* notation before implementing it. Notably missing from Groovy DSL
+			// log.Println("[DEBUG] dsl generator: Adding matcher (type)              =>", path+buildPath(key, allListItems)+".*")
+			// matchingRules[path+buildPath(key, allListItems)+".*"] = m.MatchingRule()
+
+			for i := 0; i < times; i++ {
+				minArray[i] = arrayMap["0"]
+			}
+			body[key] = minArray
+			path = path + buildPath(key, "")
+
+		// Simple Matchers (Terminal cases)
+		case RegexMatcher, LikeMatcher:
+			body[key] = t.GetValue()
+			log.Println("[DEBUG] dsl generator: adding matcher (Term/Like)         =>", path+buildPath(key, ""))
+			matchingRules[path+buildPath(key, "")] = t.MatchingRule()
+		default:
+			log.Fatalf("unknown matcher: %d", t)
+		}
+
+	// Slice/Array types
+	case []interface{}:
+		arrayValues := make([]interface{}, len(t))
+		arrayMap := make(map[string]interface{})
+
+		// This is a real hack. I don't like it
+		// I also had to do it for the Array*LikeMatcher's, which I also don't like
+		for i, el := range t {
+			k := fmt.Sprintf("%d", i)
+			build(k, el, arrayMap, path+buildPath(key, fmt.Sprintf("%s%d%s", startList, i, endList)), matchingRules)
+			arrayValues[i] = arrayMap[k]
+		}
+		body[key] = arrayValues
+
+	// Map -> Recurse keys (All objects start here!)
+	case map[string]interface{}:
+		entry := make(map[string]interface{})
+		path = path + buildPath(key, "")
+
+		for k, v := range t {
+			log.Println("[DEBUG] dsl generator: \t=> map type. recursing into key =>", k)
+
+			// Starting position
+			if key == "" {
+				_, body, matchingRules = build(k, v, copyMap(body), path, matchingRules)
+			} else {
+				_, body[key], matchingRules = build(k, v, entry, path, matchingRules)
+			}
+		}
+
+	// Primitives (terminal cases)
+	default:
+		log.Println("[DEBUG] dsl generator: \t=> unknown type, probably just a primitive (string/int/etc.)", value)
+		body[key] = value
+	}
+
+	log.Println("[DEBUG] dsl generator: returning body: ", body)
+
+	return path, body, matchingRules
+}
+
+// TODO: allow regex in request paths.
+func buildPath(name string, children string) string {
+	// We know if a key is an integer, it's not valid JSON and therefore is Probably
+	// the shitty array hack from above. Skip creating a new path if the key is bungled
+	// TODO: save the children?
+	if _, err := strconv.Atoi(name); err != nil && name != "" {
+		return pathSep + name + children
+	}
+
+	return ""
 }

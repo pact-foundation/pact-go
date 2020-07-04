@@ -5,6 +5,7 @@ collaboration test cases, and Provider contract test verification.
 package dsl
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/logutils"
+	"github.com/pact-foundation/pact-go/dsl/native"
 	"github.com/pact-foundation/pact-go/install"
 	"github.com/pact-foundation/pact-go/proxy"
 	"github.com/pact-foundation/pact-go/types"
@@ -30,36 +32,40 @@ import (
 // Pact is the container structure to run the Consumer Pact test cases.
 type Pact struct {
 	// Current server for the consumer.
-	Server *types.MockServer
+	ServerPort int `json:"-"`
 
 	// Pact RPC Client.
-	pactClient Client
+	pactClient *PactClient
 
 	// Consumer is the name of the Consumer/Client.
-	Consumer string
+	Consumer string `json:"consumer"`
 
 	// Provider is the name of the Providing service.
-	Provider string
+	Provider string `json:"provider"`
 
 	// Interactions contains all of the Mock Service Interactions to be setup.
-	Interactions []*Interaction
-
-	// MessageInteractions contains all of the Message based interactions to be setup.
-	MessageInteractions []*Message
+	Interactions []*Interaction `json:"interactions"`
 
 	// Log levels.
-	LogLevel string
+	LogLevel string `json:"-"`
 
 	// Used to detect if logging has been configured.
 	logFilter *logutils.LevelFilter
 
 	// Location of Pact external service invocation output logging.
 	// Defaults to `<cwd>/logs`.
-	LogDir string
+	LogDir string `json:"-"`
 
 	// Pact files will be saved in this folder.
 	// Defaults to `<cwd>/pacts`.
-	PactDir string
+	PactDir string `json:"-"`
+
+	// Specify which version of the Pact Specification should be used (1 or 2).
+	// Defaults to 2.
+	SpecificationVersion int `json:"pactSpecificationVersion,string"`
+
+	// MessageInteractions contains all of the Message based interactions to be setup.
+	MessageInteractions []*Message `json:"interactions"`
 
 	// PactFileWriteMode specifies how to write to the Pact file, for the life
 	// of a Mock Service.
@@ -67,38 +73,34 @@ type Pact struct {
 	// "merge" will append to the pact file, which is useful if your tests
 	// are split over multiple files and instantiations of a Mock Server
 	// See https://github.com/pact-foundation/pact-ruby/blob/master/documentation/configuration.md#pactfile_write_mode
-	PactFileWriteMode string
-
-	// Specify which version of the Pact Specification should be used (1 or 2).
-	// Defaults to 2.
-	SpecificationVersion int
+	PactFileWriteMode string `json:"-"`
 
 	// Host is the address of the Mock and Verification Service runs on
 	// Examples include 'localhost', '127.0.0.1', '[::1]'
 	// Defaults to 'localhost'
-	Host string
+	Host string `json:"-"`
 
 	// Network is the network of the Mock and Verification Service
 	// Examples include 'tcp', 'tcp4', 'tcp6'
 	// Defaults to 'tcp'
-	Network string
+	Network string `json:"-"`
 
 	// Ports MockServer can be deployed to, can be CSV or Range with a dash
 	// Example "1234", "12324,5667", "1234-5667"
-	AllowedMockServerPorts string
+	AllowedMockServerPorts string `json:"-"`
 
 	// DisableToolValidityCheck prevents CLI version checking - use this carefully!
 	// The ideal situation is to check the tool installation with  before running
 	// the tests, which should speed up large test suites significantly
-	DisableToolValidityCheck bool
+	DisableToolValidityCheck bool `json:"-"`
 
 	// ClientTimeout specifies how long to wait for Pact CLI to start
 	// Can be increased to reduce likelihood of intermittent failure
 	// Defaults to 10s
-	ClientTimeout time.Duration
+	ClientTimeout time.Duration `json:"-"`
 
 	// Check if CLI tools are up to date
-	toolValidityCheck bool
+	toolValidityCheck bool `json:"-"`
 }
 
 // AddMessage creates a new asynchronous consumer expectation
@@ -114,7 +116,7 @@ func (p *Pact) AddMessage() *Message {
 // AddInteraction creates a new Pact interaction, initialising all
 // required things. Will automatically start a Mock Service if none running.
 func (p *Pact) AddInteraction() *Interaction {
-	p.Setup(true)
+	p.Setup()
 	log.Println("[DEBUG] pact add interaction")
 	i := &Interaction{}
 	p.Interactions = append(p.Interactions, i)
@@ -124,7 +126,7 @@ func (p *Pact) AddInteraction() *Interaction {
 // Setup starts the Pact Mock Server. This is usually called before each test
 // suite begins. AddInteraction() will automatically call this if no Mock Server
 // has been started.
-func (p *Pact) Setup(startMockServer bool) *Pact {
+func (p *Pact) Setup() *Pact {
 	p.setupLogging()
 	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
@@ -169,36 +171,36 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	}
 
 	// Need to predefine due to scoping
-	var port int
-	var perr error
-	if p.AllowedMockServerPorts != "" {
-		port, perr = utils.FindPortInRange(p.AllowedMockServerPorts)
-	} else {
-		port, perr = utils.GetFreePort()
-	}
-	if perr != nil {
-		log.Println("[ERROR] unable to find free port, mockserver will fail to start")
-	}
+	// var port int
+	// var perr error
+	// if p.AllowedMockServerPorts != "" {
+	// 	port, perr = utils.FindPortInRange(p.AllowedMockServerPorts)
+	// } else {
+	// 	port, perr = utils.GetFreePort()
+	// }
+	// if perr != nil {
+	// 	log.Println("[ERROR] unable to find free port, mockserver will fail to start")
+	// }
 
-	if p.Server == nil && startMockServer {
-		log.Println("[DEBUG] starting mock service on port:", port)
-		args := []string{
-			"--pact-specification-version",
-			fmt.Sprintf("%d", p.SpecificationVersion),
-			"--pact-dir",
-			filepath.FromSlash(p.PactDir),
-			"--log",
-			filepath.FromSlash(p.LogDir + "/" + "pact.log"),
-			"--consumer",
-			p.Consumer,
-			"--provider",
-			p.Provider,
-			"--pact-file-write-mode",
-			p.PactFileWriteMode,
-		}
+	// if p.Server == nil && startMockServer {
+	// 	log.Println("[DEBUG] starting mock service on port:", port)
+	// 	args := []string{
+	// 		"--pact-specification-version",
+	// 		fmt.Sprintf("%d", p.SpecificationVersion),
+	// 		"--pact-dir",
+	// 		filepath.FromSlash(p.PactDir),
+	// 		"--log",
+	// 		filepath.FromSlash(p.LogDir + "/" + "pact.log"),
+	// 		"--consumer",
+	// 		p.Consumer,
+	// 		"--provider",
+	// 		p.Provider,
+	// 		"--pact-file-write-mode",
+	// 		p.PactFileWriteMode,
+	// 	}
 
-		p.Server = p.pactClient.StartServer(args, port)
-	}
+	// 	p.Server = p.pactClient.StartServer(args, port)
+	// }
 
 	return p
 }
@@ -223,13 +225,13 @@ func (p *Pact) setupLogging() {
 // of each test suite.
 func (p *Pact) Teardown() *Pact {
 	log.Println("[DEBUG] teardown")
-	if p.Server != nil {
-		server, err := p.pactClient.StopServer(p.Server)
+	if p.ServerPort != 0 {
 
-		if err != nil {
-			log.Println("error:", err)
+		if native.CleanupMockServer(p.ServerPort) {
+			p.ServerPort = 0
+		} else {
+			log.Println("[DEBUG] unable to teardown server")
 		}
-		p.Server = server
 	}
 	return p
 }
@@ -237,69 +239,48 @@ func (p *Pact) Teardown() *Pact {
 // Verify runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite.
 func (p *Pact) Verify(integrationTest func() error) error {
-	p.Setup(true)
 	log.Println("[DEBUG] pact verify")
-	var err error
+	p.Setup()
 
-	// Check if we are verifying messages or if we actually have interactions
-	if len(p.Interactions) == 0 {
-		return errors.New("there are no interactions to be verified")
-	}
+	// Start server
+	fmt.Println("[DEBUG] Sending pact file:", formatJSONObject(p))
 
-	mockServer := &MockService{
-		BaseURL:  fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
-		Consumer: p.Consumer,
-		Provider: p.Provider,
-	}
-
-	// Cleanup all interactions
-	defer func(mockServer *MockService) {
-		log.Println("[DEBUG] clearing interactions")
-
-		p.Interactions = make([]*Interaction, 0)
-		err = mockServer.DeleteInteractions()
-	}(mockServer)
-
-	for _, interaction := range p.Interactions {
-		err = mockServer.AddInteraction(interaction)
-		if err != nil {
-			return err
-		}
-	}
+	// TODO: wire this better
+	native.CreateMockServer(formatJSONObject(p), "", false)
 
 	// Run the integration test
-	err = integrationTest()
-	if err != nil {
-		return err
-	}
+	integrationTest()
 
 	// Run Verification Process
-	err = mockServer.Verify()
-	if err != nil {
-		return err
+	res, mismatches := native.Verify(p.ServerPort, p.PactDir)
+	p.displayMismatches(mismatches)
+
+	if !res {
+		return fmt.Errorf("pact validation failed")
 	}
 
-	return err
+	return nil
+}
+
+func (p *Pact) displayMismatches(mismatches []native.Mismatch) {
+	if len(mismatches) > 0 {
+		log.Println("[INFO] pact validation failed, errors: ")
+		for _, m := range mismatches {
+			log.Println(m)
+		}
+	}
 }
 
 // WritePact should be called writes when all tests have been performed for a
 // given Consumer <-> Provider pair. It will write out the Pact to the
-// configured file.
+// configured file. This is safe to call multiple times as the service is smart
+// enough to merge pacts and avoid duplicates.
 func (p *Pact) WritePact() error {
-	p.Setup(true)
-	log.Println("[DEBUG] pact write Pact file")
-	mockServer := MockService{
-		BaseURL:           fmt.Sprintf("http://%s:%d", p.Host, p.Server.Port),
-		Consumer:          p.Consumer,
-		Provider:          p.Provider,
-		PactFileWriteMode: p.PactFileWriteMode,
+	log.Println("[WARN] write pact file")
+	if p.ServerPort != 0 {
+		return native.WritePactFile(p.ServerPort, p.PactDir)
 	}
-	err := mockServer.WritePact()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return errors.New("pact server not yet started")
 }
 
 // VerifyProviderRaw reads the provided pact files and runs verification against
@@ -307,7 +288,7 @@ func (p *Pact) WritePact() error {
 //
 // Order of events: BeforeEach, stateHandlers, requestFilter(pre <execute provider> post), AfterEach
 func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
-	p.Setup(false)
+	p.Setup()
 	res := make([]types.ProviderVerifierResponse, 0)
 
 	u, err := url.Parse(request.ProviderBaseURL)
@@ -649,7 +630,7 @@ func runTestCases(t *testing.T, res []types.ProviderVerifierResponse) {
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
 func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.ProviderVerifierResponse, error) {
-	p.Setup(false)
+	p.Setup()
 	response := make([]types.ProviderVerifierResponse, 0)
 
 	// Starts the message wrapper API with hooks back to the message handlers
@@ -709,7 +690,7 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 // request was provided.
 func (p *Pact) VerifyMessageConsumerRaw(message *Message, handler MessageConsumer) error {
 	log.Printf("[DEBUG] verify message")
-	p.Setup(false)
+	p.Setup()
 
 	// Reify the message back to its "example/generated" form
 	reified, err := p.pactClient.ReifyMessage(&types.PactReificationRequest{
@@ -766,3 +747,18 @@ func (p *Pact) VerifyMessageConsumer(t *testing.T, message *Message, handler Mes
 }
 
 const providerStatesSetupPath = "/__setup"
+
+// TODO: move this from here
+
+// Format a JSON document to make comparison easier.
+func formatJSONString(object string) string {
+	var out bytes.Buffer
+	json.Indent(&out, []byte(object), "", "\t")
+	return string(out.Bytes())
+}
+
+// Format a JSON document for creating Pact files.
+func formatJSONObject(object interface{}) string {
+	out, _ := json.Marshal(object)
+	return formatJSONString(string(out))
+}
