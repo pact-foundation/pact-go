@@ -73,6 +73,8 @@ snyk-install:
 	npm i -g snyk
 
 snyk:
-	snyk test
+	@if [ "$$TRAVIS_PULL_REQUEST" != "false" ]; then\
+		snyk test; \
+	fi
 
 .PHONY: install bin default dev test pact updatedeps clean release
