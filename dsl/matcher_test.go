@@ -570,6 +570,20 @@ func TestMatch(t *testing.T) {
 		Integer int     `json:"integer" pact:"example=42"`
 		Float   float32 `json:"float" pact:"example=6.66"`
 	}
+	type jsonTagOmitemptyDTO struct {
+		Word string `json:"word,omitempty"`
+	}
+	type jsonTagMissingDTO struct {
+		Word string
+	}
+	type jsonTagIgnoreFieldDTO struct {
+		Word    string `json:"word"`
+		Ignored string `json:"-"`
+	}
+	type jsonTagDashDTO struct {
+		Word     string `json:"word"`
+		WordDash string `json:"-,"`
+	}
 	str := "str"
 	type args struct {
 		src interface{}
@@ -646,6 +660,43 @@ func TestMatch(t *testing.T) {
 			want: StructMatcher{
 				"integer": Like(42),
 				"float":   Like(float32(6.66)),
+			},
+		},
+		{
+			name: "recursive case - struct with json tag including omitempty",
+			args: args{
+				src: jsonTagOmitemptyDTO{},
+			},
+			want: StructMatcher{
+				"word": Like("string"),
+			},
+		},
+		{
+			name: "recursive case - struct without json tag",
+			args: args{
+				src: jsonTagMissingDTO{},
+			},
+			want: StructMatcher{
+				"Word": Like("string"),
+			},
+		},
+		{
+			name: "recursive case - struct with ignored field",
+			args: args{
+				src: jsonTagIgnoreFieldDTO{},
+			},
+			want: StructMatcher{
+				"word": Like("string"),
+			},
+		},
+		{
+			name: "recursive case - struct with field named '-'",
+			args: args{
+				src: jsonTagDashDTO{},
+			},
+			want: StructMatcher{
+				"word": Like("string"),
+				"-":    Like("string"),
 			},
 		},
 		{

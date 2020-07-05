@@ -299,7 +299,11 @@ func match(srcType reflect.Type, params params) Matcher {
 
 		for i := 0; i < srcType.NumField(); i++ {
 			field := srcType.Field(i)
-			result[field.Tag.Get("json")] = match(field.Type, pluckParams(field.Type, field.Tag.Get("pact")))
+			fieldName := getJsonFieldName(field)
+			if fieldName == "" {
+				continue
+			}
+			result[fieldName] = match(field.Type, pluckParams(field.Type, field.Tag.Get("pact")))
 		}
 		return result
 	case reflect.String:
@@ -330,6 +334,24 @@ func match(srcType reflect.Type, params params) Matcher {
 	default:
 		panic(fmt.Sprintf("match: unhandled type: %v", srcType))
 	}
+}
+
+// getJsonFieldName retrieves the name for a JSON field as
+// https://golang.org/pkg/encoding/json/#Marshal would do.
+func getJsonFieldName(field reflect.StructField) string {
+	jsonTag := field.Tag.Get("json")
+	if jsonTag == "" {
+		return field.Name
+	}
+	// Field should be ignored according to the JSON marshal documentation.
+	if jsonTag == "-" {
+		return ""
+	}
+	commaIndex := strings.Index(jsonTag, ",")
+	if commaIndex > -1 {
+		return jsonTag[:commaIndex]
+	}
+	return jsonTag
 }
 
 // params are plucked from 'pact' struct tags as match() traverses
