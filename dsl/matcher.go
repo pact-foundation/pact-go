@@ -1,36 +1,5 @@
 package dsl
 
-// Matcher types supported by JVM:
-//
-// method	                    description
-// string, stringValue				Match a string value (using string equality)
-// number, numberValue				Match a number value (using Number.equals)*
-// booleanValue								Match a boolean value (using equality)
-// stringType									Will match all Strings
-// numberType									Will match all numbers*
-// integerType								Will match all numbers that are integers (both ints and longs)*
-// decimalType								Will match all real numbers (floating point and decimal)*
-// booleanType								Will match all boolean values (true and false)
-// stringMatcher							Will match strings using the provided regular expression
-// timestamp									Will match string containing timestamps. If a timestamp format is not given, will match an ISO timestamp format
-// date												Will match string containing dates. If a date format is not given, will match an ISO date format
-// time												Will match string containing times. If a time format is not given, will match an ISO time format
-// ipAddress									Will match string containing IP4 formatted address.
-// id													Will match all numbers by type
-// hexValue										Will match all hexadecimal encoded strings
-// uuid												Will match strings containing UUIDs
-
-// RULES I'd like to follow:
-// 0. Allow the option of string bodies for simple things
-// 1. Have all of the matchers deal with interfaces{} for their values (or a Matcher/Builder type interface)
-//    - Interfaces may turn out to be primitives like strings, ints etc. (valid JSON values I guess)
-// 2. Make all matcher values serialise as map[string]interface{} to be able to easily convert to JSON,
-//    and allows simpler interspersing of builder logic
-//    - can we embed builders in maps??
-// 3. Keep the matchers/builders simple, and orchestrate them from another class/func/place
-//    Candidates are:
-//    - Interaction
-//    - Some new DslBuilder thingo
 import (
 	"encoding/json"
 	"fmt"
@@ -56,8 +25,7 @@ var timeExample = time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
 
 type eachLike struct {
 	Contents interface{} `json:"contents"`
-	Min      int         `json:"min,omitempty"`
-	Max      int         `json:"max,omitempty"`
+	Min      int         `json:"min"`
 }
 
 func (m eachLike) GetValue() interface{} {
@@ -74,27 +42,6 @@ func (m eachLike) MarshalJSON() ([]byte, error) {
 		Type string `json:"json_class"`
 		marshaler
 	}{"Pact::ArrayLike", marshaler(m)})
-}
-
-func (m eachLike) Type() MatcherClass {
-	if m.Max != 0 {
-		return ArrayMaxLikeMatcher
-	}
-	return ArrayMinLikeMatcher
-}
-
-func (m eachLike) MatchingRule() matcherType {
-	matcher := matcherType{
-		"match": "type",
-	}
-
-	if m.Max != 0 {
-		matcher["max"] = m.Max
-	} else {
-		matcher["min"] = m.Min
-	}
-
-	return matcher
 }
 
 type like struct {
@@ -117,16 +64,6 @@ func (m like) MarshalJSON() ([]byte, error) {
 	}{"Pact::SomethingLike", marshaler(m)})
 }
 
-func (m like) Type() MatcherClass {
-	return LikeMatcher
-}
-
-func (m like) MatchingRule() matcherType {
-	return matcherType{
-		"match": "type",
-	}
-}
-
 type term struct {
 	Data termData `json:"data"`
 }
@@ -147,17 +84,6 @@ func (m term) MarshalJSON() ([]byte, error) {
 	}{"Pact::Term", marshaler(m)})
 }
 
-func (m term) Type() MatcherClass {
-	return RegexMatcher
-}
-
-func (m term) MatchingRule() matcherType {
-	return matcherType{
-		"match": "regex",
-		"regex": m.Data.Matcher.Regex,
-	}
-}
-
 type termData struct {
 	Generate interface{} `json:"generate"`
 	Matcher  termMatcher `json:"matcher"`
@@ -171,22 +97,10 @@ type termMatcher struct {
 
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater
-func EachLike(content interface{}, min int) Matcher {
+func EachLike(content interface{}, minRequired int) Matcher {
 	return eachLike{
 		Contents: content,
-		Min:      min,
-	}
-}
-
-var ArrayMinLike = EachLike
-
-// ArrayMaxLike matches nested arrays in request bodies.
-// Ensure that each item in the list matches the provided example and the list
-// is no greater than the provided max.
-func ArrayMaxLike(content interface{}, max int) Matcher {
-	return eachLike{
-		Contents: content,
-		Max:      max,
+		Min:      minRequired,
 	}
 }
 
@@ -282,33 +196,12 @@ type Matcher interface {
 	// GetValue returns the raw generated value for the matcher
 	// without any of the matching detail context
 	GetValue() interface{}
-
-	Type() MatcherClass
-
-	// Generate the matching rule for this Matcher
-	MatchingRule() matcherType
 }
-
-// MatcherClass is used to differentiate the various matchers when serialising
-type MatcherClass int
-
-// Matcher Types
-const (
-	// LikeMatcher is the ID for the Like Matcher
-	LikeMatcher MatcherClass = iota
-
-	// RegexMatcher is the ID for the Term Matcher
-	RegexMatcher
-
-	// ArrayMinLikeMatcher is the ID for the ArrayMinLike Matcher
-	ArrayMinLikeMatcher
-
-	// ArrayMaxLikeMatcher is the ID for the ArrayMaxLikeMatcher Matcher
-	ArrayMaxLikeMatcher
-)
 
 // S is the string primitive wrapper (alias) for the Matcher type,
 // it allows plain strings to be matched
+// To keep backwards compatible with previous versions
+// we aren't using an alias here
 type S string
 
 func (s S) isMatcher() {}
@@ -319,19 +212,17 @@ func (s S) GetValue() interface{} {
 	return s
 }
 
-func (s S) Type() MatcherClass {
-	return LikeMatcher
-}
-
-func (s S) MatchingRule() matcherType {
-	return matcherType{
-		"match": "type",
-	}
-}
-
 // String is the longer named form of the string primitive wrapper,
 // it allows plain strings to be matched
-type String = S
+type String string
+
+func (s String) isMatcher() {}
+
+// GetValue returns the raw generated value for the matcher
+// without any of the matching detail context
+func (s String) GetValue() interface{} {
+	return s
+}
 
 // StructMatcher matches a complex object structure, which may itself
 // contain nested Matchers
@@ -343,16 +234,6 @@ func (m StructMatcher) isMatcher() {}
 // without any of the matching detail context
 func (m StructMatcher) GetValue() interface{} {
 	return nil
-}
-
-func (s StructMatcher) Type() MatcherClass {
-	return LikeMatcher
-}
-
-func (s StructMatcher) MatchingRule() matcherType {
-	return matcherType{
-		"match": "type",
-	}
 }
 
 // MapMatcher allows a map[string]string-like object

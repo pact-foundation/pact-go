@@ -373,7 +373,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		testCase func(val interface{}) error
 	}
 	matchers := map[string]matcherTestCase{
-		"HexValue": {
+		"HexValue": matcherTestCase{
 			matcher: HexValue(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "3F" {
@@ -382,7 +382,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Identifier": {
+		"Identifier": matcherTestCase{
 			matcher: Identifier(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
@@ -392,7 +392,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Integer": {
+		"Integer": matcherTestCase{
 			matcher: Integer(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
@@ -402,7 +402,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"IPAddress": {
+		"IPAddress": matcherTestCase{
 			matcher: IPAddress(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "127.0.0.1" {
@@ -411,7 +411,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"IPv4Address": {
+		"IPv4Address": matcherTestCase{
 			matcher: IPv4Address(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "127.0.0.1" {
@@ -420,7 +420,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"IPv6Address": {
+		"IPv6Address": matcherTestCase{
 			matcher: IPv6Address(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "::ffff:192.0.2.128" {
@@ -429,7 +429,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Decimal": {
+		"Decimal": matcherTestCase{
 			matcher: Decimal(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(float64)
@@ -439,7 +439,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Timestamp": {
+		"Timestamp": matcherTestCase{
 			matcher: Timestamp(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(string)
@@ -449,7 +449,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Date": {
+		"Date": matcherTestCase{
 			matcher: Date(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(string)
@@ -459,7 +459,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Time": {
+		"Time": matcherTestCase{
 			matcher: Time(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(string)
@@ -469,7 +469,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"UUID": {
+		"UUID": matcherTestCase{
 			matcher: UUID(),
 			testCase: func(v interface{}) (err error) {
 				match, err := regexp.MatchString(uuid, v.(string))
@@ -971,30 +971,5 @@ func Test_pluckParams(t *testing.T) {
 			}()
 			got = pluckParams(tt.args.srcType, tt.args.pactTag)
 		})
-	}
-}
-
-func TestMatcher_term(t *testing.T) {
-	matcher := map[string]interface{}{
-		"id": Like(127),
-	}
-
-	expectedBody := formatJSON(`{
-		"id": 127
-	}`)
-	expectedMatchingRules := matchingRuleType{
-		"$.body.id": map[string]interface{}{
-			"match": "type",
-		},
-	}
-
-	body := PactBodyBuilder(matcher)
-	result := formatJSONObject(body.Body)
-
-	if expectedBody != result {
-		t.Fatalf("got '%v' wanted '%v'", result, expectedBody)
-	}
-	if !reflect.DeepEqual(body.MatchingRules, expectedMatchingRules) {
-		t.Fatalf("got '%v' wanted '%v'", body.MatchingRules, expectedMatchingRules)
 	}
 }
