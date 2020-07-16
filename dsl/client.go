@@ -157,8 +157,12 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	address := getAddress(request.ProviderBaseURL)
 	port := getPort(request.ProviderBaseURL)
 
-	waitForPort(port, p.getNetworkInterface(), address, p.TimeoutDuration,
+	err = waitForPort(port, p.getNetworkInterface(), address, p.TimeoutDuration,
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
+
+	if err != nil {
+		return response, err
+	}
 
 	// Run command, splitting out stderr and stdout. The command can fail for
 	// several reasons:
