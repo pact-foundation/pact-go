@@ -53,7 +53,7 @@ func (i *Installer) CheckInstallation() error {
 }
 
 // CheckVersion checks installation of a given binary using semver-compatible
-// comparisions
+// comparisons
 func (i *Installer) CheckVersion(binary, version string) error {
 	log.Println("[DEBUG] checking version for binary", binary, "version", version)
 	v, err := goversion.NewVersion(version)

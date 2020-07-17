@@ -1,6 +1,6 @@
 package types
 
-// ReificationResponse contains the ouput of the reification request
+// ReificationResponse contains the output of the reification request
 type ReificationResponse struct {
 	// Interface wrapped object
 	Response interface{}

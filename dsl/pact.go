@@ -424,7 +424,7 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]type
 var installer = install.NewInstaller()
 
 var checkCliCompatibility = func() {
-	log.Println("[DEBUG] checking CLI compatability")
+	log.Println("[DEBUG] checking CLI compatibility")
 	err := installer.CheckInstallation()
 
 	if err != nil {
@@ -597,7 +597,7 @@ func generateTestCaseName(res types.ProviderVerifierResponse) string {
 // running provider message verification with granular test reporting and
 // automatic failure reporting for nice, simple tests.
 //
-// A Message Producer is analagous to Consumer in the HTTP Interaction model.
+// A Message Producer is analogous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
 func (p *Pact) VerifyMessageProvider(t *testing.T, request VerifyMessageRequest) (res []types.ProviderVerifierResponse, err error) {
@@ -645,7 +645,7 @@ func runTestCases(t *testing.T, res []types.ProviderVerifierResponse) {
 
 // VerifyMessageProviderRaw runs provider message verification.
 //
-// A Message Producer is analagous to Consumer in the HTTP Interaction model.
+// A Message Producer is analogous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
 func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.ProviderVerifierResponse, error) {
@@ -704,7 +704,7 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 // interaction.
 //
 //
-// A Message Consumer is analagous to a Provider in the HTTP Interaction model.
+// A Message Consumer is analogous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
 func (p *Pact) VerifyMessageConsumerRaw(message *Message, handler MessageConsumer) error {
