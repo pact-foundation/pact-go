@@ -127,7 +127,7 @@ func Term(generate string, matcher string) Matcher {
 	}
 }
 
-// HexValue defines a matcher that accepts hexidecimal values.
+// HexValue defines a matcher that accepts hexadecimal values.
 func HexValue() Matcher {
 	return Regex("3F", hexadecimal)
 }

@@ -1,6 +1,6 @@
 package types
 
-// ProviderVerifierResponse contains the ouput of the pact-provider-verifier
+// ProviderVerifierResponse contains the output of the pact-provider-verifier
 // command.
 type ProviderVerifierResponse struct {
 	Version  string `json:"version"`
