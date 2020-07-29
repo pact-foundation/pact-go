@@ -23,6 +23,9 @@ const (
 
 var timeExample = time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
 
+var fullRegex = regexp.MustCompile(`regex=(.*)$`)
+var exampleRegex = regexp.MustCompile(`^example=(.*)`)
+
 type eachLike struct {
 	Contents interface{} `json:"contents"`
 	Min      int         `json:"min"`
@@ -421,9 +424,6 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 			triggerInvalidPactTagPanic(pactTag, err)
 		}
 	case reflect.String:
-		fullRegex, _ := regexp.Compile(`regex=(.*)$`)
-		exampleRegex, _ := regexp.Compile(`^example=(.*)`)
-
 		if fullRegex.Match([]byte(pactTag)) {
 			components := strings.Split(pactTag, ",regex=")
 
