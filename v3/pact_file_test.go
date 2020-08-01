@@ -13,13 +13,13 @@ func TestPactFile_term(t *testing.T) {
 	expectedBody := formatJSON(`{
 		"id": 127
 	}`)
-	expectedMatchingRules := matchingRuleType{
+	expectedMatchingRules := matchingRule{
 		"$.body.id": map[string]interface{}{
 			"match": "type",
 		},
 	}
 
-	body := PactBodyBuilder(matcher)
+	body := pactBodyBuilder(matcher)
 	result := formatJSONObject(body.Body)
 
 	if expectedBody != result {
@@ -42,14 +42,14 @@ func TestPactFile_ArrayMinLike(t *testing.T) {
 			27
 		]
 	}`)
-	expectedMatchingRules := matchingRuleType{
+	expectedMatchingRules := matchingRule{
 		"$.body.users": map[string]interface{}{
 			"match": "type",
 			"min":   3,
 		},
 	}
 
-	body := PactBodyBuilder(matcher)
+	body := pactBodyBuilder(matcher)
 	result := formatJSONObject(body.Body)
 
 	if expectedBody != result {
@@ -78,7 +78,7 @@ func TestPactFile_ArrayMinLikeWithNested(t *testing.T) {
 			}
 		]
 	}`)
-	expectedMatchingRules := matchingRuleType{
+	expectedMatchingRules := matchingRule{
 		"$.body.users": map[string]interface{}{
 			"match": "type",
 			"min":   3,
@@ -89,7 +89,7 @@ func TestPactFile_ArrayMinLikeWithNested(t *testing.T) {
 		},
 	}
 
-	body := PactBodyBuilder(matcher)
+	body := generatePactFile(matcher)
 	result := formatJSONObject(body.Body)
 
 	if expectedBody != result {

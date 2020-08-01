@@ -74,8 +74,8 @@ func (m eachLike) Type() MatcherClass {
 	return ArrayMinLikeMatcher
 }
 
-func (m eachLike) MatchingRule() matcherType {
-	matcher := matcherType{
+func (m eachLike) MatchingRule() ruleValue {
+	matcher := ruleValue{
 		"match": "type",
 	}
 
@@ -103,8 +103,8 @@ func (m like) Type() MatcherClass {
 	return LikeMatcher
 }
 
-func (m like) MatchingRule() matcherType {
-	return matcherType{
+func (m like) MatchingRule() ruleValue {
+	return ruleValue{
 		"match": "type",
 	}
 }
@@ -124,8 +124,8 @@ func (m term) Type() MatcherClass {
 	return RegexMatcher
 }
 
-func (m term) MatchingRule() matcherType {
-	return matcherType{
+func (m term) MatchingRule() ruleValue {
+	return ruleValue{
 		"match": "regex",
 		"regex": m.Data.Matcher.Regex,
 	}
@@ -260,7 +260,7 @@ type Matcher interface {
 	Type() MatcherClass
 
 	// Generate the matching rule for this Matcher
-	MatchingRule() matcherType
+	MatchingRule() ruleValue
 }
 
 // MatcherClass is used to differentiate the various matchers when serialising
@@ -297,8 +297,8 @@ func (s S) Type() MatcherClass {
 	return LikeMatcher
 }
 
-func (s S) MatchingRule() matcherType {
-	return matcherType{
+func (s S) MatchingRule() ruleValue {
+	return ruleValue{
 		"match": "type",
 	}
 }
@@ -323,8 +323,8 @@ func (s StructMatcher) Type() MatcherClass {
 	return LikeMatcher
 }
 
-func (s StructMatcher) MatchingRule() matcherType {
-	return matcherType{
+func (s StructMatcher) MatchingRule() ruleValue {
+	return ruleValue{
 		"match": "type",
 	}
 }
@@ -358,6 +358,7 @@ func objectToString(obj interface{}) string {
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
 // String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
+// TODO: support generators
 func Match(src interface{}) Matcher {
 	return match(reflect.TypeOf(src), getDefaults())
 }
@@ -507,3 +508,6 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 func triggerInvalidPactTagPanic(tag string, err error) {
 	panic(fmt.Sprintf("match: encountered invalid pact tag %q . . . parsing failed with error: %v", tag, err))
 }
+
+// Generators
+// https://github.com/pact-foundation/pact-specification/tree/version-3#introduce-example-generators

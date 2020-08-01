@@ -1,7 +1,5 @@
-/*
-package v3 contains the main Pact DSL used in the Consumer
-collaboration test cases, and Provider contract test verification.
-*/
+//package v3 contains the main Pact DSL used in the Consumer
+// collaboration test cases, and Provider contract test verification.
 package v3
 
 // TODO: setup a proper state machine to prevent actions
@@ -53,10 +51,6 @@ type MockProvider struct {
 	// Pact files will be saved in this folder.
 	// Defaults to `<cwd>/pacts`.
 	PactDir string `json:"-"`
-
-	// Specify which version of the Pact Specification should be used (1 or 2).
-	// Defaults to 2.
-	SpecificationVersion int `json:"pactSpecificationVersion,string"`
 
 	// Host is the address of the Mock and Verification Service runs on
 	// Examples include 'localhost', '127.0.0.1', '[::1]'
@@ -128,10 +122,6 @@ func (p *MockProvider) Setup() *MockProvider {
 		p.PactDir = fmt.Sprintf(filepath.Join(dir, "pacts"))
 	}
 
-	if p.SpecificationVersion == 0 {
-		p.SpecificationVersion = 2
-	}
-
 	if p.ClientTimeout == 0 {
 		p.ClientTimeout = 10 * time.Second
 	}
@@ -174,6 +164,8 @@ func (p *MockProvider) Setup() *MockProvider {
 	// 	p.Server = p.pactClient.StartServer(args, port)
 	// }
 
+	native.Init()
+
 	return p
 }
 
@@ -195,9 +187,13 @@ func (p *MockProvider) setupLogging() {
 
 // Teardown stops the Pact Mock Server. This usually is called on completion
 // of each test suite.
-func (p *MockProvider) Teardown() *MockProvider {
+func (p *MockProvider) Teardown() error {
 	log.Println("[DEBUG] teardown")
 	if p.ServerPort != 0 {
+		err := native.WritePactFile(p.ServerPort, p.PactDir)
+		if err != nil {
+			return err
+		}
 
 		if native.CleanupMockServer(p.ServerPort) {
 			p.ServerPort = 0
@@ -205,7 +201,7 @@ func (p *MockProvider) Teardown() *MockProvider {
 			log.Println("[DEBUG] unable to teardown server")
 		}
 	}
-	return p
+	return nil
 }
 
 // Verify runs the current test case against a Mock Service.
@@ -215,13 +211,17 @@ func (p *MockProvider) Verify(integrationTest func(MockServerConfig) error) erro
 	p.Setup()
 
 	// Start server
-	fmt.Println("[DEBUG] Sending pact file:", formatJSONObject(p))
+	serialisedPact := NewPactFile(p.Consumer, p.Provider, p.Interactions)
+	fmt.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
 
 	// TODO: wire this better
-	port := native.CreateMockServer(formatJSONObject(p), "0.0.0.0:0", false)
+	port := native.CreateMockServer(formatJSONObject(serialisedPact), "0.0.0.0:0", false)
 
 	// TODO: not sure we want this?
 	p.ServerPort = port
+
+	// TODO: use cases for having server running post integration test?
+	// Probably not...
 	defer native.CleanupMockServer(port)
 
 	// Run the integration test
@@ -238,15 +238,37 @@ func (p *MockProvider) Verify(integrationTest func(MockServerConfig) error) erro
 	if !res {
 		return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
 	}
+	p.WritePact()
 
 	return nil
 }
 
-func (p *MockProvider) displayMismatches(mismatches []native.Mismatch) {
+// TODO: pretty print this to make it really easy to understand the problems
+// See existing Pact/Ruby code examples
+// What about the Rust/Elm compiler feedback, they are pretty great too.
+func (p *MockProvider) displayMismatches(mismatches []native.MismatchedRequest) {
 	if len(mismatches) > 0 {
 		log.Println("[INFO] pact validation failed, errors: ")
 		for _, m := range mismatches {
-			log.Println(m)
+			formattedRequest := fmt.Sprintf("%s %s", m.Request.Method, m.Request.Path)
+			switch m.Type {
+			case "missing-request":
+				fmt.Printf("Expected request to: %s, but did not receive one\n", formattedRequest)
+			case "request-not-found":
+				fmt.Printf("Unexpected request was received: %s\n", formattedRequest)
+			default:
+				// TODO:
+			}
+
+			for _, detail := range m.Mismatches {
+				switch detail.Type {
+				case "HeaderMismatch":
+					fmt.Printf("Comparing Header: '%s'\n", detail.Key)
+					fmt.Println(detail.Mismatch)
+					fmt.Println("Expected:", detail.Expected)
+					fmt.Println("Actual:", detail.Actual)
+				}
+			}
 		}
 	}
 }

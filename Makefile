@@ -19,7 +19,7 @@ bin:
 	ls -hl build/
 
 clean:
-	rm -rf build output dist
+	rm -rf build output dist examples/v3/pacts/*
 
 deps: snyk-install
 	@echo "--- 🐿  Fetching build dependencies "

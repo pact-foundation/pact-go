@@ -1,7 +1,7 @@
 package native
 
 /*
-#cgo LDFLAGS: ${SRCDIR}/../../libs/libpact_mock_server_ffi.dylib
+#cgo LDFLAGS: ${SRCDIR}/../../libs/libpact_mock_server_ffi.dll
 
 // Library headers
 typedef int bool;

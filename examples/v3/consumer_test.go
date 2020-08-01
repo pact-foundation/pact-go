@@ -13,6 +13,8 @@ import (
 	v3 "github.com/pact-foundation/pact-go/v3"
 )
 
+type s = v3.String
+
 // Example Pact: How to run me!
 // 1. cd <pact-go>/examples
 // 2. go test -v -run TestConsumer
@@ -20,19 +22,22 @@ func TestConsumer(t *testing.T) {
 	type User struct {
 		Name     string `json:"name" pact:"example=billy"`
 		LastName string `json:"lastName" pact:"example=sampson"`
+		Date     string `json:"datetime" pact:"generator=time"`
 	}
 
 	// Create Pact connecting to local Daemon
-	pact := &v3.MockProvider{
+	mockProvider := &v3.MockProvider{
 		Consumer: "MyConsumer",
 		Provider: "MyProvider",
 		Host:     "localhost",
+		LogLevel: "DEBUG",
 	}
-	defer pact.Teardown()
+	mockProvider.Setup()
+	defer mockProvider.Teardown()
 
 	// Pass in test case
 	var test = func(config v3.MockServerConfig) error {
-		u := fmt.Sprintf("http://localhost:%d/foobar", pact.ServerPort)
+		u := fmt.Sprintf("http://localhost:%d/foobar", mockProvider.ServerPort)
 		req, err := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
@@ -52,26 +57,31 @@ func TestConsumer(t *testing.T) {
 	}
 
 	// Set up our expected interactions.
-	pact.
+	mockProvider.
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to get foo").
 		WithRequest(v3.Request{
 			Method:  "GET",
-			Path:    v3.String("/foobar"),
-			Headers: v3.MapMatcher{"Content-Type": v3.String("application/json"), "Authorization": v3.String("Bearer 1234")},
-			Body: map[string]string{
-				"name": "billy",
+			Path:    s("/foobar"),
+			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
+			Body: v3.MapMatcher{
+				"name": s("billy"),
 			},
 		}).
 		WillRespondWith(v3.Response{
 			Status:  200,
-			Headers: v3.MapMatcher{"Content-Type": v3.String("application/json")},
-			Body:    v3.Match(&User{}),
+			Headers: v3.MapMatcher{"Content-Type": s("application/json")},
+			// Body:    v3.Match(&User{}),
+			Body: v3.MapMatcher{
+				"dateTime": s("Bearer 1234"),
+				"name":     s("Bearer 1234"),
+				"lastName": s("Bearer 1234"),
+			},
 		})
 
 	// Verify
-	if err := pact.Verify(test); err != nil {
+	if err := mockProvider.Verify(test); err != nil {
 		log.Fatalf("Error on Verify: %v", err)
 	}
 }
