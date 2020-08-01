@@ -78,6 +78,8 @@ type MockProvider struct {
 
 	// Check if CLI tools are up to date
 	toolValidityCheck bool `json:"-"`
+
+	SpecificationVersion SpecificationVersion
 }
 
 // TODO: pass this into verification test func
@@ -211,7 +213,7 @@ func (p *MockProvider) Verify(integrationTest func(MockServerConfig) error) erro
 	p.Setup()
 
 	// Start server
-	serialisedPact := NewPactFile(p.Consumer, p.Provider, p.Interactions)
+	serialisedPact := NewPactFile(p.Consumer, p.Provider, p.Interactions, p.SpecificationVersion)
 	fmt.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
 
 	// TODO: wire this better

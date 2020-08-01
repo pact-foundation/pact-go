@@ -38,10 +38,20 @@ install:
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
   fi
 
+installv3:
+	@if [ ! -d ./libs/libpact_mock_server_ffi.dylib ]; then\
+		@echo "--- 🐿 Installing Rust lib"; \
+		make rust; \
+  fi
+
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"
-	go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
-	go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+
+pactv3: clean
+	@echo "--- 🔨 Running Pact examples"
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
 
 release:
 	echo "--- 🚀 Releasing it"
@@ -76,5 +86,10 @@ snyk:
 	@if [ "$$TRAVIS_PULL_REQUEST" != "false" ]; then\
 		snyk test; \
 	fi
+
+rust:
+	cd ~/development/public/pact-reference/rust; \
+	cargo build; \
+	cp ~/development/public/pact-reference/rust/target/debug/libpact_mock_server_ffi.dylib ./libs/libpact_mock_server_ffi.dylib
 
 .PHONY: install bin default dev test pact updatedeps clean release

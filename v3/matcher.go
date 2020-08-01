@@ -69,9 +69,9 @@ func (m eachLike) isMatcher() {
 
 func (m eachLike) Type() MatcherClass {
 	if m.Max != 0 {
-		return ArrayMaxLikeMatcher
+		return arrayMaxLikeMatcher
 	}
-	return ArrayMinLikeMatcher
+	return arrayMinLikeMatcher
 }
 
 func (m eachLike) MatchingRule() ruleValue {
@@ -100,7 +100,7 @@ func (m like) isMatcher() {
 }
 
 func (m like) Type() MatcherClass {
-	return LikeMatcher
+	return likeMatcher
 }
 
 func (m like) MatchingRule() ruleValue {
@@ -121,7 +121,7 @@ func (m term) isMatcher() {
 }
 
 func (m term) Type() MatcherClass {
-	return RegexMatcher
+	return regexMatcher
 }
 
 func (m term) MatchingRule() ruleValue {
@@ -266,19 +266,22 @@ type Matcher interface {
 // MatcherClass is used to differentiate the various matchers when serialising
 type MatcherClass int
 
-// Matcher Types
+// Matcher Types used to discriminate when serialising the rules
 const (
-	// LikeMatcher is the ID for the Like Matcher
-	LikeMatcher MatcherClass = iota
+	// likeMatcher is the ID for the Like Matcher
+	likeMatcher MatcherClass = iota
 
-	// RegexMatcher is the ID for the Term Matcher
-	RegexMatcher
+	// regexMatcher is the ID for the Term Matcher
+	regexMatcher
 
-	// ArrayMinLikeMatcher is the ID for the ArrayMinLike Matcher
-	ArrayMinLikeMatcher
+	// arrayMinLikeMatcher is the ID for the ArrayMinLike Matcher
+	arrayMinLikeMatcher
 
-	// ArrayMaxLikeMatcher is the ID for the ArrayMaxLikeMatcher Matcher
-	ArrayMaxLikeMatcher
+	// arrayMaxLikeMatcher is the ID for the arrayMaxLikeMatcher Matcher
+	arrayMaxLikeMatcher
+
+	// Matches map[string]interface{} types is basically a container for other matchers
+	structTypeMatcher
 )
 
 // S is the string primitive wrapper (alias) for the Matcher type,
@@ -294,7 +297,7 @@ func (s S) GetValue() interface{} {
 }
 
 func (s S) Type() MatcherClass {
-	return LikeMatcher
+	return likeMatcher
 }
 
 func (s S) MatchingRule() ruleValue {
@@ -309,18 +312,20 @@ type String = S
 
 // StructMatcher matches a complex object structure, which may itself
 // contain nested Matchers
-type StructMatcher map[string]interface{}
+type StructMatcher map[string]Matcher
+
+// type StructMatcher map[string]Matcher
 
 func (m StructMatcher) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
 func (m StructMatcher) GetValue() interface{} {
-	return nil
+	return m
 }
 
 func (s StructMatcher) Type() MatcherClass {
-	return LikeMatcher
+	return structTypeMatcher
 }
 
 func (s StructMatcher) MatchingRule() ruleValue {

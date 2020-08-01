@@ -22,15 +22,16 @@ func TestConsumer(t *testing.T) {
 	type User struct {
 		Name     string `json:"name" pact:"example=billy"`
 		LastName string `json:"lastName" pact:"example=sampson"`
-		Date     string `json:"datetime" pact:"generator=time"`
+		Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
 	}
 
 	// Create Pact connecting to local Daemon
 	mockProvider := &v3.MockProvider{
-		Consumer: "MyConsumer",
-		Provider: "MyProvider",
-		Host:     "localhost",
-		LogLevel: "DEBUG",
+		Consumer:             "MyConsumer",
+		Provider:             "MyProvider",
+		Host:                 "localhost",
+		LogLevel:             "TRACE",
+		SpecificationVersion: v3.V2,
 	}
 	mockProvider.Setup()
 	defer mockProvider.Teardown()
@@ -72,12 +73,12 @@ func TestConsumer(t *testing.T) {
 		WillRespondWith(v3.Response{
 			Status:  200,
 			Headers: v3.MapMatcher{"Content-Type": s("application/json")},
-			// Body:    v3.Match(&User{}),
-			Body: v3.MapMatcher{
-				"dateTime": s("Bearer 1234"),
-				"name":     s("Bearer 1234"),
-				"lastName": s("Bearer 1234"),
-			},
+			Body:    v3.Match(&User{}),
+			// Body: v3.MapMatcher{
+			// 	"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
+			// 	"name":     s("FirstName"),
+			// 	"lastName": s("LastName"),
+			// },
 		})
 
 	// Verify
