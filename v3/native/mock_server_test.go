@@ -100,7 +100,7 @@ func TestMockServer_MismatchesSuccess(t *testing.T) {
 		t.Fatalf("want '200', got '%d'", res.StatusCode)
 	}
 
-	mismatches := MockServerMismatches(port)
+	mismatches := MockServerMismatchedRequests(port)
 	if len(mismatches) != 0 {
 		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
 	}
@@ -110,7 +110,7 @@ func TestMockServer_MismatchesFail(t *testing.T) {
 	port := CreateMockServer(pactSimple, "0.0.0.0:0", false)
 	defer CleanupMockServer(port)
 
-	mismatches := MockServerMismatches(port)
+	mismatches := MockServerMismatchedRequests(port)
 	if len(mismatches) != 1 {
 		t.Fatalf("want 1 mismatch, got '%d'", len(mismatches))
 	}

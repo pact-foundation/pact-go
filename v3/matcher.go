@@ -264,24 +264,24 @@ type Matcher interface {
 }
 
 // MatcherClass is used to differentiate the various matchers when serialising
-type MatcherClass int
+type MatcherClass string
 
 // Matcher Types used to discriminate when serialising the rules
 const (
 	// likeMatcher is the ID for the Like Matcher
-	likeMatcher MatcherClass = iota
+	likeMatcher MatcherClass = "likeMatcher"
 
 	// regexMatcher is the ID for the Term Matcher
-	regexMatcher
+	regexMatcher = "regexMatcher"
 
 	// arrayMinLikeMatcher is the ID for the ArrayMinLike Matcher
-	arrayMinLikeMatcher
+	arrayMinLikeMatcher = "arrayMinLikeMatcher"
 
 	// arrayMaxLikeMatcher is the ID for the arrayMaxLikeMatcher Matcher
-	arrayMaxLikeMatcher
+	arrayMaxLikeMatcher = "arrayMaxLikeMatcher"
 
 	// Matches map[string]interface{} types is basically a container for other matchers
-	structTypeMatcher
+	structTypeMatcher = "structTypeMatcher"
 )
 
 // S is the string primitive wrapper (alias) for the Matcher type,

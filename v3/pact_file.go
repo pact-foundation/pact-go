@@ -2,9 +2,6 @@ package v3
 
 import (
 	"fmt"
-	"log"
-	"reflect"
-	"strconv"
 
 	version "github.com/pact-foundation/pact-go/command"
 )
@@ -36,14 +33,14 @@ import (
 // 	}
 
 // SpecificationVersion is used to determine the current specification version
-type SpecificationVersion int
+type SpecificationVersion string
 
 const (
 	// V2 signals the use of version 2 of the pact spec
-	V2 SpecificationVersion = iota
+	V2 SpecificationVersion = "2.0.0"
 
 	// V3 signals the use of version 3 of the pact spec
-	V3
+	V3 = "3.0.0"
 )
 
 // ruleValue is essentially a key value JSON pairs for serialisation
@@ -68,93 +65,9 @@ var pactGoMetadata = map[string]interface{}{
 	},
 }
 
-type pactRequest struct {
-	Method         string                 `json:"method"`
-	Path           Matcher                `json:"path"`
-	Query          MapMatcher             `json:"query,omitempty"`
-	Headers        MapMatcher             `json:"headers,omitempty"`
-	Body           interface{}            `json:"body"`
-	MatchingRules  map[string]interface{} `json:"matchingRules"`
-	MatchingRules2 matchingRule           `json:"matchingRules2,omitempty"`
-	Generators     generator              `json:"generators"`
-}
-
-type pactResponse struct {
-	Status         int                    `json:"status"`
-	Headers        MapMatcher             `json:"headers,omitempty"`
-	Body           interface{}            `json:"body,omitempty"`
-	MatchingRules  map[string]interface{} `json:"matchingRules"`
-	MatchingRules2 matchingRule           `json:"matchingRules2,omitempty"`
-	Generators     generator              `json:"generators"`
-}
-
-type pactInteraction struct {
-	Description string       `json:"description"`
-	State       string       `json:"providerState,omitempty"`
-	Request     pactRequest  `json:"request"`
-	Response    pactResponse `json:"response"`
-}
-
-// pactFile is what will be serialised to the Pactfile in the request body examples and matching rules
-// given a structure containing matchers.
-// TODO: any matching rules will need to be merged with other aspects (e.g. headers, path, query).
-// ...still very much spike/POC code
-type pactFile struct {
-	// Consumer is the name of the Consumer/Client.
-	Consumer string `json:"consumer"`
-
-	// Provider is the name of the Providing service.
-	Provider string `json:"provider"`
-
-	// SpecificationVersion is the version of the Pact Spec this implementation supports
-	SpecificationVersion SpecificationVersion `json:"-"`
-
-	interactions []*Interaction
-
-	// Interactions are all of the request/response expectations, with matching rules and generators
-	Interactions []pactInteraction `json:"interactions"`
-
-	Metadata map[string]interface{} `json:"metadata"`
-}
-
-func v2PactInteractionFromInteraction(interaction Interaction) pactInteraction {
-	return pactInteraction{
-		Description: interaction.Description,
-		State:       interaction.State,
-		Request: pactRequest{
-			Method:  interaction.Request.Method,
-			Body:    interaction.Request.Body,
-			Headers: interaction.Request.Headers,
-			Query:   interaction.Request.Query,
-			Path:    interaction.Request.Path,
-			// Generators:    make(generatorType),
-			MatchingRules: make(ruleValue),
-			MatchingRules2: generator{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
-			},
-		},
-		Response: pactResponse{
-			Status:  interaction.Response.Status,
-			Body:    interaction.Response.Body,
-			Headers: interaction.Response.Headers,
-			// Generators:    make(generatorType),
-			MatchingRules: make(ruleValue),
-			MatchingRules2: matchingRule{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
-			},
-		},
-	}
-}
-
-func NewPactFile(consumer string, provider string, interactions []*Interaction, specificationVersion SpecificationVersion) pactFile {
-	p := pactFile{
-		Interactions:         make([]pactInteraction, 0),
+func NewPactFile(consumer string, provider string, interactions []*Interaction, specificationVersion SpecificationVersion) pactFileV2 {
+	p := pactFileV2{
+		Interactions:         make([]pactInteractionV2, 0),
 		interactions:         interactions,
 		Metadata:             pactGoMetadata,
 		Consumer:             consumer,
@@ -164,202 +77,13 @@ func NewPactFile(consumer string, provider string, interactions []*Interaction, 
 
 	if specificationVersion == V2 {
 		p.generatev2PactFile()
-		pactGoMetadata["pactSpecification"] = map[string]interface{}{
-			"version": "2.0.0",
-		}
 	} else {
 		panic(fmt.Sprintf("specification version not supported: %+v", specificationVersion))
 	}
 
-	return p
-}
-
-func (p *pactFile) generatev2PactFile() *pactFile {
-	for _, interaction := range p.interactions {
-		fmt.Printf("Serialising interaction: %+v \n", *interaction)
-		serialisedInteraction := v2PactInteractionFromInteraction(*interaction)
-
-		// TODO: haven't done matchers for headers, path and status code
-		_, serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules, _ = buildPactBody("", interaction.Request.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
-		_, serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules, _ = buildPactBody("", interaction.Response.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
-
-		// v2
-		// serialisedInteraction.Request.MatchingRules = requestBodyMatchingRules
-		// serialisedInteraction.Response.MatchingRules = responseBodyMatchingRules
-
-		// v3 only
-		// serialisedInteraction.Request.MatchingRules.Body = requestBodyMatchingRules
-		// serialisedInteraction.Response.MatchingRules.Body = responseBodyMatchingRules
-
-		// TODO
-		buildPactHeaders()
-		buildPactQuery()
-		buildPactPath()
-
-		fmt.Printf("appending interaction: %+v \n", serialisedInteraction)
-		p.Interactions = append(p.Interactions, serialisedInteraction)
+	pactGoMetadata["pactSpecification"] = map[string]interface{}{
+		"version": specificationVersion,
 	}
 
 	return p
-}
-
-// pactBodyBuilder takes a map containing recursive Matchers and generates the rules
-// to be serialised into the Pact file.
-func pactBodyBuilder(root map[string]interface{}) pactFile {
-	// Generators:    make(generatorType),
-	// MatchingRules: make(matchingRuleType),
-	// Metadata:      pactGoMetadata,
-	// return file
-	return pactFile{}
-
-}
-
-const pathSep = "."
-const allListItems = "[*]"
-const startList = "["
-const endList = "]"
-
-func recurseMapType(key string, value interface{}, body map[string]interface{}, path string,
-	matchingRules ruleValue, generators ruleValue) (string, map[string]interface{}, ruleValue, ruleValue) {
-	mapped := reflect.ValueOf(value)
-	entry := make(map[string]interface{})
-	path = path + buildPath(key, "")
-
-	iter := mapped.MapRange()
-	for iter.Next() {
-		k := iter.Key()
-		v := iter.Value()
-		log.Println("[TRACE] dsl generator: map[string]interface{}: recursing map type into key =>", k)
-
-		// Starting position
-		if key == "" {
-			_, body, matchingRules, generators = buildPactBody(k.String(), v.Interface(), copyMap(body), path, matchingRules, generators)
-		} else {
-			_, body[key], matchingRules, generators = buildPactBody(k.String(), v.Interface(), entry, path, matchingRules, generators)
-		}
-	}
-
-	return path, body, matchingRules, generators
-}
-
-// Recurse the Matcher tree and buildPactBody up an example body and set of matchers for
-// the Pact file. Ideally this stays as a pure function, but probably might need
-// to store matchers externally.
-//
-// See PactBody.groovy line 96 for inspiration/logic.
-//
-// Arguments:
-// 	- key           => Current key in the body to set
-// 	- value         => Value for the current key, may be a primitive, object or another Matcher
-// 	- body          => Current state of the body map to be built up (body will be the returned Pact body for serialisation)
-// 	- path          => Path to the current key
-//  - matchingRules => Current set of matching rules (matching rules will also be serialised into the Pact)
-//
-// Returns path, body, matchingRules, generators
-func buildPactBody(key string, value interface{}, body map[string]interface{}, path string,
-	matchingRules ruleValue, generators ruleValue) (string, map[string]interface{}, ruleValue, ruleValue) {
-	log.Println("[TRACE] dsl generator => key:", key, ", body:", body, ", value:", value, ", path:", path)
-
-	switch t := value.(type) {
-
-	case Matcher:
-		switch t.Type() {
-
-		case arrayMinLikeMatcher, arrayMaxLikeMatcher:
-			log.Println("[TRACE] dsl generator: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher")
-			times := 1
-
-			m := t.(eachLike)
-			if m.Max > 0 {
-				times = m.Max
-			} else if m.Min > 0 {
-				times = m.Min
-			}
-
-			arrayMap := make(map[string]interface{})
-			minArray := make([]interface{}, times)
-
-			// TODO: why does this exist? -> Umm, it's what recurses the array item values!
-			builtPath := path + buildPath(key, allListItems)
-			buildPactBody("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
-			log.Println("[TRACE] dsl generator: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher =>", builtPath)
-			matchingRules[path+buildPath(key, "")] = m.MatchingRule()
-
-			// TODO: Need to understand the .* notation before implementing it. Notably missing from Groovy DSL
-			// log.Println("[TRACE] dsl generator: matcher (type)              =>", path+buildPath(key, allListItems)+".*")
-			// matchingRules[path+buildPath(key, allListItems)+".*"] = m.MatchingRule()
-
-			for i := 0; i < times; i++ {
-				minArray[i] = arrayMap["0"]
-			}
-
-			// TODO: I think this assignment is working, but the next step seems to recurse again and this never writes
-			// probably just a bad terminal case handling?
-			body[key] = minArray
-			fmt.Printf("Updating body: %+v, minArray: %+v", body, minArray)
-			path = path + buildPath(key, "")
-
-		case regexMatcher, likeMatcher:
-			log.Println("[TRACE] dsl generator: Regex/LikeMatcher")
-			builtPath := path + buildPath(key, "")
-			body[key] = t.GetValue()
-			log.Println("[TRACE] dsl generator: Regex/LikeMatcher =>", builtPath)
-			matchingRules[builtPath] = t.MatchingRule()
-
-		// This exists to server the v3.Match() interface
-		case structTypeMatcher:
-			log.Println("[TRACE] dsl generator: StructTypeMatcher")
-			_, body, matchingRules, generators = recurseMapType(key, t.GetValue().(StructMatcher), body, path, matchingRules, generators)
-
-		default:
-			log.Fatalf("unknown matcher: %d", t)
-		}
-
-		// Slice/Array types
-	case []interface{}:
-		log.Println("[TRACE] dsl generator: []interface{}")
-		arrayValues := make([]interface{}, len(t))
-		arrayMap := make(map[string]interface{})
-
-		// This is a real hack. I don't like it
-		// I also had to do it for the Array*LikeMatcher's, which I also don't like
-		for i, el := range t {
-			k := fmt.Sprintf("%d", i)
-			builtPath := path + buildPath(key, fmt.Sprintf("%s%d%s", startList, i, endList))
-			log.Println("[TRACE] dsl generator: []interface{}: recursing into =>", builtPath)
-			buildPactBody(k, el, arrayMap, builtPath, matchingRules, generators)
-			arrayValues[i] = arrayMap[k]
-		}
-		body[key] = arrayValues
-
-		// Map -> Recurse keys (All objects start here!)
-	case map[string]interface{}, MapMatcher:
-		log.Println("[TRACE] dsl generator: MapMatcher")
-		_, body, matchingRules, generators = recurseMapType(key, t, body, path, matchingRules, generators)
-
-	// Primitives (terminal cases)
-	default:
-		log.Printf("[TRACE] dsl generator: unknown type or primitive (%+v): %+v\n", reflect.TypeOf(t), value)
-		body[key] = value
-	}
-
-	log.Printf("[TRACE] dsl generator => returning body: %+v\n", body)
-
-	return path, body, matchingRules, generators
-}
-
-func buildPactHeaders() {}
-func buildPactPath()    {}
-func buildPactQuery()   {}
-
-// TODO: allow regex in request paths.
-func buildPath(name string, children string) string {
-	// We know if a key is an integer, it's not valid JSON and therefore is probably
-	// the shitty array hack from above. Skip creating a new path if the key is bungled
-	// TODO: save the children?
-	if _, err := strconv.Atoi(name); err != nil && name != "" {
-		return pathSep + name + children
-	}
-
-	return ""
 }
