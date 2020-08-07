@@ -195,6 +195,9 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	// See https://github.com/pact-foundation/pact-go/issues/88#issuecomment-404686337
 	stdOutScanner := bufio.NewScanner(stdOutPipe)
 	go func() {
+		stdOutBuf := make([]byte, bufio.MaxScanTokenSize)
+		stdOutScanner.Buffer(stdOutBuf, 64*1024*1024)
+
 		for stdOutScanner.Scan() {
 			verifications = append(verifications, stdOutScanner.Text())
 		}
