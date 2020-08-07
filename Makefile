@@ -64,12 +64,14 @@ test: deps install
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
 			go test -race -coverprofile=profile.out -covermode=atomic $$d; \
+			if [ $$? != 0 ]; then \
+				exit 1; \
+			fi; \
 			if [ -f profile.out ]; then \
 					cat profile.out | tail -n +2 >> coverage.txt; \
 					rm profile.out; \
 			fi; \
 	done; \
-
 	go tool cover -func coverage.txt
 
 
