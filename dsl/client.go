@@ -407,7 +407,7 @@ func getAddress(rawURL string) string {
 // Use this to wait for a port to be running prior
 // to running tests.
 var waitForPort = func(port int, network string, address string, timeoutDuration time.Duration, message string) error {
-	log.Println("[DEBUG] waiting for port", port, "to become available")
+	log.Println("[DEBUG] waiting for port", port, "to become available on", address, "after", timeoutDuration)
 	timeout := time.After(timeoutDuration)
 
 	for {

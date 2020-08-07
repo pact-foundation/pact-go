@@ -3,7 +3,6 @@ package dsl
 import (
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/exec"
 	"reflect"
@@ -166,23 +165,6 @@ func TestClient_sanitiseRubyResponse(t *testing.T) {
 	}
 }
 
-// Use this to wait for a client to be running prior
-// to running tests
-func waitForPortInTest(port int, t *testing.T) {
-	timeout := time.After(1 * time.Second)
-	for {
-		select {
-		case <-timeout:
-			t.Fatalf("Expected server to start < 1s.")
-		case <-time.After(50 * time.Millisecond):
-			_, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
-			if err == nil {
-				return
-			}
-		}
-	}
-}
-
 // This guy mocks out the underlying Service provider in the client,
 // but executes actual client code. This means we don't spin up the real
 // mock service but execute our code in isolation.
@@ -225,7 +207,7 @@ func createMockClient(success bool) (*PactClient, *ServiceMock) {
 	}()
 
 	d := newClient(svc, svc, svc, svc)
-	d.TimeoutDuration = 50 * time.Millisecond
+	d.TimeoutDuration = 100 * time.Millisecond
 	return d, svc
 }
 
