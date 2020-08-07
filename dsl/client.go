@@ -193,22 +193,25 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	stdOutScanner := bufio.NewScanner(stdOutPipe)
 	go func() {
 		wg.Add(1)
+		defer wg.Done()
+		stdOutBuf := make([]byte, bufio.MaxScanTokenSize)
+		stdOutScanner.Buffer(stdOutBuf, 64*1024*1024)
+
 		for stdOutScanner.Scan() {
 			verifications = append(verifications, stdOutScanner.Text())
 		}
 
-		wg.Done()
 	}()
 
 	// Scrape errors
 	stdErrScanner := bufio.NewScanner(stdErrPipe)
 	go func() {
 		wg.Add(1)
+		defer wg.Done()
 		for stdErrScanner.Scan() {
 			stdErr.WriteString(fmt.Sprintf("%s\n", stdErrScanner.Text()))
 		}
 
-		wg.Done()
 	}()
 
 	err = cmd.Start()
