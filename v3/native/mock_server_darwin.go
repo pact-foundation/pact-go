@@ -14,6 +14,9 @@ int mock_server_matched(int port);
 char* mock_server_mismatches(int port);
 bool cleanup_mock_server(int port);
 int write_pact_file(int port, char* dir);
+char* get_tls_ca_certificate();
+char* get_tls_key();
+void free_string(char* s);
 
 */
 import "C"

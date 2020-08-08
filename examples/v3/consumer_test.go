@@ -5,8 +5,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -29,17 +31,30 @@ func TestConsumer(t *testing.T) {
 	mockProvider := &v3.MockProvider{
 		Consumer:             "MyConsumer",
 		Provider:             "MyProvider",
-		Host:                 "localhost",
+		Host:                 "127.0.0.1",
+		Port:                 8080,
 		LogLevel:             "TRACE",
 		SpecificationVersion: v3.V2,
+		TLS:                  true,
 	}
+
 	mockProvider.Setup()
-	defer mockProvider.Teardown()
 
 	// Pass in test case
 	var test = func(config v3.MockServerConfig) error {
-		u := fmt.Sprintf("http://localhost:%d/foobar", mockProvider.ServerPort)
-		req, err := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
+		client := &http.Client{
+			Transport: v3.GetTLSConfigForTLSMockServer(),
+		}
+		req := &http.Request{
+			Method: "POST",
+			URL: &url.URL{
+				Host:   fmt.Sprintf("localhost:%d", mockProvider.Port),
+				Scheme: "https",
+				Path:   "/foobar",
+			},
+			Body:   ioutil.NopCloser(strings.NewReader(`{"name":"billy"}`)),
+			Header: make(http.Header),
+		}
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
 		// of application/json. If you don't explicitly set the content-type, you
@@ -47,12 +62,7 @@ func TestConsumer(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer 1234")
 
-		if err != nil {
-			return err
-		}
-		if _, err = http.DefaultClient.Do(req); err != nil {
-			return err
-		}
+		_, err := client.Do(req)
 
 		return err
 	}
@@ -61,9 +71,9 @@ func TestConsumer(t *testing.T) {
 	mockProvider.
 		AddInteraction().
 		Given("User foo exists").
-		UponReceiving("A request to get foo").
+		UponReceiving("A request to do a foo").
 		WithRequest(v3.Request{
-			Method:  "GET",
+			Method:  "POST",
 			Path:    s("/foobar"),
 			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
 			Body: v3.MapMatcher{
@@ -73,16 +83,16 @@ func TestConsumer(t *testing.T) {
 		WillRespondWith(v3.Response{
 			Status:  200,
 			Headers: v3.MapMatcher{"Content-Type": s("application/json")},
-			Body:    v3.Match(&User{}),
-			// Body: v3.MapMatcher{
-			// 	"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-			// 	"name":     s("FirstName"),
-			// 	"lastName": s("LastName"),
-			// },
+			// Body:    v3.Match(&User{}),
+			Body: v3.MapMatcher{
+				"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
+				"name":     s("FirstName"),
+				"lastName": s("LastName"),
+			},
 		})
 
-	// Verify
-	if err := mockProvider.Verify(test); err != nil {
+	// Execute pact test
+	if err := mockProvider.ExecuteTest(test); err != nil {
 		log.Fatalf("Error on Verify: %v", err)
 	}
 }
