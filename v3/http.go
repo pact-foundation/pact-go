@@ -1,30 +1,36 @@
-//package v3 contains the main Pact DSL used in the Consumer
+// Package v3 contains the main Pact DSL used in the Consumer
 // collaboration test cases, and Provider contract test verification.
 package v3
 
 // TODO: setup a proper state machine to prevent actions
 // Current issues
-// 1. Setup needs to be initialised to get a port
+// 1. Setup needs to be initialised to get a port -> should be resolved by creating the server at the point of verification
+// 2. Ensure that interactions are properly cleared
+// 3. Need to ensure only v2 or v3 matchers are added
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/utils"
 	"github.com/pact-foundation/pact-go/v3/install"
-	"github.com/pact-foundation/pact-go/v3/native"
+	"github.com/pact-foundation/pact-go/v3/internal/native"
 )
 
-// MockProvider is the container structure to run the Consumer MockProvider test cases.
-type MockProvider struct {
+func init() {
+	initLogging()
+	native.Init()
+}
+
+// HTTPMockProvider is the entrypoint for http consumer tests
+type HTTPMockProvider struct {
 	// Consumer is the name of the Consumer/Client.
 	Consumer string
 
@@ -33,9 +39,6 @@ type MockProvider struct {
 
 	// Interactions contains all of the Mock Service Interactions to be setup.
 	Interactions []*Interaction
-
-	// Log levels.
-	LogLevel logutils.LogLevel
 
 	// Location of Pact external service invocation output logging.
 	// Defaults to `<cwd>/logs`.
@@ -87,29 +90,27 @@ type MockProvider struct {
 	// TLS enables a mock service behind a self-signed certificate
 	// TODO: document and test this
 	TLS bool
-
-	// TODO: clean pact dir on run?
-	// CleanPactFile bool
 }
 
-// TODO: pass this into verification test func
-type MockServerConfig struct{}
+// MockServerConfig stores the address configuration details of the server for the current executing test
+// This is most useful for the use of OS assigned, dynamic ports and parallel tests
+type MockServerConfig struct {
+	Port      int
+	Host      string
+	TLSConfig *tls.Config
+}
 
 // AddInteraction creates a new Pact interaction, initialising all
 // required things. Will automatically start a Mock Service if none running.
-func (p *MockProvider) AddInteraction() *Interaction {
-	p.Setup()
+func (p *HTTPMockProvider) AddInteraction() *Interaction {
 	log.Println("[DEBUG] pact add interaction")
 	i := &Interaction{}
 	p.Interactions = append(p.Interactions, i)
 	return i
 }
 
-// Setup starts the Pact Mock Server. This is usually called before each test
-// suite begins. AddInteraction() will automatically call this if no Mock Server
-// has been started.
-func (p *MockProvider) Setup() (*MockProvider, error) {
-	setLogLevel(p.LogLevel)
+// validateConfig validates the configuration for the consumer test
+func (p *HTTPMockProvider) validateConfig() error {
 	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
 
@@ -147,62 +148,45 @@ func (p *MockProvider) Setup() (*MockProvider, error) {
 	}
 
 	if pErr != nil {
-		return nil, fmt.Errorf("error: unable to find free port, mock server will fail to start")
+		return fmt.Errorf("error: unable to find free port, mock server will fail to start")
 	}
 
-	native.Init()
-
-	return p, nil
+	return nil
 }
 
-// 	// TODO: do we still want this lifecycle method?
-// Teardown stops the Pact Mock Server. This usually is called on completion
-// // of each test suite.
-// func (p *MockProvider) Teardown() error {
-// 	log.Println("[DEBUG] teardown")
-
-// 	if p.Port != 0 {
-// 		err := native.WritePactFile(p.Port, p.PactDir)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		if native.CleanupMockServer(p.Port) {
-// 			p.Port = 0
-// 		} else {
-// 			log.Println("[DEBUG] unable to teardown server")
-// 		}
-// 	}
-// 	return nil
-// }
-
-func (p *MockProvider) cleanInteractions() {
+func (p *HTTPMockProvider) cleanInteractions() {
 	p.Interactions = make([]*Interaction, 0)
 }
 
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
-func (p *MockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
+func (p *HTTPMockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
 	log.Println("[DEBUG] pact verify")
-	p.Setup()
+	err := p.validateConfig()
+	if err != nil {
+		return err
+	}
 
 	// Generate interactions for Pact file
 	serialisedPact := NewPactFile(p.Consumer, p.Provider, p.Interactions, p.SpecificationVersion)
-	fmt.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
+	log.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
 
 	// Clean interactions
 	p.cleanInteractions()
 
-	// TODO: wire this better
-	native.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.Host, p.Port), p.TLS)
-
-	// TODO: use cases for having server running post integration test?
-	// Probably not...
+	port, err := native.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.Host, p.Port), p.TLS)
 	defer native.CleanupMockServer(p.Port)
+	if err != nil {
+		return err
+	}
 
 	// Run the integration test
-	err := integrationTest(MockServerConfig{})
+	err = integrationTest(MockServerConfig{
+		Port:      port,
+		Host:      p.Host,
+		TLSConfig: GetTLSConfigForTLSMockServer(),
+	})
 
 	if err != nil {
 		return err
@@ -222,8 +206,7 @@ func (p *MockProvider) ExecuteTest(integrationTest func(MockServerConfig) error)
 
 // TODO: pretty print this to make it really easy to understand the problems
 // See existing Pact/Ruby code examples
-// What about the Rust/Elm compiler feedback, they are pretty great too.
-func (p *MockProvider) displayMismatches(mismatches []native.MismatchedRequest) {
+func (p *HTTPMockProvider) displayMismatches(mismatches []native.MismatchedRequest) {
 	if len(mismatches) > 0 {
 		log.Println("[INFO] pact validation failed, errors: ")
 		for _, m := range mismatches {
@@ -254,7 +237,7 @@ func (p *MockProvider) displayMismatches(mismatches []native.MismatchedRequest) 
 // given Consumer <-> Provider pair. It will write out the Pact to the
 // configured file. This is safe to call multiple times as the service is smart
 // enough to merge pacts and avoid duplicates.
-func (p *MockProvider) WritePact() error {
+func (p *HTTPMockProvider) WritePact() error {
 	log.Println("[DEBUG] write pact file")
 	if p.Port != 0 {
 		return native.WritePactFile(p.Port, p.PactDir)
@@ -286,11 +269,9 @@ func formatJSONObject(object interface{}) string {
 	return formatJSONString(string(out))
 }
 
-// GetGetTLSConfigForTLSMockServer gets an http transport with
+// GetTLSConfigForTLSMockServer gets an http transport with
 // the certificates already trusted. Alternatively, simply set
 // trust level to insecure
-func GetTLSConfigForTLSMockServer() *http.Transport {
-	return &http.Transport{
-		TLSClientConfig: native.GetTLSConfig(),
-	}
+func GetTLSConfigForTLSMockServer() *tls.Config {
+	return native.GetTLSConfig()
 }

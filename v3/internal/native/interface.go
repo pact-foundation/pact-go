@@ -1,5 +1,4 @@
 // Package native contains the c bindings into the Pact Reference types.
-// TODO: move this inter an internal only package
 package native
 
 /*
@@ -15,9 +14,8 @@ int mock_server_matched(int port);
 char* mock_server_mismatches(int port);
 bool cleanup_mock_server(int port);
 int write_pact_file(int port, char* dir);
-char* get_tls_ca_certificate();
-char* get_tls_key();
 void free_string(char* s);
+char* get_tls_ca_certificate();
 
 */
 import "C"
@@ -40,7 +38,6 @@ type Request struct {
 	Body    interface{}       `json:"body,omitempty"`
 }
 
-// MismatchRequest is a type returned from the validation process
 // [
 //   {
 //     "method": "GET",
@@ -57,6 +54,8 @@ type Request struct {
 //     "type": "request-mismatch"
 //   }
 // ]
+
+// MismatchDetail contains the specific assertions that failed during the verification
 type MismatchDetail struct {
 	Actual   string
 	Expected string
@@ -64,6 +63,8 @@ type MismatchDetail struct {
 	Mismatch string
 	Type     string
 }
+
+// MismatchedRequest contains details of any request mismatches during pact verification
 type MismatchedRequest struct {
 	Request
 	Mismatches []MismatchDetail
@@ -92,7 +93,7 @@ func CreateMockServer(pact string, address string, tls bool) (int, error) {
 		tlsEnabled = 1
 	}
 
-	port := C.create_mock_server(cPact, cAddress, C.int(tlsEnabled))
+	p := C.create_mock_server(cPact, cAddress, C.int(tlsEnabled))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -102,7 +103,8 @@ func CreateMockServer(pact string, address string, tls bool) (int, error) {
 	// | -4 | The method panicked |
 	// | -5 | The address is not valid |
 	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	switch int(port) {
+	port := int(p)
+	switch port {
 	case -1:
 		return 0, ErrInvalidMockServerConfig
 	case -2:
@@ -116,8 +118,11 @@ func CreateMockServer(pact string, address string, tls bool) (int, error) {
 	case -6:
 		return 0, ErrMockServerTLSConfiguration
 	default:
-		log.Println("[DEBUG] mock server running on port:", port)
-		return int(port), nil
+		if port > 0 {
+			log.Println("[DEBUG] mock server running on port:", port)
+			return port, nil
+		}
+		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
 	}
 }
 
@@ -154,7 +159,7 @@ func CleanupMockServer(port int) bool {
 
 var (
 	// ErrMockServerPanic indicates a panic ocurred when invoking the remote Mock Server.
-	ErrMockServerPanic = fmt.Errorf("a general panic occured when starting/invoking mock service")
+	ErrMockServerPanic = fmt.Errorf("a general panic occured when starting/invoking mock service (this indicates a defect in the framework)")
 
 	// ErrUnableToWritePactFile indicates an error when writing the pact file to disk.
 	ErrUnableToWritePactFile = fmt.Errorf("unable to write to file")
@@ -162,15 +167,21 @@ var (
 	// ErrMockServerNotfound indicates the Mock Server could not be found.
 	ErrMockServerNotfound = fmt.Errorf("unable to find mock server with the given port")
 
-	ErrInvalidMockServerConfig = fmt.Errorf("ErrInvalidMockServerConfig")
+	// ErrInvalidMockServerConfig indicates an issue configuring the mock server
+	ErrInvalidMockServerConfig = fmt.Errorf("configuration for the mock server was invalid and an unknown error occurred (this is most likely a defect in the framework)")
 
+	// ErrInvalidPact indicates the pact file provided to the mock server was not a valid pact file
 	ErrInvalidPact = fmt.Errorf("pact given to mock server is invalid")
 
+	// ErrMockServerUnableToStart means the mock server could not be started in the rust library
 	ErrMockServerUnableToStart = fmt.Errorf("unable to start the mock server")
 
+	// ErrInvalidAddress means the address provided to the mock server was invalid and could not be understood
 	ErrInvalidAddress = fmt.Errorf("invalid address provided to the mock server")
 
-	ErrMockServerTLSConfiguration = fmt.Errorf("a tls mock server could not be started")
+	// ErrMockServerTLSConfiguration indicates a TLS mock server could not be started
+	// and is likely a framework level problem
+	ErrMockServerTLSConfiguration = fmt.Errorf("a tls mock server could not be started (this is likely a defect in the framework)")
 )
 
 // WritePactFile writes the Pact to file.
@@ -200,6 +211,8 @@ func WritePactFile(port int, dir string) error {
 	}
 }
 
+// GetTLSConfig returns a tls.Config compatible with the TLS
+// mock server
 func GetTLSConfig() *tls.Config {
 	cert := C.get_tls_ca_certificate()
 	defer libRustFree(cert)
@@ -210,7 +223,6 @@ func GetTLSConfig() *tls.Config {
 
 	return &tls.Config{
 		RootCAs: certPool,
-		// InsecureSkipVerify: true, // Disable SSL verification altogether?
 	}
 }
 

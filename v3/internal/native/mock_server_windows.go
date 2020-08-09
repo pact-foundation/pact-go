@@ -1,7 +1,7 @@
 package native
 
 /*
-#cgo LDFLAGS: ${SRCDIR}/../../libs/libpact_mock_server_ffi.dll
+#cgo LDFLAGS: ${SRCDIR}/../../../libs/libpact_mock_server_ffi.dll
 
 // Library headers
 typedef int bool;
@@ -14,6 +14,7 @@ int mock_server_matched(int port);
 char* mock_server_mismatches(int port);
 bool cleanup_mock_server(int port);
 int write_pact_file(int port, char* dir);
-void get_tls_config(char* key, char* cert);
+void free_string(char* s);
+char* get_tls_ca_certificate();
 */
 import "C"

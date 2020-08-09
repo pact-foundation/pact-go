@@ -1,13 +1,13 @@
 package v3
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/hashicorp/logutils"
 )
 
-// Used to detect if logging has been configured.
 var logFilter *logutils.LevelFilter
 var defaultLogLevel = "INFO"
 
@@ -19,7 +19,7 @@ const (
 	logLevelError                   = "ERROR"
 )
 
-func init() {
+func initLogging() {
 	if logFilter == nil {
 		logFilter = &logutils.LevelFilter{
 			Levels:   []logutils.LogLevel{logLevelTrace, logLevelDebug, logLevelInfo, logLevelWarn, logLevelError},
@@ -29,10 +29,16 @@ func init() {
 		log.SetOutput(logFilter)
 	}
 	log.Println("[DEBUG] initialised logging")
+
 }
 
-func setLogLevel(level logutils.LogLevel) {
-	if level != "" {
+// SetLogLevel sets the default log level for the Pact framework
+func SetLogLevel(level logutils.LogLevel) error {
+	switch level {
+	case logLevelTrace, logLevelDebug, logLevelError, logLevelInfo, logLevelWarn:
 		logFilter.SetMinLevel(level)
+		return nil
+	default:
+		return fmt.Errorf(`invalid logLevel '%s'. Please specify one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR"`, level)
 	}
 }

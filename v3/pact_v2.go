@@ -146,7 +146,7 @@ func recurseMapType(key string, value interface{}, body map[string]interface{}, 
 	for iter.Next() {
 		k := iter.Key()
 		v := iter.Value()
-		log.Println("[TRACE] dsl generator: map[string]interface{}: recursing map type into key =>", k)
+		log.Println("[TRACE] generate pact: map[string]interface{}: recursing map type into key =>", k)
 
 		// Starting position
 		if key == "" {
@@ -175,7 +175,7 @@ func recurseMapType(key string, value interface{}, body map[string]interface{}, 
 // Returns path, body, matchingRules, generators
 func buildPactBody(key string, value interface{}, body map[string]interface{}, path string,
 	matchingRules ruleValue, generators ruleValue) (string, map[string]interface{}, ruleValue, ruleValue) {
-	log.Println("[TRACE] dsl generator => key:", key, ", body:", body, ", value:", value, ", path:", path)
+	log.Println("[TRACE] generate pact => key:", key, ", body:", body, ", value:", value, ", path:", path)
 
 	switch t := value.(type) {
 
@@ -183,7 +183,7 @@ func buildPactBody(key string, value interface{}, body map[string]interface{}, p
 		switch t.Type() {
 
 		case arrayMinLikeMatcher, arrayMaxLikeMatcher:
-			log.Println("[TRACE] dsl generator: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher")
+			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher")
 			times := 1
 
 			m := t.(eachLike)
@@ -199,11 +199,11 @@ func buildPactBody(key string, value interface{}, body map[string]interface{}, p
 			// TODO: why does this exist? -> Umm, it's what recurses the array item values!
 			builtPath := path + buildPath(key, allListItems)
 			buildPactBody("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
-			log.Println("[TRACE] dsl generator: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher =>", builtPath)
+			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher =>", builtPath)
 			matchingRules[path+buildPath(key, "")] = m.MatchingRule()
 
 			// TODO: Need to understand the .* notation before implementing it. Notably missing from Groovy DSL
-			// log.Println("[TRACE] dsl generator: matcher (type)              =>", path+buildPath(key, allListItems)+".*")
+			// log.Println("[TRACE] generate pact: matcher (type)              =>", path+buildPath(key, allListItems)+".*")
 			// matchingRules[path+buildPath(key, allListItems)+".*"] = m.MatchingRule()
 
 			for i := 0; i < times; i++ {
@@ -217,15 +217,15 @@ func buildPactBody(key string, value interface{}, body map[string]interface{}, p
 			path = path + buildPath(key, "")
 
 		case regexMatcher, likeMatcher:
-			log.Println("[TRACE] dsl generator: Regex/LikeMatcher")
+			log.Println("[TRACE] generate pact: Regex/LikeMatcher")
 			builtPath := path + buildPath(key, "")
 			body[key] = t.GetValue()
-			log.Println("[TRACE] dsl generator: Regex/LikeMatcher =>", builtPath)
+			log.Println("[TRACE] generate pact: Regex/LikeMatcher =>", builtPath)
 			matchingRules[builtPath] = t.MatchingRule()
 
 		// This exists to server the v3.Match() interface
 		case structTypeMatcher:
-			log.Println("[TRACE] dsl generator: StructTypeMatcher")
+			log.Println("[TRACE] generate pact: StructTypeMatcher")
 			_, body, matchingRules, generators = recurseMapType(key, t.GetValue().(StructMatcher), body, path, matchingRules, generators)
 
 		default:
@@ -234,7 +234,7 @@ func buildPactBody(key string, value interface{}, body map[string]interface{}, p
 
 		// Slice/Array types
 	case []interface{}:
-		log.Println("[TRACE] dsl generator: []interface{}")
+		log.Println("[TRACE] generate pact: []interface{}")
 		arrayValues := make([]interface{}, len(t))
 		arrayMap := make(map[string]interface{})
 
@@ -243,7 +243,7 @@ func buildPactBody(key string, value interface{}, body map[string]interface{}, p
 		for i, el := range t {
 			k := fmt.Sprintf("%d", i)
 			builtPath := path + buildPath(key, fmt.Sprintf("%s%d%s", startList, i, endList))
-			log.Println("[TRACE] dsl generator: []interface{}: recursing into =>", builtPath)
+			log.Println("[TRACE] generate pact: []interface{}: recursing into =>", builtPath)
 			buildPactBody(k, el, arrayMap, builtPath, matchingRules, generators)
 			arrayValues[i] = arrayMap[k]
 		}
@@ -251,16 +251,16 @@ func buildPactBody(key string, value interface{}, body map[string]interface{}, p
 
 		// Map -> Recurse keys (All objects start here!)
 	case map[string]interface{}, MapMatcher:
-		log.Println("[TRACE] dsl generator: MapMatcher")
+		log.Println("[TRACE] generate pact: MapMatcher")
 		_, body, matchingRules, generators = recurseMapType(key, t, body, path, matchingRules, generators)
 
 	// Primitives (terminal cases)
 	default:
-		log.Printf("[TRACE] dsl generator: unknown type or primitive (%+v): %+v\n", reflect.TypeOf(t), value)
+		log.Printf("[TRACE] generate pact: unknown type or primitive (%+v): %+v\n", reflect.TypeOf(t), value)
 		body[key] = value
 	}
 
-	log.Printf("[TRACE] dsl generator => returning body: %+v\n", body)
+	log.Printf("[TRACE] generate pact => returning body: %+v\n", body)
 
 	return path, body, matchingRules, generators
 }

@@ -26,29 +26,29 @@ func TestConsumer(t *testing.T) {
 		LastName string `json:"lastName" pact:"example=sampson"`
 		Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
 	}
+	v3.SetLogLevel("TRACE")
 
 	// Create Pact connecting to local Daemon
-	mockProvider := &v3.MockProvider{
+	mockProvider := &v3.HTTPMockProvider{
 		Consumer:             "MyConsumer",
 		Provider:             "MyProvider",
 		Host:                 "127.0.0.1",
 		Port:                 8080,
-		LogLevel:             "TRACE",
 		SpecificationVersion: v3.V2,
 		TLS:                  true,
 	}
 
-	mockProvider.Setup()
-
 	// Pass in test case
 	var test = func(config v3.MockServerConfig) error {
 		client := &http.Client{
-			Transport: v3.GetTLSConfigForTLSMockServer(),
+			Transport: &http.Transport{
+				TLSClientConfig: config.TLSConfig,
+			},
 		}
 		req := &http.Request{
 			Method: "POST",
 			URL: &url.URL{
-				Host:   fmt.Sprintf("localhost:%d", mockProvider.Port),
+				Host:   fmt.Sprintf("%s:%d", config.Host, config.Port),
 				Scheme: "https",
 				Path:   "/foobar",
 			},

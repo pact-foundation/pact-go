@@ -1,36 +1,5 @@
 package v3
 
-// Matcher types supported by JVM:
-//
-// method	                    description
-// string, stringValue				Match a string value (using string equality)
-// number, numberValue				Match a number value (using Number.equals)*
-// booleanValue								Match a boolean value (using equality)
-// stringType									Will match all Strings
-// numberType									Will match all numbers*
-// integerType								Will match all numbers that are integers (both ints and longs)*
-// decimalType								Will match all real numbers (floating point and decimal)*
-// booleanType								Will match all boolean values (true and false)
-// stringMatcher							Will match strings using the provided regular expression
-// timestamp									Will match string containing timestamps. If a timestamp format is not given, will match an ISO timestamp format
-// date												Will match string containing dates. If a date format is not given, will match an ISO date format
-// time												Will match string containing times. If a time format is not given, will match an ISO time format
-// ipAddress									Will match string containing IP4 formatted address.
-// id													Will match all numbers by type
-// hexValue										Will match all hexadecimal encoded strings
-// uuid												Will match strings containing UUIDs
-
-// RULES I'd like to follow:
-// 0. Allow the option of string bodies for simple things
-// 1. Have all of the matchers deal with interfaces{} for their values (or a Matcher/Builder type interface)
-//    - Interfaces may turn out to be primitives like strings, ints etc. (valid JSON values I guess)
-// 2. Make all matcher values serialise as map[string]interface{} to be able to easily convert to JSON,
-//    and allows simpler interspersing of builder logic
-//    - can we embed builders in maps??
-// 3. Keep the matchers/builders simple, and orchestrate them from another class/func/place
-//    Candidates are:
-//    - Interaction
-//    - Some new DslBuilder thingo
 import (
 	"encoding/json"
 	"fmt"

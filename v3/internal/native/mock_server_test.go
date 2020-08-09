@@ -161,12 +161,6 @@ func TestMockServer_WritePactfile(t *testing.T) {
 	if err != nil {
 		t.Fatal("error: ", err)
 	}
-
-	err = WritePactFile(port, "/foo/bar/baz")
-
-	if err == nil {
-		t.Fatal("want error but got nil")
-	}
 }
 
 func TestMockServer_GetTLSConfig(T *testing.T) {
