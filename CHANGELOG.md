@@ -5,6 +5,29 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.4.4 (14 August 2020)
+  * [a0227bb](https://github.com/pact-foundation/pact-go/commit/a0227bb) - fix: make tests fail on non-zero status (Matt Fellows, Fri Aug 7 14:37:42 2020 +1000)
+  * [a7d9596](https://github.com/pact-foundation/pact-go/commit/a7d9596) - fix: timeout in integration test (Matt Fellows, Fri Aug 7 14:18:24 2020 +1000)
+  * [4fe810d](https://github.com/pact-foundation/pact-go/commit/4fe810d) - fix: race in v2 client (Matt Fellows, Sun Aug 2 16:51:43 2020 +1000)
+  * [2ea979c](https://github.com/pact-foundation/pact-go/commit/2ea979c) - fix: increase max size of pact output buffer (Cody Tatman, Thu Aug 6 18:11:26 2020 -0700)
+  * [e25aa73](https://github.com/pact-foundation/pact-go/commit/e25aa73) - chore: avoid recompiling struct tag matching regexes (Michał Klimuk, Wed Jul 29 10:50:14 2020 +0200)
+  * [1c18257](https://github.com/pact-foundation/pact-go/commit/1c18257) - fix: address various misspellings (Ben Wells, Fri Jul 17 12:55:33 2020 +0100)
+  * [c77c0fd](https://github.com/pact-foundation/pact-go/commit/c77c0fd) - chore: return error if timeout occurs during provider verification (Matt Fellows, Thu Jul 16 17:14:31 2020 +1000)
+  * [68baf93](https://github.com/pact-foundation/pact-go/commit/68baf93) - chore: wrap snyk in guard to prevent PRs failing (Matt Fellows, Sun Jul 5 22:48:32 2020 +1000)
+  * [146de2c](https://github.com/pact-foundation/pact-go/commit/146de2c) - fix: handle JSON tags correctly (Jonathan Nowak, Tue Jun 30 07:28:00 2020 +0200)
+  * [aec1bf2](https://github.com/pact-foundation/pact-go/commit/aec1bf2) - build: test golang 1.11 -> 1.14 (Matt Fellows, Mon Jun 29 09:57:01 2020 +1000)
+  * [d93c924](https://github.com/pact-foundation/pact-go/commit/d93c924) - chore: remove build-only deps (Matt Fellows, Mon Jun 29 09:55:55 2020 +1000)
+  * [9d3b451](https://github.com/pact-foundation/pact-go/commit/9d3b451) - chore: add semantic status checks for PRs and commit messages (Matt Fellows, Mon Jun 29 09:49:03 2020 +1000)
+  * [88d6be4](https://github.com/pact-foundation/pact-go/commit/88d6be4) - build: add snyk to build (Matt Fellows, Mon Jun 29 09:47:03 2020 +1000)
+  * [2b0ad4c](https://github.com/pact-foundation/pact-go/commit/2b0ad4c) - chore: remove Gopkg lock files (Matt Fellows, Mon Jun 29 09:25:24 2020 +1000)
+  * [18398ce](https://github.com/pact-foundation/pact-go/commit/18398ce) - feat: update to standalone 1.86.0 and support new verifier options: --log-level and --log-dir (Matt Fellows, Sat Jun 27 14:21:33 2020 +1000)
+  * [26aac7a](https://github.com/pact-foundation/pact-go/commit/26aac7a) - chore: add workflow to trigger sync to docs.pact.io when any markdown files change (Beth Skurrie, Fri Jun 26 15:14:33 2020 +1000)
+  * [264394a](https://github.com/pact-foundation/pact-go/commit/264394a) - docs: move troubleshooting from wiki to repo (Beth Skurrie, Fri Jun 26 14:50:55 2020 +1000)
+  * [9f54764](https://github.com/pact-foundation/pact-go/commit/9f54764) - docs: update links (Beth Skurrie, Fri Jun 26 14:49:31 2020 +1000)
+  * [2fdb281](https://github.com/pact-foundation/pact-go/commit/2fdb281) - docs: update urls (Beth Skurrie, Fri Jun 26 14:46:45 2020 +1000)
+  * [1fd82fb](https://github.com/pact-foundation/pact-go/commit/1fd82fb) - docs: use https instead of https for slack image (Beth Skurrie, Fri Jun 26 14:42:29 2020 +1000)
+  * [7b0175f](https://github.com/pact-foundation/pact-go/commit/7b0175f) - docs: update for rending in docs.pact.io (Beth Skurrie, Fri Jun 26 14:42:00 2020 +1000)
+
 ### v1.4.3 (09 June 2020)
   * [4710769](https://github.com/pact-foundation/pact-go/commit/4710769) - chore: allow response body to be traced (Matt Fellows, Tue Jun 9 10:46:04 2020 +1000)
 
