@@ -31,7 +31,7 @@ Read [Getting started with Pact] for more information for beginners.
 
 <p align="center">
   <a href="https://asciinema.org/a/180671">
-    <img width="880" src="https://raw.githubusercontent.com/pact-foundation/pact-go/master/.github/pact-small.svg?sanitize=true">
+    <img width="880" src="https://raw.githubusercontent.com/pact-foundation/pact-go/master/.github/pact-small.svg?sanitize=true"></img>
   </a>
 </p>
 
