@@ -61,32 +61,18 @@ func pactInteractionFromV2Interaction(interaction InteractionV2) pactInteraction
 		Description: interaction.Description,
 		State:       interaction.State,
 		Request: pactRequestV2{
-			Method:  interaction.Request.Method,
-			Body:    interaction.Request.Body,
-			Headers: interaction.Request.Headers,
-			Query:   interaction.Request.Query,
-			Path:    interaction.Request.Path,
-			// Generators:    make(generatorType),
+			Method:        interaction.Request.Method,
+			Body:          interaction.Request.Body,
+			Headers:       interaction.Request.Headers,
+			Query:         interaction.Request.Query,
+			Path:          interaction.Request.Path,
 			MatchingRules: make(ruleValue),
-			MatchingRules2: generator{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
-			},
 		},
 		Response: pactResponseV2{
-			Status:  interaction.Response.Status,
-			Body:    interaction.Response.Body,
-			Headers: interaction.Response.Headers,
-			// Generators:    make(generatorType),
+			Status:        interaction.Response.Status,
+			Body:          interaction.Response.Body,
+			Headers:       interaction.Response.Headers,
 			MatchingRules: make(ruleValue),
-			MatchingRules2: matchingRule{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
-			},
 		},
 	}
 }
@@ -99,14 +85,6 @@ func (p *pactFileV2) generateV2PactFile() *pactFileV2 {
 		// TODO: haven't done matchers for headers, path and status code
 		_, serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules, _ = buildPactBody("", interaction.Request.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
 		_, serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules, _ = buildPactBody("", interaction.Response.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
-
-		// v2
-		// serialisedInteraction.Request.MatchingRules = requestBodyMatchingRules
-		// serialisedInteraction.Response.MatchingRules = responseBodyMatchingRules
-
-		// v3 only
-		// serialisedInteraction.Request.MatchingRules.Body = requestBodyMatchingRules
-		// serialisedInteraction.Response.MatchingRules.Body = responseBodyMatchingRules
 
 		// TODO
 		buildPactHeaders()

@@ -4,32 +4,6 @@ import (
 	version "github.com/pact-foundation/pact-go/command"
 )
 
-// Example matching rule / generated doc
-// {
-//     "method": "POST",
-//     "path": "/",
-//     "query": "",
-//     "headers": {"Content-Type": "application/json"},
-//     "matchingRules": {
-//       "$.body.animals": {"min": 1, "match": "type"},
-//       "$.body.animals[*].*": {"match": "type"},
-//       "$.body.animals[*].children": {"min": 1, "match": "type"},
-//       "$.body.animals[*].children[*].*": {"match": "type"}
-//     },
-//     "body": {
-//       "animals": [
-//         {
-//           "name" : "Fred",
-//           "children": [
-//             {
-//               "age": 9
-//             }
-//           ]
-//         }
-//       ]
-//     }
-// 	}
-
 // SpecificationVersion is used to determine the current specification version
 type SpecificationVersion string
 
