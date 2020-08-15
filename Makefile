@@ -51,7 +51,7 @@ pact: install docker
 
 pactv3: clean
 	@echo "--- 🔨 Running Pact examples"
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/... -run TestConsumerV2
 
 release:
 	echo "--- 🚀 Releasing it"
@@ -82,7 +82,9 @@ updatedeps:
 	go get -d -v -p 2 ./...
 
 snyk-install:
+ ifeq (, $(shell which snyk))
 	npm i -g snyk
+ endif
 
 snyk:
 	@if [ "$$TRAVIS_PULL_REQUEST" != "false" ]; then\

@@ -1,0 +1,63 @@
+{
+  "consumer": {
+    "name": "consumer"
+  },
+  "interactions": [
+    {
+      "description": "A request to do a foo",
+      "request": {
+        "body": {
+          "name": "billy"
+        },
+        "headers": {
+          "Authorization": "Bearer 1234",
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.name": {
+            "match": "type"
+          }
+        },
+        "method": "POST",
+        "path": "/foobar"
+      },
+      "response": {
+        "body": {
+          "dateTime": "2020-01-01",
+          "lastName": "LastName",
+          "name": "FirstName"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.dateTime": {
+            "match": "regex",
+            "regex": "[0-9\\-]+"
+          },
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactGo": {
+      "version": "v1.4.3"
+    },
+    "pactRust": {
+      "version": "0.6.3"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "provider"
+  }
+}

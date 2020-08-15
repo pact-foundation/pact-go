@@ -48,7 +48,7 @@ type pactFileV2 struct {
 	// SpecificationVersion is the version of the Pact Spec this implementation supports
 	SpecificationVersion SpecificationVersion `json:"-"`
 
-	interactions []*Interaction
+	interactions []*InteractionV2
 
 	// Interactions are all of the request/response expectations, with matching rules and generators
 	Interactions []pactInteractionV2 `json:"interactions"`
@@ -56,7 +56,7 @@ type pactFileV2 struct {
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
-func pactInteractionFromV2Interaction(interaction Interaction) pactInteractionV2 {
+func pactInteractionFromV2Interaction(interaction InteractionV2) pactInteractionV2 {
 	return pactInteractionV2{
 		Description: interaction.Description,
 		State:       interaction.State,
@@ -91,7 +91,7 @@ func pactInteractionFromV2Interaction(interaction Interaction) pactInteractionV2
 	}
 }
 
-func (p *pactFileV2) generatev2PactFile() *pactFileV2 {
+func (p *pactFileV2) generateV2PactFile() *pactFileV2 {
 	for _, interaction := range p.interactions {
 		fmt.Printf("Serialising interaction: %+v \n", *interaction)
 		serialisedInteraction := pactInteractionFromV2Interaction(*interaction)

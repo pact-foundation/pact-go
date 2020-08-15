@@ -65,7 +65,7 @@ type pactFileV3 struct {
 	// SpecificationVersion is the version of the Pact Spec this implementation supports
 	SpecificationVersion SpecificationVersion `json:"-"`
 
-	interactions []*Interaction
+	interactions []*InteractionV3
 
 	// Interactions are all of the request/response expectations, with matching rules and generators
 	Interactions []pactInteractionV3 `json:"interactions"`
@@ -73,7 +73,7 @@ type pactFileV3 struct {
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
-func pactInteractionFromV3Interaction(interaction Interaction) pactInteractionV3 {
+func pactInteractionFromV3Interaction(interaction InteractionV2) pactInteractionV3 {
 	return pactInteractionV3{
 		Description: interaction.Description,
 		State:       interaction.State,
@@ -106,31 +106,32 @@ func pactInteractionFromV3Interaction(interaction Interaction) pactInteractionV3
 	}
 }
 
-// func (p *pactFileV3) generatev3PactFile() *pactFileV3 {
-// 	for _, interaction := range p.interactions {
-// 		fmt.Printf("Serialising interaction: %+v \n", *interaction)
-// 		serialisedInteraction := PactInteractionFromV3Interaction(*interaction)
+func (p *pactFileV3) generateV3PactFile() *pactFileV3 {
+	return nil
+	// 	for _, interaction := range p.interactions {
+	// 		fmt.Printf("Serialising interaction: %+v \n", *interaction)
+	// 		serialisedInteraction := PactInteractionFromV3Interaction(*interaction)
 
-// 		// TODO: haven't done matchers for headers, path and status code
-// 		_, serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules, _ = buildPactBody("", interaction.Request.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
-// 		_, serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules, _ = buildPactBody("", interaction.Response.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
+	// 		// TODO: haven't done matchers for headers, path and status code
+	// 		_, serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules, _ = buildPactBody("", interaction.Request.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
+	// 		_, serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules, _ = buildPactBody("", interaction.Response.Body, make(map[string]interface{}), "$.body", make(ruleValue), make(ruleValue))
 
-// 		// v3
-// 		// serialisedInteraction.Request.MatchingRules = requestBodyMatchingRules
-// 		// serialisedInteraction.Response.MatchingRules = responseBodyMatchingRules
+	// 		// v3
+	// 		// serialisedInteraction.Request.MatchingRules = requestBodyMatchingRules
+	// 		// serialisedInteraction.Response.MatchingRules = responseBodyMatchingRules
 
-// 		// v3 only
-// 		// serialisedInteraction.Request.MatchingRules.Body = requestBodyMatchingRules
-// 		// serialisedInteraction.Response.MatchingRules.Body = responseBodyMatchingRules
+	// 		// v3 only
+	// 		// serialisedInteraction.Request.MatchingRules.Body = requestBodyMatchingRules
+	// 		// serialisedInteraction.Response.MatchingRules.Body = responseBodyMatchingRules
 
-// 		// TODO
-// 		buildPactHeaders()
-// 		buildPactQuery()
-// 		buildPactPath()
+	// 		// TODO
+	// 		buildPactHeaders()
+	// 		buildPactQuery()
+	// 		buildPactPath()
 
-// 		fmt.Printf("appending interaction: %+v \n", serialisedInteraction)
-// 		p.Interactions = append(p.Interactions, serialisedInteraction)
-// 	}
+	// 		fmt.Printf("appending interaction: %+v \n", serialisedInteraction)
+	// 		p.Interactions = append(p.Interactions, serialisedInteraction)
+	// 	}
 
-// 	return p
-// }
+	// 	return p
+}

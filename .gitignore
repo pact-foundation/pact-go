@@ -1,7 +1,10 @@
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
-*.so
+
+# TODO: bring this back out and remove files from history before merging into master
+# *.so
+# *.dylib
 # Folders
 _obj
 _test

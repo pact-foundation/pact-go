@@ -1,8 +1,6 @@
 package v3
 
 import (
-	"fmt"
-
 	version "github.com/pact-foundation/pact-go/command"
 )
 
@@ -65,24 +63,41 @@ var pactGoMetadata = map[string]interface{}{
 	},
 }
 
-func NewPactFile(consumer string, provider string, interactions []*Interaction, specificationVersion SpecificationVersion) pactFileV2 {
+// newPactFileV2 generates a v2 formated pact file from the given interactions
+func newPactFileV2(consumer string, provider string, interactions []*InteractionV2) pactFileV2 {
 	p := pactFileV2{
 		Interactions:         make([]pactInteractionV2, 0),
 		interactions:         interactions,
 		Metadata:             pactGoMetadata,
 		Consumer:             consumer,
 		Provider:             provider,
-		SpecificationVersion: specificationVersion,
+		SpecificationVersion: V2,
 	}
 
-	if specificationVersion == V2 {
-		p.generatev2PactFile()
-	} else {
-		panic(fmt.Sprintf("specification version not supported: %+v", specificationVersion))
-	}
+	p.generateV2PactFile()
 
 	pactGoMetadata["pactSpecification"] = map[string]interface{}{
-		"version": specificationVersion,
+		"version": V2,
+	}
+
+	return p
+}
+
+// newPactFileV3 generates a v3 formated pact file from the given interactions
+func newPactFileV3(consumer string, provider string, interactions []*InteractionV3) pactFileV3 {
+	p := pactFileV3{
+		Interactions:         make([]pactInteractionV3, 0),
+		interactions:         interactions,
+		Metadata:             pactGoMetadata,
+		Consumer:             consumer,
+		Provider:             provider,
+		SpecificationVersion: V3,
+	}
+
+	p.generateV3PactFile()
+
+	pactGoMetadata["pactSpecification"] = map[string]interface{}{
+		"version": V3,
 	}
 
 	return p

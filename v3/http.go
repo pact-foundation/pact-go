@@ -29,16 +29,12 @@ func init() {
 	native.Init()
 }
 
-// HTTPMockProvider is the entrypoint for http consumer tests
-type HTTPMockProvider struct {
+type mockHTTPProviderConfig struct {
 	// Consumer is the name of the Consumer/Client.
 	Consumer string
 
 	// Provider is the name of the Providing service.
 	Provider string
-
-	// Interactions contains all of the Mock Service Interactions to be setup.
-	Interactions []*Interaction
 
 	// Location of Pact external service invocation output logging.
 	// Defaults to `<cwd>/logs`.
@@ -56,7 +52,7 @@ type HTTPMockProvider struct {
 	// Network is the network of the Mock and Verification Service
 	// Examples include 'tcp', 'tcp4', 'tcp6'
 	// Defaults to 'tcp'
-	Network string
+	// Network string
 
 	// Ports MockServer can be deployed to, can be CSV or Range with a dash
 	// Example "1234", "12324,5667", "1234-5667"
@@ -84,12 +80,27 @@ type HTTPMockProvider struct {
 
 	SpecificationVersion SpecificationVersion
 
-	// fsm state of the interaction
-	state string
-
 	// TLS enables a mock service behind a self-signed certificate
 	// TODO: document and test this
 	TLS bool
+}
+
+// MockHTTPProviderConfigV2 configures a V2 Pact HTTP Mock Provider
+type MockHTTPProviderConfigV2 = mockHTTPProviderConfig
+
+// MockHTTPProviderConfigV3 configures a V3 Pact HTTP Mock Provider
+type MockHTTPProviderConfigV3 = mockHTTPProviderConfig
+
+// httpMockProvider is the entrypoint for http consumer tests and provides the base capability for the
+// exported types HTTPMockProviderV2 and HTTPMockProviderV3
+type httpMockProvider struct {
+	config mockHTTPProviderConfig
+
+	v2Interactions []*InteractionV2
+	v3Interactions []*InteractionV3
+
+	// fsm state of the interaction
+	state string
 }
 
 // MockServerConfig stores the address configuration details of the server for the current executing test
@@ -100,51 +111,42 @@ type MockServerConfig struct {
 	TLSConfig *tls.Config
 }
 
-// AddInteraction creates a new Pact interaction, initialising all
-// required things. Will automatically start a Mock Service if none running.
-func (p *HTTPMockProvider) AddInteraction() *Interaction {
-	log.Println("[DEBUG] pact add interaction")
-	i := &Interaction{}
-	p.Interactions = append(p.Interactions, i)
-	return i
-}
-
 // validateConfig validates the configuration for the consumer test
-func (p *HTTPMockProvider) validateConfig() error {
+func (p *httpMockProvider) validateConfig() error {
 	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
 
-	if p.Network == "" {
-		p.Network = "tcp"
-	}
-
-	// TODO: use installer to download runtime dependencies
-	// if !p.toolValidityCheck && !(p.DisableToolValidityCheck || os.Getenv("PACT_DISABLE_TOOL_VALIDITY_CHECK") != "") {
-	// 	checkCliCompatibility()
-	// 	p.toolValidityCheck = true
+	// if p.config.Network == "" {
+	// 	p.config.Network = "tcp"
 	// }
 
-	if p.Host == "" {
-		p.Host = "127.0.0.1"
+	// TODO: use installer to download runtime dependencies
+	// if !p.config.toolValidityCheck && !(p.config.DisableToolValidityCheck || os.Getenv("PACT_DISABLE_TOOL_VALIDITY_CHECK") != "") {
+	// 	checkCliCompatibility()
+	// 	p.config.toolValidityCheck = true
+	// }
+
+	if p.config.Host == "" {
+		p.config.Host = "127.0.0.1"
 	}
 
-	if p.LogDir == "" {
-		p.LogDir = fmt.Sprintf(filepath.Join(dir, "logs"))
+	if p.config.LogDir == "" {
+		p.config.LogDir = fmt.Sprintf(filepath.Join(dir, "logs"))
 	}
 
-	if p.PactDir == "" {
-		p.PactDir = fmt.Sprintf(filepath.Join(dir, "pacts"))
+	if p.config.PactDir == "" {
+		p.config.PactDir = fmt.Sprintf(filepath.Join(dir, "pacts"))
 	}
 
-	if p.ClientTimeout == 0 {
-		p.ClientTimeout = 10 * time.Second
+	if p.config.ClientTimeout == 0 {
+		p.config.ClientTimeout = 10 * time.Second
 	}
 
 	var pErr error
-	if p.AllowedMockServerPorts != "" && p.Port <= 0 {
-		p.Port, pErr = utils.FindPortInRange(p.AllowedMockServerPorts)
-	} else if p.Port <= 0 {
-		p.Port, pErr = utils.GetFreePort()
+	if p.config.AllowedMockServerPorts != "" && p.config.Port <= 0 {
+		p.config.Port, pErr = utils.FindPortInRange(p.config.AllowedMockServerPorts)
+	} else if p.config.Port <= 0 {
+		p.config.Port, pErr = utils.GetFreePort()
 	}
 
 	if pErr != nil {
@@ -154,29 +156,32 @@ func (p *HTTPMockProvider) validateConfig() error {
 	return nil
 }
 
-func (p *HTTPMockProvider) cleanInteractions() {
-	p.Interactions = make([]*Interaction, 0)
+func (p *httpMockProvider) cleanInteractions() {
+	p.v2Interactions = make([]*InteractionV2, 0)
+	p.v3Interactions = make([]*InteractionV3, 0)
 }
 
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
-func (p *HTTPMockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
+func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
 	log.Println("[DEBUG] pact verify")
-	err := p.validateConfig()
-	if err != nil {
-		return err
-	}
 
 	// Generate interactions for Pact file
-	serialisedPact := NewPactFile(p.Consumer, p.Provider, p.Interactions, p.SpecificationVersion)
+	var serialisedPact interface{}
+	if p.config.SpecificationVersion == V2 {
+		serialisedPact = newPactFileV2(p.config.Consumer, p.config.Provider, p.v2Interactions)
+	} else {
+		serialisedPact = newPactFileV3(p.config.Consumer, p.config.Provider, p.v3Interactions)
+	}
+
 	log.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
 
 	// Clean interactions
 	p.cleanInteractions()
 
-	port, err := native.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.Host, p.Port), p.TLS)
-	defer native.CleanupMockServer(p.Port)
+	port, err := native.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
+	defer native.CleanupMockServer(p.config.Port)
 	if err != nil {
 		return err
 	}
@@ -184,7 +189,7 @@ func (p *HTTPMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	// Run the integration test
 	err = integrationTest(MockServerConfig{
 		Port:      port,
-		Host:      p.Host,
+		Host:      p.config.Host,
 		TLSConfig: GetTLSConfigForTLSMockServer(),
 	})
 
@@ -193,7 +198,7 @@ func (p *HTTPMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	}
 
 	// Run Verification Process
-	res, mismatches := native.Verify(p.Port, p.PactDir)
+	res, mismatches := native.Verify(p.config.Port, p.config.PactDir)
 	p.displayMismatches(mismatches)
 
 	if !res {
@@ -206,7 +211,7 @@ func (p *HTTPMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 
 // TODO: pretty print this to make it really easy to understand the problems
 // See existing Pact/Ruby code examples
-func (p *HTTPMockProvider) displayMismatches(mismatches []native.MismatchedRequest) {
+func (p *httpMockProvider) displayMismatches(mismatches []native.MismatchedRequest) {
 	if len(mismatches) > 0 {
 		log.Println("[INFO] pact validation failed, errors: ")
 		for _, m := range mismatches {
@@ -237,10 +242,10 @@ func (p *HTTPMockProvider) displayMismatches(mismatches []native.MismatchedReque
 // given Consumer <-> Provider pair. It will write out the Pact to the
 // configured file. This is safe to call multiple times as the service is smart
 // enough to merge pacts and avoid duplicates.
-func (p *HTTPMockProvider) WritePact() error {
+func (p *httpMockProvider) WritePact() error {
 	log.Println("[DEBUG] write pact file")
-	if p.Port != 0 {
-		return native.WritePactFile(p.Port, p.PactDir)
+	if p.config.Port != 0 {
+		return native.WritePactFile(p.config.Port, p.config.PactDir)
 	}
 	return errors.New("pact server not yet started")
 }
