@@ -1,5 +1,5 @@
 language: go
-
+dist: focal
 go:
 - 1.10.x
 - 1.11.x
