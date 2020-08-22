@@ -13,7 +13,8 @@ type HTTPMockProviderV3 struct {
 func NewHTTPMockProviderV3(config MockHTTPProviderConfigV3) (*HTTPMockProviderV3, error) {
 	provider := &HTTPMockProviderV3{
 		httpMockProvider: &httpMockProvider{
-			config: config,
+			config:               config,
+			specificationVersion: V3,
 		},
 	}
 	err := provider.validateConfig()

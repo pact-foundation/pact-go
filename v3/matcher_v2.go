@@ -262,7 +262,7 @@ func (s S) isMatcher() {}
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
 func (s S) GetValue() interface{} {
-	return s
+	return string(s)
 }
 
 func (s S) Type() MatcherClass {
@@ -305,7 +305,13 @@ func (s StructMatcher) MatchingRule() ruleValue {
 
 // MapMatcher allows a map[string]string-like object
 // to also contain complex matchers
-type MapMatcher map[string]Matcher
+// TODO: bring back this type?
+// type MapMatcher map[string]Matcher
+type MapMatcher map[string]interface{}
+type HeadersMatcher = MapMatcher
+
+// QueryMatcher matches a query string interface
+type QueryMatcher map[string][]interface{}
 
 // Takes an object and converts it to a JSON representation
 func objectToString(obj interface{}) string {

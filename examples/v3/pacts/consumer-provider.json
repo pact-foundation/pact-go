@@ -5,6 +5,7 @@
   "interactions": [
     {
       "description": "A request to do a foo",
+      "providerState": "User foo exists",
       "request": {
         "body": {
           "name": "billy"
@@ -16,10 +17,29 @@
         "matchingRules": {
           "$.body.name": {
             "match": "type"
+          },
+          "$.header.Authorization": {
+            "match": "type"
+          },
+          "$.header.Content-Type": {
+            "match": "type"
+          },
+          "$.query.baz[0]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.query.baz[1]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.query.baz[2]": {
+            "match": "regex",
+            "regex": "[a-z]+"
           }
         },
         "method": "POST",
-        "path": "/foobar"
+        "path": "/foobar",
+        "query": "baz=bar&baz=bat&baz=baz"
       },
       "response": {
         "body": {
@@ -39,6 +59,9 @@
             "match": "type"
           },
           "$.body.name": {
+            "match": "type"
+          },
+          "$.header.Content-Type": {
             "match": "type"
           }
         },

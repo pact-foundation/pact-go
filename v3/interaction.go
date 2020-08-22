@@ -15,16 +15,6 @@ type Interaction struct {
 
 	// Description to be written into the Pact file
 	Description string `json:"description"`
-
-	// Provider state to be written into the Pact file
-	State string `json:"providerState,omitempty"`
-}
-
-// Given specifies a provider state. Optional.
-func (i *Interaction) Given(state string) *Interaction {
-	i.State = state
-
-	return i
 }
 
 // UponReceiving specifies the name of the test case. This becomes the name of

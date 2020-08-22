@@ -13,7 +13,8 @@ type HTTPMockProviderV2 struct {
 func NewHTTPMockProviderV2(config MockHTTPProviderConfigV2) (*HTTPMockProviderV2, error) {
 	provider := &HTTPMockProviderV2{
 		httpMockProvider: &httpMockProvider{
-			config: config,
+			config:               config,
+			specificationVersion: V2,
 		},
 	}
 	err := provider.validateConfig()
@@ -32,4 +33,11 @@ func (p *HTTPMockProviderV2) AddInteraction() *InteractionV2 {
 	i := &InteractionV2{}
 	p.httpMockProvider.v2Interactions = append(p.httpMockProvider.v2Interactions, i)
 	return i
+}
+
+// SetMatchingConfig allows specific contract file serialisation adjustments
+func (p *HTTPMockProviderV2) SetMatchingConfig(config PactSerialisationOptionsV2) *HTTPMockProviderV2 {
+	p.config.matchingConfig = config
+
+	return p
 }

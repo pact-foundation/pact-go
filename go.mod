@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/logutils v1.0.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect
-	github.com/mattn/goveralls v0.0.5 // indirect
+	github.com/mattn/goveralls v0.0.6 // indirect
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/modocache/gover v0.0.0-20171022184752-b58185e213c5 // indirect
 	github.com/spf13/cobra v0.0.0-20160604044732-f447048345b6
@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/twinj/uuid v1.0.0
 	github.com/ugorji/go v1.1.1 // indirect
-	golang.org/x/tools v0.0.0-20200305224536-de023d59a5d1 // indirect
+	golang.org/x/tools v0.0.0-20200814230902-9882f1d1823d // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
 )

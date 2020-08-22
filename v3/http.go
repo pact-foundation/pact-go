@@ -29,6 +29,29 @@ func init() {
 	native.Init()
 }
 
+// QueryStringStyle allows a user to specific the v2 query string serialisation format
+// Different frameworks have different ways to serialise this, which is why
+// v3 moved to storing this as a map
+type QueryStringStyle int
+
+const (
+	// Default uses the param=value1&param=value2 style
+	Default QueryStringStyle = iota
+
+	// AlwaysArray uses the [] style even if a parameter only has a single value
+	// e.g. param[]=value1&param[]=value2
+	AlwaysArray
+
+	// Array uses the [] style only if a parameter only has multiple values
+	// e.g.  param[]=value1&param[]=value2&param2=value
+	Array
+)
+
+// PactSerialisationOptionsV2 allows a user to override specific pact serialisation options
+type PactSerialisationOptionsV2 struct {
+	QueryStringStyle QueryStringStyle
+}
+
 type mockHTTPProviderConfig struct {
 	// Consumer is the name of the Consumer/Client.
 	Consumer string
@@ -75,10 +98,10 @@ type mockHTTPProviderConfig struct {
 	// Defaults to 10s
 	ClientTimeout time.Duration
 
+	matchingConfig PactSerialisationOptionsV2
+
 	// Check if CLI tools are up to date
 	toolValidityCheck bool
-
-	SpecificationVersion SpecificationVersion
 
 	// TLS enables a mock service behind a self-signed certificate
 	// TODO: document and test this
@@ -94,7 +117,8 @@ type MockHTTPProviderConfigV3 = mockHTTPProviderConfig
 // httpMockProvider is the entrypoint for http consumer tests and provides the base capability for the
 // exported types HTTPMockProviderV2 and HTTPMockProviderV3
 type httpMockProvider struct {
-	config mockHTTPProviderConfig
+	specificationVersion SpecificationVersion
+	config               mockHTTPProviderConfig
 
 	v2Interactions []*InteractionV2
 	v3Interactions []*InteractionV3
@@ -169,9 +193,10 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 
 	// Generate interactions for Pact file
 	var serialisedPact interface{}
-	if p.config.SpecificationVersion == V2 {
-		serialisedPact = newPactFileV2(p.config.Consumer, p.config.Provider, p.v2Interactions)
+	if p.specificationVersion == V2 {
+		serialisedPact = newPactFileV2(p.config.Consumer, p.config.Provider, p.v2Interactions, p.config.matchingConfig)
 	} else {
+
 		serialisedPact = newPactFileV3(p.config.Consumer, p.config.Provider, p.v3Interactions)
 	}
 

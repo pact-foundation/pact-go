@@ -1,6 +1,8 @@
 package v3
 
 import (
+	"log"
+
 	version "github.com/pact-foundation/pact-go/command"
 )
 
@@ -15,22 +17,6 @@ const (
 	V3 = "3.0.0"
 )
 
-// ruleValue is essentially a key value JSON pairs for serialisation
-// TODO: this is actually more typed than this
-//       once we understand the model better, let's make it more type-safe
-type ruleValue map[string]interface{}
-
-// Matching Rule
-type rule struct {
-	Body    ruleValue `json:"body,omitempty"`
-	Headers ruleValue `json:"headers,omitempty"`
-	Query   ruleValue `json:"query,omitempty"`
-	Path    ruleValue `json:"path,omitempty"`
-}
-
-type matchingRule = rule
-type generator = rule
-
 var pactGoMetadata = map[string]interface{}{
 	"pactGo": map[string]string{
 		"version": version.Version,
@@ -38,7 +24,7 @@ var pactGoMetadata = map[string]interface{}{
 }
 
 // newPactFileV2 generates a v2 formated pact file from the given interactions
-func newPactFileV2(consumer string, provider string, interactions []*InteractionV2) pactFileV2 {
+func newPactFileV2(consumer string, provider string, interactions []*InteractionV2, options PactSerialisationOptionsV2) pactFileV2 {
 	p := pactFileV2{
 		Interactions:         make([]pactInteractionV2, 0),
 		interactions:         interactions,
@@ -46,6 +32,7 @@ func newPactFileV2(consumer string, provider string, interactions []*Interaction
 		Consumer:             consumer,
 		Provider:             provider,
 		SpecificationVersion: V2,
+		Options:              options,
 	}
 
 	p.generateV2PactFile()
@@ -59,6 +46,7 @@ func newPactFileV2(consumer string, provider string, interactions []*Interaction
 
 // newPactFileV3 generates a v3 formated pact file from the given interactions
 func newPactFileV3(consumer string, provider string, interactions []*InteractionV3) pactFileV3 {
+	log.Println("[DEBUG] creating v3 pact file")
 	p := pactFileV3{
 		Interactions:         make([]pactInteractionV3, 0),
 		interactions:         interactions,
