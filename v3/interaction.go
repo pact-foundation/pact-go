@@ -1,7 +1,6 @@
 package v3
 
 import (
-	"encoding/json"
 	"log"
 )
 
@@ -49,26 +48,4 @@ func (i *Interaction) WillRespondWith(response Response) *Interaction {
 	i.Response = response
 
 	return i
-}
-
-// Checks to see if someone has tried to submit a JSON string
-// for an object, which is no longer supported
-func isJSONFormattedObject(stringOrObject interface{}) bool {
-	switch content := stringOrObject.(type) {
-	case []byte:
-	case string:
-		var obj interface{}
-		err := json.Unmarshal([]byte(content), &obj)
-
-		if err != nil {
-			return false
-		}
-
-		// Check if a map type
-		if _, ok := obj.(map[string]interface{}); ok {
-			return true
-		}
-	}
-
-	return false
 }

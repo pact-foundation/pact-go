@@ -201,7 +201,7 @@ func buildPactPartV3(key string, value interface{}, body object, path string,
 
 	switch t := value.(type) {
 
-	case Matcher:
+	case MatcherV2:
 		switch t.Type() {
 
 		case arrayMinLikeMatcher, arrayMaxLikeMatcher:

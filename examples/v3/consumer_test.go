@@ -69,6 +69,7 @@ func TestConsumerV2(t *testing.T) {
 				"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
 				"name":     s("FirstName"),
 				"lastName": s("LastName"),
+				// "id":       v3.I32(1), // Add this to demonstrate adding a v3 matcher failing the build (not at the type system level unfortunately)
 			},
 		})
 

@@ -167,7 +167,10 @@ func buildPactPartV2(key string, value interface{}, body map[string]interface{},
 
 	switch t := value.(type) {
 
-	case Matcher:
+	case MatcherV3:
+		log.Fatalf("error: v3 matcher '%+s' provided to to a v2 specification. This will lead to inconsistent results", reflect.TypeOf(value))
+
+	case MatcherV2:
 		switch t.Type() {
 
 		case arrayMinLikeMatcher, arrayMaxLikeMatcher:
@@ -297,7 +300,7 @@ func buildPactRequestPathV2(sourceInteraction *InteractionV2, destInteraction *p
 	switch val := sourceInteraction.Request.Path.(type) {
 	case String:
 		destInteraction.Request.Path = val.GetValue().(string)
-	case Matcher:
+	case MatcherV2:
 		switch val.Type() {
 		case likeMatcher, regexMatcher:
 			destInteraction.Request.MatchingRules["$.path"] = sourceInteraction.Request.Path.MatchingRule()

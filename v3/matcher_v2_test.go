@@ -371,7 +371,7 @@ func getMatcherValue(m interface{}) interface{} {
 func TestMatcher_SugarMatchers(t *testing.T) {
 
 	type matcherTestCase struct {
-		matcher  Matcher
+		matcher  MatcherV2
 		testCase func(val interface{}) error
 	}
 	matchers := map[string]matcherTestCase{
@@ -582,7 +582,7 @@ func TestMatch(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		want      Matcher
+		want      MatcherV2
 		wantPanic bool
 	}{
 		{
@@ -761,7 +761,7 @@ func TestMatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got Matcher
+			var got MatcherV2
 			var didPanic bool
 			defer func() {
 				if rec := recover(); rec != nil {
