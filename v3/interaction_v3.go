@@ -1,10 +1,9 @@
 package v3
 
 // ProviderStateV3 allows parameters and a description to be passed to the verification process
-// TODO: move all of this into a v3 sub-package?
 type ProviderStateV3 struct {
-	Description string      `json:"description"`
-	Parameters  interface{} `json:"parameters,omitempty"`
+	Name       string      `json:"name"`
+	Parameters interface{} `json:"params,omitempty"`
 }
 
 // InteractionV3 sets up an expected request/response on a mock server

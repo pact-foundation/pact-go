@@ -33,7 +33,7 @@ func (m eachLike) GetValue() interface{} {
 	return m.Contents
 }
 
-func (m eachLike) isMatcher() {
+func (m eachLike) isV2Matcher() {
 }
 
 func (m eachLike) Type() MatcherClass {
@@ -43,8 +43,8 @@ func (m eachLike) Type() MatcherClass {
 	return arrayMinLikeMatcher
 }
 
-func (m eachLike) MatchingRule() ruleValue {
-	matcher := ruleValue{
+func (m eachLike) MatchingRule() rule {
+	matcher := rule{
 		"match": "type",
 	}
 
@@ -65,15 +65,15 @@ func (m like) GetValue() interface{} {
 	return m.Contents
 }
 
-func (m like) isMatcher() {
+func (m like) isV2Matcher() {
 }
 
 func (m like) Type() MatcherClass {
 	return likeMatcher
 }
 
-func (m like) MatchingRule() ruleValue {
-	return ruleValue{
+func (m like) MatchingRule() rule {
+	return rule{
 		"match": "type",
 	}
 }
@@ -86,15 +86,15 @@ func (m term) GetValue() interface{} {
 	return m.Data.Generate
 }
 
-func (m term) isMatcher() {
+func (m term) isV2Matcher() {
 }
 
 func (m term) Type() MatcherClass {
 	return regexMatcher
 }
 
-func (m term) MatchingRule() ruleValue {
-	return ruleValue{
+func (m term) MatchingRule() rule {
+	return rule{
 		"match": "regex",
 		"regex": m.Data.Matcher.Regex,
 	}
@@ -107,8 +107,6 @@ type termData struct {
 }
 
 type termMatcher struct {
-	Type  string      `json:"json_class"`
-	O     int         `json:"o"`
 	Regex interface{} `json:"s"`
 }
 
@@ -148,8 +146,6 @@ func Term(generate string, matcher string) Matcher {
 		Data: termData{
 			Generate: generate,
 			Matcher: termMatcher{
-				Type:  "Regexp",
-				O:     0,
 				Regex: matcher,
 			},
 		},
@@ -218,9 +214,9 @@ var Regex = Term
 // We use the strategy outlined at http://www.jerf.org/iri/post/2917
 // to create a "sum" or "union" type.
 type Matcher interface {
-	// isMatcher is how we tell the compiler that strings
+	// isV2Matcher is how we tell the compiler that strings
 	// and other types are the same / allowed
-	isMatcher()
+	isV2Matcher()
 
 	// GetValue returns the raw generated value for the matcher
 	// without any of the matching detail context
@@ -229,7 +225,7 @@ type Matcher interface {
 	Type() MatcherClass
 
 	// Generate the matching rule for this Matcher
-	MatchingRule() ruleValue
+	MatchingRule() rule
 }
 
 // MatcherClass is used to differentiate the various matchers when serialising
@@ -257,7 +253,7 @@ const (
 // it allows plain strings to be matched
 type S string
 
-func (s S) isMatcher() {}
+func (s S) isV2Matcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
@@ -269,8 +265,8 @@ func (s S) Type() MatcherClass {
 	return likeMatcher
 }
 
-func (s S) MatchingRule() ruleValue {
-	return ruleValue{
+func (s S) MatchingRule() rule {
+	return rule{
 		"match": "type",
 	}
 }
@@ -285,7 +281,7 @@ type StructMatcher map[string]Matcher
 
 // type StructMatcher map[string]Matcher
 
-func (m StructMatcher) isMatcher() {}
+func (m StructMatcher) isV2Matcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
@@ -297,8 +293,8 @@ func (s StructMatcher) Type() MatcherClass {
 	return structTypeMatcher
 }
 
-func (s StructMatcher) MatchingRule() ruleValue {
-	return ruleValue{
+func (s StructMatcher) MatchingRule() rule {
+	return rule{
 		"match": "type",
 	}
 }

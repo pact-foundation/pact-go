@@ -47,8 +47,8 @@ func TestConsumerV2(t *testing.T) {
 		UponReceiving("A request to do a foo").
 		WithRequest(v3.Request{
 			Method: "POST",
-			Path:   s("/foobar"),
-			// Path:    v3.Regex("/foobar", `/\/foo+/`),
+			// Path:   s("/foobar"),
+			Path:    v3.Regex("/foobar", `\/foo.*`),
 			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
 			Query: v3.QueryMatcher{
 				"baz": []interface{}{
@@ -97,7 +97,7 @@ func TestConsumerV3(t *testing.T) {
 	mockProvider.
 		AddInteraction().
 		Given(v3.ProviderStateV3{
-			Description: "User foo exists",
+			Name: "User foo exists",
 			Parameters: map[string]string{
 				"id": "foo",
 			},
@@ -105,14 +105,16 @@ func TestConsumerV3(t *testing.T) {
 		UponReceiving("A request to do a foo").
 		WithRequest(v3.Request{
 			Method:  "POST",
-			Path:    s("/foobar"),
+			Path:    v3.Regex("/foobar", `\/foo.*`),
 			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
 			Body: v3.MapMatcher{
 				"name": s("billy"),
 			},
 			Query: v3.QueryMatcher{
 				"baz": []interface{}{
-					v3.Regex("bat", "ba+"),
+					v3.Regex("bar", "[a-z]+"),
+					v3.Regex("bat", "[a-z]+"),
+					v3.Regex("baz", "[a-z]+"),
 				},
 			},
 		}).
@@ -153,7 +155,7 @@ var test = func(config v3.MockServerConfig) error {
 			Scheme:   "https",
 			Path:     "/foobar",
 			RawQuery: "baz=bat&baz=foo&baz=something", // Default behaviour
-			// RawQuery: "baz[]=bat&baz[]=foo&baz[]=something", // AlwaysArray example
+			// RawQuery: "baz[]=bat&baz[]=foo&baz[]=something", // TODO: Rust v3 does not support this syntax
 		},
 		Body:   ioutil.NopCloser(strings.NewReader(`{"name":"billy"}`)),
 		Header: make(http.Header),

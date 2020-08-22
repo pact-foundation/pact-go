@@ -6,17 +6,35 @@ import (
 	"reflect"
 )
 
-// ruleValue is essentially a key value JSON pairs for serialisation
+type object map[string]interface{}
+
+// ruleSet are the set of matchers to apply at a path, and the logical operation in which to apply them
 // TODO: this is actually more typed than this
 //       once we understand the model better, let's make it more type-safe
-type ruleValue map[string]interface{}
+type ruleSet map[string]matchers
+
+// type ruleValue map[string]interface{}
+type matcherLogic string
+
+const (
+	// AND specifies a logical AND to the matching rule application
+	AND matcherLogic = "AND"
+
+	// OR specifies a logical OR to the matching rule application
+	OR = "OR"
+)
+
+type matchers struct {
+	Combine  matcherLogic `json:"combine,omitempty"`
+	Matchers []rule       `json:"matchers,omitempty"`
+}
 
 // Matching Rule
 type ruleV3 struct {
-	Body    ruleValue `json:"body,omitempty"`
-	Headers ruleValue `json:"headers,omitempty"`
-	Query   ruleValue `json:"query,omitempty"`
-	Path    ruleValue `json:"path,omitempty"`
+	Body    ruleSet  `json:"body,omitempty"`
+	Headers ruleSet  `json:"headers,omitempty"`
+	Query   ruleSet  `json:"query,omitempty"`
+	Path    matchers `json:"path,omitempty"`
 }
 
 type matchingRuleV3 = ruleV3
@@ -26,18 +44,18 @@ type pactRequestV3 struct {
 	Method        string              `json:"method"`
 	Path          string              `json:"path"`
 	Query         map[string][]string `json:"query,omitempty"`
-	Headers       map[string]string   `json:"headers,omitempty"`
+	Headers       interface{}         `json:"headers,omitempty"`
 	Body          interface{}         `json:"body"`
 	MatchingRules matchingRuleV3      `json:"matchingRules,omitempty"`
 	Generators    generatorV3         `json:"generators"`
 }
 
 type pactResponseV3 struct {
-	Status        int               `json:"status"`
-	Headers       map[string]string `json:"headers,omitempty"`
-	Body          interface{}       `json:"body,omitempty"`
-	MatchingRules matchingRuleV3    `json:"matchingRules,omitempty"`
-	Generators    generatorV3       `json:"generators"`
+	Status        int            `json:"status"`
+	Headers       interface{}    `json:"headers,omitempty"`
+	Body          interface{}    `json:"body,omitempty"`
+	MatchingRules matchingRuleV3 `json:"matchingRules,omitempty"`
+	Generators    generatorV3    `json:"generators"`
 }
 
 type pactInteractionV3 struct {
@@ -76,31 +94,27 @@ func pactInteractionFromV3Interaction(interaction InteractionV3) pactInteraction
 		Request: pactRequestV3{
 			Method: interaction.Request.Method,
 			Generators: generatorV3{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
+				Body:    make(ruleSet),
+				Headers: make(ruleSet),
+				Query:   make(ruleSet),
 			},
 			MatchingRules: generatorV3{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
+				Body:    make(ruleSet),
+				Headers: make(ruleSet),
+				Query:   make(ruleSet),
 			},
 		},
 		Response: pactResponseV3{
 			Status: interaction.Response.Status,
 			Generators: generatorV3{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
+				Body:    make(ruleSet),
+				Headers: make(ruleSet),
+				Query:   make(ruleSet),
 			},
 			MatchingRules: matchingRuleV3{
-				Body:    make(ruleValue),
-				Headers: make(ruleValue),
-				Path:    make(ruleValue),
-				Query:   make(ruleValue),
+				Body:    make(ruleSet),
+				Headers: make(ruleSet),
+				Query:   make(ruleSet),
 			},
 		},
 	}
@@ -108,31 +122,32 @@ func pactInteractionFromV3Interaction(interaction InteractionV3) pactInteraction
 
 func (p *pactFileV3) generateV3PactFile() *pactFileV3 {
 	for _, interaction := range p.interactions {
-		fmt.Printf("Serialising interaction: %+v \n", *interaction)
 		serialisedInteraction := pactInteractionFromV3Interaction(*interaction)
 
-		// TODO: haven't done matchers for headers, query, path and status code
-		// _, serialisedInteraction.Request.Headers, serialisedInteraction.Request.MatchingRules.Headers, _ = buildPactBody("", interaction.Request.Headers, make(map[string]interface{}), "$", make(ruleValue), make(ruleValue))
-		_, serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules.Body, _ = buildPactPart("", interaction.Request.Body, make(map[string]interface{}), "$", make(ruleValue), make(ruleValue))
-		// _, serialisedInteraction.Response.Headers, serialisedInteraction.Response.MatchingRules.Headers, _ = buildPactBody("", interaction.Response.Headers, make(map[string]interface{}), "$", make(ruleValue), make(ruleValue))
-		_, serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules.Body, _ = buildPactPart("", interaction.Response.Body, make(map[string]interface{}), "$", make(ruleValue), make(ruleValue))
+		var requestQuery object
 
-		// 		// TODO
-		// 		buildPactHeaders()
-		// 		buildPactQuery()
+		requestQuery, serialisedInteraction.Request.MatchingRules.Query, serialisedInteraction.Request.Generators.Query = buildPart(interaction.Request.Query)
+		serialisedInteraction.Request.Headers, serialisedInteraction.Request.MatchingRules.Headers, serialisedInteraction.Request.Generators.Headers = buildPart(interaction.Request.Headers)
+		serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules.Body, serialisedInteraction.Request.Generators.Body = buildPart(interaction.Request.Body)
+		serialisedInteraction.Response.Headers, serialisedInteraction.Response.MatchingRules.Headers, serialisedInteraction.Response.Generators.Headers = buildPart(interaction.Response.Headers)
+		serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules.Body, serialisedInteraction.Response.Generators.Body = buildPart(interaction.Response.Body)
+
+		// TODO: Generators
+
+		buildQueryV3(requestQuery, interaction, &serialisedInteraction)
 		buildPactPathV3(interaction, &serialisedInteraction)
 
-		fmt.Printf("appending interaction: %+v \n", serialisedInteraction)
 		p.Interactions = append(p.Interactions, serialisedInteraction)
+		fmt.Printf("%+v", serialisedInteraction)
 	}
 
 	return p
 }
 
-func recurseMapTypeV3(key string, value interface{}, body map[string]interface{}, path string,
-	matchingRules ruleValue, generators ruleValue) (string, map[string]interface{}, ruleValue, ruleValue) {
+func recurseMapTypeV3(key string, value interface{}, body object, path string,
+	matchingRules ruleSet, generators ruleSet) (string, object, ruleSet, ruleSet) {
 	mapped := reflect.ValueOf(value)
-	entry := make(map[string]interface{})
+	entry := make(object)
 	path = path + buildPath(key, "")
 
 	iter := mapped.MapRange()
@@ -141,15 +156,28 @@ func recurseMapTypeV3(key string, value interface{}, body map[string]interface{}
 		v := iter.Value()
 		log.Println("[TRACE] generate pact: map[string]interface{}: recursing map type into key =>", k)
 
-		// Starting position
 		if key == "" {
-			_, body, matchingRules, generators = buildPactPart(k.String(), v.Interface(), copyMap(body), path, matchingRules, generators)
+			// Starting position
+			_, body, matchingRules, generators = buildPactPartV3(k.String(), v.Interface(), copyMap(body), path, matchingRules, generators)
 		} else {
-			_, body[key], matchingRules, generators = buildPactPart(k.String(), v.Interface(), entry, path, matchingRules, generators)
+			_, body[key], matchingRules, generators = buildPactPartV3(k.String(), v.Interface(), entry, path, matchingRules, generators)
 		}
 	}
 
 	return path, body, matchingRules, generators
+}
+
+func wrapMatchingRule(r rule) matchers {
+	fmt.Println("[DEBUG] wrapmatchingrule")
+	return matchers{
+		Combine:  AND,
+		Matchers: []rule{r},
+	}
+}
+
+func buildPart(value interface{}) (object, ruleSet, ruleSet) {
+	_, o, matchingRules, generators := buildPactPartV3("", value, make(object), "$", make(ruleSet), make(ruleSet))
+	return o, matchingRules, generators
 }
 
 // Recurse the Matcher tree and buildPactBody up an example body and set of matchers for
@@ -167,8 +195,8 @@ func recurseMapTypeV3(key string, value interface{}, body map[string]interface{}
 //  - generators    => Current set of generators rules (generators rules will also be serialised into the Pact)
 //
 // Returns path, body, matchingRules, generators
-func buildPactBodyV3(key string, value interface{}, body map[string]interface{}, path string,
-	matchingRules ruleValue, generators ruleValue) (string, map[string]interface{}, ruleValue, ruleValue) {
+func buildPactPartV3(key string, value interface{}, body object, path string,
+	matchingRules ruleSet, generators ruleSet) (string, object, ruleSet, ruleSet) {
 	log.Println("[TRACE] generate pact => key:", key, ", body:", body, ", value:", value, ", path:", path)
 
 	switch t := value.(type) {
@@ -190,15 +218,10 @@ func buildPactBodyV3(key string, value interface{}, body map[string]interface{},
 			arrayMap := make(map[string]interface{})
 			minArray := make([]interface{}, times)
 
-			// TODO: why does this exist? -> Umm, it's what recurses the array item values!
 			builtPath := path + buildPath(key, allListItems)
-			buildPactPart("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
+			buildPactPartV3("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
 			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher =>", builtPath)
-			matchingRules[path+buildPath(key, "")] = m.MatchingRule()
-
-			// TODO: Need to understand the .* notation before implementing it. Notably missing from Groovy DSL
-			// log.Println("[TRACE] generate pact: matcher (type)              =>", path+buildPath(key, allListItems)+".*")
-			// matchingRules[path+buildPath(key, allListItems)+".*"] = m.MatchingRule()
+			matchingRules[path+buildPath(key, "")] = wrapMatchingRule(m.MatchingRule())
 
 			for i := 0; i < times; i++ {
 				minArray[i] = arrayMap["0"]
@@ -215,7 +238,7 @@ func buildPactBodyV3(key string, value interface{}, body map[string]interface{},
 			builtPath := path + buildPath(key, "")
 			body[key] = t.GetValue()
 			log.Println("[TRACE] generate pact: Regex/LikeMatcher =>", builtPath)
-			matchingRules[builtPath] = t.MatchingRule()
+			matchingRules[builtPath] = wrapMatchingRule(t.MatchingRule())
 
 		// This exists to server the v3.Match() interface
 		case structTypeMatcher:
@@ -238,13 +261,13 @@ func buildPactBodyV3(key string, value interface{}, body map[string]interface{},
 			k := fmt.Sprintf("%d", i)
 			builtPath := path + buildPath(key, fmt.Sprintf("%s%d%s", startList, i, endList))
 			log.Println("[TRACE] generate pact: []interface{}: recursing into =>", builtPath)
-			buildPactPart(k, el, arrayMap, builtPath, matchingRules, generators)
+			buildPactPartV3(k, el, arrayMap, builtPath, matchingRules, generators)
 			arrayValues[i] = arrayMap[k]
 		}
 		body[key] = arrayValues
 
 		// Map -> Recurse keys (All objects start here!)
-	case map[string]interface{}, MapMatcher:
+	case map[string]interface{}, MapMatcher, QueryMatcher:
 		log.Println("[TRACE] generate pact: MapMatcher")
 		_, body, matchingRules, generators = recurseMapTypeV3(key, t, body, path, matchingRules, generators)
 
@@ -260,8 +283,7 @@ func buildPactBodyV3(key string, value interface{}, body map[string]interface{},
 }
 
 func buildPactPathV3(sourceInteraction *InteractionV3, destInteraction *pactInteractionV3) *pactInteractionV3 {
-
-	destInteraction.Request.MatchingRules.Path = sourceInteraction.Request.Path.MatchingRule()
+	destInteraction.Request.MatchingRules.Path = wrapMatchingRule(sourceInteraction.Request.Path.MatchingRule())
 
 	switch val := sourceInteraction.Request.Path.GetValue().(type) {
 	case String:
@@ -270,10 +292,37 @@ func buildPactPathV3(sourceInteraction *InteractionV3, destInteraction *pactInte
 		destInteraction.Request.Path = val.GetValue().(string)
 	case term:
 		destInteraction.Request.Path = val.GetValue().(string)
+	case string:
+		destInteraction.Request.Path = val
 	default:
-		destInteraction.Request.MatchingRules.Path = nil
-		log.Print("[WARN] ignoring unsupported matcher for request path:", val)
+		destInteraction.Request.MatchingRules.Path = matchers{}
+		log.Printf("[WARN] ignoring unsupported matcher for request path: %+v", val)
 	}
+
+	return destInteraction
+}
+
+func buildQueryV3(input object, sourceInteraction *InteractionV3, destInteraction *pactInteractionV3) *pactInteractionV3 {
+	queryAsMap := make(map[string][]string)
+
+	for k, v := range input {
+		rt := reflect.TypeOf(v)
+		switch rt.Kind() {
+		case reflect.Slice, reflect.Array:
+			slice := v.([]interface{})
+			l := len(slice)
+
+			values := make([]string, l)
+			for i, data := range slice {
+				values[i] = fmt.Sprintf("%s", data)
+			}
+			queryAsMap[k] = values
+		default:
+			queryAsMap[k] = []string{fmt.Sprintf("%s", v)}
+		}
+	}
+
+	destInteraction.Request.Query = queryAsMap
 
 	return destInteraction
 }
