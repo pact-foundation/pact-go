@@ -9,9 +9,7 @@ package v3
 // 3. Need to ensure only v2 or v3 matchers are added
 
 import (
-	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -263,7 +261,7 @@ func (p *httpMockProvider) displayMismatches(mismatches []native.MismatchedReque
 	}
 }
 
-// WritePact should be called writes when all tests have been performed for a
+// WritePact should be called when all tests have been performed for a
 // given Consumer <-> Provider pair. It will write out the Pact to the
 // configured file. This is safe to call multiple times as the service is smart
 // enough to merge pacts and avoid duplicates.
@@ -284,19 +282,6 @@ var checkCliCompatibility = func() {
 	if err != nil {
 		log.Fatal("[ERROR] CLI tools are out of date, please upgrade before continuing")
 	}
-}
-
-// Format a JSON document to make comparison easier.
-func formatJSONString(object string) string {
-	var out bytes.Buffer
-	json.Indent(&out, []byte(object), "", "\t")
-	return string(out.Bytes())
-}
-
-// Format a JSON document for creating Pact files.
-func formatJSONObject(object interface{}) string {
-	out, _ := json.Marshal(object)
-	return formatJSONString(string(out))
 }
 
 // GetTLSConfigForTLSMockServer gets an http transport with

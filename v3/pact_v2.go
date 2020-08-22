@@ -51,7 +51,7 @@ type pactFileV2 struct {
 	// Raw incoming interactions from the consumer test
 	interactions []*InteractionV2
 
-	// Interactions are the annotated set the request/response expectations, with matching rules and generators
+	// Interactions are the annotated set the request/response expectations, with matching rules
 	Interactions []pactInteractionV2 `json:"interactions"`
 
 	Metadata map[string]interface{} `json:"metadata"`
@@ -92,16 +92,16 @@ func (p *pactFileV2) generateV2PactFile() *pactFileV2 {
 		var requestBodyMatchingRules, requestHeaderMatchingRules, requestQueryMatchingRules, responseBodyMatchingRules, responseHeaderMatchingRules rule
 		var requestQuery map[string]interface{}
 
-		_, requestQuery, requestQueryMatchingRules, _ = buildPactPart("", interaction.Request.Query, make(map[string]interface{}), "$.query", make(rule), make(rule))
-		_, serialisedInteraction.Request.Headers, requestHeaderMatchingRules, _ = buildPactPart("", interaction.Request.Headers, make(map[string]interface{}), "$.headers", make(rule), make(rule))
-		_, serialisedInteraction.Request.Body, requestBodyMatchingRules, _ = buildPactPart("", interaction.Request.Body, make(map[string]interface{}), "$.body", make(rule), make(rule))
-		_, serialisedInteraction.Response.Body, responseBodyMatchingRules, _ = buildPactPart("", interaction.Response.Body, make(map[string]interface{}), "$.body", make(rule), make(rule))
-		_, serialisedInteraction.Response.Headers, responseHeaderMatchingRules, _ = buildPactPart("", interaction.Response.Headers, make(map[string]interface{}), "$.headers", make(rule), make(rule))
+		requestQuery, requestQueryMatchingRules = buildPartV2(interaction.Request.Query, "$.query")
+		serialisedInteraction.Request.Headers, requestHeaderMatchingRules = buildPartV2(interaction.Request.Headers, "$.headers")
+		serialisedInteraction.Request.Body, requestBodyMatchingRules = buildPartV2(interaction.Request.Body, "$.body")
+		serialisedInteraction.Response.Body, responseBodyMatchingRules = buildPartV2(interaction.Response.Body, "$.body")
+		serialisedInteraction.Response.Headers, responseHeaderMatchingRules = buildPartV2(interaction.Response.Headers, "$.headers")
 
 		buildPactRequestQueryV2(requestQuery, interaction, &serialisedInteraction, p.Options)
 		buildPactRequestPathV2(interaction, &serialisedInteraction)
-		mergeRules(serialisedInteraction.Request.MatchingRules, requestHeaderMatchingRules)
 		mergeRules(serialisedInteraction.Request.MatchingRules, requestQueryMatchingRules)
+		mergeRules(serialisedInteraction.Request.MatchingRules, requestHeaderMatchingRules)
 		mergeRules(serialisedInteraction.Request.MatchingRules, requestBodyMatchingRules)
 		mergeRules(serialisedInteraction.Response.MatchingRules, responseBodyMatchingRules)
 		mergeRules(serialisedInteraction.Response.MatchingRules, responseHeaderMatchingRules)
@@ -119,7 +119,7 @@ const startList = "["
 const endList = "]"
 
 func recurseMapType(key string, value interface{}, body map[string]interface{}, path string,
-	matchingRules rule, generators rule) (string, map[string]interface{}, rule, rule) {
+	matchingRules rule) (string, map[string]interface{}, rule) {
 	mapped := reflect.ValueOf(value)
 	entry := make(map[string]interface{})
 	path = path + buildPath(key, "")
@@ -132,16 +132,22 @@ func recurseMapType(key string, value interface{}, body map[string]interface{}, 
 
 		// Starting position
 		if key == "" {
-			_, body, matchingRules, generators = buildPactPart(k.String(), v.Interface(), copyMap(body), path, matchingRules, generators)
+			_, body, matchingRules = buildPactPartV2(k.String(), v.Interface(), copyMap(body), path, matchingRules)
 		} else {
-			_, body[key], matchingRules, generators = buildPactPart(k.String(), v.Interface(), entry, path, matchingRules, generators)
+			_, body[key], matchingRules = buildPactPartV2(k.String(), v.Interface(), entry, path, matchingRules)
 		}
 	}
 
-	return path, body, matchingRules, generators
+	return path, body, matchingRules
 }
 
-// Recurse the Matcher tree and buildPactPart up an example body and set of matchers for
+func buildPartV2(value interface{}, path string) (map[string]interface{}, rule) {
+	_, o, matchingRules := buildPactPartV2("", value, make(object), path, make(rule))
+
+	return o, matchingRules
+}
+
+// Recurse the Matcher tree and buildPactPartV2 up an example body and set of matchers for
 // the Pact file. Ideally this stays as a pure function, but probably might need
 // to store matchers externally.
 //
@@ -153,12 +159,10 @@ func recurseMapType(key string, value interface{}, body map[string]interface{}, 
 // 	- body          => Current state of the body map to be built up (body will be the returned Pact body for serialisation)
 // 	- path          => Path to the current key
 //  - matchingRules => Current set of matching rules (matching rules will also be serialised into the Pact)
-//  - generators    => Current set of generators rules (generators rules will also be serialised into the Pact)
 //
-
-// Returns path, body, matchingRules, generators
-func buildPactPart(key string, value interface{}, body map[string]interface{}, path string,
-	matchingRules rule, generators rule) (string, map[string]interface{}, rule, rule) {
+// Returns path, body, matchingRules
+func buildPactPartV2(key string, value interface{}, body map[string]interface{}, path string,
+	matchingRules rule) (string, map[string]interface{}, rule) {
 	log.Println("[TRACE] generate pact => key:", key, ", body:", body, ", value:", value, ", path:", path)
 
 	switch t := value.(type) {
@@ -181,7 +185,7 @@ func buildPactPart(key string, value interface{}, body map[string]interface{}, p
 			minArray := make([]interface{}, times)
 
 			builtPath := path + buildPath(key, allListItems)
-			buildPactPart("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
+			buildPactPartV2("0", t.GetValue(), arrayMap, builtPath, matchingRules)
 			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher =>", builtPath)
 			matchingRules[path+buildPath(key, "")] = m.MatchingRule()
 
@@ -205,7 +209,7 @@ func buildPactPart(key string, value interface{}, body map[string]interface{}, p
 		// This exists to server the v3.Match() interface
 		case structTypeMatcher:
 			log.Println("[TRACE] generate pact: StructTypeMatcher")
-			_, body, matchingRules, generators = recurseMapType(key, t.GetValue().(StructMatcher), body, path, matchingRules, generators)
+			_, body, matchingRules = recurseMapType(key, t.GetValue().(StructMatcher), body, path, matchingRules)
 
 		default:
 			log.Fatalf("unexpected matcher (%s) for current specification format (2.0.0)", t.Type())
@@ -223,7 +227,7 @@ func buildPactPart(key string, value interface{}, body map[string]interface{}, p
 			k := fmt.Sprintf("%d", i)
 			builtPath := path + buildPath(key, fmt.Sprintf("%s%d%s", startList, i, endList))
 			log.Println("[TRACE] generate pact: []interface{}: recursing into =>", builtPath)
-			buildPactPart(k, el, arrayMap, builtPath, matchingRules, generators)
+			buildPactPartV2(k, el, arrayMap, builtPath, matchingRules)
 			arrayValues[i] = arrayMap[k]
 		}
 		body[key] = arrayValues
@@ -231,7 +235,7 @@ func buildPactPart(key string, value interface{}, body map[string]interface{}, p
 		// Map -> Recurse keys (All objects start here!)
 	case map[string]interface{}, MapMatcher, QueryMatcher:
 		log.Println("[TRACE] generate pact: MapMatcher")
-		_, body, matchingRules, generators = recurseMapType(key, t, body, path, matchingRules, generators)
+		_, body, matchingRules = recurseMapType(key, t, body, path, matchingRules)
 
 	// Primitives (terminal cases)
 	default:
@@ -241,7 +245,7 @@ func buildPactPart(key string, value interface{}, body map[string]interface{}, p
 
 	log.Printf("[TRACE] generate pact => returning body: %+v\n", body)
 
-	return path, body, matchingRules, generators
+	return path, body, matchingRules
 }
 
 // V2 query strings are stored as strings
@@ -256,9 +260,8 @@ func buildPactPart(key string, value interface{}, body map[string]interface{}, p
 // See https://stackoverflow.com/questions/6243051/how-to-pass-an-array-within-a-query-string
 // TODO: allow a specific generator to be provided?
 func buildPactRequestQueryV2(input map[string]interface{}, sourceInteraction *InteractionV2, destInteraction *pactInteractionV2, options PactSerialisationOptionsV2) {
-	// matching rules already added
-
 	var parts []string
+
 	for k, v := range input {
 		rt := reflect.TypeOf(v)
 		switch rt.Kind() {
