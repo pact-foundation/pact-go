@@ -394,16 +394,16 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Integer": {
-			matcher: Integer(),
-			testCase: func(v interface{}) (err error) {
-				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
-				if !valid {
-					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
-				}
-				return
-			},
-		},
+		// "Integer": {
+		// 	matcher: Integer(),
+		// 	testCase: func(v interface{}) (err error) {
+		// 		_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
+		// 		if !valid {
+		// 			err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
+		// 		}
+		// 		return
+		// 	},
+		// },
 		"IPAddress": {
 			matcher: IPAddress(),
 			testCase: func(v interface{}) (err error) {
@@ -431,16 +431,16 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Decimal": {
-			matcher: Decimal(),
-			testCase: func(v interface{}) (err error) {
-				_, valid := v.(float64)
-				if !valid {
-					err = fmt.Errorf("want float64, got '%v'", reflect.TypeOf(v))
-				}
-				return
-			},
-		},
+		// "Decimal": {
+		// 	matcher: Decimal(),
+		// 	testCase: func(v interface{}) (err error) {
+		// 		_, valid := v.(float64)
+		// 		if !valid {
+		// 			err = fmt.Errorf("want float64, got '%v'", reflect.TypeOf(v))
+		// 		}
+		// 		return
+		// 	},
+		// },
 		"Timestamp": {
 			matcher: Timestamp(),
 			testCase: func(v interface{}) (err error) {

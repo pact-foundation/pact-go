@@ -168,7 +168,6 @@ func recurseMapTypeV3(key string, value interface{}, body object, path string,
 }
 
 func wrapMatchingRule(r rule) matchers {
-	fmt.Println("[DEBUG] wrapmatchingrule")
 	return matchers{
 		Combine:  AND,
 		Matchers: []rule{r},
@@ -201,26 +200,62 @@ func buildPactPartV3(key string, value interface{}, body object, path string,
 
 	switch t := value.(type) {
 
-	case MatcherV2:
+	case MatcherV3:
 		switch t.Type() {
 
-		case arrayMinLikeMatcher, arrayMaxLikeMatcher:
-			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher")
-			times := 1
+		case decimalMatcher, integerMatcher, nullMatcher, equalityMatcher, includesMatcher:
+			log.Println("[TRACE] generate pact: decimal/integer/null matcher")
+			builtPath := path + buildPath(key, "")
+			body[key] = t.GetValue()
+			log.Println("[TRACE] generate pact: decimal/integer/null matcher => ", builtPath)
+			matchingRules[builtPath] = wrapMatchingRule(t.MatchingRule())
 
-			m := t.(eachLike)
+		case arrayMinMaxLikeMatcher:
+			times := 1
+			m := t.(minMaxLike)
 			if m.Max > 0 {
 				times = m.Max
 			} else if m.Min > 0 {
 				times = m.Min
 			}
 
+			log.Println("[TRACE] generate pact: ArrayMinMaxLikeMatcher")
+
 			arrayMap := make(map[string]interface{})
 			minArray := make([]interface{}, times)
 
 			builtPath := path + buildPath(key, allListItems)
 			buildPactPartV3("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
-			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher =>", builtPath)
+			log.Println("[TRACE] generate pact: ArrayMinLikeMatcher =>", builtPath)
+			matchingRules[path+buildPath(key, "")] = wrapMatchingRule(t.MatchingRule())
+
+			for i := 0; i < times; i++ {
+				minArray[i] = arrayMap["0"]
+			}
+
+			// TODO: I think this assignment is working, but the next step seems to recurse again and this never writes
+			// probably just a bad terminal case handling?
+			body[key] = minArray
+			fmt.Printf("Updating body: %+v, minArray: %+v", body, minArray)
+			path = path + buildPath(key, "")
+
+		default:
+			log.Fatalf("unexpected matcher (%s) for current specification format (3.0.0)", t.Type())
+		}
+	case MatcherV2:
+		switch t.Type() {
+
+		case arrayMinLikeMatcher, arrayMinMaxLikeMatcher:
+			log.Println("[TRACE] generate pact: ArrayMinLikeMatcher")
+			m := t.(eachLike)
+			times := m.Min
+
+			arrayMap := make(map[string]interface{})
+			minArray := make([]interface{}, times)
+
+			builtPath := path + buildPath(key, allListItems)
+			buildPactPartV3("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
+			log.Println("[TRACE] generate pact: ArrayMinLikeMatcher =>", builtPath)
 			matchingRules[path+buildPath(key, "")] = wrapMatchingRule(m.MatchingRule())
 
 			for i := 0; i < times; i++ {

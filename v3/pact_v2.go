@@ -173,23 +173,17 @@ func buildPactPartV2(key string, value interface{}, body map[string]interface{},
 	case MatcherV2:
 		switch t.Type() {
 
-		case arrayMinLikeMatcher, arrayMaxLikeMatcher:
-			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher")
+		case arrayMinLikeMatcher:
+			log.Println("[TRACE] generate pact: ArrayMinLikeMatcher")
 			times := 1
 
 			m := t.(eachLike)
-			if m.Max > 0 {
-				times = m.Max
-			} else if m.Min > 0 {
-				times = m.Min
-			}
-
 			arrayMap := make(map[string]interface{})
-			minArray := make([]interface{}, times)
+			minArray := make([]interface{}, m.Min)
 
 			builtPath := path + buildPath(key, allListItems)
 			buildPactPartV2("0", t.GetValue(), arrayMap, builtPath, matchingRules)
-			log.Println("[TRACE] generate pact: ArrayMikeLikeMatcher/ArrayMaxLikeMatcher =>", builtPath)
+			log.Println("[TRACE] generate pact: ArrayMinLikeMatcher =>", builtPath)
 			matchingRules[path+buildPath(key, "")] = m.MatchingRule()
 
 			for i := 0; i < times; i++ {

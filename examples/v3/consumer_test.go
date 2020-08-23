@@ -124,9 +124,15 @@ func TestConsumerV3(t *testing.T) {
 			Headers: v3.MapMatcher{"Content-Type": s("application/json")},
 			// Body:    v3.Match(&User{}),
 			Body: v3.MapMatcher{
-				"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-				"name":     s("FirstName"),
-				"lastName": s("LastName"),
+				"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
+				"name":           s("FirstName"),
+				"lastName":       s("LastName"),
+				"superstring":    v3.Includes("foo"),
+				"id":             v3.Integer(12),
+				"accountBalance": v3.Decimal(123.76),
+				"itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
+				"itemsMin":       v3.ArrayMinLike("min", 3),
+				"equality":       v3.Equality("a thing"),
 			},
 		})
 
