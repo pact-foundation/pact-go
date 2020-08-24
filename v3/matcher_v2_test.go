@@ -474,7 +474,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		"UUID": {
 			matcher: UUID(),
 			testCase: func(v interface{}) (err error) {
-				match, err := regexp.MatchString(uuid, v.(string))
+				match, err := regexp.MatchString(uuidRegex, v.(string))
 
 				if !match {
 					err = fmt.Errorf("want string, got '%v'. Err: %v", v, err)

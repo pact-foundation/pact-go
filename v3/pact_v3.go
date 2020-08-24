@@ -12,6 +12,7 @@ type object map[string]interface{}
 // TODO: this is actually more typed than this
 //       once we understand the model better, let's make it more type-safe
 type ruleSet map[string]matchers
+type generators map[string]rule
 
 // type ruleValue map[string]interface{}
 type matcherLogic string
@@ -38,7 +39,12 @@ type ruleV3 struct {
 }
 
 type matchingRuleV3 = ruleV3
-type generatorV3 = ruleV3
+type generatorV3 = struct {
+	Body    generators `json:"body,omitempty"`
+	Headers generators `json:"headers,omitempty"`
+	Query   generators `json:"query,omitempty"`
+	Path    matchers   `json:"path,omitempty"`
+}
 
 type pactRequestV3 struct {
 	Method        string              `json:"method"`
@@ -94,11 +100,11 @@ func pactInteractionFromV3Interaction(interaction InteractionV3) pactInteraction
 		Request: pactRequestV3{
 			Method: interaction.Request.Method,
 			Generators: generatorV3{
-				Body:    make(ruleSet),
-				Headers: make(ruleSet),
-				Query:   make(ruleSet),
+				Body:    make(generators),
+				Headers: make(generators),
+				Query:   make(generators),
 			},
-			MatchingRules: generatorV3{
+			MatchingRules: matchingRuleV3{
 				Body:    make(ruleSet),
 				Headers: make(ruleSet),
 				Query:   make(ruleSet),
@@ -107,9 +113,9 @@ func pactInteractionFromV3Interaction(interaction InteractionV3) pactInteraction
 		Response: pactResponseV3{
 			Status: interaction.Response.Status,
 			Generators: generatorV3{
-				Body:    make(ruleSet),
-				Headers: make(ruleSet),
-				Query:   make(ruleSet),
+				Body:    make(generators),
+				Headers: make(generators),
+				Query:   make(generators),
 			},
 			MatchingRules: matchingRuleV3{
 				Body:    make(ruleSet),
@@ -145,7 +151,7 @@ func (p *pactFileV3) generateV3PactFile() *pactFileV3 {
 }
 
 func recurseMapTypeV3(key string, value interface{}, body object, path string,
-	matchingRules ruleSet, generators ruleSet) (string, object, ruleSet, ruleSet) {
+	matchingRules ruleSet, generators generators) (string, object, ruleSet, generators) {
 	mapped := reflect.ValueOf(value)
 	entry := make(object)
 	path = path + buildPath(key, "")
@@ -174,8 +180,8 @@ func wrapMatchingRule(r rule) matchers {
 	}
 }
 
-func buildPart(value interface{}) (object, ruleSet, ruleSet) {
-	_, o, matchingRules, generators := buildPactPartV3("", value, make(object), "$", make(ruleSet), make(ruleSet))
+func buildPart(value interface{}) (object, ruleSet, generators) {
+	_, o, matchingRules, generators := buildPactPartV3("", value, make(object), "$", make(ruleSet), make(generators))
 	return o, matchingRules, generators
 }
 
@@ -195,7 +201,7 @@ func buildPart(value interface{}) (object, ruleSet, ruleSet) {
 //
 // Returns path, body, matchingRules, generators
 func buildPactPartV3(key string, value interface{}, body object, path string,
-	matchingRules ruleSet, generators ruleSet) (string, object, ruleSet, ruleSet) {
+	matchingRules ruleSet, generators generators) (string, object, ruleSet, generators) {
 	log.Println("[TRACE] generate pact => key:", key, ", body:", body, ", value:", value, ", path:", path)
 
 	switch t := value.(type) {
@@ -203,12 +209,16 @@ func buildPactPartV3(key string, value interface{}, body object, path string,
 	case MatcherV3:
 		switch t.Type() {
 
-		case decimalMatcher, integerMatcher, nullMatcher, equalityMatcher, includesMatcher:
+		case decimalMatcher, integerMatcher, nullMatcher, equalityMatcher, includesMatcher, stringGeneratorMatcher:
 			log.Println("[TRACE] generate pact: decimal/integer/null matcher")
 			builtPath := path + buildPath(key, "")
 			body[key] = t.GetValue()
 			log.Println("[TRACE] generate pact: decimal/integer/null matcher => ", builtPath)
 			matchingRules[builtPath] = wrapMatchingRule(t.MatchingRule())
+
+			if g, ok := t.(generator); ok {
+				generators[builtPath] = g.Generator()
+			}
 
 		case arrayMinMaxLikeMatcher:
 			times := 1

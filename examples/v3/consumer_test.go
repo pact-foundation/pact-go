@@ -69,7 +69,13 @@ func TestConsumerV2(t *testing.T) {
 				"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
 				"name":     s("FirstName"),
 				"lastName": s("LastName"),
-				// "id":       v3.I32(1), // Add this to demonstrate adding a v3 matcher failing the build (not at the type system level unfortunately)
+				"itemsMin": v3.ArrayMinLike("min", 3),
+				// Add any of these this to demonstrate adding a v3 matcher failing the build (not at the type system level unfortunately)
+				// "id":             v3.Integer(1),
+				// "superstring":    v3.Includes("foo"),
+				// "accountBalance": v3.Decimal(123.76),
+				// "itemsMinMax": v3.ArrayMinMaxLike(27, 3, 5),
+				// "equality": v3.Equality("a thing"),
 			},
 		})
 
@@ -109,7 +115,8 @@ func TestConsumerV3(t *testing.T) {
 			Path:    v3.Regex("/foobar", `\/foo.*`),
 			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
 			Body: v3.MapMatcher{
-				"name": s("billy"),
+				"name":     s("billy"),
+				"dateTime": v3.DateTimeGenerated("2020-02-02", "YYYY-MM-dd"),
 			},
 			Query: v3.QueryMatcher{
 				"baz": []interface{}{
@@ -164,7 +171,7 @@ var test = func(config v3.MockServerConfig) error {
 			RawQuery: "baz=bat&baz=foo&baz=something", // Default behaviour
 			// RawQuery: "baz[]=bat&baz[]=foo&baz[]=something", // TODO: Rust v3 does not support this syntax
 		},
-		Body:   ioutil.NopCloser(strings.NewReader(`{"name":"billy"}`)),
+		Body:   ioutil.NopCloser(strings.NewReader(`{"name":"billy", "dateTime":"2020-02-02"}`)),
 		Header: make(http.Header),
 	}
 

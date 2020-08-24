@@ -19,8 +19,6 @@ func (m eachLike) GetValue() interface{} {
 	return m.Contents
 }
 
-func (m eachLike) isMatcher() {}
-
 func (m eachLike) Type() MatcherClass {
 	return arrayMinLikeMatcher
 }
@@ -44,8 +42,6 @@ func (m like) GetValue() interface{} {
 	return m.Contents
 }
 
-func (m like) isMatcher() {}
-
 func (m like) Type() MatcherClass {
 	return likeMatcher
 }
@@ -63,8 +59,6 @@ type term struct {
 func (m term) GetValue() interface{} {
 	return m.Data.Generate
 }
-
-func (m term) isMatcher() {}
 
 func (m term) Type() MatcherClass {
 	return regexMatcher
@@ -121,7 +115,7 @@ func Term(generate string, matcher string) MatcherV2 {
 
 // HexValue defines a matcher that accepts hexidecimal values.
 func HexValue() MatcherV2 {
-	return Regex("3F", hexadecimal)
+	return Regex("3F", hexadecimalRegex)
 }
 
 // Identifier defines a matcher that accepts number values.
@@ -131,7 +125,7 @@ func Identifier() MatcherV2 {
 
 // IPAddress defines a matcher that accepts valid IPv4 addresses.
 func IPAddress() MatcherV2 {
-	return Regex("127.0.0.1", ipAddress)
+	return Regex("127.0.0.1", ipAddressRegex)
 }
 
 // IPv4Address matches valid IPv4 addresses.
@@ -139,19 +133,19 @@ var IPv4Address = IPAddress
 
 // IPv6Address defines a matcher that accepts IP addresses.
 func IPv6Address() MatcherV2 {
-	return Regex("::ffff:192.0.2.128", ipAddress)
+	return Regex("::ffff:192.0.2.128", ipAddressRegex)
 }
 
 // Timestamp matches a pattern corresponding to the ISO_DATETIME_FORMAT, which
 // is "yyyy-MM-dd'T'HH:mm:ss". The current date and time is used as the eaxmple.
 func Timestamp() MatcherV2 {
-	return Regex(timeExample.Format(time.RFC3339), timestamp)
+	return Regex(timeExample.Format(time.RFC3339), timestampRegex)
 }
 
 // Date matches a pattern corresponding to the ISO_DATE_FORMAT, which
 // is "yyyy-MM-dd". The current date is used as the eaxmple.
 func Date() MatcherV2 {
-	return Regex(timeExample.Format("2006-01-02"), date)
+	return Regex(timeExample.Format("2006-01-02"), dateRegex)
 }
 
 // Time matches a pattern corresponding to the ISO_DATE_FORMAT, which
@@ -162,7 +156,7 @@ func Time() MatcherV2 {
 
 // UUID defines a matcher that accepts UUIDs. Produces a v4 UUID as the example.
 func UUID() MatcherV2 {
-	return Regex("fc763eba-0905-41c5-a27f-3934ab26786c", uuid)
+	return Regex("fc763eba-0905-41c5-a27f-3934ab26786c", uuidRegex)
 }
 
 // Regex is a more appropriately named alias for the "Term" matcher
@@ -173,10 +167,6 @@ var Regex = Term
 // We use the strategy outlined at http://www.jerf.org/iri/post/2917
 // to create a "sum" or "union" type.
 type MatcherV2 interface {
-	// isMatcher is how we tell the compiler that strings
-	// and other types are the same / allowed
-	isMatcher()
-
 	// GetValue returns the raw generated value for the matcher
 	// without any of the matching detail context
 	GetValue() interface{}
@@ -190,8 +180,6 @@ type MatcherV2 interface {
 // S is the string primitive wrapper (alias) for the Matcher type,
 // it allows plain strings to be matched
 type S string
-
-func (s S) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context
@@ -218,8 +206,6 @@ type String = S
 type StructMatcher map[string]MatcherV2
 
 // type StructMatcher map[string]Matcher
-
-func (m StructMatcher) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context

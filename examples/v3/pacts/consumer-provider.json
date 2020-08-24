@@ -15,7 +15,16 @@
       ],
       "request": {
         "body": {
+          "dateTime": "2020-02-02",
           "name": "billy"
+        },
+        "generators": {
+          "body": {
+            "$.dateTime": {
+              "format": "YYYY-MM-dd",
+              "type": "DateTime"
+            }
+          }
         },
         "headers": {
           "Authorization": "Bearer 1234",

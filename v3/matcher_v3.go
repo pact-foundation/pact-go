@@ -1,9 +1,5 @@
 package v3
 
-type v3Matcher interface {
-	isV3Matcher()
-}
-
 // MatcherV3 denotes a V3 specific Matcher
 type MatcherV3 interface {
 	MatcherV2
@@ -12,10 +8,13 @@ type MatcherV3 interface {
 	isV3Matcher()
 }
 
+type generator interface {
+	Generator() rule
+}
+
 // Integer defines a matcher that accepts any integer value.
 type Integer int
 
-func (i Integer) isMatcher()   {}
 func (i Integer) isV3Matcher() {}
 
 // GetValue returns the raw generated value for the matcher
@@ -41,7 +40,6 @@ func (d Decimal) GetValue() interface{} {
 	return float64(d)
 }
 
-func (d Decimal) isMatcher()   {}
 func (d Decimal) isV3Matcher() {}
 
 func (d Decimal) Type() MatcherClass {
@@ -61,7 +59,6 @@ func (n Null) GetValue() interface{} {
 	return float64(n)
 }
 
-func (n Null) isMatcher()   {}
 func (n Null) isV3Matcher() {}
 
 func (n Null) Type() MatcherClass {
@@ -84,7 +81,6 @@ func (e equality) GetValue() interface{} {
 	return e.contents
 }
 
-func (e equality) isMatcher()   {}
 func (e equality) isV3Matcher() {}
 
 func (e equality) Type() MatcherClass {
@@ -112,7 +108,6 @@ type Includes string
 func (i Includes) GetValue() interface{} {
 	return string(i)
 }
-func (i Includes) isMatcher()   {}
 func (i Includes) isV3Matcher() {}
 func (i Includes) Type() MatcherClass {
 	return includesMatcher
@@ -135,7 +130,6 @@ func (m minMaxLike) GetValue() interface{} {
 	return m.Contents
 }
 
-func (m minMaxLike) isMatcher()   {}
 func (m minMaxLike) isV3Matcher() {}
 
 func (m minMaxLike) Type() MatcherClass {
@@ -173,5 +167,59 @@ func ArrayMaxLike(content interface{}, max int) MatcherV3 {
 		Contents: content,
 		Min:      1,
 		Max:      max,
+	}
+}
+
+type stringGenerator struct {
+	contents  string
+	generator generatorType
+	format    string
+}
+
+func (s stringGenerator) GetValue() interface{} {
+	return s.contents
+}
+
+func (s stringGenerator) isV3Matcher() {}
+
+func (s stringGenerator) Type() MatcherClass {
+	return stringGeneratorMatcher
+}
+
+func (s stringGenerator) Generator() rule {
+	r := rule{
+		"type": s.generator,
+	}
+	if s.format != "" {
+		r["format"] = s.format
+	}
+
+	return r
+}
+func (s stringGenerator) MatchingRule() rule {
+	return nil
+}
+
+func DateGenerated(example string, format string) MatcherV2 {
+	return stringGenerator{
+		contents:  example,
+		generator: dateGenerator,
+		format:    format,
+	}
+}
+
+func TimeGenerated(example string, format string) MatcherV2 {
+	return stringGenerator{
+		contents:  example,
+		generator: timeGenerator,
+		format:    format,
+	}
+}
+
+func DateTimeGenerated(example string, format string) MatcherV2 {
+	return stringGenerator{
+		contents:  example,
+		generator: dateTimeGenerator,
+		format:    format,
 	}
 }
