@@ -61,7 +61,6 @@ type pactResponseV3 struct {
 	Headers       interface{}    `json:"headers,omitempty"`
 	Body          interface{}    `json:"body,omitempty"`
 	MatchingRules matchingRuleV3 `json:"matchingRules,omitempty"`
-	Generators    generatorV3    `json:"generators"`
 }
 
 type pactInteractionV3 struct {
@@ -112,11 +111,6 @@ func pactInteractionFromV3Interaction(interaction InteractionV3) pactInteraction
 		},
 		Response: pactResponseV3{
 			Status: interaction.Response.Status,
-			Generators: generatorV3{
-				Body:    make(generators),
-				Headers: make(generators),
-				Query:   make(generators),
-			},
 			MatchingRules: matchingRuleV3{
 				Body:    make(ruleSet),
 				Headers: make(ruleSet),
@@ -135,11 +129,10 @@ func (p *pactFileV3) generateV3PactFile() *pactFileV3 {
 		requestQuery, serialisedInteraction.Request.MatchingRules.Query, serialisedInteraction.Request.Generators.Query = buildPart(interaction.Request.Query)
 		serialisedInteraction.Request.Headers, serialisedInteraction.Request.MatchingRules.Headers, serialisedInteraction.Request.Generators.Headers = buildPart(interaction.Request.Headers)
 		serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules.Body, serialisedInteraction.Request.Generators.Body = buildPart(interaction.Request.Body)
-		serialisedInteraction.Response.Headers, serialisedInteraction.Response.MatchingRules.Headers, serialisedInteraction.Response.Generators.Headers = buildPart(interaction.Response.Headers)
-		serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules.Body, serialisedInteraction.Response.Generators.Body = buildPart(interaction.Response.Body)
+		serialisedInteraction.Response.Headers, serialisedInteraction.Response.MatchingRules.Headers, _ = buildPart(interaction.Response.Headers)
+		serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules.Body, _ = buildPart(interaction.Response.Body)
 
 		// TODO: Generators
-
 		buildQueryV3(requestQuery, interaction, &serialisedInteraction)
 		buildPactPathV3(interaction, &serialisedInteraction)
 
@@ -217,6 +210,7 @@ func buildPactPartV3(key string, value interface{}, body object, path string,
 			matchingRules[builtPath] = wrapMatchingRule(t.MatchingRule())
 
 			if g, ok := t.(generator); ok {
+				log.Println("[TRACE] have generator:", g.Generator())
 				generators[builtPath] = g.Generator()
 			}
 
@@ -249,6 +243,20 @@ func buildPactPartV3(key string, value interface{}, body object, path string,
 			fmt.Printf("Updating body: %+v, minArray: %+v", body, minArray)
 			path = path + buildPath(key, "")
 
+			// TODO: this is duplicated with below. Extract into common functions
+			// It's only needed because the Match function can't use v2 matchers, due to its type
+		case regexMatcher, likeMatcher:
+			log.Println("[TRACE] generate pact: Regex/LikeMatcher")
+			builtPath := path + buildPath(key, "")
+			body[key] = t.GetValue()
+			log.Println("[TRACE] generate pact: Regex/LikeMatcher =>", builtPath)
+			matchingRules[builtPath] = wrapMatchingRule(t.MatchingRule())
+
+			// TODO: this is duplicated with below. Extract into common functions
+		case structTypeMatcher:
+			log.Println("[TRACE] generate pact: StructTypeMatcher")
+			_, body, matchingRules, generators = recurseMapTypeV3(key, t.GetValue().(StructMatcher), body, path, matchingRules, generators)
+
 		default:
 			log.Fatalf("unexpected matcher (%s) for current specification format (3.0.0)", t.Type())
 		}
@@ -278,6 +286,7 @@ func buildPactPartV3(key string, value interface{}, body object, path string,
 			fmt.Printf("Updating body: %+v, minArray: %+v", body, minArray)
 			path = path + buildPath(key, "")
 
+			// TODO: this is duplicated above. Extract into common functions
 		case regexMatcher, likeMatcher:
 			log.Println("[TRACE] generate pact: Regex/LikeMatcher")
 			builtPath := path + buildPath(key, "")

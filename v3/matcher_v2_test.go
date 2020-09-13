@@ -775,7 +775,7 @@ func TestMatch(t *testing.T) {
 				}
 			}()
 
-			got = Match(tt.args.src)
+			got = MatchV2(tt.args.src)
 			log.Println("Got matcher: ", got)
 		})
 	}
@@ -974,7 +974,7 @@ func Test_pluckParams(t *testing.T) {
 					t.Errorf("pluckParams() = %v, want %v", got, tt.want)
 				}
 			}()
-			got = pluckParams(tt.args.srcType, tt.args.pactTag)
+			got = pluckParamsV3(tt.args.srcType, tt.args.pactTag)
 		})
 	}
 }

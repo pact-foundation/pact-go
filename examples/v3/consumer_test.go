@@ -114,10 +114,11 @@ func TestConsumerV3(t *testing.T) {
 			Method:  "POST",
 			Path:    v3.Regex("/foobar", `\/foo.*`),
 			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
-			Body: v3.MapMatcher{
-				"name":     s("billy"),
-				"dateTime": v3.DateTimeGenerated("2020-02-02", "YYYY-MM-dd"),
-			},
+			// Body: v3.MapMatcher{
+			// 	"name":     s("billy"),
+			// 	"dateTime": v3.DateTimeGenerated("2020-02-02", "YYYY-MM-dd"),
+			// },
+			Body: v3.MatchV3(&User{}),
 			Query: v3.QueryMatcher{
 				"baz": []interface{}{
 					v3.Regex("bar", "[a-z]+"),
@@ -129,18 +130,18 @@ func TestConsumerV3(t *testing.T) {
 		WillRespondWith(v3.Response{
 			Status:  200,
 			Headers: v3.MapMatcher{"Content-Type": s("application/json")},
-			// Body:    v3.Match(&User{}),
-			Body: v3.MapMatcher{
-				"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
-				"name":           s("FirstName"),
-				"lastName":       s("LastName"),
-				"superstring":    v3.Includes("foo"),
-				"id":             v3.Integer(12),
-				"accountBalance": v3.Decimal(123.76),
-				"itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
-				"itemsMin":       v3.ArrayMinLike("min", 3),
-				"equality":       v3.Equality("a thing"),
-			},
+			Body:    v3.MatchV3(&User{}),
+			// Body: v3.MapMatcher{
+			// 	"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
+			// 	"name":           s("FirstName"),
+			// 	"lastName":       s("LastName"),
+			// 	"superstring":    v3.Includes("foo"),
+			// 	"id":             v3.Integer(12),
+			// 	"accountBalance": v3.Decimal(123.76),
+			// 	"itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
+			// 	"itemsMin":       v3.ArrayMinLike("min", 3),
+			// 	"equality":       v3.Equality("a thing"),
+			// },
 		})
 
 	// Execute pact test
@@ -152,7 +153,8 @@ func TestConsumerV3(t *testing.T) {
 type User struct {
 	Name     string `json:"name" pact:"example=billy"`
 	LastName string `json:"lastName" pact:"example=sampson"`
-	Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
+	Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
+	// Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
 }
 
 // Pass in test case

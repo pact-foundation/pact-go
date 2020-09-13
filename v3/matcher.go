@@ -75,3 +75,42 @@ const (
 	dateGenerator                   = "Date"
 	timeGenerator                   = "Time"
 )
+
+// params are plucked from 'pact' struct tags as matchV2() traverses
+// struct fields. They are passed back into matchV2() along with their
+// associated type to serve as parameters for the dsl functions.
+type params struct {
+	slice     sliceParams
+	str       stringParams
+	number    numberParams
+	boolean   boolParams
+	generator MatcherV3
+}
+
+type numberParams struct {
+	integer int
+	float   float32
+}
+type boolParams struct {
+	value   bool
+	defined bool
+}
+
+type sliceParams struct {
+	min int
+	max int
+}
+
+type stringParams struct {
+	example string
+	regEx   string
+}
+
+// getDefaults returns the default params
+func getDefaults() params {
+	return params{
+		slice: sliceParams{
+			min: 1,
+		},
+	}
+}

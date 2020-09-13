@@ -248,7 +248,7 @@ func objectToString(obj interface{}) string {
 	}
 }
 
-// Match recursively traverses the provided type and outputs a
+// MatchV2 recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
 // By default, it requires slices to have a minimum of 1 element.
 // For concrete types, it uses `dsl.Like` to assert that types match.
@@ -258,25 +258,24 @@ func objectToString(obj interface{}) string {
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
 // String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
-// TODO: support generators
-func Match(src interface{}) MatcherV2 {
-	return match(reflect.TypeOf(src), getDefaults())
+func MatchV2(src interface{}) MatcherV2 {
+	return matchV2(reflect.TypeOf(src), getDefaults())
 }
 
 // match recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
-func match(srcType reflect.Type, params params) MatcherV2 {
+func matchV2(srcType reflect.Type, params params) MatcherV2 {
 	switch kind := srcType.Kind(); kind {
 	case reflect.Ptr:
-		return match(srcType.Elem(), params)
+		return matchV2(srcType.Elem(), params)
 	case reflect.Slice, reflect.Array:
-		return EachLike(match(srcType.Elem(), getDefaults()), params.slice.min)
+		return EachLike(matchV2(srcType.Elem(), getDefaults()), params.slice.min)
 	case reflect.Struct:
 		result := StructMatcher{}
 
 		for i := 0; i < srcType.NumField(); i++ {
 			field := srcType.Field(i)
-			result[field.Tag.Get("json")] = match(field.Type, pluckParams(field.Type, field.Tag.Get("pact")))
+			result[field.Tag.Get("json")] = matchV2(field.Type, pluckParamsV2(field.Type, field.Tag.Get("pact")))
 		}
 		return result
 	case reflect.String:
@@ -309,48 +308,11 @@ func match(srcType reflect.Type, params params) MatcherV2 {
 	}
 }
 
-// params are plucked from 'pact' struct tags as match() traverses
-// struct fields. They are passed back into match() along with their
-// associated type to serve as parameters for the dsl functions.
-type params struct {
-	slice   sliceParams
-	str     stringParams
-	number  numberParams
-	boolean boolParams
-}
-
-type numberParams struct {
-	integer int
-	float   float32
-}
-type boolParams struct {
-	value   bool
-	defined bool
-}
-
-type sliceParams struct {
-	min int
-}
-
-type stringParams struct {
-	example string
-	regEx   string
-}
-
-// getDefaults returns the default params
-func getDefaults() params {
-	return params{
-		slice: sliceParams{
-			min: 1,
-		},
-	}
-}
-
-// pluckParams converts a 'pact' tag into a pactParams struct
+// pluckParamsV2 converts a 'pact' tag into a pactParams struct
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
 // String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
-func pluckParams(srcType reflect.Type, pactTag string) params {
+func pluckParamsV2(srcType reflect.Type, pactTag string) params {
 	params := getDefaults()
 	if pactTag == "" {
 		return params
@@ -408,6 +370,3 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 func triggerInvalidPactTagPanic(tag string, err error) {
 	panic(fmt.Sprintf("match: encountered invalid pact tag %q . . . parsing failed with error: %v", tag, err))
 }
-
-// Generators
-// https://github.com/pact-foundation/pact-specification/tree/version-3#introduce-example-generators
