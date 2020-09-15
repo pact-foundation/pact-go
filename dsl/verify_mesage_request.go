@@ -31,6 +31,9 @@ type VerifyMessageRequest struct {
 	// ProviderVersion is the semantical version of the Provider API.
 	ProviderVersion string
 
+	// ProviderTags is the set of tags to apply to the provider application version when results are published to the broker
+	ProviderTags []string
+
 	// MessageHandlers contains a mapped list of message handlers for a provider
 	// that will be rable to produce the correct message format for a given
 	// consumer interaction
