@@ -18,13 +18,15 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/utils"
-	"github.com/pact-foundation/pact-go/v3/install"
+	"github.com/pact-foundation/pact-go/v3/internal/installer"
 	"github.com/pact-foundation/pact-go/v3/internal/native"
 )
 
 func init() {
 	initLogging()
 	native.Init()
+	i := installer.NewInstaller()
+	i.CheckInstallation()
 }
 
 // QueryStringStyle allows a user to specific the v2 query string serialisation format
@@ -140,12 +142,6 @@ func (p *httpMockProvider) validateConfig() error {
 
 	// if p.config.Network == "" {
 	// 	p.config.Network = "tcp"
-	// }
-
-	// TODO: use installer to download runtime dependencies
-	// if !p.config.toolValidityCheck && !(p.config.DisableToolValidityCheck || os.Getenv("PACT_DISABLE_TOOL_VALIDITY_CHECK") != "") {
-	// 	checkCliCompatibility()
-	// 	p.config.toolValidityCheck = true
 	// }
 
 	if p.config.Host == "" {
@@ -271,17 +267,6 @@ func (p *httpMockProvider) WritePact() error {
 		return native.WritePactFile(p.config.Port, p.config.PactDir)
 	}
 	return errors.New("pact server not yet started")
-}
-
-var installer = install.NewInstaller()
-
-var checkCliCompatibility = func() {
-	log.Println("[DEBUG] checking CLI compatability")
-	err := installer.CheckInstallation()
-
-	if err != nil {
-		log.Fatal("[ERROR] CLI tools are out of date, please upgrade before continuing")
-	}
 }
 
 // GetTLSConfigForTLSMockServer gets an http transport with

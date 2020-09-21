@@ -46,8 +46,7 @@ func TestConsumerV2(t *testing.T) {
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
 		WithRequest(v3.Request{
-			Method: "POST",
-			// Path:   s("/foobar"),
+			Method:  "POST",
 			Path:    v3.Regex("/foobar", `\/foo.*`),
 			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
 			Query: v3.QueryMatcher{
@@ -118,6 +117,8 @@ func TestConsumerV3(t *testing.T) {
 			// 	"name":     s("billy"),
 			// 	"dateTime": v3.DateTimeGenerated("2020-02-02", "YYYY-MM-dd"),
 			// },
+
+			// Alternative use MatchV3
 			Body: v3.MatchV3(&User{}),
 			Query: v3.QueryMatcher{
 				"baz": []interface{}{
