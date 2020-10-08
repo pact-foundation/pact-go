@@ -5,6 +5,10 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.5.0 (08 October 2020)
+  * [d3abbd8](https://github.com/pact-foundation/pact-go/commit/d3abbd8) - feat: allow setting of ProviderTags on VerifyMessageRequest (James Halsall, Tue Sep 15 08:57:24 2020 +0100)
+  * [d3c15fb](https://github.com/pact-foundation/pact-go/commit/d3c15fb) - docs: close img tag so it is valid mdx for docs.pact.io (Beth Skurrie, Sat Aug 15 18:02:16 2020 +1000)
+
 ### v1.4.4 (14 August 2020)
   * [a0227bb](https://github.com/pact-foundation/pact-go/commit/a0227bb) - fix: make tests fail on non-zero status (Matt Fellows, Fri Aug 7 14:37:42 2020 +1000)
   * [a7d9596](https://github.com/pact-foundation/pact-go/commit/a7d9596) - fix: timeout in integration test (Matt Fellows, Fri Aug 7 14:18:24 2020 +1000)
