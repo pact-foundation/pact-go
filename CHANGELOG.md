@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.5.1 (09 October 2020)
+  * [65822cd](https://github.com/pact-foundation/pact-go/commit/65822cd) - fix: misleading error message in certain verification scenarios (Matt Fellows, Fri Oct 9 23:59:37 2020 +1100)
+
 ### v1.5.0 (08 October 2020)
   * [d3abbd8](https://github.com/pact-foundation/pact-go/commit/d3abbd8) - feat: allow setting of ProviderTags on VerifyMessageRequest (James Halsall, Tue Sep 15 08:57:24 2020 +0100)
   * [d3c15fb](https://github.com/pact-foundation/pact-go/commit/d3c15fb) - docs: close img tag so it is valid mdx for docs.pact.io (Beth Skurrie, Sat Aug 15 18:02:16 2020 +1000)
