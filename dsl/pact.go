@@ -403,7 +403,10 @@ func (p *Pact) VerifyProvider(t *testing.T, request types.VerifyRequest) ([]type
 	res, err := p.VerifyProviderRaw(request)
 
 	if len(res) == 0 {
-		message := "No pacts found to verify"
+		var message = "no pacts found to verify"
+		if err != nil {
+			message = "error verifying the provider: see returned error for detail"
+		}
 
 		if len(request.Tags) > 0 {
 			message = fmt.Sprintf("%s. Check the tags provided (%s) for your broker (%s) are correct", message, strings.Join(request.Tags, ","), request.BrokerURL)
