@@ -19,7 +19,7 @@ bin:
 	ls -hl build/
 
 clean:
-	rm -rf build output dist examples/v3/pacts/*
+	rm -rf build output dist examples/v3/pacts
 
 deps: snyk-install
 	@echo "--- 🐿  Fetching build dependencies "
@@ -51,7 +51,8 @@ pact: install docker
 
 pactv3: clean
 	@echo "--- 🔨 Running Pact examples"
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/... -run TestConsumerV3
+	mkdir -p ./examples/v3/pacts
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
 
 release:
 	echo "--- 🚀 Releasing it"

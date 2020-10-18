@@ -1,4 +1,4 @@
-// Package in responsible for finding, acquiring and addressing
+// Package installer is responsible for finding, acquiring and addressing
 // runtime dependencies for this package (e.g. Ruby standalone, Rust bindings etc.)
 package installer
 

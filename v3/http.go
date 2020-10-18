@@ -190,8 +190,7 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	if p.specificationVersion == V2 {
 		serialisedPact = newPactFileV2(p.config.Consumer, p.config.Provider, p.v2Interactions, p.config.matchingConfig)
 	} else {
-
-		serialisedPact = newPactFileV3(p.config.Consumer, p.config.Provider, p.v3Interactions)
+		serialisedPact = newPactFileV3(p.config.Consumer, p.config.Provider, p.v3Interactions, nil)
 	}
 
 	log.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
@@ -223,9 +222,8 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	if !res {
 		return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
 	}
-	p.WritePact()
 
-	return nil
+	return p.WritePact()
 }
 
 // TODO: pretty print this to make it really easy to understand the problems

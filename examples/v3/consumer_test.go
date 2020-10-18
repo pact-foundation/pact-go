@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -21,8 +22,8 @@ func TestConsumerV2(t *testing.T) {
 	v3.SetLogLevel("TRACE")
 
 	mockProvider, err := v3.NewHTTPMockProviderV2(v3.MockHTTPProviderConfigV2{
-		Consumer: "MyConsumer",
-		Provider: "MyProvider",
+		Consumer: "V2Consumer",
+		Provider: "V2Provider",
 		Host:     "127.0.0.1",
 		Port:     8080,
 		TLS:      true,
@@ -56,9 +57,10 @@ func TestConsumerV2(t *testing.T) {
 					v3.Regex("baz", "[a-z]+"),
 				},
 			},
-			Body: v3.MapMatcher{
-				"name": s("billy"),
-			},
+			// Body: v3.MapMatcher{
+			// 	"name": s("billy"),
+			// },
+			Body: v3.MatchV2(&User{}),
 		}).
 		WillRespondWith(v3.Response{
 			Status:  200,
@@ -70,8 +72,8 @@ func TestConsumerV2(t *testing.T) {
 				"lastName": s("LastName"),
 				"itemsMin": v3.ArrayMinLike("min", 3),
 				// Add any of these this to demonstrate adding a v3 matcher failing the build (not at the type system level unfortunately)
-				// "id":             v3.Integer(1),
-				// "superstring":    v3.Includes("foo"),
+				// "id": v3.Integer(1),
+				// "superstring": v3.Includes("foo"),
 				// "accountBalance": v3.Decimal(123.76),
 				// "itemsMinMax": v3.ArrayMinMaxLike(27, 3, 5),
 				// "equality": v3.Equality("a thing"),
@@ -88,8 +90,8 @@ func TestConsumerV3(t *testing.T) {
 	v3.SetLogLevel("TRACE")
 
 	mockProvider, err := v3.NewHTTPMockProviderV3(v3.MockHTTPProviderConfigV2{
-		Consumer: "MyConsumer",
-		Provider: "MyProvider",
+		Consumer: "V3Consumer",
+		Provider: "V3Provider",
 		Host:     "127.0.0.1",
 		Port:     8080,
 		TLS:      true,
@@ -151,7 +153,37 @@ func TestConsumerV3(t *testing.T) {
 	}
 }
 
+func TestMessagePact(t *testing.T) {
+	provider, err := v3.NewMessagePactV3(v3.MessageConfig{
+		Consumer:             "V3MessageConsumer",
+		Provider:             "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
+		SpecificationVersion: v3.V3,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	message := provider.AddMessage()
+	message.
+		Given(v3.ProviderStateV3{
+			Name: "User with id 127 exists",
+			Parameters: map[string]interface{}{
+				"id": 27,
+			},
+		}).
+		ExpectsToReceive("a user event").
+		WithMetadata(v3.MapMatcher{
+			"Content-Type": s("application/json; charset=utf-8"),
+		}).
+		WithContent(v3.MatchV3(&User{})).
+		AsType(&User{})
+
+	provider.VerifyMessageConsumer(t, message, userHandlerWrapper)
+}
+
 type User struct {
+	ID       int    `json:"id" pact:"example=27"`
 	Name     string `json:"name" pact:"example=billy"`
 	LastName string `json:"lastName" pact:"example=sampson"`
 	Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
@@ -174,7 +206,7 @@ var test = func(config v3.MockServerConfig) error {
 			RawQuery: "baz=bat&baz=foo&baz=something", // Default behaviour
 			// RawQuery: "baz[]=bat&baz[]=foo&baz[]=something", // TODO: Rust v3 does not support this syntax
 		},
-		Body:   ioutil.NopCloser(strings.NewReader(`{"name":"billy", "dateTime":"2020-02-02"}`)),
+		Body:   ioutil.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2020-01-01'T'08:00:45"}`)),
 		Header: make(http.Header),
 	}
 
@@ -187,4 +219,20 @@ var test = func(config v3.MockServerConfig) error {
 	_, err := client.Do(req)
 
 	return err
+}
+
+// Message Pact - wrapped handler extracts the message
+var userHandlerWrapper = func(m v3.Message) error {
+	return userHandler(*m.Content.(*User))
+}
+
+// Message Pact - actual handler
+var userHandler = func(u User) error {
+	if u.ID == 0 {
+		return errors.New("invalid object supplied, missing fields (id)")
+	}
+
+	// ... actually consume the message
+
+	return nil
 }

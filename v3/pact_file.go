@@ -23,14 +23,18 @@ var pactGoMetadata = map[string]interface{}{
 	},
 }
 
+type Pacticipant struct {
+	Name string `json:"name"`
+}
+
 // newPactFileV2 generates a v2 formated pact file from the given interactions
 func newPactFileV2(consumer string, provider string, interactions []*InteractionV2, options PactSerialisationOptionsV2) pactFileV2 {
 	p := pactFileV2{
 		Interactions:         make([]pactInteractionV2, 0),
 		interactions:         interactions,
 		Metadata:             pactGoMetadata,
-		Consumer:             consumer,
-		Provider:             provider,
+		Consumer:             Pacticipant{consumer},
+		Provider:             Pacticipant{provider},
 		SpecificationVersion: V2,
 		Options:              options,
 	}
@@ -45,14 +49,16 @@ func newPactFileV2(consumer string, provider string, interactions []*Interaction
 }
 
 // newPactFileV3 generates a v3 formated pact file from the given interactions
-func newPactFileV3(consumer string, provider string, interactions []*InteractionV3) pactFileV3 {
+func newPactFileV3(consumer string, provider string, interactions []*InteractionV3, messages []*Message) pactFileV3 {
 	log.Println("[DEBUG] creating v3 pact file")
 	p := pactFileV3{
 		Interactions:         make([]pactInteractionV3, 0),
 		interactions:         interactions,
+		Messages:             make([]pactMessageV3, 0),
+		messages:             messages,
 		Metadata:             pactGoMetadata,
-		Consumer:             consumer,
-		Provider:             provider,
+		Consumer:             Pacticipant{consumer},
+		Provider:             Pacticipant{provider},
 		SpecificationVersion: V3,
 	}
 

@@ -1,9 +1,13 @@
 package v3
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"path"
 	"reflect"
+
+	"github.com/spf13/afero"
 )
 
 type object map[string]interface{}
@@ -51,7 +55,7 @@ type pactRequestV3 struct {
 	Path          string              `json:"path"`
 	Query         map[string][]string `json:"query,omitempty"`
 	Headers       interface{}         `json:"headers,omitempty"`
-	Body          interface{}         `json:"body"`
+	Body          interface{}         `json:"body,omitempty"`
 	MatchingRules matchingRuleV3      `json:"matchingRules,omitempty"`
 	Generators    generatorV3         `json:"generators"`
 }
@@ -70,24 +74,43 @@ type pactInteractionV3 struct {
 	Response    pactResponseV3    `json:"response"`
 }
 
+type pactMessageV3 struct {
+	// Message body
+	Content interface{} `json:"contents,omitempty"`
+
+	// Provider state to be written into the Pact file
+	States []ProviderStateV3 `json:"providerStates,omitempty"`
+
+	// Message metadata
+	Metadata interface{} `json:"metadata,omitempty"`
+
+	// Description to be written into the Pact file
+	Description string `json:"description"`
+
+	MatchingRules matchingRuleV3 `json:"matchingRules,omitempty"`
+}
+
 // pactFileV3 is what will be serialised to the Pactfile in the request body examples and matching rules
 // given a structure containing matchers.
-// TODO: any matching rules will need to be merged with other aspects (e.g. headers, path, query).
-// ...still very much spike/POC code
 type pactFileV3 struct {
 	// Consumer is the name of the Consumer/Client.
-	Consumer string `json:"consumer"`
+	Consumer Pacticipant `json:"consumer"`
 
 	// Provider is the name of the Providing service.
-	Provider string `json:"provider"`
+	Provider Pacticipant `json:"provider"`
 
 	// SpecificationVersion is the version of the Pact Spec this implementation supports
 	SpecificationVersion SpecificationVersion `json:"-"`
 
 	interactions []*InteractionV3
 
+	messages []*Message
+
+	// Messages are the v3 message interaction types
+	Messages []pactMessageV3 `json:"messages,omitempty"`
+
 	// Interactions are all of the request/response expectations, with matching rules and generators
-	Interactions []pactInteractionV3 `json:"interactions"`
+	Interactions []pactInteractionV3 `json:"interactions,omitempty"`
 
 	Metadata map[string]interface{} `json:"metadata"`
 }
@@ -126,18 +149,38 @@ func (p *pactFileV3) generateV3PactFile() *pactFileV3 {
 
 		var requestQuery object
 
-		requestQuery, serialisedInteraction.Request.MatchingRules.Query, serialisedInteraction.Request.Generators.Query = buildPart(interaction.Request.Query)
-		serialisedInteraction.Request.Headers, serialisedInteraction.Request.MatchingRules.Headers, serialisedInteraction.Request.Generators.Headers = buildPart(interaction.Request.Headers)
-		serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules.Body, serialisedInteraction.Request.Generators.Body = buildPart(interaction.Request.Body)
-		serialisedInteraction.Response.Headers, serialisedInteraction.Response.MatchingRules.Headers, _ = buildPart(interaction.Response.Headers)
-		serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules.Body, _ = buildPart(interaction.Response.Body)
-
-		// TODO: Generators
-		buildQueryV3(requestQuery, interaction, &serialisedInteraction)
+		if interaction.Request.Query != nil {
+			requestQuery, serialisedInteraction.Request.MatchingRules.Query, serialisedInteraction.Request.Generators.Query = buildPart(interaction.Request.Query)
+		}
+		if interaction.Request.Headers != nil {
+			serialisedInteraction.Request.Headers, serialisedInteraction.Request.MatchingRules.Headers, serialisedInteraction.Request.Generators.Headers = buildPart(interaction.Request.Headers)
+		}
+		if interaction.Request.Body != nil {
+			serialisedInteraction.Request.Body, serialisedInteraction.Request.MatchingRules.Body, serialisedInteraction.Request.Generators.Body = buildPart(interaction.Request.Body)
+		}
+		if interaction.Response.Headers != nil {
+			serialisedInteraction.Response.Headers, serialisedInteraction.Response.MatchingRules.Headers, _ = buildPart(interaction.Response.Headers)
+		}
+		if interaction.Response.Body != nil {
+			serialisedInteraction.Response.Body, serialisedInteraction.Response.MatchingRules.Body, _ = buildPart(interaction.Response.Body)
+		}
+		if interaction.Request.Query != nil {
+			buildQueryV3(requestQuery, interaction, &serialisedInteraction)
+		}
 		buildPactPathV3(interaction, &serialisedInteraction)
 
 		p.Interactions = append(p.Interactions, serialisedInteraction)
-		fmt.Printf("%+v", serialisedInteraction)
+	}
+	for _, message := range p.messages {
+		serialisedMessage := pactMessageV3{
+			Description: message.Description,
+			States:      message.States,
+		}
+
+		serialisedMessage.Content, serialisedMessage.MatchingRules.Body, _ = buildPart(message.Content)
+		serialisedMessage.Metadata, _, _ = buildPart(message.Metadata)
+
+		p.Messages = append(p.Messages, serialisedMessage)
 	}
 
 	return p
@@ -379,4 +422,88 @@ func buildQueryV3(input object, sourceInteraction *InteractionV3, destInteractio
 	destInteraction.Request.Query = queryAsMap
 
 	return destInteraction
+}
+
+type pactReaderV3 interface {
+	read(string) (pactFileV3, error)
+}
+
+type pactWriterV3 interface {
+	write(string, pactFileV3) error
+}
+
+type pactFileV3ReaderWriter struct {
+	fs afero.Fs
+}
+
+func defaultPactFileV3ReaderWriter() pactFileV3ReaderWriter {
+	return pactFileV3ReaderWriter{
+		fs: afero.NewOsFs(),
+	}
+}
+
+func pactFilePath(dir string, pactfile pactFileV3) string {
+	return path.Join(dir, fmt.Sprintf("%s-%s.json", pactfile.Consumer.Name, pactfile.Provider.Name))
+}
+
+func (p *pactFileV3ReaderWriter) update(dir string, pactfile pactFileV3) error {
+	// Check if file already exists
+	existing, err := p.read(pactFilePath(dir, pactfile))
+	if err != nil {
+		log.Println("[INFO] existing pact file not found or error reading:", err)
+	}
+
+	combined, err := mergePactFiles(existing, pactfile)
+	if err != nil {
+		log.Println("[ERROR] unable to merge message pacts into existing pact file: ", err)
+	}
+
+	return p.write(dir, combined)
+}
+
+func (p *pactFileV3ReaderWriter) write(dir string, pactfile pactFileV3) error {
+	bytes, err := json.Marshal(pactfile)
+	if err != nil {
+		return err
+	}
+	return afero.WriteFile(p.fs, pactFilePath(dir, pactfile), bytes, 0644)
+}
+
+func (p *pactFileV3ReaderWriter) read(file string) (pactFileV3, error) {
+	bytes, err := afero.ReadFile(p.fs, file)
+	if err != nil {
+		return pactFileV3{}, err
+	}
+
+	var f pactFileV3
+	err = json.Unmarshal(bytes, &f)
+
+	return f, err
+}
+
+// Merge two pact files together
+// Merging a pact file rules
+// Any interactions in the original pact file are appended to the new one
+// ... this means any metadata etc. will also be replaced
+// Cannot have messages + interactions in the same file - error
+func mergePactFiles(orig pactFileV3, updated pactFileV3) (pactFileV3, error) {
+	if len(orig.Messages) > 0 && len(updated.Interactions) > 0 {
+		return orig, fmt.Errorf("attempting to merge HTTP interactions to an existing contract containing messages, cannot have both")
+	}
+	if len(orig.Interactions) > 0 && len(updated.Messages) > 0 {
+		return orig, fmt.Errorf("attempting to merge message interactions to an existing contract containing HTTP interactions, cannot have both")
+	}
+
+	if len(orig.Messages) > 0 {
+		updated.Messages = append(orig.Messages, updated.Messages...)
+	}
+	if len(orig.Interactions) > 0 {
+		updated.Interactions = append(orig.Interactions, updated.Interactions...)
+	}
+
+	// TODO: check consumer/provider match
+	// TODO: check for conflicting messages
+	// TODO: merge metadata?
+
+	return updated, nil
 }

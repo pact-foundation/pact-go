@@ -229,6 +229,7 @@ func (s StructMatcher) MatchingRule() rule {
 // type MapMatcher map[string]Matcher
 type MapMatcher map[string]interface{}
 type HeadersMatcher = MapMatcher
+type MetadataMatcher = MapMatcher
 
 // QueryMatcher matches a query string interface
 type QueryMatcher map[string][]interface{}

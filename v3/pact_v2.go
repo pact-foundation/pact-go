@@ -40,10 +40,10 @@ type pactInteractionV2 struct {
 // ...still very much spike/POC code
 type pactFileV2 struct {
 	// Consumer is the name of the Consumer/Client.
-	Consumer string `json:"consumer"`
+	Consumer Pacticipant `json:"consumer"`
 
 	// Provider is the name of the Providing service.
-	Provider string `json:"provider"`
+	Provider Pacticipant `json:"provider"`
 
 	// SpecificationVersion is the version of the Pact Spec this implementation supports
 	SpecificationVersion SpecificationVersion `json:"-"`
@@ -167,9 +167,6 @@ func buildPactPartV2(key string, value interface{}, body map[string]interface{},
 
 	switch t := value.(type) {
 
-	case MatcherV3:
-		log.Fatalf("error: v3 matcher '%+s' provided to to a v2 specification. This will lead to inconsistent results", reflect.TypeOf(value))
-
 	case MatcherV2:
 		switch t.Type() {
 
@@ -233,6 +230,9 @@ func buildPactPartV2(key string, value interface{}, body map[string]interface{},
 	case map[string]interface{}, MapMatcher, QueryMatcher:
 		log.Println("[TRACE] generate pact: MapMatcher")
 		_, body, matchingRules = recurseMapType(key, t, body, path, matchingRules)
+
+	case MatcherV3:
+		log.Fatalf("error: v3 matcher '%+s' provided to to a v2 specification. This will lead to inconsistent results", reflect.TypeOf(value))
 
 	// Primitives (terminal cases)
 	default:
