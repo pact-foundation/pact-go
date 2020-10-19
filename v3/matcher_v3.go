@@ -348,6 +348,7 @@ func pluckStringParams(pactTag string, p params) params {
 	// example=2012-01-01:10:00
 	// example=2012-01-01:10:00,regex=...
 	// example=2012-01-01:10:00,generator=datetime,format=yyyy-MM-dd:HH:mm
+	// example=2012-01-01:10:00,regex=...,generator=datetime,format=yyyy-MM-dd:HH:mm
 
 	withGenerator, _ := regexp.Compile(`generator=(.*)`)
 	withRegex, _ := regexp.Compile(`regex=(.*)$`)
@@ -458,7 +459,7 @@ func pluckParamsV3(srcType reflect.Type, pactTag string) params {
 		}
 	case reflect.String:
 		params = pluckStringParams(pactTag, params)
-		log.Println("[DEBUG] STRING PARAMS", params)
+		log.Printf("[DEBUG] STRING PARAMS: %+v", params)
 
 		// TODO: checks on what was parsed
 	}

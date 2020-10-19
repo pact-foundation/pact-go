@@ -392,6 +392,28 @@ func Test_pluckParamsV3(t *testing.T) {
 			wantPanic: false,
 		},
 		{
+			name: "expected use - string tag with generator, format and regex",
+			args: args{
+				srcType: reflect.TypeOf(""),
+				pactTag: "example=2020-01-01'T'08:00:45,regex=[0-9-]+,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				str: stringParams{
+					example: "2020-01-01'T'08:00:45",
+					regEx:   "[0-9-]+",
+				},
+				generator: stringGenerator{
+					contents:  "2020-01-01'T'08:00:45",
+					format:    "yyyy-MM-dd'T'HH:mm:ss",
+					generator: dateTimeGenerator,
+				},
+			},
+			wantPanic: false,
+		},
+		{
 			name: "empty string tag",
 			args: args{
 				srcType: reflect.TypeOf(""),
@@ -459,7 +481,7 @@ func Test_pluckParamsV3(t *testing.T) {
 				if tt.wantPanic != didPanic {
 					t.Errorf("pluckParams() didPanic = %+v, want %+v", didPanic, tt.wantPanic)
 				} else if !didPanic && !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("pluckParams() = %+v, want %+v", got, tt.want)
+					t.Errorf("pluckParams() got: \n%+v\n, want: \n%+v\n", got, tt.want)
 				}
 			}()
 			got = pluckParamsV3(tt.args.srcType, tt.args.pactTag)

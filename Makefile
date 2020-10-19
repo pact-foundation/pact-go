@@ -53,6 +53,7 @@ pactv3: clean
 	@echo "--- 🔨 Running Pact examples"
 	mkdir -p ./examples/v3/pacts
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
+	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v3/... -run TestV3MessageProvider
 
 release:
 	echo "--- 🚀 Releasing it"

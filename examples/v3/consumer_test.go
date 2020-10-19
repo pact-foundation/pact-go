@@ -176,7 +176,13 @@ func TestMessagePact(t *testing.T) {
 		WithMetadata(v3.MapMatcher{
 			"Content-Type": s("application/json; charset=utf-8"),
 		}).
-		WithContent(v3.MatchV3(&User{})).
+		// WithContent(v3.MatchV3(&User{})).
+		WithContent(v3.MapMatcher{
+			"datetime": v3.Regex("2020-01-01", "[0-9\\-]+"),
+			"name":     s("FirstName"),
+			"lastName": s("LastName"),
+			"id":       v3.Integer(12),
+		}).
 		AsType(&User{})
 
 	provider.VerifyMessageConsumer(t, message, userHandlerWrapper)
@@ -187,6 +193,7 @@ type User struct {
 	Name     string `json:"name" pact:"example=billy"`
 	LastName string `json:"lastName" pact:"example=sampson"`
 	Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
+	// Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,regex=[0-9-]+,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
 	// Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
 }
 

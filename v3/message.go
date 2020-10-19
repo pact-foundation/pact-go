@@ -7,14 +7,14 @@ import (
 
 // StateHandler is a provider function that sets up a given state before
 // the provider interaction is validated
-type StateHandler func(State) error
+type StateHandler func(ProviderStateV3) error
 
 // StateHandlers is a list of StateHandler's
 type StateHandlers map[string]StateHandler
 
 // MessageHandler is a provider function that generates a
 // message for a Consumer given a Message context (state, description etc.)
-type MessageHandler func(Message) (interface{}, error)
+type MessageHandler func([]ProviderStateV3) (interface{}, error)
 
 // MessageHandlers is a list of handlers ordered by description
 type MessageHandlers map[string]MessageHandler
@@ -42,13 +42,6 @@ type Message struct {
 	// Type to Marshall content into when sending back to the consumer
 	// Defaults to interface{}
 	Type interface{}
-}
-
-// State specifies how the system should be configured when
-// verified. e.g. "user A exists"
-type State struct {
-	Name   string                 `json:"name"`
-	Params map[string]interface{} `json:"params,omitempty"`
 }
 
 // Given specifies a provider state. Optional.
