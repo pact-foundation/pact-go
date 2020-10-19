@@ -61,7 +61,7 @@
         "body": {
           "dateTime": "2020-01-01",
           "itemsMin": [
-            "min",
+            "thereshouldbe3ofthese",
             null,
             null
           ],

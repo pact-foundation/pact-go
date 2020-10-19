@@ -128,21 +128,79 @@
       },
       "response": {
         "body": {
-          "datetime": "2020-01-01'T'08:00:45",
-          "id": 27,
-          "lastName": "sampson",
-          "name": "billy"
+          "accountBalance": 123.76,
+          "dateTime": "2020-01-01",
+          "equality": "a thing",
+          "id": 12,
+          "itemsMin": [
+            "thereshouldbe3ofthese",
+            "thereshouldbe3ofthese",
+            "thereshouldbe3ofthese"
+          ],
+          "itemsMinMax": [
+            27,
+            27,
+            27,
+            27,
+            27
+          ],
+          "lastName": "LastName",
+          "name": "FirstName",
+          "superstring": "foo"
         },
         "headers": {
           "Content-Type": "application/json"
         },
         "matchingRules": {
           "body": {
+            "$.accountBalance": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.dateTime": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9\\-]+"
+                }
+              ]
+            },
+            "$.equality": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "equality"
+                }
+              ]
+            },
             "$.id": {
               "combine": "AND",
               "matchers": [
                 {
                   "match": "integer"
+                }
+              ]
+            },
+            "$.itemsMin": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.itemsMinMax": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "max": 5,
+                  "min": 3
                 }
               ]
             },
@@ -159,6 +217,15 @@
               "matchers": [
                 {
                   "match": "type"
+                }
+              ]
+            },
+            "$.superstring": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "include",
+                  "value": "foo"
                 }
               ]
             }

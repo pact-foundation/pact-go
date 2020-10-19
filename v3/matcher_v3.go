@@ -148,6 +148,7 @@ func (m minMaxLike) MatchingRule() rule {
 	r := rule{
 		"match": "type",
 	}
+	r["min"] = m.Min
 	if m.Min == 0 {
 		r["min"] = 1
 	}

@@ -70,7 +70,7 @@ func TestConsumerV2(t *testing.T) {
 				"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
 				"name":     s("FirstName"),
 				"lastName": s("LastName"),
-				"itemsMin": v3.ArrayMinLike("min", 3),
+				"itemsMin": v3.ArrayMinLike("thereshouldbe3ofthese", 3),
 				// Add any of these this to demonstrate adding a v3 matcher failing the build (not at the type system level unfortunately)
 				// "id": v3.Integer(1),
 				// "superstring": v3.Includes("foo"),
@@ -133,18 +133,18 @@ func TestConsumerV3(t *testing.T) {
 		WillRespondWith(v3.Response{
 			Status:  200,
 			Headers: v3.MapMatcher{"Content-Type": s("application/json")},
-			Body:    v3.MatchV3(&User{}),
-			// Body: v3.MapMatcher{
-			// 	"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
-			// 	"name":           s("FirstName"),
-			// 	"lastName":       s("LastName"),
-			// 	"superstring":    v3.Includes("foo"),
-			// 	"id":             v3.Integer(12),
-			// 	"accountBalance": v3.Decimal(123.76),
-			// 	"itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
-			// 	"itemsMin":       v3.ArrayMinLike("min", 3),
-			// 	"equality":       v3.Equality("a thing"),
-			// },
+			// Body:    v3.MatchV3(&User{}),
+			Body: v3.MapMatcher{
+				"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
+				"name":           s("FirstName"),
+				"lastName":       s("LastName"),
+				"superstring":    v3.Includes("foo"),
+				"id":             v3.Integer(12),
+				"accountBalance": v3.Decimal(123.76),
+				"itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
+				"itemsMin":       v3.ArrayMinLike("thereshouldbe3ofthese", 3),
+				"equality":       v3.Equality("a thing"),
+			},
 		})
 
 	// Execute pact test

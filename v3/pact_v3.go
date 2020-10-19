@@ -273,15 +273,13 @@ func buildPactPartV3(key string, value interface{}, body object, path string,
 
 			builtPath := path + buildPath(key, allListItems)
 			buildPactPartV3("0", t.GetValue(), arrayMap, builtPath, matchingRules, generators)
-			log.Println("[TRACE] generate pact: ArrayMinLikeMatcher =>", builtPath)
+			log.Println("[TRACE] generate pact: ArrayMinMaxLikeMatcher =>", builtPath, t.MatchingRule())
 			matchingRules[path+buildPath(key, "")] = wrapMatchingRule(t.MatchingRule())
 
 			for i := 0; i < times; i++ {
 				minArray[i] = arrayMap["0"]
 			}
 
-			// TODO: I think this assignment is working, but the next step seems to recurse again and this never writes
-			// probably just a bad terminal case handling?
 			body[key] = minArray
 			fmt.Printf("Updating body: %+v, minArray: %+v", body, minArray)
 			path = path + buildPath(key, "")
@@ -482,10 +480,12 @@ func (p *pactFileV3ReaderWriter) read(file string) (pactFileV3, error) {
 }
 
 // Merge two pact files together
-// Merging a pact file rules
+//
+// Merging a pact file rules:
 // Any interactions in the original pact file are appended to the new one
-// ... this means any metadata etc. will also be replaced
-// Cannot have messages + interactions in the same file - error
+// ... this means any non-interaction info (e.g. metadata etc.) will also be replaced
+// by the updated case
+// Errors if attempt to add messages + interactions in the same file
 func mergePactFiles(orig pactFileV3, updated pactFileV3) (pactFileV3, error) {
 	if len(orig.Messages) > 0 && len(updated.Interactions) > 0 {
 		return orig, fmt.Errorf("attempting to merge HTTP interactions to an existing contract containing messages, cannot have both")
@@ -501,8 +501,8 @@ func mergePactFiles(orig pactFileV3, updated pactFileV3) (pactFileV3, error) {
 		updated.Interactions = append(orig.Interactions, updated.Interactions...)
 	}
 
-	// TODO: check consumer/provider match
-	// TODO: check for conflicting messages
+	// TODO: check consumer/provider match?
+	// TODO: check for conflicting messages?
 	// TODO: merge metadata?
 
 	return updated, nil
