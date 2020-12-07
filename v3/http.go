@@ -18,15 +18,14 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/utils"
-	"github.com/pact-foundation/pact-go/v3/internal/installer"
-	"github.com/pact-foundation/pact-go/v3/internal/native"
+	native "github.com/pact-foundation/pact-go/v3/internal/native/mock_server"
 )
 
 func init() {
 	initLogging()
 	native.Init()
-	i := installer.NewInstaller()
-	i.CheckInstallation()
+	// i := installer.NewInstaller()
+	// i.CheckInstallation()
 }
 
 // QueryStringStyle allows a user to specific the v2 query string serialisation format

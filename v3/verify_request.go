@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/proxy"
+	native "github.com/pact-foundation/pact-go/v3/internal/native/verifier"
 )
 
 // Hook functions are used to tap into the lifecycle of a Consumer or Provider test
@@ -127,10 +128,10 @@ type VerifyRequest struct {
 	CustomTLSConfig *tls.Config
 
 	// Allow pending pacts to be included in verification (see pact.io/pending)
-	// EnablePending bool
+	EnablePending bool
 
 	// Pull in new WIP pacts from _any_ tag (see pact.io/wip)
-	// IncludeWIPPactsSince *time.Time
+	IncludeWIPPactsSince *time.Time
 
 	args []string
 }
@@ -265,19 +266,19 @@ func (v *VerifyRequest) validate() error {
 		v.args = append(v.args, "--provider-tags", strings.Join(v.ProviderTags, ","))
 	}
 
-	v.args = append(v.args, "--loglevel", "error")
+	v.args = append(v.args, "--loglevel", strings.ToLower(fmt.Sprintf("%s", LogLevel())))
 
-	// for _, tag := range v.Tags {
-	// 	v.args = append(v.args, "--consumer-version-tag", tag)
-	// }
+	if len(v.Tags) > 0 {
+		v.args = append(v.args, "--consumer-version-tags", strings.Join(v.Tags, ","))
+	}
 
-	// if v.EnablePending {
-	// 	v.args = append(v.args, "--enable-pending")
-	// }
+	if v.EnablePending {
+		v.args = append(v.args, "--enable-pending")
+	}
 
-	// if v.IncludeWIPPactsSince != nil {
-	// 	v.args = append(v.args, "--include-wip-pacts-since", v.IncludeWIPPactsSince.Format(time.RFC3339))
-	// }
+	if v.IncludeWIPPactsSince != nil {
+		v.args = append(v.args, "--include-wip-pacts-since", v.IncludeWIPPactsSince.Format(time.RFC3339))
+	}
 
 	return nil
 }
@@ -287,6 +288,30 @@ type outputWriter interface {
 }
 
 func (v *VerifyRequest) verify(writer outputWriter) error {
+	err := v.validate()
+	if err != nil {
+		return err
+	}
+
+	address := getAddress(v.ProviderBaseURL)
+	port := getPort(v.ProviderBaseURL)
+
+	// TODO: parameterise client stuff here
+	waitForPort(port, "tcp", address, 10*time.Second,
+		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
+
+	fmt.Println("init'ing verifier")
+	service := native.Verifier{}
+	service.Init()
+	fmt.Println("running verifier")
+	res := service.Verify(v.args)
+	fmt.Println("result: ", res)
+
+	// TODO
+	return nil
+}
+
+func (v *VerifyRequest) verify2(writer outputWriter) error {
 	log.Println("[DEBUG] client: verifying a provider")
 
 	// Convert request into flags, and validate request

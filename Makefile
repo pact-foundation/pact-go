@@ -49,11 +49,11 @@ pact: install docker
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 
-pactv3: clean
+pactv3: #clean
 	@echo "--- 🔨 Running Pact examples"
 	mkdir -p ./examples/v3/pacts
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
-	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v3/... -run TestV3MessageProvider
+	# go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
+	LOG_LEVEL=trace go test -v -timeout=10s -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v3/... -run TestV3HTTPProvider
 
 release:
 	echo "--- 🚀 Releasing it"

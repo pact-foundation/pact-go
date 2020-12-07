@@ -13,15 +13,13 @@ type Installer struct {
 }
 
 const (
-	mockServiceRange = ">= 3.5.0, < 4.0.0"
-	verifierRange    = ">= 1.30.0, < 2.0.0"
-	brokerRange      = ">= 1.22.3"
+	mockServiceRange = ">= 0.0.11, < 1.0.0"
+	verifierRange    = ">= 0.8.3, < 1.0.0"
 )
 
 var versionMap = map[string]string{
-	"pact-mock-service":      mockServiceRange,
-	"pact-provider-verifier": verifierRange,
-	"pact-broker":            brokerRange,
+	"libpact_mock_server_ffi": mockServiceRange,
+	"pact_verifier_cli":       verifierRange,
 }
 
 // NewInstaller creates a new initialised Installer
@@ -61,3 +59,11 @@ type realCommander struct{}
 func (c realCommander) Output(command string, args ...string) ([]byte, error) {
 	return exec.Command(command, args...).CombinedOutput()
 }
+
+// Requirements
+
+// 1. Enable global configuration (environment vars, config files, code options)
+// 1. Allow users to specify where they pre-install their artifacts (e.g. /usr/local/pact/libs)
+// 1. Download OS specific artifacts if not pre-installed
+// 1. Check the semver range of pre-installed artifacts (how to do this with FFI?)
+// 1.

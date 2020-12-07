@@ -42,3 +42,8 @@ func SetLogLevel(level logutils.LogLevel) error {
 		return fmt.Errorf(`invalid logLevel '%s'. Please specify one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR"`, level)
 	}
 }
+
+// LogLevel gets the current log level for the Pact framework
+func LogLevel() logutils.LogLevel {
+	return logFilter.MinLevel
+}
