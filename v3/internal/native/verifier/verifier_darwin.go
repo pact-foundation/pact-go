@@ -1,7 +1,7 @@
 package verifier
 
 /*
-#cgo LDFLAGS: ${SRCDIR}/../../../../libs/libpact_verifier_cli.dylib
+#cgo LDFLAGS: ${SRCDIR}/../../../../libs/libpact_verifier_ffi.dylib
 
 // Library headers
 typedef int bool;

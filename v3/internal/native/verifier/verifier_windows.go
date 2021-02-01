@@ -1,7 +1,7 @@
 package native
 
 /*
-#cgo LDFLAGS: ${SRCDIR}/../../../../libs/libpact_verifier_cli.dll
+#cgo LDFLAGS: ${SRCDIR}/../../../../libs/libpact_verifier_ffi.dll
 
 // Library headers
 typedef int bool;
