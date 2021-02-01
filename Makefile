@@ -85,7 +85,7 @@ updatedeps:
 
 snyk-install:
  ifeq (, $(shell which snyk))
-	npm i -g snyk
+	npm i snyk
  endif
 
 snyk:
