@@ -91,7 +91,7 @@ snyk-install:
 snyk:
 	# only run on CI, but don't do for PRs because tokens aren't available
 	@if [ "$$GITHUB_HEAD_REF" = "" -a "$$GITHUB_REF" != "" ]; then\
-		snyk test; \
+		npx snyk test; \
 	fi
 
 rust:
