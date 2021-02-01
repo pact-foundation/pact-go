@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: docker deps snyk clean bin test pact goveralls
+ci:: docker deps clean bin test pact goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -21,7 +21,7 @@ bin:
 clean:
 	rm -rf build output dist examples/v3/pacts
 
-deps: snyk-install
+deps:
 	@echo "--- 🐿  Fetching build dependencies "
 	go get github.com/axw/gocov/gocov
 	go get github.com/mattn/goveralls
@@ -82,17 +82,6 @@ testrace:
 
 updatedeps:
 	go get -d -v -p 2 ./...
-
-snyk-install:
- ifeq (, $(shell which snyk))
-	npm i snyk
- endif
-
-snyk:
-	# only run on CI, but don't do for PRs because tokens aren't available
-	@if [ "$$GITHUB_HEAD_REF" = "" -a "$$GITHUB_REF" != "" ]; then\
-		npx snyk test; \
-	fi
 
 rust:
 	cd ~/development/public/pact-reference/rust; \
