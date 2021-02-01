@@ -1,7 +1,6 @@
 package verifier
 
 /*
-/*
 #cgo LDFLAGS: ${SRCDIR}/../../../../libs/libpact_verifier_cli.so
 
 // Library headers
