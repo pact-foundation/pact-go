@@ -89,7 +89,8 @@ snyk-install:
  endif
 
 snyk:
-	@if [ "$$TRAVIS_PULL_REQUEST" != "false" ]; then\
+	# only run on CI, but don't do for PRs because tokens aren't available
+	@if [ "$$GITHUB_HEAD_REF" = "" -a "$$GITHUB_REF" != "" ]; then\
 		snyk test; \
 	fi
 
