@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/pact-foundation/pact-go/install"
+	"github.com/pact-foundation/pact-go/v3/installer"
 
 	"github.com/spf13/cobra"
 )
@@ -18,16 +18,19 @@ var installCmd = &cobra.Command{
 		setLogLevel(verbose, logLevel)
 
 		// Run the installer
-		i := install.NewInstaller()
-		var err error
+		i, err := installer.NewInstaller()
+		if err != nil {
+			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
+			os.Exit(1)
+		}
+
 		if err = i.CheckInstallation(); err != nil {
-			log.Println("[ERROR] Your Pact CLI installation is out of date, please update to the latest version. Error:", err)
+			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
 			os.Exit(1)
 		}
 	},
 }
 
 func init() {
-	installCmd.Flags().StringVarP(&path, "path", "p", "/opt/pact", "Location to install the Pact CLI tools")
 	RootCmd.AddCommand(installCmd)
 }
