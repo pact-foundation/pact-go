@@ -184,10 +184,7 @@ func TestConsumer(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer 1234")
 
-		if _, err = http.DefaultClient.Do(req); err != nil {
-			return
-		}
-		
+		_, err = http.DefaultClient.Do(req)
 		return
 	}
 
