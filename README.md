@@ -187,6 +187,8 @@ func TestConsumer(t *testing.T) {
 		if _, err = http.DefaultClient.Do(req); err != nil {
 			return err
 		}
+		
+		return nil
 	}
 
 	// Set up our expected interactions.
