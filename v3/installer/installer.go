@@ -206,7 +206,7 @@ func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
 	return path.Join(i.getLibDir(), pkgInfo.libName) + "." + osToExtension[i.os], nil
 }
 
-func setOSXInstallName(file string, lib string) error {
+var setOSXInstallName = func(file string, lib string) error {
 	cmd := exec.Command("install_name_tool", "-id", fmt.Sprintf("../../libs/%s.dylib", lib), file)
 	stdoutStderr, err := cmd.CombinedOutput()
 

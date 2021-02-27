@@ -142,7 +142,9 @@ func TestInstallerCheckInstallation(t *testing.T) {
 
 func TestInstallerCheckPackageInstall(t *testing.T) {
 	t.Run("downloads and install dependencies when existing libraries aren't present", func(t *testing.T) {
+		defer restoreOSXInstallName()()
 		mockFs := afero.NewMemMapFs()
+
 		var i *Installer
 
 		i = &Installer{
@@ -179,4 +181,15 @@ func (m *mockDownloader) download(src, dst string) error {
 	}
 
 	return nil
+}
+
+func restoreOSXInstallName() func() {
+	old := setOSXInstallName
+	setOSXInstallName = func(string, string) error {
+		return nil
+	}
+
+	return func() {
+		setOSXInstallName = old
+	}
 }
