@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"runtime"
 	"strings"
@@ -82,6 +83,11 @@ func (i *Installer) CheckInstallation() error {
 		return err
 	}
 
+	// Install dependencies
+	if err := i.installDependencies(); err != nil {
+		return err
+	}
+
 	if err := i.checkPackageInstall(); err != nil {
 		return fmt.Errorf("unable to verify downloaded/installed dependencies: %s", err)
 	}
@@ -141,8 +147,8 @@ func (i *Installer) downloadDependencies() error {
 
 		if err != nil {
 			return err
-
 		}
+
 		dst, err := i.getLibDstForPackage(pkg)
 
 		if err != nil {
@@ -153,6 +159,28 @@ func (i *Installer) downloadDependencies() error {
 
 		if err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *Installer) installDependencies() error {
+	if i.os == osx {
+		for pkg, info := range packages {
+			log.Println("[INFO] setting install_name on library", info.libName, "for osx")
+
+			dst, err := i.getLibDstForPackage(pkg)
+
+			if err != nil {
+				return err
+			}
+
+			err = setOSXInstallName(dst, info.libName)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -176,6 +204,19 @@ func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
 	}
 
 	return path.Join(i.getLibDir(), pkgInfo.libName) + "." + osToExtension[i.os], nil
+}
+
+func setOSXInstallName(file string, lib string) error {
+	cmd := exec.Command("install_name_tool", "-id", fmt.Sprintf("../../libs/%s.dylib", lib), file)
+	stdoutStderr, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return fmt.Errorf("error setting install name on pact lib: %s", err)
+	}
+
+	log.Println("[DEBUG] output from command", stdoutStderr)
+
+	return err
 }
 
 // download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/PACKAGE-vVERSION/LIBNAME-OS-ARCH.EXTENSION.gz"

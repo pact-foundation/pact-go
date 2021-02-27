@@ -24,8 +24,6 @@ import (
 func init() {
 	initLogging()
 	native.Init()
-	// i := installer.NewInstaller()
-	// i.CheckInstallation()
 }
 
 // QueryStringStyle allows a user to specific the v2 query string serialisation format
