@@ -103,6 +103,10 @@ func (i *Installer) CheckInstallation() error {
 func (i *Installer) getLibDir() string {
 	if i.libDir == "" {
 
+		if i.os == osx {
+			return "/opt/pact"
+		}
+
 		dir, err := os.Getwd()
 
 		if err != nil {
