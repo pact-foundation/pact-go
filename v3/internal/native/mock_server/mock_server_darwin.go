@@ -1,7 +1,11 @@
 package mock_server
 
 /*
-#cgo LDFLAGS: ${SRCDIR}/../../../../libs/libpact_mock_server_ffi.dylib
+#cgo LDFLAGS: -v ${SRCDIR}/../../../../libs/libpact_mock_server_ffi.dylib
+
+// NOTE: have to rename the id in the library using this command:
+
+//  install_name_tool -id "libpact_mock_server_ffi" libs/libpact_mock_server_ffi.dylib
 
 // Library headers
 typedef int bool;
