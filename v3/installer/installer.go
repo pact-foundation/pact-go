@@ -14,8 +14,10 @@ import (
 	getter "github.com/hashicorp/go-getter"
 	goversion "github.com/hashicorp/go-version"
 
+	// can't use these packages, because then the CLI installer wouldn't work - go won't run without it!
+	// "github.com/pact-foundation/pact-go/v3/internal/native/verifier"
 	// mockserver "github.com/pact-foundation/pact-go/v3/internal/native/mock_server"
-	// verifier "github.com/pact-foundation/pact-go/v3/internal/native/verifier"
+
 	"github.com/spf13/afero"
 )
 
@@ -125,7 +127,7 @@ func (i *Installer) checkPackageInstall() error {
 			return err
 		}
 
-		// if err := checkVersion(info.testCommand(), info.libName, info.semverRange); err != nil {
+		// if err := checkVersion(info.libName, info.testCommand(), info.semverRange); err != nil {
 		// 	return err
 		// }
 	}
@@ -255,15 +257,15 @@ var packages = map[string]packageInfo{
 	verifierPackage: {
 		libName:     "libpact_verifier_ffi",
 		version:     "0.0.2",
-		semverRange: ">= 0.8.3, < 1.0.0",
+		semverRange: ">= 0.0.2, < 1.0.0",
 		// testCommand: func() string {
 		// 	return (&verifier.Verifier{}).Version()
 		// },
 	},
 	mockServerPackage: {
 		libName:     "libpact_mock_server_ffi",
-		version:     "0.0.14",
-		semverRange: ">= 0.0.14, < 1.0.0",
+		version:     "0.0.15",
+		semverRange: ">= 0.0.15, < 1.0.0",
 		// testCommand: func() string {
 		// 	return mockserver.Version()
 		// },

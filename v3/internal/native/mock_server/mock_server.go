@@ -230,7 +230,6 @@ func GetTLSConfig() *tls.Config {
 // Version returns the current semver FFI interface version
 func Version() string {
 	v := C.version()
-	defer libRustFree(v)
 
 	return C.GoString(v)
 }
