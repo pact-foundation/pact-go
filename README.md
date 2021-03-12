@@ -42,7 +42,7 @@ Read [Getting started with Pact] for more information for beginners.
   - [Versions](#versions)
   - [Installation](#installation)
     - [Go get](#go-get)
-    - [Installation on \*nix](#installation-on-\nix)
+    - [Manual](#manual)
   - [Using Pact](#using-pact)
   - [HTTP API Testing](#http-api-testing)
     - [Consumer Side Testing](#consumer-side-testing)
@@ -105,27 +105,37 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 
 ## Installation
 
-1.  Download the latest [CLI tools] of the standalone tools and ensure the binaries are on your `PATH`:
-1.  Unzip the package into a known location, and ensuring the `pact` and other binaries in the `bin` directory are on the `PATH`.
-1.  Run `go get github.com/pact-foundation/pact-go@v1` to install the source packages
+General guide:
+
+1.  Download the latest FFI [libraries] and install into a default library search path:
 
 See below for how to automate this:
 
 ### Go get
 
-Since `1.x.x` Pact is go-gettable, and uses tags for versioning, so `dep ensure --add github.com/pact-foundation/pact-go@1.0.0` or `go get gopkg.in/pact-foundation/pact-go.v1` is now possible.
+1. Run `go get github.com/pact-foundation/pact-go` to install the source packages, and the installer code
+1. Run `pact-go -l DEBUG install` to download and install the required libraries
 
-See the [Changelog] for versions to pin to and their history.
+If all is successful, you are ready to go!
+### Manual
 
-### Installation on \*nix
+Downlod the latest `Pact Verifier FFI` and `Pact Mock Server FFI` [libraries] for your OS, and install onto a standard library search path (for example, we suggest: `/usr/local/lib` on OSX/Linux):
 
-The following will install pact binaries into `/opt/pact/bin`:
+Ensure you have the correct extension for your OS:
+
+* For Mac OSX: `.dylib`
+* For Linux: `.so`
+* For Windows: `.dll`
 
 ```sh
-cd /opt
-curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash
-export PATH=$PATH:/opt/pact/bin
-go get github.com/pact-foundation/pact-go@v1
+wget https://github.com/pact-foundation/pact-reference/releases/download/pact_verifier_ffi-v0.0.2/libpact_verifier_ffi-osx-x86_64.dylib.gz
+gunzip libpact_verifier_ffi-osx-x86_64.dylib.gz
+mv libpact_verifier_ffi-osx-x86_64.dylib /usr/local/lib/libpact_verifier_ffi.dylib
+
+wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-osx-x86_64.dylib.gz
+gunzip libpact_mock_server_ffi-osx-x86_64.dylib.gz
+mv libpact_mock_server_ffi-osx-x86_64.dylib /usr/local/lib/libpact_mock_server_ffi.dylib
+
 ```
 
 Test the installation:
@@ -933,7 +943,7 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 [@pact_up]: https://twitter.com/pact_up
 [pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
 [pact specification v3]: https://github.com/pact-foundation/pact-specification/tree/version-3
-[cli tools]: https://github.com/pact-foundation/pact-ruby-standalone/releases
+[cli tools]: https://github.com/pact-foundation/pact-reference/releases
 [installation]: #installation
 [message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
 [changelog]: https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md
