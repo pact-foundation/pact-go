@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/utils"
-	native "github.com/pact-foundation/pact-go/v3/internal/native/mock_server"
+	native "github.com/pact-foundation/pact-go/v3/internal/native/mockserver"
 )
 
 func init() {

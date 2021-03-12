@@ -5,7 +5,6 @@ package installer
 import (
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"path"
 	"runtime"
@@ -16,7 +15,7 @@ import (
 
 	// can't use these packages, because then the CLI installer wouldn't work - go won't run without it!
 	// "github.com/pact-foundation/pact-go/v3/internal/native/verifier"
-	// mockserver "github.com/pact-foundation/pact-go/v3/internal/native/mock_server"
+	// mockserver "github.com/pact-foundation/pact-go/v3/internal/native/mockserver"
 
 	"github.com/spf13/afero"
 )
@@ -26,7 +25,7 @@ import (
 // 1. Download OS specific artifacts if not pre-installed - DONE
 // 1. Check the semver range of pre-installed artifacts - DONE
 // 1. Enable global configuration (environment vars, config files, code options e.g. (`PACT_GO_SHARED_LIBRARY_PATH`))
-// 1. Allow users to specify where they pre-install their artifacts (e.g. /usr/local/pact/libs)
+// 1. Allow users to specify where they pre-install their artifacts (e.g. /usr/local/lib)
 
 // Installer is used to check the Pact Go installation is setup correctly, and can automatically install
 // packages if required
@@ -102,18 +101,7 @@ func (i *Installer) CheckInstallation() error {
 
 func (i *Installer) getLibDir() string {
 	if i.libDir == "" {
-
-		if i.os == osx {
-			return "/opt/pact"
-		}
-
-		dir, err := os.Getwd()
-
-		if err != nil {
-			return os.TempDir()
-		}
-
-		i.libDir = path.Join(dir, "libs")
+		return "/usr/local/lib"
 	}
 
 	return i.libDir
@@ -213,7 +201,7 @@ func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
 }
 
 var setOSXInstallName = func(file string, lib string) error {
-	cmd := exec.Command("install_name_tool", "-id", fmt.Sprintf("/opt/pact/%s.dylib", lib), file)
+	cmd := exec.Command("install_name_tool", "-id", fmt.Sprintf("/usr/local/lib/%s.dylib", lib), file)
 	// cmd := exec.Command("install_name_tool", "-id", fmt.Sprintf("../../libs/%s.dylib", lib), file)
 	stdoutStderr, err := cmd.CombinedOutput()
 

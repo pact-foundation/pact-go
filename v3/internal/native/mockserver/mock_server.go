@@ -1,5 +1,5 @@
 // Package native contains the c bindings into the Pact Reference types.
-package mock_server
+package mockserver
 
 /*
 // Library headers
