@@ -15,6 +15,7 @@ import (
 	"github.com/pact-foundation/pact-go/proxy"
 )
 
+// HTTPVerifier is used to verify the provider side of an HTTP API contract
 type HTTPVerifier struct {
 	// ClientTimeout specifies how long to wait for Pact CLI to start
 	// Can be increased to reduce likelihood of intermittent failure
@@ -46,11 +47,11 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 	m := []proxy.Middleware{}
 
 	if request.BeforeEach != nil {
-		m = append(m, BeforeEachMiddleware(request.BeforeEach))
+		m = append(m, beforeEachMiddleware(request.BeforeEach))
 	}
 
 	if request.AfterEach != nil {
-		m = append(m, AfterEachMiddleware(request.AfterEach))
+		m = append(m, afterEachMiddleware(request.AfterEach))
 	}
 
 	if len(request.StateHandlers) > 0 {
@@ -138,9 +139,9 @@ func (v *HTTPVerifier) VerifyProvider(t *testing.T, request VerifyRequest) error
 	return err
 }
 
-// BeforeEachMiddleware is invoked before any other, only on the __setup
+// beforeEachMiddleware is invoked before any other, only on the __setup
 // request (to avoid duplication)
-func BeforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
+func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == providerStatesSetupPath {
@@ -158,10 +159,10 @@ func BeforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 	}
 }
 
-// AfterEachMiddleware is invoked after any other, and is the last
+// afterEachMiddleware is invoked after any other, and is the last
 // function to be called prior to returning to the test suite. It is
 // therefore not invoked on __setup
-func AfterEachMiddleware(AfterEach Hook) proxy.Middleware {
+func afterEachMiddleware(AfterEach Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r)
