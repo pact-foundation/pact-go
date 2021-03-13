@@ -9,7 +9,7 @@
         {
           "name": "User foo exists",
           "params": {
-            "id": "foo"
+            "some": "param"
           }
         }
       ],

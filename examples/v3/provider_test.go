@@ -57,7 +57,7 @@ func TestV3HTTPProvider(t *testing.T) {
 				// ... do something
 
 				// Optionally (if there are generators in the pact) return provider state values to be used in the verification (only  )
-				return v3.ProviderStateV3Response{"id": "bar"}, nil
+				return v3.ProviderStateV3Response{"uuid": "1234"}, nil
 
 				// return nil, nil
 			},

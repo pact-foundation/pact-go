@@ -220,6 +220,8 @@ func stateHandlerMiddleware(stateHandlers StateHandlers) proxy.Middleware {
 					return
 				}
 
+				// TODO: update rust code - params should be in a sub-property, to avoid top-level key conflicts
+				// i.e. it's possible action/state are actually something a users wants to supply
 				delete(params, "action")
 				delete(params, "state")
 				state.Params = params
@@ -242,7 +244,9 @@ func stateHandlerMiddleware(stateHandlers StateHandlers) proxy.Middleware {
 
 					// Return provider state values for generator
 					if res != nil {
+						log.Println("[TRACE] returning values from provider state (raw)", res)
 						resBody, err := json.Marshal(res)
+						log.Println("[TRACE] returning values from provider state (JSON)", string(resBody))
 
 						if err != nil {
 							log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
@@ -251,6 +255,7 @@ func stateHandlerMiddleware(stateHandlers StateHandlers) proxy.Middleware {
 							return
 						}
 
+						w.Header().Add("content-type", "application/json")
 						w.Write(resBody)
 					}
 				}
