@@ -46,12 +46,20 @@ func TestV3HTTPProvider(t *testing.T) {
 		PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/V3Consumer-V3Provider.json", pactDir))},
 		RequestFilter:   f,
 		StateHandlers: v3.StateHandlers{
-			"User foo exists": func(s v3.ProviderStateV3) error {
-				log.Println("[DEBUG] calling user foo exists state handler")
+			"User foo exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
+
+				if setup {
+					log.Println("[DEBUG] calling user foo exists state handler", s)
+				} else {
+					log.Println("[DEBUG] teardown the 'User foo exists' state")
+				}
 
 				// ... do something
 
-				return nil
+				// Optionally (if there are generators in the pact) return provider state values to be used in the verification (only  )
+				return v3.ProviderStateV3Response{"id": "bar"}, nil
+
+				// return nil, nil
 			},
 		},
 	})
@@ -71,7 +79,7 @@ func TestV3MessageProvider(t *testing.T) {
 			if user != nil {
 				return user, nil
 			} else {
-				return map[string]string{
+				return v3.ProviderStateV3Response{
 					"message": "not found",
 				}, nil
 			}
@@ -79,15 +87,17 @@ func TestV3MessageProvider(t *testing.T) {
 	}
 
 	stateMappings := v3.StateHandlers{
-		"User with id 127 exists": func(v3.ProviderStateV3) error {
-			user = &User{
-				ID:       44,
-				Name:     "Baz",
-				Date:     "2020-01-01",
-				LastName: "sampson",
+		"User with id 127 exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
+			if setup {
+				user = &User{
+					ID:       44,
+					Name:     "Baz",
+					Date:     "2020-01-01",
+					LastName: "sampson",
+				}
 			}
 
-			return nil
+			return v3.ProviderStateV3Response{"id": "bar"}, nil
 		},
 	}
 

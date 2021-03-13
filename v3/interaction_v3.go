@@ -3,8 +3,13 @@ package v3
 // ProviderStateV3 allows parameters and a description to be passed to the verification process
 type ProviderStateV3 struct {
 	Name       string      `json:"name"`
+	Action     string      `json:"action"` // TODO: remove this, don't expose to the user
 	Parameters interface{} `json:"params,omitempty"`
 }
+
+// ProviderStateV3Response may return values in the state setup
+// for the "value from provider state" feature
+type ProviderStateV3Response map[string]interface{}
 
 // InteractionV3 sets up an expected request/response on a mock server
 // and is replayed on the provider side for verification

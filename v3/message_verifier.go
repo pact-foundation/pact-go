@@ -143,11 +143,28 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 				log.Printf("[WARN] state handler not found for state: %v", state.Name)
 			} else {
 				// Execute state handler
-				if err = sf(state); err != nil {
+				res, err := sf(state.Action == "setup", state)
+
+				if err != nil {
 					log.Printf("[WARN] state handler for '%v' return error: %v", state.Name, err)
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
+
+				// Return provider state values for generator
+				if res != nil {
+					resBody, err := json.Marshal(res)
+
+					if err != nil {
+						log.Printf("[ERROR] state handler for '%v' errored: %v", state.Name, err)
+						w.WriteHeader(http.StatusInternalServerError)
+
+						return
+					}
+
+					w.Write(resBody)
+				}
+
 			}
 		}
 

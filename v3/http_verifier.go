@@ -183,7 +183,7 @@ func AfterEachMiddleware(AfterEach Hook) proxy.Middleware {
 type stateHandlerAction struct {
 	Action string `json:"action"`
 	State  string `json:"state"`
-	// Params map[string]interface{}
+	Params map[string]interface{}
 }
 
 // stateHandlerMiddleware responds to the various states that are
@@ -200,10 +200,10 @@ func stateHandlerMiddleware(stateHandlers StateHandlers) proxy.Middleware {
 				var state stateHandlerAction
 				buf := new(strings.Builder)
 				io.Copy(buf, r.Body)
-				log.Println("[TRACE] state handler received input", buf.String())
+				log.Println("[TRACE] state handler received raw input", buf.String())
 
 				err := json.Unmarshal([]byte(buf.String()), &state)
-				log.Println("[TRACE] state handler received input", state)
+				log.Println("[TRACE] state handler parsed input (without params)", state)
 
 				if err != nil {
 					log.Println("[ERROR] unable to decode incoming state change payload", err)
@@ -211,17 +211,47 @@ func stateHandlerMiddleware(stateHandlers StateHandlers) proxy.Middleware {
 					return
 				}
 
-				// Setup any provider state
+				// Extract the params from the payload. They are in the root, so we need to do some more work to achieve this
+				var params ProviderStateV3Response
+				err = json.Unmarshal([]byte(buf.String()), &params)
+				if err != nil {
+					log.Println("[ERROR] unable to decode incoming state change payload", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				delete(params, "action")
+				delete(params, "state")
+				state.Params = params
+				log.Println("[TRACE] state handler completed parsing input (with params)", state)
+
+				// Find the provider state handler
 				sf, stateFound := stateHandlers[state.State]
 
 				if !stateFound {
 					log.Printf("[WARN] no state handler found for state: %v", state.State)
 				} else {
 					// Execute state handler
-					if err := sf(ProviderStateV3{Name: state.State}); err != nil {
+					res, err := sf(state.Action == "setup", ProviderStateV3{Name: state.State, Parameters: state.Params})
+
+					if err != nil {
 						log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
 						w.WriteHeader(http.StatusInternalServerError)
 						return
+					}
+
+					// Return provider state values for generator
+					if res != nil {
+						resBody, err := json.Marshal(res)
+
+						if err != nil {
+							log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
+							w.WriteHeader(http.StatusInternalServerError)
+
+							return
+						}
+
+						w.Write(resBody)
 					}
 				}
 
