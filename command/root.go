@@ -39,10 +39,6 @@ func init() {
 	// will be global for your application.
 	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", true, "verbose output")
 	RootCmd.PersistentFlags().StringVarP(&logLevel, "logLevel", "l", "INFO", "Set the logging level (DEBUG, INFO, ERROR)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func setLogLevel(verbose bool, level string) {

@@ -35,6 +35,7 @@ type Installer struct {
 	arch       string
 	fs         afero.Fs
 	libDir     string
+	force      bool
 }
 
 type installerConfig func(*Installer) error
@@ -69,14 +70,21 @@ func (i *Installer) SetLibDir(dir string) {
 	i.libDir = dir
 }
 
+// Force installs over the top
+func (i *Installer) Force(force bool) {
+	i.force = force
+}
+
 // CheckInstallation checks installation of all of the required libraries
 // and downloads if they aren't present
 func (i *Installer) CheckInstallation() error {
 
 	// Check if files exist
 	// --> Check versions of existing installed files
-	if err := i.checkPackageInstall(); err == nil {
-		return nil
+	if !i.force {
+		if err := i.checkPackageInstall(); err == nil {
+			return nil
+		}
 	}
 
 	// Check if override package path exists
@@ -234,7 +242,6 @@ var osToExtension = map[string]string{
 }
 
 type packageInfo struct {
-	packageName string
 	libName     string
 	version     string
 	semverRange string
