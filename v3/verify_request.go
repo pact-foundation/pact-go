@@ -300,10 +300,8 @@ func (v *VerifyRequest) verify(writer outputWriter) error {
 	waitForPort(port, "tcp", address, 10*time.Second,
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
-	fmt.Println("init'ing verifier")
 	service := native.Verifier{}
 	service.Init()
-	fmt.Println("running verifier")
 	res := service.Verify(v.args)
 	fmt.Println("result: ", res)
 

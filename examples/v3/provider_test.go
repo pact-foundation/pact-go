@@ -22,7 +22,7 @@ var pactDir = fmt.Sprintf("%s/pacts", dir)
 // 1. cd <pact-go>/examples/v3
 // 2. go test -v -run TestProvider
 func TestV3HTTPProvider(t *testing.T) {
-	v3.SetLogLevel("INFO")
+	v3.SetLogLevel("DEBUG")
 
 	// Start provider API in the background
 	go startServer()
@@ -35,6 +35,7 @@ func TestV3HTTPProvider(t *testing.T) {
 	// _change_ the contract
 	f := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Println("[DEBUG] HOOK request filter")
 			r.Header.Add("Authorization", "Bearer 1234-dynamic-value")
 			next.ServeHTTP(w, r)
 		})
