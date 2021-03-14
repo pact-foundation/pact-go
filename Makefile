@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: docker deps clean bin installv3 test pactv3 goveralls
+ci:: docker deps clean bin test pactv3 pact goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -56,7 +56,7 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
-test: deps installv3
+test: deps install installv3
 	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
 	@echo "mode: count" > coverage.txt
