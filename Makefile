@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: docker deps clean bin test pactv3 pact goveralls
+ci:: docker deps clean bin test pactv3 pact #goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
