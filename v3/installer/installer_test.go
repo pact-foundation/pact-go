@@ -84,17 +84,11 @@ func TestInstallerDownloader(t *testing.T) {
 				libName:     "libpact_verifier_ffi",
 				version:     "0.0.2",
 				semverRange: ">= 0.8.3, < 1.0.0",
-				testCommand: func() string {
-					return "0.8.0"
-				},
 			},
 			MockServerPackage: {
 				libName:     "libpact_mock_server_ffi",
 				version:     "0.0.15",
 				semverRange: ">= 0.0.15, < 1.0.0",
-				testCommand: func() string {
-					return "0.0.13"
-				},
 			},
 		}
 
