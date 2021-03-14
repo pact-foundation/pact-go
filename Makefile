@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: docker deps clean bin test pact goveralls
+ci:: docker deps clean bin install test pact goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -17,6 +17,9 @@ bin:
 	gox -os="linux" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	@echo "==> Results:"
 	ls -hl build/
+
+install:
+	pact-go -l DEBUG install
 
 clean:
 	rm -rf build output dist examples/v3/pacts
