@@ -3,7 +3,7 @@ package mockserver
 /*
 #cgo darwin,amd64 LDFLAGS: -v -lpact_mock_server_ffi
 #cgo windows,amd64 LDFLAGS: -lpact_mock_server_ffi
-#cgo linux,amd64 LDFLAGS: -lpact_mock_server_ffi
+#cgo linux,amd64 LDFLAGS: -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib -lpact_mock_server_ffi
 
 // Mac OSX (until https://github.com/pact-foundation/pact-reference/pull/93 is done)
 //  install_name_tool -id "libpact_mock_server_ffi" libpact_mock_server_ffi.dylib

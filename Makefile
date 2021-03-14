@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: docker deps clean bin install test pact goveralls
+ci:: docker deps clean bin installv3 test pactv3 goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -17,9 +17,6 @@ bin:
 	gox -os="linux" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	@echo "==> Results:"
 	ls -hl build/
-
-install:
-	pact-go -l DEBUG install
 
 clean:
 	rm -rf build output dist examples/v3/pacts
@@ -42,10 +39,7 @@ install:
   fi
 
 installv3:
-	@if [ ! -d ./libs/libpact_mock_server_ffi.dylib ]; then\
-		@echo "--- 🐿 Installing Rust lib"; \
-		make rust; \
-  fi
+	pact-go -l DEBUG install
 
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"
@@ -85,10 +79,5 @@ testrace:
 
 updatedeps:
 	go get -d -v -p 2 ./...
-
-rust:
-	cd ~/development/public/pact-reference/rust; \
-	cargo build; \
-	cp ~/development/public/pact-reference/rust/target/debug/libpact_mock_server_ffi.dylib ./libs/libpact_mock_server_ffi.dylib
 
 .PHONY: install bin default dev test pact updatedeps clean release
