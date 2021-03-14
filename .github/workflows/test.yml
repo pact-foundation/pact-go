@@ -9,6 +9,9 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
+    - name: Set Golang shared lib variable
+      run: echo '::set-env name=LD_LIBRARY_PATH::/tmp'
+
     - name: Install Go
       uses: actions/setup-go@v2
       with:

@@ -39,7 +39,7 @@ install:
   fi
 
 installv3:
-	./build/pact-go_linux_amd64 -l DEBUG install
+	./build/pact-go_linux_amd64 -l DEBUG install --libDir /tmp
 
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"

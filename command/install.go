@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var path string
+var libDir = ""
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Check required tools",
@@ -19,6 +19,13 @@ var installCmd = &cobra.Command{
 
 		// Run the installer
 		i, err := installer.NewInstaller()
+
+		//
+		if libDir != "" {
+			log.Println("[INFO] set lib dir target to", libDir)
+			i.SetLibDir(libDir)
+		}
+
 		if err != nil {
 			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
 			os.Exit(1)
@@ -32,5 +39,6 @@ var installCmd = &cobra.Command{
 }
 
 func init() {
+	installCmd.Flags().StringVarP(&libDir, "libDir", "d", "", "Target directory to install the library")
 	RootCmd.AddCommand(installCmd)
 }

@@ -64,6 +64,11 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 	return i, nil
 }
 
+// SetLibDir overrides the default library dir
+func (i *Installer) SetLibDir(dir string) {
+	i.libDir = dir
+}
+
 // CheckInstallation checks installation of all of the required libraries
 // and downloads if they aren't present
 func (i *Installer) CheckInstallation() error {
