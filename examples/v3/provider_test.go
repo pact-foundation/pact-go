@@ -42,16 +42,24 @@ func TestV3HTTPProvider(t *testing.T) {
 
 	// Verify the Provider with local Pact Files
 	err := verifier.VerifyProvider(t, v3.VerifyRequest{
-		ProviderBaseURL: "http://localhost:8000",
+		ProviderBaseURL: "http://localhost:8111",
 		PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/V3Consumer-V3Provider.json", pactDir))},
 		RequestFilter:   f,
+		BeforeEach: func() error {
+			log.Println("[DEBUG] HOOK before each")
+			return nil
+		},
+		AfterEach: func() error {
+			log.Println("[DEBUG] HOOK after each")
+			return nil
+		},
 		StateHandlers: v3.StateHandlers{
 			"User foo exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
 
 				if setup {
-					log.Println("[DEBUG] calling user foo exists state handler", s)
+					log.Println("[DEBUG] HOOK calling user foo exists state handler", s)
 				} else {
-					log.Println("[DEBUG] teardown the 'User foo exists' state")
+					log.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
 				}
 
 				// ... do something
@@ -140,7 +148,7 @@ func startServer() {
 		)
 	})
 
-	log.Fatal(http.ListenAndServe("localhost:8000", mux))
+	log.Fatal(http.ListenAndServe("localhost:8111", mux))
 }
 
 type User struct {
