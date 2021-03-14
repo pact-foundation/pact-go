@@ -23,6 +23,7 @@ var pactDir = fmt.Sprintf("%s/pacts", dir)
 // 2. go test -v -run TestProvider
 func TestV3HTTPProvider(t *testing.T) {
 	v3.SetLogLevel("DEBUG")
+	v3.CheckVersion()
 
 	// Start provider API in the background
 	go startServer()

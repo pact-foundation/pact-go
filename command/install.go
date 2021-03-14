@@ -42,6 +42,6 @@ var installCmd = &cobra.Command{
 
 func init() {
 	installCmd.Flags().BoolVarP(&force, "force", "f", false, "Force a new installation")
-	installCmd.Flags().StringVarP(&libDir, "libDir", "d", "/usr/local/lib", "Target directory to install the library")
+	installCmd.Flags().StringVarP(&libDir, "libDir", "d", "", "Target directory to install the library")
 	RootCmd.AddCommand(installCmd)
 }

@@ -5,6 +5,7 @@ package installer
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"path"
 	"runtime"
@@ -13,19 +14,8 @@ import (
 	getter "github.com/hashicorp/go-getter"
 	goversion "github.com/hashicorp/go-version"
 
-	// can't use these packages, because then the CLI installer wouldn't work - go won't run without it!
-	// "github.com/pact-foundation/pact-go/v3/internal/native/verifier"
-	// mockserver "github.com/pact-foundation/pact-go/v3/internal/native/mockserver"
-
 	"github.com/spf13/afero"
 )
-
-// Installer manages the underlying Ruby installation
-// (eventual) implementation requirements
-// 1. Download OS specific artifacts if not pre-installed - DONE
-// 1. Check the semver range of pre-installed artifacts - DONE
-// 1. Enable global configuration (environment vars, config files, code options e.g. (`PACT_GO_SHARED_LIBRARY_PATH`))
-// 1. Allow users to specify where they pre-install their artifacts (e.g. /usr/local/lib)
 
 // Installer is used to check the Pact Go installation is setup correctly, and can automatically install
 // packages if required
@@ -80,17 +70,12 @@ func (i *Installer) Force(force bool) {
 func (i *Installer) CheckInstallation() error {
 
 	// Check if files exist
-	// --> Check versions of existing installed files
+	// --> Check if existing installed files
 	if !i.force {
 		if err := i.checkPackageInstall(); err == nil {
 			return nil
 		}
 	}
-
-	// Check if override package path exists
-	// -> if it does, copy files from existing location
-	// --> Check versions of these files
-	// --> copy files to lib dir
 
 	// Download dependencies
 	if err := i.downloadDependencies(); err != nil {
@@ -102,29 +87,32 @@ func (i *Installer) CheckInstallation() error {
 		return err
 	}
 
+	// Double check files landed correctly (can't execute 'version' call here,
+	// because of dependency on the native libs we're trying to download!)
 	if err := i.checkPackageInstall(); err != nil {
 		return fmt.Errorf("unable to verify downloaded/installed dependencies: %s", err)
 	}
-
-	// --> Check if download is disabled (return error if downloads are disabled)
-	// --> download files to lib dir
 
 	return nil
 }
 
 func (i *Installer) getLibDir() string {
-	if i.libDir == "" {
-		return "/usr/local/lib"
+	if i.libDir != "" {
+		return i.libDir
 	}
 
-	return i.libDir
+	env := os.Getenv(downloadEnvVar)
+	if env != "" {
+		return env
+	}
+
+	return "/usr/local/lib"
 }
 
 // checkPackageInstall discovers any existing packages, and checks installation of a given binary using semver-compatible checks
 func (i *Installer) checkPackageInstall() error {
 	for pkg, info := range packages {
 
-		log.Println("[DEBUG] checking version for lib", info.libName, "semver range", info.semverRange)
 		dst, _ := i.getLibDstForPackage(pkg)
 
 		if _, err := i.fs.Stat(dst); err != nil {
@@ -132,9 +120,16 @@ func (i *Installer) checkPackageInstall() error {
 			return err
 		}
 
-		// if err := checkVersion(info.libName, info.testCommand(), info.semverRange); err != nil {
-		// 	return err
-		// }
+		lib, ok := LibRegistry[pkg]
+
+		if ok {
+			log.Println("[INFO] checking version", lib.Version(), "for lib", info.libName, "within semver range", info.semverRange)
+			if err := checkVersion(info.libName, lib.Version(), info.semverRange); err != nil {
+				return err
+			}
+		} else {
+			log.Println("[DEBUG] lib registry is currently not populated for package", pkg, "this is probably because the package is currently being installed")
+		}
 	}
 
 	return nil
@@ -226,56 +221,6 @@ var setOSXInstallName = func(file string, lib string) error {
 	return err
 }
 
-// download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/PACKAGE-vVERSION/LIBNAME-OS-ARCH.EXTENSION.gz"
-var downloadTemplate = "https://github.com/pact-foundation/pact-reference/releases/download/%s-v%s/%s-%s-%s.%s.gz"
-
-var supportedOSes = map[string]string{
-	"darwin": osx,
-	windows:  windows,
-	linux:    linux,
-}
-
-var osToExtension = map[string]string{
-	windows: "dll",
-	linux:   "so",
-	osx:     "dylib",
-}
-
-type packageInfo struct {
-	libName     string
-	version     string
-	semverRange string
-	testCommand func() string
-}
-
-const (
-	verifierPackage   = "pact_verifier_ffi"
-	mockServerPackage = "libpact_mock_server_ffi"
-	linux             = "linux"
-	windows           = "windows"
-	osx               = "osx"
-	x86_64            = "x86_64"
-)
-
-var packages = map[string]packageInfo{
-	verifierPackage: {
-		libName:     "libpact_verifier_ffi",
-		version:     "0.0.2",
-		semverRange: ">= 0.0.2, < 1.0.0",
-		// testCommand: func() string {
-		// 	return (&verifier.Verifier{}).Version()
-		// },
-	},
-	mockServerPackage: {
-		libName:     "libpact_mock_server_ffi",
-		version:     "0.0.15",
-		semverRange: ">= 0.0.15, < 1.0.0",
-		// testCommand: func() string {
-		// 	return mockserver.Version()
-		// },
-	},
-}
-
 func checkVersion(lib, version, versionRange string) error {
 	log.Println("[DEBUG] checking version", version, "of", lib, "against semver constraint", versionRange)
 
@@ -296,6 +241,56 @@ func checkVersion(lib, version, versionRange string) error {
 
 	return fmt.Errorf("version %s of %s does not match constraint %s", version, lib, versionRange)
 }
+
+// download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/PACKAGE-vVERSION/LIBNAME-OS-ARCH.EXTENSION.gz"
+var downloadTemplate = "https://github.com/pact-foundation/pact-reference/releases/download/%s-v%s/%s-%s-%s.%s.gz"
+
+var supportedOSes = map[string]string{
+	"darwin": osx,
+	windows:  windows,
+	linux:    linux,
+}
+
+var osToExtension = map[string]string{
+	windows: "dll",
+	linux:   "so",
+	osx:     "dylib",
+}
+
+type packageInfo struct {
+	libName     string
+	version     string
+	semverRange string
+}
+
+const (
+	VerifierPackage   = "pact_verifier_ffi"
+	MockServerPackage = "libpact_mock_server_ffi"
+	downloadEnvVar    = "PACT_GO_LIB_DOWNLOAD_PATH"
+	linux             = "linux"
+	windows           = "windows"
+	osx               = "osx"
+	x86_64            = "x86_64"
+)
+
+var packages = map[string]packageInfo{
+	VerifierPackage: {
+		libName:     "libpact_verifier_ffi",
+		version:     "0.0.2",
+		semverRange: ">= 0.0.2, < 1.0.0",
+	},
+	MockServerPackage: {
+		libName:     "libpact_mock_server_ffi",
+		version:     "0.0.15",
+		semverRange: ">= 0.0.15, < 1.0.0",
+	},
+}
+
+type Versioner interface {
+	Version() string
+}
+
+var LibRegistry = map[string]Versioner{}
 
 type downloader interface {
 	download(src string, dst string) error

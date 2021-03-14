@@ -72,8 +72,10 @@ type MismatchedRequest struct {
 	Type       string
 }
 
+type MockServer struct{}
+
 // Init initialises the library
-func Init() {
+func (m *MockServer) Init() {
 	log.Println("[DEBUG] initialising rust mock server interface")
 	logLevel := C.CString("LOG_LEVEL")
 	defer free(logLevel)
@@ -83,7 +85,7 @@ func Init() {
 
 // CreateMockServer creates a new Mock Server from a given Pact file.
 // Returns the port number it started on or an error if failed
-func CreateMockServer(pact string, address string, tls bool) (int, error) {
+func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (int, error) {
 	log.Println("[DEBUG] mock server starting on address:", address)
 	cPact := C.CString(pact)
 	cAddress := C.CString(address)
@@ -129,10 +131,10 @@ func CreateMockServer(pact string, address string, tls bool) (int, error) {
 
 // Verify verifies that all interactions were successful. If not, returns a slice
 // of Mismatch-es. Does not write the pact or cleanup server.
-func Verify(port int, dir string) (bool, []MismatchedRequest) {
+func (m *MockServer) Verify(port int, dir string) (bool, []MismatchedRequest) {
 	res := C.mock_server_matched(C.int(port))
 
-	mismatches := MockServerMismatchedRequests(port)
+	mismatches := m.MockServerMismatchedRequests(port)
 	log.Println("[DEBUG] mock server mismatches:", len(mismatches))
 
 	return int(res) == 1, mismatches
@@ -140,7 +142,7 @@ func Verify(port int, dir string) (bool, []MismatchedRequest) {
 
 // MockServerMismatchedRequests returns a JSON object containing any mismatches from
 // the last set of interactions.
-func MockServerMismatchedRequests(port int) []MismatchedRequest {
+func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest {
 	log.Println("[DEBUG] mock server determining mismatches:", port)
 	var res []MismatchedRequest
 
@@ -151,7 +153,7 @@ func MockServerMismatchedRequests(port int) []MismatchedRequest {
 }
 
 // CleanupMockServer frees the memory from the previous mock server.
-func CleanupMockServer(port int) bool {
+func (m *MockServer) CleanupMockServer(port int) bool {
 	log.Println("[DEBUG] mock server cleaning up port:", port)
 	res := C.cleanup_mock_server(C.int(port))
 
@@ -186,7 +188,7 @@ var (
 )
 
 // WritePactFile writes the Pact to file.
-func WritePactFile(port int, dir string) error {
+func (m *MockServer) WritePactFile(port int, dir string) error {
 	log.Println("[DEBUG] writing pact file for mock server on port:", port, ", dir:", dir)
 	cDir := C.CString(dir)
 	defer free(cDir)
@@ -228,7 +230,7 @@ func GetTLSConfig() *tls.Config {
 }
 
 // Version returns the current semver FFI interface version
-func Version() string {
+func (m *MockServer) Version() string {
 	v := C.version()
 
 	return C.GoString(v)

@@ -18,12 +18,12 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/utils"
+	"github.com/pact-foundation/pact-go/v3/internal/native/mockserver"
 	native "github.com/pact-foundation/pact-go/v3/internal/native/mockserver"
 )
 
 func init() {
 	initLogging()
-	native.Init()
 }
 
 // QueryStringStyle allows a user to specific the v2 query string serialisation format
@@ -121,7 +121,8 @@ type httpMockProvider struct {
 	v3Interactions []*InteractionV3
 
 	// fsm state of the interaction
-	state string
+	state      string
+	mockserver *mockserver.MockServer
 }
 
 // MockServerConfig stores the address configuration details of the server for the current executing test
@@ -168,6 +169,9 @@ func (p *httpMockProvider) validateConfig() error {
 		return fmt.Errorf("error: unable to find free port, mock server will fail to start")
 	}
 
+	p.mockserver = &mockserver.MockServer{}
+	p.mockserver.Init()
+
 	return nil
 }
 
@@ -195,8 +199,8 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	// Clean interactions
 	p.cleanInteractions()
 
-	port, err := native.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
-	defer native.CleanupMockServer(p.config.Port)
+	port, err := p.mockserver.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
+	defer p.mockserver.CleanupMockServer(p.config.Port)
 	if err != nil {
 		return err
 	}
@@ -213,7 +217,7 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	}
 
 	// Run Verification Process
-	res, mismatches := native.Verify(p.config.Port, p.config.PactDir)
+	res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
 	p.displayMismatches(mismatches)
 
 	if !res {
@@ -225,7 +229,7 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 
 // TODO: pretty print this to make it really easy to understand the problems
 // See existing Pact/Ruby code examples
-func (p *httpMockProvider) displayMismatches(mismatches []native.MismatchedRequest) {
+func (p *httpMockProvider) displayMismatches(mismatches []mockserver.MismatchedRequest) {
 	if len(mismatches) > 0 {
 		log.Println("[INFO] pact validation failed, errors: ")
 		for _, m := range mismatches {
@@ -259,7 +263,7 @@ func (p *httpMockProvider) displayMismatches(mismatches []native.MismatchedReque
 func (p *httpMockProvider) WritePact() error {
 	log.Println("[DEBUG] write pact file")
 	if p.config.Port != 0 {
-		return native.WritePactFile(p.config.Port, p.config.PactDir)
+		return p.mockserver.WritePactFile(p.config.Port, p.config.PactDir)
 	}
 	return errors.New("pact server not yet started")
 }

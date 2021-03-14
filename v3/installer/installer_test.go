@@ -24,7 +24,7 @@ func TestInstallerDownloader(t *testing.T) {
 		}{
 			{
 				name: "mock server - linux x86",
-				pkg:  mockServerPackage,
+				pkg:  MockServerPackage,
 				want: "https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-linux-x86_64.so.gz",
 				test: Installer{
 					os:   linux,
@@ -33,7 +33,7 @@ func TestInstallerDownloader(t *testing.T) {
 			},
 			{
 				name: "mock server - osx x86",
-				pkg:  mockServerPackage,
+				pkg:  MockServerPackage,
 				want: "https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-osx-x86_64.dylib.gz",
 				test: Installer{
 					os:   osx,
@@ -42,7 +42,7 @@ func TestInstallerDownloader(t *testing.T) {
 			},
 			{
 				name: "mock server - linux x86",
-				pkg:  mockServerPackage,
+				pkg:  MockServerPackage,
 				want: "https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-windows-x86_64.dll.gz",
 				test: Installer{
 					os:   windows,
@@ -80,7 +80,7 @@ func TestInstallerDownloader(t *testing.T) {
 		defer func() { packages = oldPackages }()
 
 		packages = map[string]packageInfo{
-			verifierPackage: {
+			VerifierPackage: {
 				libName:     "libpact_verifier_ffi",
 				version:     "0.0.2",
 				semverRange: ">= 0.8.3, < 1.0.0",
@@ -88,7 +88,7 @@ func TestInstallerDownloader(t *testing.T) {
 					return "0.8.0"
 				},
 			},
-			mockServerPackage: {
+			MockServerPackage: {
 				libName:     "libpact_mock_server_ffi",
 				version:     "0.0.15",
 				semverRange: ">= 0.0.15, < 1.0.0",
