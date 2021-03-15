@@ -13,6 +13,7 @@ jobs:
       run: |
         echo "LD_LIBRARY_PATH=/tmp" >> $GITHUB_ENV
         echo "PACT_GO_LIB_DOWNLOAD_PATH=/tmp" >> $GITHUB_ENV
+        echo "LOG_LEVEL=trace" >> $GITHUB_ENV
     - name: Install Go
       uses: actions/setup-go@v2
       with:
