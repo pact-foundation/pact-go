@@ -34,7 +34,7 @@ goveralls:
 
 install:
 	@if [ ! -d pact/bin ]; then\
-		@echo "--- 🐿 Installing Pact CLI dependencies"; \
+		echo "--- 🐿 Installing Pact CLI dependencies"; \
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
   fi
 
@@ -43,8 +43,8 @@ installv3:
 
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
-	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
+	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
 
 pactv3: #clean
 	@echo "--- 🔨 Running Pact examples"
