@@ -199,6 +199,7 @@ type User struct {
 
 // Pass in test case
 var test = func(config v3.MockServerConfig) error {
+	config.TLSConfig.InsecureSkipVerify = true
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: config.TLSConfig,
