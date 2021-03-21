@@ -136,6 +136,8 @@ type VerifyRequest struct {
 // and should not be used outside of this library.
 func (v *VerifyRequest) validate() error {
 	v.args = []string{}
+	v.args = append(v.args, "--NOTAREALARGUMENT", "should always break")
+
 	for _, url := range v.PactURLs {
 		v.args = append(v.args, "--url", url)
 	}
