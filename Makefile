@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: deps bin pactv3
+ci:: clean deps bin pactv3
 #ci:: docker deps clean bin test pactv3 pact #goveralls
 
 docker:
@@ -47,7 +47,7 @@ pact: install docker
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
 	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
 
-pactv3: clean installv3
+pactv3: installv3
 	@echo "--- 🔨 Running Pact examples"
 	mkdir -p ./examples/v3/pacts
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
