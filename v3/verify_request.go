@@ -1,17 +1,12 @@
 package v3
 
 import (
-	"bufio"
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
-	"os"
-	"os/exec"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/pact-foundation/pact-go/proxy"
@@ -303,82 +298,8 @@ func (v *VerifyRequest) verify(writer outputWriter) error {
 	service := native.Verifier{}
 	service.Init()
 	res := service.Verify(v.args)
-	fmt.Println("result: ", res)
 
-	// TODO
-	return nil
-}
-
-func (v *VerifyRequest) verify2(writer outputWriter) error {
-	log.Println("[DEBUG] client: verifying a provider")
-
-	// Convert request into flags, and validate request
-	err := v.validate()
-	if err != nil {
-		return err
-	}
-
-	address := getAddress(v.ProviderBaseURL)
-	port := getPort(v.ProviderBaseURL)
-
-	// TODO: parameterise client stuff here
-	waitForPort(port, "tcp", address, 10*time.Second,
-		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
-
-	// Command creates an os command to be run
-	log.Println("[DEBUG] client: verifying a provider with args", v.args)
-	cmd := exec.Command("/Users/matthewfellows/go/src/github.com/pact-foundation/pact-go/libs/pact_verifier_cli-osx-x86_64", v.args...)
-	env := os.Environ()
-	cmd.Env = env
-
-	stdOutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	stdErrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		return err
-	}
-
-	// Buffered channel: wait for all reading to complete
-	var wg sync.WaitGroup
-	var stdErr strings.Builder
-	var stdOut strings.Builder
-
-	stdOutScanner := bufio.NewScanner(stdOutPipe)
-	go func() {
-		wg.Add(1)
-		defer wg.Done()
-		for stdOutScanner.Scan() {
-			stdOut.WriteString(fmt.Sprintf("%s\n", stdOutScanner.Text()))
-		}
-	}()
-
-	// Scrape errors
-	stdErrScanner := bufio.NewScanner(stdErrPipe)
-	go func() {
-		wg.Add(1)
-		defer wg.Done()
-		for stdErrScanner.Scan() {
-			stdErr.WriteString(fmt.Sprintf("%s\n", stdErrScanner.Text()))
-		}
-	}()
-
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	// Wait for watch goroutine before Cmd.Wait(), race condition!
-	err = cmd.Wait()
-	wg.Wait()
-
-	if strings.TrimSpace(stdErr.String()) != "" {
-		writer.Log(stdErr.String())
-	}
-	writer.Log(stdOut.String())
-
-	return err
+	return res
 }
 
 // Get a port given a URL
