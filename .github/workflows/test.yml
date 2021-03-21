@@ -8,10 +8,8 @@ jobs:
         # os: [ubuntu-latest, macos-latest, windows-latest]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    container:
-      image: golang:buster
-      # volumes:
-      #   - /home/runner/work/pact-go/pact-go:/app
+    # container:
+    #   image: golang:buster
     steps:
     - name: Set Golang shared lib directory for GH Actions
       run: |
@@ -30,6 +28,4 @@ jobs:
     #   env:
     #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     - name: Test
-      # shell: 'script -q -e -c "bash {0}"' # https://github.com/actions/runner/issues/241
       run: make
-      # docker run -it --rm -v $(pwd):/app -w /app golang:buster make
