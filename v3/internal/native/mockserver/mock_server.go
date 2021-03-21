@@ -147,6 +147,12 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 	var res []MismatchedRequest
 
 	mismatches := C.mock_server_mismatches(C.int(port))
+	// TODO: this method can return a nil pointer, in which case, it
+	// should be considered a failure (or at least, an issue)
+	// converting it to a string might also do nasty things here!
+	// if mismatches == nil {
+	// ...
+	// }
 	json.Unmarshal([]byte(C.GoString(mismatches)), &res)
 
 	return res

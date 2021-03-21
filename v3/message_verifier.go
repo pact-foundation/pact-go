@@ -114,7 +114,9 @@ type messageVerificationHandlerRequest struct {
 
 var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHandlers StateHandlers) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO: should this be set by the provider itself? How does the metadata go back?
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
 		log.Printf("[TRACE] message verification handler")
 
 		// Extract message
@@ -143,7 +145,8 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 				log.Printf("[WARN] state handler not found for state: %v", state.Name)
 			} else {
 				// Execute state handler
-				res, err := sf(state.Action == "setup", state)
+				_, err := sf(state.Action == "setup", state)
+				// res, err := sf(state.Action == "setup", state)
 
 				if err != nil {
 					log.Printf("[WARN] state handler for '%v' return error: %v", state.Name, err)
@@ -152,18 +155,19 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 				}
 
 				// Return provider state values for generator
-				if res != nil {
-					resBody, err := json.Marshal(res)
+				// TODO: can't return state data here, because it's all the one request!
+				// if res != nil {
+				// 	resBody, err := json.Marshal(res)
 
-					if err != nil {
-						log.Printf("[ERROR] state handler for '%v' errored: %v", state.Name, err)
-						w.WriteHeader(http.StatusInternalServerError)
+				// 	if err != nil {
+				// 		log.Printf("[ERROR] state handler for '%v' errored: %v", state.Name, err)
+				// 		w.WriteHeader(http.StatusInternalServerError)
 
-						return
-					}
+				// 		return
+				// 	}
 
-					w.Write(resBody)
-				}
+				// 	w.Write(resBody)
+				// }
 
 			}
 		}

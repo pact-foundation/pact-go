@@ -217,11 +217,15 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	}
 
 	// Run Verification Process
-	res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
+	// res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
+	_, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
 	p.displayMismatches(mismatches)
 
-	if !res {
-		return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
+	// if !res {
+	// 	return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
+	// }
+	if len(mismatches) > 0 {
+		return fmt.Errorf("pact validation failed: %+v", mismatches)
 	}
 
 	return p.WritePact()
