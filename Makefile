@@ -12,12 +12,7 @@ docker:
 	docker-compose up -d
 
 bin:
-	gox -os="darwin" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
-	gox -os="windows" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
-	gox -os="linux" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
-	gox -os="linux" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
-	@echo "==> Results:"
-	ls -hl build/
+	go build -o build/pact-go
 
 clean:
 	rm -rf build output dist examples/v3/pacts
@@ -29,6 +24,7 @@ deps:
 	go get golang.org/x/tools/cmd/cover
 	go get github.com/modocache/gover
 	go get github.com/mitchellh/gox
+	go get -a
 
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
@@ -40,7 +36,7 @@ install:
   fi
 
 installv3:
-	./build/pact-go_linux_amd64 -l DEBUG install --libDir /tmp
+	./build/pact-go	 -l DEBUG install --libDir /tmp
 
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"
