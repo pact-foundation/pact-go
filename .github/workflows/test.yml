@@ -9,8 +9,8 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     container: golang:buster
-    volumes:
-      - /home/runner/work/pact-go/pact-go:/app
+      volumes:
+        - /home/runner/work/pact-go/pact-go:/app
     steps:
     - name: Set Golang shared lib directory for GH Actions
       run: |
