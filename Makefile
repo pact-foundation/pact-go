@@ -4,8 +4,8 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: clean deps bin pactv3
-#ci:: docker deps clean bin test pactv3 pact #goveralls
+# ci:: clean deps bin pactv3
+ci:: docker deps clean bin test pactv3 pact #goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -35,7 +35,7 @@ install:
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
   fi
 
-installv3:
+installv3: bin
 	./build/pact-go	 -l DEBUG install --libDir /tmp
 
 pact: install docker
