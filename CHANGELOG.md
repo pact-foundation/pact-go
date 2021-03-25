@@ -5,6 +5,12 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.5.2 (25 March 2021)
+  * [bae7fd8](https://github.com/pact-foundation/pact-go/commit/bae7fd8) - chore: demonstrate use of loglevel and log dir for TLS provider (Matt Fellows, Thu Mar 25 13:19:45 2021 +1100)
+  * [8ed3655](https://github.com/pact-foundation/pact-go/commit/8ed3655) - chore: add log level to verifier CLI (Matt Fellows, Thu Mar 25 13:15:44 2021 +1100)
+  * [a461ee3](https://github.com/pact-foundation/pact-go/commit/a461ee3) - fix: pass PactLogDir to verifier binary. Fixes #156 (Matt Fellows, Thu Mar 25 13:14:45 2021 +1100)
+  * [2354ed9](https://github.com/pact-foundation/pact-go/commit/2354ed9) - chore: add linter to CI (Matt Fellows, Fri Oct 30 08:58:52 2020 +1100)
+
 ### v1.5.1 (09 October 2020)
   * [65822cd](https://github.com/pact-foundation/pact-go/commit/65822cd) - fix: misleading error message in certain verification scenarios (Matt Fellows, Fri Oct 9 23:59:37 2020 +1100)
 
