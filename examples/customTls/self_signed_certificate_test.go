@@ -29,9 +29,11 @@ func TestExample_SelfSignedTLSProvider(t *testing.T) {
 		ProviderBaseURL: fmt.Sprintf("https://localhost:%d", port),
 		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/consumer-selfsignedtls.json", pactDir))},
 		CustomTLSConfig: &tls.Config{
-			RootCAs: getCaCertPool(),
-			// InsecureSkipVerify: true, // Disable SSL verification altogether
+			RootCAs:            getCaCertPool(),
+			InsecureSkipVerify: true, // Disable SSL verification altogether
 		},
+		PactLogDir:   logDir,
+		PactLogLevel: "INFO",
 	})
 
 	if err != nil {
