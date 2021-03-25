@@ -377,6 +377,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderV
 		Verbose:                    request.Verbose,
 		FailIfNoPactsFound:         request.FailIfNoPactsFound,
 		IncludeWIPPactsSince:       request.IncludeWIPPactsSince,
+		PactLogDir:                 request.PactLogDir,
 	}
 
 	if request.Provider == "" {
