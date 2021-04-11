@@ -3,6 +3,7 @@
 package installer
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -25,7 +26,7 @@ func TestInstallerDownloader(t *testing.T) {
 			{
 				name: "mock server - linux x86",
 				pkg:  MockServerPackage,
-				want: "https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-linux-x86_64.so.gz",
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v%s/libpact_mock_server_ffi-linux-x86_64.so.gz", packages[MockServerPackage].version),
 				test: Installer{
 					os:   linux,
 					arch: x86_64,
@@ -34,7 +35,7 @@ func TestInstallerDownloader(t *testing.T) {
 			{
 				name: "mock server - osx x86",
 				pkg:  MockServerPackage,
-				want: "https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-osx-x86_64.dylib.gz",
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v%s/libpact_mock_server_ffi-osx-x86_64.dylib.gz", packages[MockServerPackage].version),
 				test: Installer{
 					os:   osx,
 					arch: x86_64,
@@ -43,7 +44,7 @@ func TestInstallerDownloader(t *testing.T) {
 			{
 				name: "mock server - linux x86",
 				pkg:  MockServerPackage,
-				want: "https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-windows-x86_64.dll.gz",
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v%s/libpact_mock_server_ffi-windows-x86_64.dll.gz", packages[MockServerPackage].version),
 				test: Installer{
 					os:   windows,
 					arch: x86_64,
