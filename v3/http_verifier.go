@@ -273,8 +273,6 @@ func stateHandlerMiddleware(stateHandlers StateHandlers) proxy.Middleware {
 	}
 }
 
-const providerStatesSetupPath = "/__setup/"
-
 // Use this to wait for a port to be running prior
 // to running tests.
 var waitForPort = func(port int, network string, address string, timeoutDuration time.Duration, message string) error {
@@ -284,8 +282,8 @@ var waitForPort = func(port int, network string, address string, timeoutDuration
 	for {
 		select {
 		case <-timeout:
-			log.Printf("[ERROR] Expected server to start < %s. %s", timeoutDuration, message)
-			return fmt.Errorf("Expected server to start < %s. %s", timeoutDuration, message)
+			log.Printf("[ERROR] expected server to start < %s. %s", timeoutDuration, message)
+			return fmt.Errorf("expected server to start < %s. %s", timeoutDuration, message)
 		case <-time.After(50 * time.Millisecond):
 			_, err := net.Dial(network, fmt.Sprintf("%s:%d", address, port))
 			if err == nil {

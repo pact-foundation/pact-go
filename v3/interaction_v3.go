@@ -3,7 +3,6 @@ package v3
 // ProviderStateV3 allows parameters and a description to be passed to the verification process
 type ProviderStateV3 struct {
 	Name       string      `json:"name"`
-	Action     string      `json:"action"` // TODO: remove this, don't expose to the user
 	Parameters interface{} `json:"params,omitempty"`
 }
 

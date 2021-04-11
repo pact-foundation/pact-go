@@ -50,6 +50,7 @@ func (v *MessageVerifier) verifyMessageProviderRaw(request VerifyMessageRequest,
 	if err != nil {
 		return err
 	}
+
 	// Starts the message wrapper API with hooks back to the message handlers
 	// This maps the 'description' field of a message pact, to a function handler
 	// that will implement the message producer. This function must return an object and optionally
@@ -78,11 +79,13 @@ func (v *MessageVerifier) verifyMessageProviderRaw(request VerifyMessageRequest,
 		ProviderTags:               request.ProviderTags,
 		// CustomProviderHeaders:      request.CustomProviderHeaders,
 		// ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
-		// EnablePending:              request.EnablePending,
-		FailIfNoPactsFound: request.FailIfNoPactsFound,
-		// IncludeWIPPactsSince:       request.IncludeWIPPactsSince,
+		EnablePending:          request.EnablePending,
+		FailIfNoPactsFound:     request.FailIfNoPactsFound,
+		IncludeWIPPactsSince:   request.IncludeWIPPactsSince,
+		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath),
 	}
 
+	mux.HandleFunc(providerStatesSetupPath, messageStateHandler(request.MessageHandlers, request.StateHandlers))
 	mux.HandleFunc("/", messageVerificationHandler(request.MessageHandlers, request.StateHandlers))
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -112,18 +115,23 @@ type messageVerificationHandlerRequest struct {
 	States      []ProviderStateV3 `json:"providerStates"`
 }
 
-var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHandlers StateHandlers) http.HandlerFunc {
+type messageStateHandlerRequest struct {
+	State  string      `json:"state"`
+	Params interface{} `json:"params"`
+	Action string      `json:"action"`
+}
+
+var messageStateHandler = func(messageHandlers MessageHandlers, stateHandlers StateHandlers) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO: should this be set by the provider itself? How does the metadata go back?
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-		log.Printf("[TRACE] message verification handler")
+		log.Printf("[TRACE] message state handler")
 
 		// Extract message
-		var message messageVerificationHandlerRequest
+		var message messageStateHandlerRequest
 		body, err := ioutil.ReadAll(r.Body)
 		r.Body.Close()
-		log.Printf("[TRACE] message verification handler received request: %+s", body)
+		log.Printf("[TRACE] message state handler received request: %+s, %s", body, r.URL.Path)
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -137,39 +145,67 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 			return
 		}
 
-		// Setup any provider state
-		for _, state := range message.States {
-			sf, stateFound := stateHandlers[state.Name]
+		log.Println("[TRACE] message verification - setting up state for message", message)
+		sf, stateFound := stateHandlers[message.State]
 
-			if !stateFound {
-				log.Printf("[WARN] state handler not found for state: %v", state.Name)
-			} else {
-				// Execute state handler
-				_, err := sf(state.Action == "setup", state)
-				// res, err := sf(state.Action == "setup", state)
+		if !stateFound {
+			log.Printf("[WARN] state handler not found for state: %v", message.State)
+		} else {
+			// Execute state handler
+			res, err := sf(message.Action == "setup", ProviderStateV3{
+				Name:       message.State,
+				Parameters: message.Params,
+			})
+
+			if err != nil {
+				log.Printf("[WARN] state handler for '%v' return error: %v", message.State, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			// Return provider state values for generator
+			if res != nil {
+				resBody, err := json.Marshal(res)
 
 				if err != nil {
-					log.Printf("[WARN] state handler for '%v' return error: %v", state.Name, err)
+					log.Printf("[ERROR] state handler for '%v' errored: %v", message.State, err)
 					w.WriteHeader(http.StatusInternalServerError)
+
 					return
 				}
 
-				// Return provider state values for generator
-				// TODO: can't return state data here, because it's all the one request!
-				// if res != nil {
-				// 	resBody, err := json.Marshal(res)
-
-				// 	if err != nil {
-				// 		log.Printf("[ERROR] state handler for '%v' errored: %v", state.Name, err)
-				// 		w.WriteHeader(http.StatusInternalServerError)
-
-				// 		return
-				// 	}
-
-				// 	w.Write(resBody)
-				// }
-
+				log.Printf("[INFO] state handler for '%v' finished", message.State)
+				w.Write(resBody)
 			}
+
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHandlers StateHandlers) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO: should this be set by the provider itself? How does the metadata go back?
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+		log.Printf("[TRACE] message verification handler")
+
+		// Extract message
+		var message messageVerificationHandlerRequest
+		body, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
+		log.Printf("[TRACE] message verification handler received request: %+s, %s", body, r.URL.Path)
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		err = json.Unmarshal(body, &message)
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
 		// Lookup key in function mapping
@@ -201,3 +237,5 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 		w.Write(resBody)
 	}
 }
+
+const providerStatesSetupPath = "/__setup/"

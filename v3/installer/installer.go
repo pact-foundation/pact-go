@@ -281,7 +281,7 @@ var packages = map[string]packageInfo{
 	},
 	MockServerPackage: {
 		libName:     "libpact_mock_server_ffi",
-		version:     "0.0.15",
+		version:     "0.0.16",
 		semverRange: ">= 0.0.15, < 1.0.0",
 	},
 }

@@ -98,18 +98,16 @@ func TestV3MessageProvider(t *testing.T) {
 
 	stateMappings := v3.StateHandlers{
 		"User with id 127 exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
-			// TODO: it seems maybe the "action" flag isn't passed in for messages like the HTTP one?
-			// if setup {
-			user = &User{
-				ID:       44,
-				Name:     "Baz",
-				Date:     "2020-01-01",
-				LastName: "sampson",
+			if setup {
+				user = &User{
+					ID:       127,
+					Name:     "Baz",
+					Date:     "2020-01-01",
+					LastName: "sampson",
+				}
 			}
-			// }
 
-			return nil, nil
-			// return v3.ProviderStateV3Response{"id": "bar"}, nil
+			return v3.ProviderStateV3Response{"id": user.ID}, nil
 		},
 	}
 

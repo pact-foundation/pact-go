@@ -169,7 +169,7 @@ func TestMessagePact(t *testing.T) {
 		Given(v3.ProviderStateV3{
 			Name: "User with id 127 exists",
 			Parameters: map[string]interface{}{
-				"id": 27,
+				"id": 127,
 			},
 		}).
 		ExpectsToReceive("a user event").
