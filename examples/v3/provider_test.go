@@ -64,12 +64,10 @@ func TestV3HTTPProvider(t *testing.T) {
 					log.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
 				}
 
-				// ... do something
+				// ... do something, such as create "foo" in the database
 
-				// Optionally (if there are generators in the pact) return provider state values to be used in the verification (only  )
+				// Optionally (if there are generators in the pact) return provider state values to be used in the verification
 				return v3.ProviderStateV3Response{"uuid": "1234"}, nil
-
-				// return nil, nil
 			},
 		},
 	})

@@ -47,7 +47,6 @@ Read [Getting started with Pact] for more information for beginners.
   - [HTTP API Testing](#http-api-testing)
     - [Consumer Side Testing](#consumer-side-testing)
     - [Provider API Testing](#provider-api-testing)
-      - [Provider Verification](#provider-verification)
       - [Provider States](#provider-states)
       - [Before and After Hooks](#before-and-after-hooks)
       - [Request Filtering](#request-filtering)
@@ -96,7 +95,8 @@ Read [Getting started with Pact] for more information for beginners.
 
 | Version | Stable | [Spec] Compatibility | Install            |
 |---------|--------|----------------------|--------------------|
-| 1.0.x   | Yes    | 2, 3\*               | See [installation] |
+| 2.0.x   | Yes    | 2, 3                 | See [installation] |
+| 1.0.x   | Yes    | 2, 3\*               | 1.x.x [1xx] |
 | 0.x.x   | Yes    | Up to v2             | 0.x.x [stable]     |
 
 _\*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
@@ -269,75 +269,34 @@ Here is the Provider test process broker down:
       go startServer()
 
       // Verify the Provider using the locally saved Pact Files
-      pact.VerifyProvider(t, types.VerifyRequest{
-        ProviderBaseURL:        "http://localhost:8000",
-        PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
-        StateHandlers: types.StateHandlers{
+			err := verifier.VerifyProvider(t, v3.VerifyRequest{
+				ProviderBaseURL: "http://localhost:8000",
+				PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/MyConsumer-MyProvider.json", pactDir))},
+				StateHandlers: v3.StateHandlers{
           // Setup any state required by the test
-          // in this case, we ensure there is a "user" in the system
-          "User foo exists": func() error {
-            lastName = "crickets"
-            return nil
-          },
-        },
-      })
+          // in this case, we ensure there is a User "foo" in the system
+					"User foo exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
+
+						if setup {
+							log.Println("[DEBUG] HOOK calling user foo exists state handler", s)
+						} else {
+							log.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
+						}
+
+						// ... do something, such as create "foo" in the database
+
+						// Optionally (if there are generators in the pact) return provider state values to be used in the verification
+						// e.g. the user ID for use in a GET /users/:id path
+						return v3.ProviderStateV3Response{"uuid": "1234"}, nil
+					},
+				},
+			})
     }
     ```
-
-The `VerifyProvider` will handle all verifications, treating them as subtests
-and giving you granular test reporting. If you don't like this behaviour, you may call `VerifyProviderRaw` directly and handle the errors manually.
 
 Note that `PactURLs` may be a list of local pact files or remote based
 urls (e.g. from a
 [Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
-
-#### Provider Verification
-
-When validating a Provider, you have 3 options to provide the Pact files:
-
-1.  Use `PactURLs` to specify the exact set of pacts to be replayed:
-
-    ```go
-    pact.VerifyProvider(t, types.VerifyRequest{
-    	ProviderBaseURL:        "http://myproviderhost",
-    	PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
-    	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
-    	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
-    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
-    })
-    ```
-
-1.  Use `BrokerURL` to automatically find all of the latest consumers:
-
-    ```go
-    pact.VerifyProvider(t, types.VerifyRequest{
-    	ProviderBaseURL:        "http://myproviderhost",
-    	BrokerURL:              "http://brokerHost",
-    	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
-    	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
-    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
-    })
-    ```
-
-1.  Use `BrokerURL` and `Tags` to automatically find all of the latest consumers given one or more tags:
-
-    ```go
-    pact.VerifyProvider(t, types.VerifyRequest{
-    	ProviderBaseURL:        "http://myproviderhost",
-    	BrokerURL:              "http://brokerHost",
-    	Tags:                   []string{"master", "prod"},
-    	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
-    	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
-    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
-    })
-    ```
-
-Options 2 and 3 are particularly useful when you want to validate that your
-Provider is able to meet the contracts of what's in Production and also the latest
-in development.
-
-See this [article](http://rea.tech/enter-the-pact-matrix-or-how-to-decouple-the-release-cycles-of-your-microservices/)
-for more on this strategy.
 
 #### Provider States
 
@@ -346,27 +305,31 @@ If you have defined any states (as denoted by a `Given()`) in your consumer test
 ```go
 pact.VerifyProvider(t, types.VerifyRequest{
 	...
-  StateHandlers: types.StateHandlers{
-		"User jmarie exists": func() error {
-			userRepository = jmarieExists
-			return nil
-		},
-		"User jmarie is unauthenticated": func() error {
-			userRepository = jmarieUnauthorized
-			token = "invalid"
+	StateHandlers: v3.StateHandlers{
+		"User 1234 exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
+			// set the database to have users
+			userRepository = fullUsersRepository
 
-			return nil
+			// if you have dynamic IDs and you are using provider state value generators
+			// you can return a key/value response that will be used by the verifier to substitute
+			// the pact file values, with the replacements here
+			return v3.ProviderStateV3Response{"uuid": "1234"}, nil
 		},
-		"User jmarie does not exist": func() error {
-			userRepository = jmarieDoesNotExist
-			return nil
+		"No users exist": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
+			// set the database to an empty database
+			userRepository = emptyRepository
+
+			return nil, nil
 		},
-		...
 	},
 })
 ```
 
-As you can see, for each state (`"User jmarie exists"` etc.) we configure the local datastore differently. If this option is not configured, the `Verifier` will ignore the provider states defined in the pact and log a warning.
+As you can see, for each state (`"User 1234 exists"` etc.) we configure the local datastore differently. If this option is not configured, the `Verifier` will ignore the provider states defined in the pact and log a warning.
+
+Each handler takes a `setup` property indicating if the state is being setup (before the test) or torn dowmn (post request). This is useful if you want to cleanup after the test.
+
+You may also optionally return a key/value map for provider state value generators to substitute values in the incoming test request.
 
 Note that if the State Handler errors, the test will exit early with a failure.
 
@@ -407,21 +370,6 @@ Read on for more.
 
 ##### Example: API with Authorization
 
-**Custom Headers**:
-
-This header will always be sent for each and every request, and can't be dynamic. For example:
-
-```go
-  pact.VerifyProvider(t, types.VerifyRequest{
-    ...
-    CustomProviderHeaders:  []string{"Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42"},
-  })
-```
-
-As you can see, this is your opportunity to modify\add to headers being sent to the Provider API, for example to create a valid time-bound token.
-
-**Request Filters**
-
 _WARNING_: This should only be attempted once you know what you're doing!
 
 Request filters are custom middleware, that are executed for each request, allowing `token` to change between invocations. Request filters can change the request coming in, _and_ the response back to the verifier. It is common to pair this with `StateHandlers` as per above, that can set/expire the token
@@ -442,7 +390,6 @@ for different test cases:
 _Important Note_: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
 
 #### Pending Pacts
-_NOTE_: This feature is currently only available on [Pactflow]
 
 Pending pacts is a feature that allows consumers to publish new contracts or changes to existing contracts without breaking Provider's builds. It does so by flagging the contract as "unverified" in the Pact Broker the first time a contract is published. A Provider can then enable a behaviour (via `EnablePending: true`) that will still perform a verification (and thus share the results back to the broker) but _not_ fail the verification step itself.
 
@@ -451,8 +398,6 @@ This enables safe introduction of new contracts into the system, without breakin
 See the [docs](https://docs.pact.io/pending) and this [article](http://blog.pact.io/2020/02/24/how-we-have-fixed-the-biggest-problem-with-the-pact-workflow/) for more background.
 
 #### WIP Pacts
-
-_NOTE_: This feature is currently only available on [Pactflow]
 
 WIP Pacts builds upon pending pacts, enabling provider tests to pull in _any_ contracts applicable to the provider regardless of the `tag` it was given. This is useful, because often times consumers won't follow the exact same tagging convention and so their workflow would be interrupted. This feature enables any pacts determined to be "work in progress" to be verified by the Provider, without causing a build failure. You can enable this behaviour by specifying a valid `time.Time` field for `IncludeWIPPactsSince`. This sets the start window for which new WIP pacts will be pulled down for verification, regardless of the tag.
 
@@ -933,6 +878,7 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 See [CONTRIBUTING](CONTRIBUTING.md).
 
 [spec]: https://github.com/pact-foundation/pact-specification
+[1xx]: https://github.com/pact-foundation/pact-go/
 [stable]: https://github.com/pact-foundation/pact-go/tree/release/0.x.x
 [alpha]: https://github.com/pact-foundation/pact-go/tree/release/1.1.x
 [troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
