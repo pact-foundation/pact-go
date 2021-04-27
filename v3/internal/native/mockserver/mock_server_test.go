@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var tmpPactFolder = "/var/tmp/"
@@ -79,7 +81,7 @@ var pactComplex = `{
 
 func TestMockServer_CreateAndCleanupMockServer(t *testing.T) {
 	m := MockServer{}
-	m.Init()
+	Init()
 	port, _ := m.CreateMockServer(pactComplex, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
@@ -178,4 +180,46 @@ func TestMockServer_GetTLSConfig(t *testing.T) {
 func TestVersion(t *testing.T) {
 	m := MockServer{}
 	fmt.Println("version: ", m.Version())
+}
+
+func TestHandleBasedTests(t *testing.T) {
+	Init()
+	m := NewMockServer("testconsumer", "testprovider")
+
+	fmt.Println("pact struct:", m)
+
+	i := m.NewInteraction("some interaction")
+	fmt.Println("pact interaction:", i)
+
+	i.UponReceiving("some interaction").
+		Given("some state").
+		WithRequest("GET", "/products").
+		// withRequestHeader("x-special-header", 0, "header")
+		// withQuery("someParam", 0, "someValue")
+		WithJSONResponseBody(`{
+	  "name": "name",
+	  "age": 23,
+	  "alive": true
+	}`).
+		// withResponseHeader(i, "x-special-header", 0, "header")
+		WithStatus(200)
+
+	// // Start the mock service
+	// const host = "127.0.0.1"
+	port, err := m.Start("0.0.0.0:0", false)
+	assert.NoError(t, err)
+	defer m.CleanupMockServer(port)
+
+	r, err := http.Get(fmt.Sprintf("http://0.0.0.0:%d/products", port))
+	assert.NoError(t, err)
+
+	mismatches := m.MockServerMismatchedRequests(port)
+	if len(mismatches) != 0 {
+		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
+	}
+
+	err = m.WritePactFile(port, tmpPactFolder)
+	assert.NoError(t, err)
+
+	fmt.Println(r)
 }

@@ -9,15 +9,118 @@ typedef int bool;
 #define false 0
 
 void init(char* log);
-int create_mock_server(char* pact, char* addr, bool tls);
-int mock_server_matched(int port);
-char* mock_server_mismatches(int port);
-bool cleanup_mock_server(int port);
-int write_pact_file(int port, char* dir);
-void free_string(char* s);
-char* get_tls_ca_certificate();
 char* version();
 
+/// Wraps a Pact model struct
+typedef struct InteractionHandle InteractionHandle;
+
+struct InteractionHandle {
+	uintptr_t pact;
+  uintptr_t interaction;
+	};
+
+/// Wraps a Pact model struct
+typedef struct PactHandle PactHandle;
+struct PactHandle {
+  uintptr_t pact;
+};
+
+/// External interface to cleanup a mock server. This function will try terminate the mock server
+/// with the given port number and cleanup any memory allocated for it. Returns true, unless a
+/// mock server with the given port number does not exist, or the function panics.
+///
+/// **NOTE:** Although `close()` on the listener for the mock server is called, this does not
+/// currently work and the listener will continue handling requests. In this
+/// case, it will always return a 404 once the mock server has been cleaned up.
+bool cleanup_mock_server(int mock_server_port);
+
+/// External interface to create a mock server. A pointer to the pact JSON as a C string is passed in,
+/// as well as the port for the mock server to run on. A value of 0 for the port will result in a
+/// port being allocated by the operating system. The port of the mock server is returned.
+///
+/// # Errors
+///
+/// Errors are returned as negative values.
+///
+/// | Error | Description |
+/// |-------|-------------|
+/// | -1 | A null pointer was received |
+/// | -2 | The pact JSON could not be parsed |
+/// | -3 | The mock server could not be started |
+/// | -4 | The method panicked |
+/// | -5 | The address is not valid |
+///
+int create_mock_server(const char *pact_str, const char *addr_str, bool tls);
+
+/// As above, but creates it for a PactHandle
+int create_mock_server_for_pact(PactHandle pact, const char *addr_str, bool tls);
+
+/// Adds a provider state to the Interaction
+void given(InteractionHandle interaction, const char *description);
+
+/// Get self signed certificate for TLS mode
+char* get_tls_ca_certificate();
+
+/// Free a string allocated on the Rust heap
+void free_string(const char *s);
+
+/// External interface to check if a mock server has matched all its requests. The port number is
+/// passed in, and if all requests have been matched, true is returned. False is returned if there
+/// is no mock server on the given port, or if any request has not been successfully matched, or
+/// the method panics.
+bool mock_server_matched(int mock_server_port);
+
+/// External interface to get all the mismatches from a mock server. The port number of the mock
+/// server is passed in, and a pointer to a C string with the mismatches in JSON format is
+/// returned.
+///
+/// **NOTE:** The JSON string for the result is allocated on the heap, and will have to be freed
+/// once the code using the mock server is complete. The [`cleanup_mock_server`](fn.cleanup_mock_server.html) function is
+/// provided for this purpose.
+///
+/// # Errors
+///
+/// If there is no mock server with the provided port number, or the function panics, a NULL
+/// pointer will be returned. Don't try to dereference it, it will not end well for you.
+///
+char* mock_server_mismatches(int mock_server_port);
+
+/// Creates a new Interaction and returns a handle to it
+InteractionHandle new_interaction(PactHandle pact, const char *description);
+
+/// Creates a new Pact model and returns a handle to it
+PactHandle new_pact(const char *consumer_name, const char *provider_name);
+
+/// Sets the description for the Interaction
+void upon_receiving(InteractionHandle interaction, const char *description);
+
+/// Sets the description for the Interaction
+void with_request(InteractionHandle interaction, const char *method, const char *path);
+
+/// Sets the description for the Interaction
+// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_body.html
+void with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
+
+// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
+void response_status(InteractionHandle interaction, int status);
+
+/// External interface to trigger a mock server to write out its pact file. This function should
+/// be called if all the consumer tests have passed. The directory to write the file to is passed
+/// as the second parameter. If a NULL pointer is passed, the current working directory is used.
+///
+/// Returns 0 if the pact file was successfully written. Returns a positive code if the file can
+/// not be written, or there is no mock server running on that port or the function panics.
+///
+/// # Errors
+///
+/// Errors are returned as positive values.
+///
+/// | Error | Description |
+/// |-------|-------------|
+/// | 1 | A general panic was caught |
+/// | 2 | The pact file was not able to be written |
+/// | 3 | A mock server with the provided port was not found |
+int write_pact_file(int mock_server_port, const char *directory);
 */
 import "C"
 
@@ -30,57 +133,44 @@ import (
 	"unsafe"
 )
 
-// Request is the sub-struct of Mismatch
-type Request struct {
-	Method  string            `json:"method"`
-	Path    string            `json:"path"`
-	Query   string            `json:"query,omitempty"`
-	Headers map[string]string `json:"headers,omitempty"`
-	Body    interface{}       `json:"body,omitempty"`
+const (
+	INTERACTION_PART_REQUEST  = 0
+	INTERACTION_PART_RESPONSE = 1
+)
+
+// Pact is a Go representation of the PactHandle struct
+type Pact struct {
+	handle C.PactHandle
 }
 
-// [
-//   {
-//     "method": "GET",
-//     "mismatches": [
-//       {
-//         "actual": "",
-//         "expected": "\"Bearer 1234\"",
-//         "key": "Authorization",
-//         "mismatch": "Expected header 'Authorization' but was missing",
-//         "type": "HeaderMismatch"
-//       }
-//     ],
-//     "path": "/foobar",
-//     "type": "request-mismatch"
-//   }
-// ]
-
-// MismatchDetail contains the specific assertions that failed during the verification
-type MismatchDetail struct {
-	Actual   string
-	Expected string
-	Key      string
-	Mismatch string
-	Type     string
+// Interaction is a Go representation of the InteractionHandle struct
+type Interaction struct {
+	handle C.InteractionHandle
 }
 
-// MismatchedRequest contains details of any request mismatches during pact verification
-type MismatchedRequest struct {
-	Request
-	Mismatches []MismatchDetail
-	Type       string
+// MockServer is the public interface for managing the mock server
+type MockServer struct {
+	pact         *Pact
+	interactions []*Interaction
 }
-
-type MockServer struct{}
 
 // Init initialises the library
-func (m *MockServer) Init() {
+func Init() {
 	log.Println("[DEBUG] initialising rust mock server interface")
 	logLevel := C.CString("LOG_LEVEL")
 	defer free(logLevel)
 
 	C.init(logLevel)
+}
+
+// NewMockServer creates a new mock server for a given consumer/provider
+func NewMockServer(consumer string, provider string) *MockServer {
+	cConsumer := C.CString(consumer)
+	cProvider := C.CString(provider)
+	defer free(cConsumer)
+	defer free(cProvider)
+
+	return &MockServer{pact: &Pact{handle: C.new_pact(cConsumer, cProvider)}}
 }
 
 // CreateMockServer creates a new Mock Server from a given Pact file.
@@ -160,38 +250,14 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 
 // CleanupMockServer frees the memory from the previous mock server.
 func (m *MockServer) CleanupMockServer(port int) bool {
+	if len(m.interactions) == 0 {
+		return true
+	}
 	log.Println("[DEBUG] mock server cleaning up port:", port)
 	res := C.cleanup_mock_server(C.int(port))
 
 	return int(res) == 1
 }
-
-var (
-	// ErrMockServerPanic indicates a panic ocurred when invoking the remote Mock Server.
-	ErrMockServerPanic = fmt.Errorf("a general panic occured when starting/invoking mock service (this indicates a defect in the framework)")
-
-	// ErrUnableToWritePactFile indicates an error when writing the pact file to disk.
-	ErrUnableToWritePactFile = fmt.Errorf("unable to write to file")
-
-	// ErrMockServerNotfound indicates the Mock Server could not be found.
-	ErrMockServerNotfound = fmt.Errorf("unable to find mock server with the given port")
-
-	// ErrInvalidMockServerConfig indicates an issue configuring the mock server
-	ErrInvalidMockServerConfig = fmt.Errorf("configuration for the mock server was invalid and an unknown error occurred (this is most likely a defect in the framework)")
-
-	// ErrInvalidPact indicates the pact file provided to the mock server was not a valid pact file
-	ErrInvalidPact = fmt.Errorf("pact given to mock server is invalid")
-
-	// ErrMockServerUnableToStart means the mock server could not be started in the rust library
-	ErrMockServerUnableToStart = fmt.Errorf("unable to start the mock server")
-
-	// ErrInvalidAddress means the address provided to the mock server was invalid and could not be understood
-	ErrInvalidAddress = fmt.Errorf("invalid address provided to the mock server")
-
-	// ErrMockServerTLSConfiguration indicates a TLS mock server could not be started
-	// and is likely a framework level problem
-	ErrMockServerTLSConfiguration = fmt.Errorf("a tls mock server could not be started (this is likely a defect in the framework)")
-)
 
 // WritePactFile writes the Pact to file.
 func (m *MockServer) WritePactFile(port int, dir string) error {
@@ -249,3 +315,154 @@ func free(str *C.char) {
 func libRustFree(str *C.char) {
 	C.free_string(str)
 }
+
+// Start starts up the mock HTTP server on the given address:port and TLS config
+// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.create_mock_server_for_pact.html
+func (m *MockServer) Start(address string, tls bool) (int, error) {
+	if len(m.interactions) == 0 {
+		return 0, ErrNoInteractions
+	}
+
+	log.Println("[DEBUG] mock server starting on address:", address)
+	cAddress := C.CString(address)
+	defer free(cAddress)
+	tlsEnabled := 0
+	if tls {
+		tlsEnabled = 1
+	}
+
+	p := C.create_mock_server_for_pact(m.pact.handle, cAddress, C.int(tlsEnabled))
+
+	// | Error | Description |
+	// |-------|-------------|
+	// | -1 | A null pointer was received |
+	// | -2 | The pact JSON could not be parsed |
+	// | -3 | The mock server could not be started |
+	// | -4 | The method panicked |
+	// | -5 | The address is not valid |
+	// | -6 | Could not create the TLS configuration with the self-signed certificate |
+	port := int(p)
+	switch port {
+	case -1:
+		return 0, ErrInvalidMockServerConfig
+	case -2:
+		return 0, ErrInvalidPact
+	case -3:
+		return 0, ErrMockServerUnableToStart
+	case -4:
+		return 0, ErrMockServerPanic
+	case -5:
+		return 0, ErrInvalidAddress
+	case -6:
+		return 0, ErrMockServerTLSConfiguration
+	default:
+		if port > 0 {
+			log.Println("[DEBUG] mock server running on port:", port)
+			return port, nil
+		}
+		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
+	}
+}
+
+// NewInteraction initialises a new interaction for the current contract
+func (m *MockServer) NewInteraction(description string) *Interaction {
+	cDescription := C.CString(description)
+	defer free(cDescription)
+
+	i := &Interaction{
+		handle: C.new_interaction(m.pact.handle, cDescription),
+	}
+	m.interactions = append(m.interactions, i)
+
+	return i
+}
+
+func (i *Interaction) UponReceiving(description string) *Interaction {
+	cDescription := C.CString(description)
+	defer free(cDescription)
+
+	C.upon_receiving(i.handle, cDescription)
+
+	return i
+}
+
+func (i *Interaction) Given(state string) *Interaction {
+	cState := C.CString(state)
+	defer free(cState)
+
+	C.upon_receiving(i.handle, cState)
+
+	return i
+}
+
+func (i *Interaction) WithRequest(method string, path string) *Interaction {
+	cMethod := C.CString(method)
+	cPath := C.CString(path)
+	defer free(cPath)
+	defer free(cMethod)
+
+	C.with_request(i.handle, cMethod, cPath)
+
+	return i
+}
+
+func (i *Interaction) WithJSONResponseBody(body interface{}) *Interaction {
+	var jsonBody string
+	cHeader := C.CString("application/json")
+	defer free(cHeader)
+
+	switch t := body.(type) {
+	case string:
+		jsonBody = t
+	default:
+		bytes, err := json.Marshal(body)
+		if err != nil {
+			panic(fmt.Sprintln("unable to marshal body to JSON:", err))
+		}
+		jsonBody = string(bytes)
+
+	}
+	cBody := C.CString(jsonBody)
+	defer free(cBody)
+
+	C.with_body(i.handle, INTERACTION_PART_RESPONSE, cHeader, cBody)
+
+	return i
+}
+
+func (i *Interaction) WithStatus(status int) *Interaction {
+	C.response_status(i.handle, C.int(status))
+
+	return i
+}
+
+// Errors
+var (
+	// ErrMockServerPanic indicates a panic ocurred when invoking the remote Mock Server.
+	ErrMockServerPanic = fmt.Errorf("a general panic occured when starting/invoking mock service (this indicates a defect in the framework)")
+
+	// ErrUnableToWritePactFile indicates an error when writing the pact file to disk.
+	ErrUnableToWritePactFile = fmt.Errorf("unable to write to file")
+
+	// ErrMockServerNotfound indicates the Mock Server could not be found.
+	ErrMockServerNotfound = fmt.Errorf("unable to find mock server with the given port")
+
+	// ErrInvalidMockServerConfig indicates an issue configuring the mock server
+	ErrInvalidMockServerConfig = fmt.Errorf("configuration for the mock server was invalid and an unknown error occurred (this is most likely a defect in the framework)")
+
+	// ErrInvalidPact indicates the pact file provided to the mock server was not a valid pact file
+	ErrInvalidPact = fmt.Errorf("pact given to mock server is invalid")
+
+	// ErrMockServerUnableToStart means the mock server could not be started in the rust library
+	ErrMockServerUnableToStart = fmt.Errorf("unable to start the mock server")
+
+	// ErrInvalidAddress means the address provided to the mock server was invalid and could not be understood
+	ErrInvalidAddress = fmt.Errorf("invalid address provided to the mock server")
+
+	// ErrMockServerTLSConfiguration indicates a TLS mock server could not be started
+	// and is likely a framework level problem
+	ErrMockServerTLSConfiguration = fmt.Errorf("a tls mock server could not be started (this is likely a defect in the framework)")
+
+	// ErrNoInteractions indicates no Interactions have been registered to a mock server, and cannot be started/stopped until at least one is added
+	ErrNoInteractions = fmt.Errorf("no interactions have been registered for the mock server")
+)
