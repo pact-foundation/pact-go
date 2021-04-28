@@ -28,6 +28,10 @@ func NewHTTPMockProviderV2(config MockHTTPProviderConfigV2) (*HTTPMockProviderV2
 
 // AddInteraction creates a new Pact interaction, initialising all
 // required things. Will automatically start a Mock Service if none running.
+
+// TODO: this needs to be plumbed into the new native interface
+// We'll need a reference to the underlying object so that we can cross the FFI boundary
+// with each additional modification to the InteractionV2 object
 func (p *HTTPMockProviderV2) AddInteraction() *InteractionV2 {
 	log.Println("[DEBUG] pact add v2 interaction")
 	i := &InteractionV2{}

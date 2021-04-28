@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/utils"
-	"github.com/pact-foundation/pact-go/v3/internal/native/mockserver"
 	native "github.com/pact-foundation/pact-go/v3/internal/native/mockserver"
 )
 
@@ -97,9 +96,6 @@ type mockHTTPProviderConfig struct {
 
 	matchingConfig PactSerialisationOptionsV2
 
-	// Check if CLI tools are up to date
-	toolValidityCheck bool
-
 	// TLS enables a mock service behind a self-signed certificate
 	// TODO: document and test this
 	TLS bool
@@ -116,13 +112,9 @@ type MockHTTPProviderConfigV3 = mockHTTPProviderConfig
 type httpMockProvider struct {
 	specificationVersion SpecificationVersion
 	config               mockHTTPProviderConfig
-
-	v2Interactions []*InteractionV2
-	v3Interactions []*InteractionV3
-
-	// fsm state of the interaction
-	state      string
-	mockserver *mockserver.MockServer
+	v2Interactions       []*InteractionV2
+	v3Interactions       []*InteractionV3
+	mockserver           *native.MockServer
 }
 
 // MockServerConfig stores the address configuration details of the server for the current executing test
@@ -147,11 +139,11 @@ func (p *httpMockProvider) validateConfig() error {
 	}
 
 	if p.config.LogDir == "" {
-		p.config.LogDir = fmt.Sprintf(filepath.Join(dir, "logs"))
+		p.config.LogDir = filepath.Join(dir, "logs")
 	}
 
 	if p.config.PactDir == "" {
-		p.config.PactDir = fmt.Sprintf(filepath.Join(dir, "pacts"))
+		p.config.PactDir = filepath.Join(dir, "pacts")
 	}
 
 	if p.config.ClientTimeout == 0 {
@@ -169,8 +161,8 @@ func (p *httpMockProvider) validateConfig() error {
 		return fmt.Errorf("error: unable to find free port, mock server will fail to start")
 	}
 
-	p.mockserver = &mockserver.MockServer{}
-	p.mockserver.Init()
+	p.mockserver = native.NewMockServer(p.config.Consumer, p.config.Provider)
+	native.Init()
 
 	return nil
 }
@@ -186,20 +178,22 @@ func (p *httpMockProvider) cleanInteractions() {
 func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
 	log.Println("[DEBUG] pact verify")
 
-	// Generate interactions for Pact file
-	var serialisedPact interface{}
-	if p.specificationVersion == V2 {
-		serialisedPact = newPactFileV2(p.config.Consumer, p.config.Provider, p.v2Interactions, p.config.matchingConfig)
-	} else {
-		serialisedPact = newPactFileV3(p.config.Consumer, p.config.Provider, p.v3Interactions, nil)
-	}
+	// // Generate interactions for Pact file
+	// var serialisedPact interface{}
+	// if p.specificationVersion == V2 {
+	// 	serialisedPact = newPactFileV2(p.config.Consumer, p.config.Provider, p.v2Interactions, p.config.matchingConfig)
+	// } else {
+	// 	serialisedPact = newPactFileV3(p.config.Consumer, p.config.Provider, p.v3Interactions, nil)
+	// }
 
-	log.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
+	// log.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
 
 	// Clean interactions
-	p.cleanInteractions()
+	// p.cleanInteractions()
 
-	port, err := p.mockserver.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
+	// port, err := p.mockserver.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
+
+	port, err := p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
 	defer p.mockserver.CleanupMockServer(p.config.Port)
 	if err != nil {
 		return err
@@ -233,7 +227,7 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 
 // TODO: pretty print this to make it really easy to understand the problems
 // See existing Pact/Ruby code examples
-func (p *httpMockProvider) displayMismatches(mismatches []mockserver.MismatchedRequest) {
+func (p *httpMockProvider) displayMismatches(mismatches []native.MismatchedRequest) {
 	if len(mismatches) > 0 {
 		log.Println("[INFO] pact validation failed, errors: ")
 		for _, m := range mismatches {
