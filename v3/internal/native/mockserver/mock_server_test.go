@@ -197,7 +197,10 @@ func TestHandleBasedTests(t *testing.T) {
 		// withRequestHeader("x-special-header", 0, "header")
 		// withQuery("someParam", 0, "someValue")
 		WithJSONResponseBody(`{
-	  "name": "name",
+	  "name": {
+      "pact:matcher:type": "type",
+      "value": "some name"
+    },
 	  "age": 23,
 	  "alive": true
 	}`).

@@ -55,8 +55,13 @@ int create_mock_server(const char *pact_str, const char *addr_str, bool tls);
 /// As above, but creates it for a PactHandle
 int create_mock_server_for_pact(PactHandle pact, const char *addr_str, bool tls);
 
+void with_specification(PactHandle pact, int specification_version);
+
 /// Adds a provider state to the Interaction
 void given(InteractionHandle interaction, const char *description);
+
+/// Adds a provider state with params to the Interaction
+void given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
 
 /// Get self signed certificate for TLS mode
 char* get_tls_ca_certificate();
@@ -97,6 +102,14 @@ void upon_receiving(InteractionHandle interaction, const char *description);
 /// Sets the description for the Interaction
 void with_request(InteractionHandle interaction, const char *method, const char *path);
 
+/// Sets header expectations
+/// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_header.html
+void with_header(InteractionHandle interaction, int interaction_part, const char *name, int index, const char *value);
+
+/// Sets query string expectation
+/// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_query_parameter.html
+void with_query_parameter(InteractionHandle interaction, const char *name, int index, const char *value);
+
 /// Sets the description for the Interaction
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_body.html
 void with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
@@ -133,9 +146,22 @@ import (
 	"unsafe"
 )
 
+type interactionType int
+
 const (
-	INTERACTION_PART_REQUEST  = 0
-	INTERACTION_PART_RESPONSE = 1
+	INTERACTION_PART_REQUEST interactionType = iota
+	INTERACTION_PART_RESPONSE
+)
+
+type specificationVersion int
+
+const (
+	SPECIFICATION_VERSION_UNKNOWN specificationVersion = iota
+	SPECIFICATION_VERSION_V1
+	SPECIFICATION_VERSION_V1_1
+	SPECIFICATION_VERSION_V2
+	SPECIFICATION_VERSION_V3
+	SPECIFICATION_VERSION_V4
 )
 
 // Pact is a Go representation of the PactHandle struct
@@ -171,6 +197,10 @@ func NewMockServer(consumer string, provider string) *MockServer {
 	defer free(cProvider)
 
 	return &MockServer{pact: &Pact{handle: C.new_pact(cConsumer, cProvider)}}
+}
+
+func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
+	C.with_specification(m.pact.handle, C.int(version))
 }
 
 // CreateMockServer creates a new Mock Server from a given Pact file.
@@ -390,44 +420,148 @@ func (i *Interaction) Given(state string) *Interaction {
 	cState := C.CString(state)
 	defer free(cState)
 
-	C.upon_receiving(i.handle, cState)
+	C.given(i.handle, cState)
 
 	return i
 }
 
-func (i *Interaction) WithRequest(method string, path string) *Interaction {
+func (i *Interaction) GivenWithParameter(state string, params map[string]string) *Interaction {
+	cState := C.CString(state)
+	defer free(cState)
+
+	for k, v := range params {
+		cKey := C.CString(k)
+		defer free(cKey)
+		cValue := C.CString(v)
+		defer free(cValue)
+
+		C.given_with_param(i.handle, cState, cKey, cValue)
+
+	}
+
+	return i
+}
+
+func (i *Interaction) WithRequest(method string, pathOrMatcher interface{}) *Interaction {
 	cMethod := C.CString(method)
+	defer free(cMethod)
+
+	path := stringFromInterface(pathOrMatcher)
 	cPath := C.CString(path)
 	defer free(cPath)
-	defer free(cMethod)
 
 	C.with_request(i.handle, cMethod, cPath)
 
 	return i
 }
 
+func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string]interface{}) *Interaction {
+	// func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string]string) *Interaction {
+	return i.withHeaders(INTERACTION_PART_REQUEST, valueOrMatcher)
+}
+
+func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string]interface{}) *Interaction {
+	// func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string]string) *Interaction {
+	return i.withHeaders(INTERACTION_PART_RESPONSE, valueOrMatcher)
+}
+
+func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[string]interface{}) *Interaction {
+	// func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[string]string) *Interaction {
+	for k, v := range valueOrMatcher {
+
+		cName := C.CString(k)
+		defer free(cName)
+
+		value := stringFromInterface(v)
+		fmt.Printf("withheaders, sending: %+v \n\n", value)
+		cValue := C.CString(value)
+		defer free(cValue)
+
+		C.with_header(i.handle, C.int(part), cName, C.int(0), cValue)
+	}
+
+	return i
+}
+
+func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Interaction {
+	// func (i *Interaction) WithQuery(valueOrMatcher map[string][]string) *Interaction {
+	for k, values := range valueOrMatcher {
+
+		cName := C.CString(k)
+		defer free(cName)
+
+		for idx, v := range values {
+			value := stringFromInterface(v)
+			cValue := C.CString(value)
+			defer free(cValue)
+
+			C.with_query_parameter(i.handle, cName, C.int(idx), cValue)
+		}
+	}
+
+	return i
+}
+
+func (i *Interaction) WithRequestBody(body string, contentType string) *Interaction {
+	cHeader := C.CString(contentType)
+	cBody := C.CString(body)
+	defer free(cHeader)
+	defer free(cBody)
+
+	C.with_body(i.handle, 0, cHeader, cBody)
+
+	return i
+}
+
+func (i *Interaction) WithResponseBody(body string, contentType string) *Interaction {
+	cHeader := C.CString(contentType)
+	cBody := C.CString(body)
+	defer free(cHeader)
+	defer free(cBody)
+
+	C.with_body(i.handle, 1, cHeader, cBody)
+
+	return i
+
+}
+func (i *Interaction) WithJSONRequestBody(body interface{}) *Interaction {
+	return i.withJSONBody(body, INTERACTION_PART_REQUEST)
+}
+
 func (i *Interaction) WithJSONResponseBody(body interface{}) *Interaction {
-	var jsonBody string
+	return i.withJSONBody(body, INTERACTION_PART_RESPONSE)
+}
+
+func (i *Interaction) withJSONBody(body interface{}, part interactionType) *Interaction {
 	cHeader := C.CString("application/json")
 	defer free(cHeader)
 
-	switch t := body.(type) {
-	case string:
-		jsonBody = t
-	default:
-		bytes, err := json.Marshal(body)
-		if err != nil {
-			panic(fmt.Sprintln("unable to marshal body to JSON:", err))
-		}
-		jsonBody = string(bytes)
-
-	}
+	jsonBody := stringFromInterface(body)
 	cBody := C.CString(jsonBody)
 	defer free(cBody)
 
-	C.with_body(i.handle, INTERACTION_PART_RESPONSE, cHeader, cBody)
+	C.with_body(i.handle, C.int(part), cHeader, cBody)
 
 	return i
+}
+
+type stringLike interface {
+	String() string
+}
+
+func stringFromInterface(obj interface{}) string {
+	fmt.Printf("stringFromInterface: %+v\n", obj)
+
+	switch t := obj.(type) {
+	case string:
+		return t
+	default:
+		bytes, err := json.Marshal(obj)
+		if err != nil {
+			panic(fmt.Sprintln("unable to marshal body to JSON:", err))
+		}
+		return string(bytes)
+	}
 }
 
 func (i *Interaction) WithStatus(status int) *Interaction {

@@ -30,7 +30,14 @@ func NewHTTPMockProviderV3(config MockHTTPProviderConfigV3) (*HTTPMockProviderV3
 // required things. Will automatically start a Mock Service if none running.
 func (p *HTTPMockProviderV3) AddInteraction() *InteractionV3 {
 	log.Println("[DEBUG] pact add v3 interaction")
-	i := &InteractionV3{}
+	interaction := p.httpMockProvider.mockserver.NewInteraction("")
+
+	i := &InteractionV3{
+		Interaction: Interaction{
+			interaction: interaction,
+		},
+	}
+
 	p.httpMockProvider.v3Interactions = append(p.httpMockProvider.v3Interactions, i)
 	return i
 }

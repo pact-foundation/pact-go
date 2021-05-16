@@ -12,5 +12,7 @@ type InteractionV2 struct {
 func (i *InteractionV2) Given(state string) *InteractionV2 {
 	i.State = state
 
+	i.interaction.Given(state)
+
 	return i
 }

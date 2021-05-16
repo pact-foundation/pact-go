@@ -34,8 +34,16 @@ func NewHTTPMockProviderV2(config MockHTTPProviderConfigV2) (*HTTPMockProviderV2
 // with each additional modification to the InteractionV2 object
 func (p *HTTPMockProviderV2) AddInteraction() *InteractionV2 {
 	log.Println("[DEBUG] pact add v2 interaction")
-	i := &InteractionV2{}
+	interaction := p.httpMockProvider.mockserver.NewInteraction("")
+
+	i := &InteractionV2{
+		Interaction: Interaction{
+			interaction: interaction,
+		},
+	}
+
 	p.httpMockProvider.v2Interactions = append(p.httpMockProvider.v2Interactions, i)
+
 	return i
 }
 

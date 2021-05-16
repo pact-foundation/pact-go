@@ -162,6 +162,12 @@ func (p *httpMockProvider) validateConfig() error {
 	}
 
 	p.mockserver = native.NewMockServer(p.config.Consumer, p.config.Provider)
+	switch p.specificationVersion {
+	case V2:
+		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)
+	case V3:
+		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V3)
+	}
 	native.Init()
 
 	return nil
