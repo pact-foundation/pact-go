@@ -107,9 +107,10 @@ func TestConsumerV3(t *testing.T) {
 	// Set up our expected interactions.
 	mockProvider.
 		AddInteraction().
+		// TODO: map this to given_with_param interface!
 		Given(v3.ProviderStateV3{
 			Name: "User foo exists",
-			Parameters: map[string]string{
+			Parameters: map[string]interface{}{
 				"id": "foo",
 			},
 		}).
@@ -117,15 +118,17 @@ func TestConsumerV3(t *testing.T) {
 		WithRequest(v3.Request{
 			Method:  "POST",
 			Path:    v3.Regex("/foobar", `\/foo.*`),
-			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": s("Bearer 1234")},
-			// Body: v3.MapMatcher{
-			// 	"name":     s("billy"),
-			// 	"dateTime": v3.DateTimeGenerated("2020-02-02", "YYYY-MM-dd"),
-			// },
+			Headers: v3.MapMatcher{"Content-Type": s("application/json"), "Authorization": v3.Like("Bearer 1234")},
+			Body: v3.MapMatcher{
+				"id":       v3.Like(27),
+				"name":     v3.FromProviderState("${name}", "billy"),
+				"lastName": v3.Like("billy"),
+				"datetime": v3.DateTimeGenerated("2020-01-01T08:00:45", "yyyy-MM-dd'T'HH:mm:ss"),
+			},
 
 			// Alternative use MatchV3
 			// Body: v3.MatchV3(&User{}),
-			Body: v3.MatchV2(&User{}),
+			// Body: v3.MatchV2(&User{}),
 			Query: v3.QueryMatcher{
 				"baz": []v3.Matcher{
 					v3.Regex("bar", "[a-z]+"),
@@ -139,15 +142,22 @@ func TestConsumerV3(t *testing.T) {
 			Headers: v3.MapMatcher{"Content-Type": s("application/json")},
 			// Body:    v3.MatchV3(&User{}),
 			Body: v3.MapMatcher{
-				"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-				"name":     s("FirstName"),
-				"lastName": s("LastName"),
-				// "superstring":    v3.Includes("foo"),
-				// "id":             v3.Integer(12),
-				// "accountBalance": v3.Decimal(123.76),
-				// "itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
-				// "itemsMin":       v3.ArrayMinLike("thereshouldbe3ofthese", 3),
-				// "equality":       v3.Equality("a thing"),
+				"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
+				"name":           s("FirstName"),
+				"lastName":       s("LastName"),
+				"superstring":    v3.Includes("foo"),
+				"id":             v3.Integer(12),
+				"accountBalance": v3.Decimal(123.76),
+				"itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
+				"itemsMin":       v3.ArrayMinLike("thereshouldbe3ofthese", 3),
+				"equality":       v3.Equality("a thing"),
+				"arrayContaining": v3.ArrayContaining([]interface{}{
+					v3.Like("string"),
+					v3.Integer(1),
+					v3.MapMatcher{
+						"foo": v3.Like("bar"),
+					},
+				}),
 			},
 		})
 
@@ -218,7 +228,7 @@ var test = func(config v3.MockServerConfig) error {
 			RawQuery: "baz=bat&baz=foo&baz=something", // Default behaviour, test matching
 			// RawQuery: "baz[]=bat&baz[]=foo&baz[]=something", // TODO: Rust v3 does not support this syntax
 		},
-		Body:   ioutil.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2020-01-01'T'08:00:45"}`)),
+		Body:   ioutil.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2021-01-01T08:00:45"}`)),
 		Header: make(http.Header),
 	}
 

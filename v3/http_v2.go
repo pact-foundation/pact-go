@@ -31,7 +31,7 @@ func NewHTTPMockProviderV2(config MockHTTPProviderConfigV2) (*HTTPMockProviderV2
 
 // TODO: this needs to be plumbed into the new native interface
 // We'll need a reference to the underlying object so that we can cross the FFI boundary
-// with each additional modification to the InteractionV2 object
+// with each additional modification to the Interaction object
 func (p *HTTPMockProviderV2) AddInteraction() *InteractionV2 {
 	log.Println("[DEBUG] pact add v2 interaction")
 	interaction := p.httpMockProvider.mockserver.NewInteraction("")

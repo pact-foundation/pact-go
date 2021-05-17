@@ -425,14 +425,15 @@ func (i *Interaction) Given(state string) *Interaction {
 	return i
 }
 
-func (i *Interaction) GivenWithParameter(state string, params map[string]string) *Interaction {
+func (i *Interaction) GivenWithParameter(state string, params map[string]interface{}) *Interaction {
 	cState := C.CString(state)
 	defer free(cState)
 
 	for k, v := range params {
 		cKey := C.CString(k)
 		defer free(cKey)
-		cValue := C.CString(v)
+		param := stringFromInterface(v)
+		cValue := C.CString(param)
 		defer free(cValue)
 
 		C.given_with_param(i.handle, cState, cKey, cValue)
@@ -477,6 +478,7 @@ func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[strin
 		cValue := C.CString(value)
 		defer free(cValue)
 
+		// TODO: the index here only applies to headers with multiple values
 		C.with_header(i.handle, C.int(part), cName, C.int(0), cValue)
 	}
 

@@ -116,9 +116,9 @@ type messageVerificationHandlerRequest struct {
 }
 
 type messageStateHandlerRequest struct {
-	State  string      `json:"state"`
-	Params interface{} `json:"params"`
-	Action string      `json:"action"`
+	State  string                 `json:"state"`
+	Params map[string]interface{} `json:"params"`
+	Action string                 `json:"action"`
 }
 
 var messageStateHandler = func(messageHandlers MessageHandlers, stateHandlers StateHandlers) http.HandlerFunc {

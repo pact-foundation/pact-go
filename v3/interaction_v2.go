@@ -1,6 +1,7 @@
 package v3
 
-// InteractionV2 is the main implementation of the Pact interface.
+// InteractionV2 sets up an expected request/response on a mock server
+// and is replayed on the provider side for verification
 type InteractionV2 struct {
 	Interaction
 

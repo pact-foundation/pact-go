@@ -45,6 +45,7 @@ func (m eachLike) MarshalJSON() ([]byte, error) {
 }
 
 type like struct {
+	Type  string      `json:"pact:matcher:type"`
 	Value interface{} `json:"value"`
 }
 
@@ -57,15 +58,6 @@ func (m like) isMatcher() {
 
 func (m like) string() string {
 	return fmt.Sprintf("%s", m.Value)
-}
-
-func (m like) MarshalJSON() ([]byte, error) {
-	type marshaler like
-
-	return json.Marshal(struct {
-		Type string `json:"pact:matcher:type"`
-		marshaler
-	}{"type", marshaler(m)})
 }
 
 type term struct {
@@ -97,8 +89,16 @@ func (m term) MarshalJSON() ([]byte, error) {
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater
 func EachLike(content interface{}, minRequired int) Matcher {
+	if minRequired < 1 {
+		log.Println("[WARN] min value to an array matcher can't be less than one")
+		minRequired = 1
+	}
+	examples := make([]interface{}, minRequired)
+	for i := 0; i < minRequired; i++ {
+		examples[i] = content
+	}
 	return eachLike{
-		Value: content,
+		Value: examples,
 		Min:   minRequired,
 	}
 }
@@ -109,6 +109,7 @@ var ArrayMinLike = EachLike
 // on type (int, string etc.) instead of a verbatim match.
 func Like(content interface{}) Matcher {
 	return like{
+		Type:  "type",
 		Value: content,
 	}
 }
@@ -132,9 +133,6 @@ func Identifier() Matcher {
 	return Like(42)
 }
 
-// Integer defines a matcher that accepts ints. Identical to Identifier.
-var Integer = Identifier
-
 // IPAddress defines a matcher that accepts valid IPv4 addresses.
 func IPAddress() Matcher {
 	return Regex("127.0.0.1", ipAddress)
@@ -146,11 +144,6 @@ var IPv4Address = IPAddress
 // IPv6Address defines a matcher that accepts IP addresses.
 func IPv6Address() Matcher {
 	return Regex("::ffff:192.0.2.128", ipAddress)
-}
-
-// Decimal defines a matcher that accepts any decimal value.
-func Decimal() Matcher {
-	return Like(42.0)
 }
 
 // Timestamp matches a pattern corresponding to the ISO_DATETIME_FORMAT, which
@@ -191,14 +184,6 @@ type Matcher interface {
 	// GetValue returns the raw generated value for the matcher
 	// without any of the matching detail context
 	GetValue() interface{}
-}
-
-// MatcherV3 denotes a V3 specific Matcher
-type MatcherV3 interface {
-	Matcher
-
-	// denote a v3 matcher
-	Generator()
 }
 
 // S is the string primitive wrapper (alias) for the Matcher type,
