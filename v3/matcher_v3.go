@@ -118,24 +118,24 @@ func FromProviderState(expression, example string) Matcher {
 	}
 }
 
-type eachKeyLkke struct {
+type eachKeyLike struct {
 	Type     string      `json:"pact:matcher:type"`
 	Contents interface{} `json:"value"`
 }
 
-func (e eachKeyLkke) GetValue() interface{} {
+func (e eachKeyLike) GetValue() interface{} {
 	return e.Contents
 }
 
-func (e eachKeyLkke) isV3Matcher() {}
-func (e eachKeyLkke) isMatcher()   {}
+func (e eachKeyLike) isV3Matcher() {}
+func (e eachKeyLike) isMatcher()   {}
 
 // Object where the key itself is ignored, but the value template must match.
 //
 // key - Example key to use (which will be ignored)
 // template - Example value template to base the comparison on
 func EachKeyLike(key string, template interface{}) Matcher {
-	return eachKeyLkke{
+	return eachKeyLike{
 		Type:     "values",
 		Contents: template,
 	}
