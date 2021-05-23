@@ -9,79 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var pactSimple = `{
-  "consumer": {
-    "name": "consumer"
-  },
-  "provider": {
-    "name": "provider"
-  },
-  "interactions": [
-    {
-      "description": "Some name for the test",
-      "request": {
-        "method": "GET",
-        "path": "/foobar"
-      },
-      "response": {
-        "status": 200
-      },
-      "description": "Some name for the test",
-      "provider_state": "Some state"
-  }]
-}`
-
-var pactComplex = `{
-  "consumer": {
-    "name": "consumer"
-  },
-  "provider": {
-    "name": "provider"
-  },
-  "interactions": [
-    {
-    "request": {
-      "method": "GET",
-      "path": "/foobar",
-      "body": {
-        "pass": 1234,
-        "user": {
-          "address": "some address",
-          "name": "someusername",
-          "phone": 12345678,
-          "plaintext": "plaintext"
-        }
-      }
-    },
-    "response": {
-      "status": 200
-    },
-    "description": "Some name for the test",
-    "provider_state": "Some state",
-    "matchingRules": {
-      "$.body.pass": {
-        "match": "regex",
-        "regex": "\\d+"
-      },
-      "$.body.user.address": {
-        "match": "regex",
-        "regex": "\\s+"
-      },
-      "$.body.user.name": {
-        "match": "regex",
-        "regex": "\\s+"
-      },
-      "$.body.user.phone": {
-        "match": "regex",
-        "regex": "\\d+"
-      }
-    }
-  }]
-}`
+func init() {
+	Init()
+}
 
 func TestMockServer_CreateAndCleanupMockServer(t *testing.T) {
 	m := MockServer{}
-	Init()
 	port, _ := m.CreateMockServer(pactComplex, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
@@ -190,7 +123,6 @@ func TestVersion(t *testing.T) {
 }
 
 func TestHandleBasedHTTPTests(t *testing.T) {
-	Init()
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
 
@@ -236,3 +168,73 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 
 	fmt.Println(r)
 }
+
+var pactSimple = `{
+  "consumer": {
+    "name": "consumer"
+  },
+  "provider": {
+    "name": "provider"
+  },
+  "interactions": [
+    {
+      "description": "Some name for the test",
+      "request": {
+        "method": "GET",
+        "path": "/foobar"
+      },
+      "response": {
+        "status": 200
+      },
+      "description": "Some name for the test",
+      "provider_state": "Some state"
+  }]
+}`
+
+var pactComplex = `{
+  "consumer": {
+    "name": "consumer"
+  },
+  "provider": {
+    "name": "provider"
+  },
+  "interactions": [
+    {
+    "request": {
+      "method": "GET",
+      "path": "/foobar",
+      "body": {
+        "pass": 1234,
+        "user": {
+          "address": "some address",
+          "name": "someusername",
+          "phone": 12345678,
+          "plaintext": "plaintext"
+        }
+      }
+    },
+    "response": {
+      "status": 200
+    },
+    "description": "Some name for the test",
+    "provider_state": "Some state",
+    "matchingRules": {
+      "$.body.pass": {
+        "match": "regex",
+        "regex": "\\d+"
+      },
+      "$.body.user.address": {
+        "match": "regex",
+        "regex": "\\s+"
+      },
+      "$.body.user.name": {
+        "match": "regex",
+        "regex": "\\s+"
+      },
+      "$.body.user.phone": {
+        "match": "regex",
+        "regex": "\\d+"
+      }
+    }
+  }]
+}`

@@ -7,6 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	Init()
+}
+
 func TestVerifier_Version(t *testing.T) {
 	fmt.Println("version: ", Version())
 }
@@ -15,7 +19,6 @@ func TestVerifier_Verify(t *testing.T) {
 	t.Run("invalid args returns an error", func(t *testing.T) {
 
 		v := Verifier{}
-		v.Init()
 		args := []string{
 			"--file",
 			"/non/existent/path.json",

@@ -30,12 +30,17 @@ func Version() string {
 	return C.GoString(version)
 }
 
-func (v *Verifier) Init() {
+func Init() {
 	log.Println("[DEBUG] initialising rust verifier interface")
 	logLevel := C.CString("LOG_LEVEL")
 	defer freeString(logLevel)
 
 	C.init(logLevel)
+}
+
+// Version returns the current semver FFI interface version
+func (v *Verifier) Version() string {
+	return Version()
 }
 
 func (v *Verifier) Verify(args []string) error {

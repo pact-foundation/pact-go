@@ -225,6 +225,11 @@ func NewHTTPMockServer(consumer string, provider string) *MockServer {
 	return &MockServer{pact: &Pact{handle: C.new_pact(cConsumer, cProvider)}}
 }
 
+// Version returns the current semver FFI interface version
+func (m *MockServer) Version() string {
+	return Version()
+}
+
 func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
 	C.with_specification(m.pact.handle, C.int(version))
 }

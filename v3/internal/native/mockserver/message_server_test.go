@@ -13,7 +13,6 @@ import (
 )
 
 func TestHandleBasedMessageTestsWithString(t *testing.T) {
-	Init()
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
 	s := NewMessageServer("test-message-consumer", "test-message-provider")
@@ -46,7 +45,6 @@ func TestHandleBasedMessageTestsWithString(t *testing.T) {
 }
 
 func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
-	Init()
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
 	s := NewMessageServer("test-message-consumer", "test-message-provider")
@@ -80,7 +78,6 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 }
 
 func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
-	Init()
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
 
