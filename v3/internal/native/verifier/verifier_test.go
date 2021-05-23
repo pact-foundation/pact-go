@@ -8,8 +8,7 @@ import (
 )
 
 func TestVerifier_Version(t *testing.T) {
-	v := Verifier{}
-	fmt.Println("version: ", v.Version())
+	fmt.Println("version: ", Version())
 }
 
 func TestVerifier_Verify(t *testing.T) {

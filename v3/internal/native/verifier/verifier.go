@@ -24,7 +24,7 @@ import (
 type Verifier struct{}
 
 // Version returns the current semver FFI interface version
-func (v *Verifier) Version() string {
+func Version() string {
 	version := C.version()
 
 	return C.GoString(version)

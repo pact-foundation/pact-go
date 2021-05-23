@@ -1,4 +1,3 @@
-// Package native contains the c bindings into the Pact Reference types.
 package mockserver
 
 /*
@@ -126,6 +125,11 @@ void with_query_parameter(InteractionHandle interaction, const char *name, int i
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_body.html
 void with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
 
+void with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
+
+/// TODO: how to represent this?
+// StringResult with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
+
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
 void response_status(InteractionHandle interaction, int status);
 
@@ -148,18 +152,6 @@ void response_status(InteractionHandle interaction, int status);
 int write_pact_file(int mock_server_port, const char *directory);
 
 void with_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
-// Message Pact Interface (v2)
-
-MessagePactHandle new_message_pact(const char *consumer_name, const char *provider_name);
-MessageHandle new_message(MessagePactHandle pact, const char *description);
-void message_expects_to_receive(MessageHandle message, const char *description);
-void message_given(MessageHandle message, const char *description);
-void message_given_with_param(MessageHandle message, const char *description, const char *name, const char *value);
-void message_with_contents(MessageHandle message, const char *content_type, const char *body, int size);
-void message_with_metadata(MessageHandle message, const char *key, const char *value);
-char* message_reify(MessageHandle message);
-int write_message_pact_file(MessagePactHandle pact, const char *directory, bool overwrite);
-void with_message_pact_metadata(MessagePactHandle pact, const char *namespace, const char *name, const char *value);
 */
 import "C"
 
@@ -195,24 +187,16 @@ type Pact struct {
 	handle C.PactHandle
 }
 
-type MessagePact struct {
-	handle C.MessagePactHandle
-}
-
 // Interaction is a Go representation of the InteractionHandle struct
 type Interaction struct {
 	handle C.InteractionHandle
 }
 
-type Message struct {
-	handle C.MessageHandle
-}
+// Version returns the current semver FFI interface version
+func Version() string {
+	v := C.version()
 
-// MockServer is the public interface for managing the HTTP mock server
-type MockServer struct {
-	pact         *Pact
-	messagePact  *MessagePact
-	interactions []*Interaction
+	return C.GoString(v)
 }
 
 // Init initialises the library
@@ -222,6 +206,13 @@ func Init() {
 	defer free(logLevel)
 
 	C.init(logLevel)
+}
+
+// MockServer is the public interface for managing the HTTP mock server
+type MockServer struct {
+	pact         *Pact
+	messagePact  *MessagePact
+	interactions []*Interaction
 }
 
 // NewMockServer creates a new mock server for a given consumer/provider
@@ -366,13 +357,6 @@ func GetTLSConfig() *tls.Config {
 	return &tls.Config{
 		RootCAs: certPool,
 	}
-}
-
-// Version returns the current semver FFI interface version
-func (m *MockServer) Version() string {
-	v := C.version()
-
-	return C.GoString(v)
 }
 
 func free(str *C.char) {
@@ -555,28 +539,6 @@ func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Intera
 	return i
 }
 
-func (i *Interaction) WithRequestBody(body string, contentType string) *Interaction {
-	cHeader := C.CString(contentType)
-	cBody := C.CString(body)
-	defer free(cHeader)
-	defer free(cBody)
-
-	C.with_body(i.handle, 0, cHeader, cBody)
-
-	return i
-}
-
-func (i *Interaction) WithResponseBody(body string, contentType string) *Interaction {
-	cHeader := C.CString(contentType)
-	cBody := C.CString(body)
-	defer free(cHeader)
-	defer free(cBody)
-
-	C.with_body(i.handle, 1, cHeader, cBody)
-
-	return i
-
-}
 func (i *Interaction) WithJSONRequestBody(body interface{}) *Interaction {
 	return i.withJSONBody(body, INTERACTION_PART_REQUEST)
 }
@@ -598,165 +560,51 @@ func (i *Interaction) withJSONBody(body interface{}, part interactionType) *Inte
 	return i
 }
 
-// Set the expected HTTTP response status
-func (i *Interaction) WithStatus(status int) *Interaction {
-	C.response_status(i.handle, C.int(status))
+func (i *Interaction) WithRequestBody(contentType string, body []byte) *Interaction {
+	return i.withBody(contentType, body, 0)
+}
+
+func (i *Interaction) WithResponseBody(contentType string, body []byte) *Interaction {
+	return i.withBody(contentType, body, 1)
+}
+
+func (i *Interaction) withBody(contentType string, body []byte, part interactionType) *Interaction {
+	cHeader := C.CString(contentType)
+	defer free(cHeader)
+
+	cBody := C.CString(string(body))
+	defer free(cBody)
+
+	C.with_body(i.handle, C.int(part), cHeader, cBody)
 
 	return i
 }
 
-//
-// Message Pact
-//
-
-// MessageServer is the public interface for managing the message based interface
-type MessageServer struct {
-	messagePact *MessagePact
-	messages    []*Message
-}
-
-// NewMessage initialises a new message for the current contract
-func NewMessageServer(consumer string, provider string) *MessageServer {
-	cConsumer := C.CString(consumer)
-	cProvider := C.CString(provider)
-	defer free(cConsumer)
-	defer free(cProvider)
-
-	return &MessageServer{messagePact: &MessagePact{handle: C.new_message_pact(cConsumer, cProvider)}}
-}
-
-// Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version
-func (m *MessageServer) WithMetadata(namespace, k, v string) *MessageServer {
-	cNamespace := C.CString(namespace)
-	defer free(cNamespace)
-	cName := C.CString(k)
-	defer free(cName)
-	cValue := C.CString(v)
-	defer free(cValue)
-
-	C.with_message_pact_metadata(m.messagePact.handle, cNamespace, cName, cValue)
-
-	return m
-}
-
-// NewMessage initialises a new message for the current contract
-func (m *MessageServer) NewMessage() *Message {
-	cDescription := C.CString("")
-	defer free(cDescription)
-
-	i := &Message{
-		handle: C.new_message(m.messagePact.handle, cDescription),
-	}
-	m.messages = append(m.messages, i)
-
-	return i
-}
-
-func (i *Message) Given(state string) *Message {
-	cState := C.CString(state)
-	defer free(cState)
-
-	C.message_given(i.handle, cState)
-
-	return i
-}
-
-func (i *Message) GivenWithParameter(state string, params map[string]interface{}) *Message {
-	cState := C.CString(state)
-	defer free(cState)
-
-	for k, v := range params {
-		cKey := C.CString(k)
-		defer free(cKey)
-		param := stringFromInterface(v)
-		cValue := C.CString(param)
-		defer free(cValue)
-
-		C.message_given_with_param(i.handle, cState, cKey, cValue)
-
-	}
-
-	return i
-}
-
-func (i *Message) ExpectsToReceive(description string) *Message {
-	cDescription := C.CString(description)
-	defer free(cDescription)
-
-	C.message_expects_to_receive(i.handle, cDescription)
-
-	return i
-}
-
-func (i *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
-	for k, v := range valueOrMatcher {
-
-		cName := C.CString(k)
-		defer free(cName)
-
-		// TODO: check if matching rules allowed here
-		// value := stringFromInterface(v)
-		// fmt.Printf("withheaders, sending: %+v \n\n", value)
-		// cValue := C.CString(value)
-		cValue := C.CString(v)
-		defer free(cValue)
-
-		C.message_with_metadata(i.handle, cName, cValue)
-	}
-
-	return i
-}
-
-func (i *Message) WithBinaryContents(body []byte) *Message {
-	return i.WithContents("application/octet-stream", body)
-}
-
-func (i *Message) WithJSONContents(body []byte) *Message {
-	return i.WithContents("application/json", body)
-}
-
-func (i *Message) WithContents(contentType string, body []byte) *Message {
+func (i *Interaction) withBinaryBody(contentType string, body []byte, part interactionType) *Interaction {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
 	cBytes := C.CString(string(body))
 	defer free(cBytes)
-	C.message_with_contents(i.handle, cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+
+	C.with_binary_file(i.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 
 	return i
 }
 
-func (i *Message) ReifyMessage() string {
-	return C.GoString(C.message_reify(i.handle))
+func (i *Interaction) WithBinaryRequestBody(body []byte) *Interaction {
+	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_REQUEST)
 }
 
-// WritePactFile writes the Pact to file.
-func (m *MessageServer) WritePactFile(dir string, overwrite bool) error {
-	log.Println("[DEBUG] writing pact file for message pact at dir:", dir)
-	cDir := C.CString(dir)
-	defer free(cDir)
+func (i *Interaction) WithBinaryResponseBody(body []byte) *Interaction {
+	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_RESPONSE)
+}
 
-	overwritePact := 0
-	if overwrite {
-		overwritePact = 1
-	}
+// Set the expected HTTTP response status
+func (i *Interaction) WithStatus(status int) *Interaction {
+	C.response_status(i.handle, C.int(status))
 
-	res := int(C.write_message_pact_file(m.messagePact.handle, cDir, C.int(overwritePact)))
-
-	/// | Error | Description |
-	/// |-------|-------------|
-	/// | 1 | The pact file was not able to be written |
-	/// | 2 | The message pact for the given handle was not found |
-	switch res {
-	case 0:
-		return nil
-	case 1:
-		return ErrUnableToWritePactFile
-	case 2:
-		return ErrHandleNotFound
-	default:
-		return fmt.Errorf("an unknown error ocurred when writing to pact file")
-	}
+	return i
 }
 
 type stringLike interface {

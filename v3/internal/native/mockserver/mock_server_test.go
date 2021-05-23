@@ -1,19 +1,14 @@
 package mockserver
 
 import (
-	"bytes"
-	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var tmpPactFolder = "/var/tmp/pacts/"
 var pactSimple = `{
   "consumer": {
     "name": "consumer"
@@ -127,11 +122,14 @@ func TestMockServer_MismatchesFail(t *testing.T) {
 }
 
 func TestMockServer_VerifySuccess(t *testing.T) {
+	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	assert.NoError(t, err)
+
 	m := MockServer{}
 	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
-	_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
 	if err != nil {
 		t.Fatalf("Error sending request: %v", err)
 	}
@@ -147,6 +145,8 @@ func TestMockServer_VerifySuccess(t *testing.T) {
 }
 
 func TestMockServer_VerifyFail(t *testing.T) {
+	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	assert.NoError(t, err)
 	m := MockServer{}
 	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 
@@ -161,11 +161,14 @@ func TestMockServer_VerifyFail(t *testing.T) {
 }
 
 func TestMockServer_WritePactfile(t *testing.T) {
+	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	assert.NoError(t, err)
+
 	m := MockServer{}
 	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
-	_, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
 	if err != nil {
 		t.Fatalf("Error sending request: %v", err)
 	}
@@ -183,8 +186,7 @@ func TestMockServer_GetTLSConfig(t *testing.T) {
 }
 
 func TestVersion(t *testing.T) {
-	m := MockServer{}
-	fmt.Println("version: ", m.Version())
+	fmt.Println("version: ", Version())
 }
 
 func TestHandleBasedHTTPTests(t *testing.T) {
@@ -234,144 +236,3 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 
 	fmt.Println(r)
 }
-
-func TestHandleBasedMessageTestsWithString(t *testing.T) {
-	Init()
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
-	assert.NoError(t, err)
-	s := NewMessageServer("test-message-consumer", "test-message-provider")
-
-	m := s.NewMessage().
-		Given("some state").
-		GivenWithParameter("param", map[string]interface{}{
-			"foo": "bar",
-		}).
-		ExpectsToReceive("some message").
-		WithMetadata(map[string]string{
-			"meta": "data",
-		}).
-		WithContents("text/plain", []byte("some string"))
-
-	body := m.ReifyMessage()
-
-	var res jsonMessage
-	err = json.Unmarshal([]byte(body), &res)
-	assert.NoError(t, err)
-
-	assert.Equal(t, res.Description, "some message")
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
-
-	// This is where you would invoke the real function with the message
-
-	err = s.WritePactFile(tmpPactFolder, false)
-	assert.NoError(t, err)
-}
-
-func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
-	Init()
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
-	assert.NoError(t, err)
-	s := NewMessageServer("test-message-consumer", "test-message-provider")
-
-	m := s.NewMessage().
-		Given("some state").
-		GivenWithParameter("param", map[string]interface{}{
-			"foo": "bar",
-		}).
-		ExpectsToReceive("some message").
-		WithMetadata(map[string]string{
-			"meta": "data",
-		}).
-		WithJSONContents([]byte(`{"some": "json"}`))
-
-	body := m.ReifyMessage()
-	log.Println(body) // TODO: JSON is not stringified - probably should be?
-
-	var res jsonMessage
-	err = json.Unmarshal([]byte(body), &res)
-	assert.NoError(t, err)
-
-	assert.Equal(t, res.Description, "some message")
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
-
-	// This is where you would invoke the real function with the message
-
-	err = s.WritePactFile(tmpPactFolder, false)
-	assert.NoError(t, err)
-}
-
-func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
-	Init()
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
-	assert.NoError(t, err)
-
-	s := NewMessageServer("test-binarymessage-consumer", "test-binarymessage-provider").
-		WithMetadata("some-namespace", "the-key", "the-value")
-
-	// generate some binary data
-	var buf bytes.Buffer
-	zw := gzip.NewWriter(&buf)
-
-	_, err = zw.Write([]byte("A long time ago in a galaxy far, far away..."))
-	assert.NoError(t, err)
-	encodedMessage := "H4sIABqQqWAAA3NUyMnPS1coycxNVUhMz1fIzFNIVEhPzEmsqFRISyzSAREKieWJlXp6elwAfbWPLy0AAAA="
-
-	err = zw.Close()
-	assert.NoError(t, err)
-
-	m := s.NewMessage().
-		Given("some binary state").
-		GivenWithParameter("param", map[string]interface{}{
-			"foo": "bar",
-		}).
-		ExpectsToReceive("some binary message").
-		WithMetadata(map[string]string{
-			"meta": "data",
-		}).
-		WithBinaryContents(buf.Bytes())
-
-	body := m.ReifyMessage()
-	log.Println(body)
-
-	var res binaryMessage
-	err = json.Unmarshal([]byte(body), &res)
-	assert.NoError(t, err)
-
-	assert.Equal(t, "some binary message", res.Description)
-	assert.Equal(t, encodedMessage, res.Contents)
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
-
-	// This is where you would invoke the real function with the message
-
-	err = s.WritePactFile(tmpPactFolder, false)
-	assert.NoError(t, err)
-}
-
-type binaryMessage struct {
-	ProviderStates []map[string]interface{} `json:"providerStates"`
-	Description    string                   `json:"description"`
-	Metadata       map[string]string        `json:"metadata"`
-	Contents       []byte                   `json:"contents"`
-}
-type jsonMessage struct {
-	ProviderStates []map[string]interface{} `json:"providerStates"`
-	Description    string                   `json:"description"`
-	Metadata       map[string]string        `json:"metadata"`
-	Contents       interface{}              `json:"contents"`
-}
-
-// type messageContent interface {
-// 	getStringBody() (string, error)
-// 	getObjectBody() (interface{}, error)
-// 	getBytesBody() ([]byte, error)
-// }
-
-// type binaryMessageContents struct {
-// 	Contents []byte `json:"contents"`
-// }
-// type objectMessageContents struct {
-// 	Contents interface{} `json:"contents"`
-// }
