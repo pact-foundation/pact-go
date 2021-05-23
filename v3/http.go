@@ -161,7 +161,7 @@ func (p *httpMockProvider) validateConfig() error {
 		return fmt.Errorf("error: unable to find free port, mock server will fail to start")
 	}
 
-	p.mockserver = native.NewMockServer(p.config.Consumer, p.config.Provider)
+	p.mockserver = native.NewHTTPMockServer(p.config.Consumer, p.config.Provider)
 	switch p.specificationVersion {
 	case V2:
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)
@@ -184,20 +184,7 @@ func (p *httpMockProvider) cleanInteractions() {
 func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
 	log.Println("[DEBUG] pact verify")
 
-	// // Generate interactions for Pact file
-	// var serialisedPact interface{}
-	// if p.specificationVersion == V2 {
-	// 	serialisedPact = newPactFileV2(p.config.Consumer, p.config.Provider, p.v2Interactions, p.config.matchingConfig)
-	// } else {
-	// 	serialisedPact = newPactFileV3(p.config.Consumer, p.config.Provider, p.v3Interactions, nil)
-	// }
-
-	// log.Println("[DEBUG] Sending pact file:", formatJSONObject(serialisedPact))
-
-	// Clean interactions
-	// p.cleanInteractions()
-
-	// port, err := p.mockserver.CreateMockServer(formatJSONObject(serialisedPact), fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
+	p.cleanInteractions()
 
 	port, err := p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
 	defer p.mockserver.CleanupMockServer(p.config.Port)

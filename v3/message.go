@@ -73,6 +73,7 @@ func (m *Message) WithMetadata(metadata MapMatcher) *Message {
 // WithContent specifies the details of the HTTP request that will be used to
 // confirm that the Provider provides an API listening on the given interface.
 // Mandatory.
+// Content may be any of the usual structures, including binary types
 func (m *Message) WithContent(content interface{}) *Message {
 	m.Content = content
 

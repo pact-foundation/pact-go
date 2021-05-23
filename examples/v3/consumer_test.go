@@ -167,39 +167,39 @@ func TestConsumerV3(t *testing.T) {
 	}
 }
 
-// func TestMessagePact(t *testing.T) {
-// 	provider, err := v3.NewMessagePactV3(v3.MessageConfig{
-// 		Consumer:             "V3MessageConsumer",
-// 		Provider:             "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
-// 		SpecificationVersion: v3.V3,
-// 	})
+func TestMessagePact(t *testing.T) {
+	provider, err := v3.NewMessagePactV3(v3.MessageConfig{
+		Consumer:             "V3MessageConsumer",
+		Provider:             "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
+		SpecificationVersion: v3.V3,
+	})
 
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	message := provider.AddMessage()
-// 	message.
-// 		Given(v3.ProviderStateV3{
-// 			Name: "User with id 127 exists",
-// 			Parameters: map[string]interface{}{
-// 				"id": 127,
-// 			},
-// 		}).
-// 		ExpectsToReceive("a user event").
-// 		WithMetadata(v3.MapMatcher{
-// 			"Content-Type": s("application/json; charset=utf-8"),
-// 		}).
-// 		WithContent(v3.MapMatcher{
-// 			"datetime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-// 			"name":     s("FirstName"),
-// 			"lastName": s("LastName"),
-// 			"id":       v3.Integer(12),
-// 		}).
-// 		AsType(&User{})
+	message := provider.AddMessage()
+	message.
+		Given(v3.ProviderStateV3{
+			Name: "User with id 127 exists",
+			Parameters: map[string]interface{}{
+				"id": 127,
+			},
+		}).
+		ExpectsToReceive("a user event").
+		WithMetadata(v3.MapMatcher{
+			"Content-Type": s("application/json; charset=utf-8"),
+		}).
+		WithContent(v3.MapMatcher{
+			"datetime": v3.Regex("2020-01-01", "[0-9\\-]+"),
+			"name":     s("FirstName"),
+			"lastName": s("LastName"),
+			"id":       v3.Integer(12),
+		}).
+		AsType(&User{})
 
-// 	provider.VerifyMessageConsumer(t, message, userHandlerWrapper)
-// }
+	provider.VerifyMessageConsumer(t, message, userHandlerWrapper)
+}
 
 type User struct {
 	ID       int    `json:"id" pact:"example=27"`
