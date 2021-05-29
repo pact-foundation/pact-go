@@ -5,12 +5,6 @@ import (
 	"log"
 )
 
-// matcherV3 denotes a V3 specific Matcher
-type matcherV3 interface {
-	// denote a v3 matcher
-	isV3Matcher()
-}
-
 // Decimal defines a matcher that accepts any decimal value.
 func Decimal(example float64) Matcher {
 	return like{
