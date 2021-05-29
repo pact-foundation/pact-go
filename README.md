@@ -244,7 +244,7 @@ Here is the Provider test process broker down:
     }
     ```
 
-2)  Verify provider API
+2.  Verify provider API
 
     You can now tell Pact to read in your Pact files and verify that your API will
     satisfy the requirements of each of your known consumers:
