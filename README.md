@@ -175,7 +175,7 @@ func TestConsumer(t *testing.T) {
 		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
 		req, err := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
 		if err != nil {
-			return err
+			return
 		}
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
@@ -184,9 +184,8 @@ func TestConsumer(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer 1234")
 
-		if _, err = http.DefaultClient.Do(req); err != nil {
-			return err
-		}
+		_, err = http.DefaultClient.Do(req)
+		return
 	}
 
 	// Set up our expected interactions.
