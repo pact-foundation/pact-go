@@ -936,7 +936,7 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
 [getting started with pact]: http://dius.com.au/2016/02/03/microservices-pact/
 [pact website]: https://docs.pact.io/
-[slack channel]: https://gophers.slack.com/messages/pact/
+[slack channel]: https://pact-foundation.slack.com
 [@pact_up]: https://twitter.com/pact_up
 [pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
 [pact specification v3]: https://github.com/pact-foundation/pact-specification/tree/version-3
@@ -949,3 +949,4 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [can-i-deploy tool]: https://docs.pact.io/can_i_deploy
 [Pactflow]: https://pactflow.io
 [v2.x.x]: https://github.com/pact-foundation/pact-go/tree/2.x.x
+[slack]: https://slack.pact.io
