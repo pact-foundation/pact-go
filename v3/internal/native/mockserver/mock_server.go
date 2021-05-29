@@ -127,7 +127,6 @@ void with_body(InteractionHandle interaction, int interaction_part, const char *
 
 void with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
 
-/// TODO: how to represent this?
 int with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
 
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
@@ -288,12 +287,10 @@ func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (in
 // Verify verifies that all interactions were successful. If not, returns a slice
 // of Mismatch-es. Does not write the pact or cleanup server.
 func (m *MockServer) Verify(port int, dir string) (bool, []MismatchedRequest) {
-	res := C.mock_server_matched(C.int(port))
-
 	mismatches := m.MockServerMismatchedRequests(port)
 	log.Println("[DEBUG] mock server mismatches:", len(mismatches))
 
-	return int(res) == 1, mismatches
+	return len(mismatches) == 0, mismatches
 }
 
 // MockServerMismatchedRequests returns a JSON object containing any mismatches from
@@ -520,7 +517,6 @@ func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[strin
 			cValue := C.CString(value)
 			defer free(cValue)
 
-			// TODO: the index here only applies to headers with multiple values
 			C.with_header(i.handle, C.int(part), cName, C.int(0), cValue)
 		}
 
