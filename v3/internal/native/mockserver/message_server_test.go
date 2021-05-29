@@ -58,7 +58,9 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 		WithMetadata(map[string]string{
 			"meta": "data",
 		}).
-		WithJSONContents([]byte(`{"some": "json"}`))
+		WithJSONContents(map[string]string{
+			"some": "json",
+		})
 
 	body := m.ReifyMessage()
 	log.Println(body) // TODO: JSON is not stringified - probably should be?

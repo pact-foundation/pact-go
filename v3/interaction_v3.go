@@ -14,14 +14,10 @@ type ProviderStateV3Response map[string]interface{}
 // and is replayed on the provider side for verification
 type InteractionV3 struct {
 	Interaction
-
-	// Provider state to be written into the Pact file
-	States []ProviderStateV3 `json:"providerStates,omitempty"`
 }
 
 // Given specifies a provider state. Optional.
 func (i *InteractionV3) Given(state ProviderStateV3) *InteractionV3 {
-	i.States = append(i.States, state)
 	i.Interaction.interaction.GivenWithParameter(state.Name, state.Parameters)
 
 	return i

@@ -150,7 +150,7 @@ func (v *VerifyRequest) validate() error {
 	}
 
 	if len(v.PactURLs) == 0 && len(v.PactFiles) == 0 && len(v.PactDirs) == 0 && v.BrokerURL == "" {
-		return fmt.Errorf("One of 'PactURLs', 'PactFiles', 'PactDIRs' or 'BrokerURL' must be specified")
+		return fmt.Errorf("one of 'PactURLs', 'PactFiles', 'PactDIRs' or 'BrokerURL' must be specified")
 	}
 
 	// TODO:
@@ -262,7 +262,7 @@ func (v *VerifyRequest) validate() error {
 		v.args = append(v.args, "--provider-tags", strings.Join(v.ProviderTags, ","))
 	}
 
-	v.args = append(v.args, "--loglevel", strings.ToLower(fmt.Sprintf("%s", LogLevel())))
+	v.args = append(v.args, "--loglevel", strings.ToLower(string(LogLevel())))
 
 	if len(v.Tags) > 0 {
 		v.args = append(v.args, "--consumer-version-tags", strings.Join(v.Tags, ","))
@@ -297,7 +297,7 @@ func (v *VerifyRequest) verify(writer outputWriter) error {
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
 	service := native.Verifier{}
-	service.Init()
+	native.Init()
 	res := service.Verify(v.args)
 
 	return res

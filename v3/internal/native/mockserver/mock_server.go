@@ -16,7 +16,7 @@ typedef struct InteractionHandle InteractionHandle;
 struct InteractionHandle {
 	uintptr_t pact;
   uintptr_t interaction;
-	};
+};
 
 typedef struct MessageHandle MessageHandle;
 struct MessageHandle {
@@ -128,7 +128,7 @@ void with_body(InteractionHandle interaction, int interaction_part, const char *
 void with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
 
 /// TODO: how to represent this?
-// StringResult with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
+int with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
 
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
 void response_status(InteractionHandle interaction, int status);
@@ -169,6 +169,11 @@ type interactionType int
 const (
 	INTERACTION_PART_REQUEST interactionType = iota
 	INTERACTION_PART_RESPONSE
+)
+
+const (
+	RESULT_OK interactionType = iota
+	RESULT_FAILED
 )
 
 type specificationVersion int
@@ -589,9 +594,6 @@ func (i *Interaction) withBinaryBody(contentType string, body []byte, part inter
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	cBytes := C.CString(string(body))
-	defer free(cBytes)
-
 	C.with_binary_file(i.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 
 	return i
@@ -603,6 +605,29 @@ func (i *Interaction) WithBinaryRequestBody(body []byte) *Interaction {
 
 func (i *Interaction) WithBinaryResponseBody(body []byte) *Interaction {
 	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_RESPONSE)
+}
+
+func (i *Interaction) WithRequestMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
+	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_REQUEST)
+}
+
+func (i *Interaction) WithResponseMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
+	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_RESPONSE)
+}
+
+func (i *Interaction) withMultipartFile(contentType string, filename string, mimePartName string, part interactionType) *Interaction {
+	cHeader := C.CString(contentType)
+	defer free(cHeader)
+
+	cPartName := C.CString(mimePartName)
+	defer free(cPartName)
+
+	cFilename := C.CString(filename)
+	defer free(cFilename)
+
+	C.with_multipart_file(i.handle, C.int(part), cHeader, cFilename, cPartName)
+
+	return i
 }
 
 // Set the expected HTTTP response status

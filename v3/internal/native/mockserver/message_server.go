@@ -148,8 +148,12 @@ func (i *Message) WithBinaryContents(body []byte) *Message {
 	return i.WithContents("application/octet-stream", body)
 }
 
-func (i *Message) WithJSONContents(body []byte) *Message {
-	return i.WithContents("application/json", body)
+func (i *Message) WithJSONContents(body interface{}) *Message {
+	value := stringFromInterface(body)
+
+	log.Println("[DEBUG] message WithJSONContents", value)
+
+	return i.WithContents("application/json", []byte(value))
 }
 
 func (i *Message) WithContents(contentType string, body []byte) *Message {
