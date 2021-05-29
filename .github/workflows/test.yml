@@ -11,6 +11,9 @@ jobs:
     steps:
     - name: Set Golang shared lib directory for GH Actions
       run: |
+        # Temporarily download pact-go release libs
+        curl -L https://github.com/pact-foundation/pact-go/releases/download/2.0.0-alpha.1/libpact_linux.zip > /tmp/libpact.zip
+        unzip /tmp/libpact.zip -d /tmp/
         echo "LD_LIBRARY_PATH=/tmp" >> $GITHUB_ENV
         echo "PACT_GO_LIB_DOWNLOAD_PATH=/tmp" >> $GITHUB_ENV
         echo "LOG_LEVEL=trace" >> $GITHUB_ENV

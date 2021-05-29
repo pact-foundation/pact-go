@@ -41,6 +41,7 @@ Read [Getting started with Pact] for more information for beginners.
   - [Table of Contents](#table-of-contents)
   - [Versions](#versions)
   - [Installation](#installation)
+    - [Temporary](#temporary)
     - [Go get](#go-get)
     - [Manual](#manual)
   - [Using Pact](#using-pact)
@@ -105,11 +106,10 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 
 ## Installation
 
-General guide:
+### Temporary
 
-1.  Download the latest FFI [libraries] and install into a default library search path:
-
-See below for how to automate this:
+1. Run `go get github.com/pact-foundation/pact-go` to install the source packages, and the installer code
+1. Install the vendored libraries from https://github.com/pact-foundation/pact-go/releases/tag/2.0.0-alpha.1 into your library search path
 
 ### Go get
 
@@ -889,6 +889,7 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 [@pact_up]: https://twitter.com/pact_up
 [pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
 [pact specification v3]: https://github.com/pact-foundation/pact-specification/tree/version-3
+[libraries]: https://github.com/pact-foundation/pact-reference/releases
 [cli tools]: https://github.com/pact-foundation/pact-reference/releases
 [installation]: #installation
 [message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
