@@ -279,11 +279,7 @@ func (m *MapMatcher) UnmarshalJSON(bytes []byte) (err error) {
 	return
 }
 
-// MapMatcher allows a map[string]string-like object
-// to also contain complex matchers
-// TODO: bring back this type?
-// type MapMatcher map[string]Matcher
-type HeadersMatcher = MapMatcher
+type HeadersMatcher = map[string][]Matcher
 type MetadataMatcher = MapMatcher
 
 // QueryMatcher matches a query string interface

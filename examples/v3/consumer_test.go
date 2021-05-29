@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -30,17 +29,7 @@ func TestConsumerV2(t *testing.T) {
 		TLS:      true,
 	})
 
-	// Override default matching behaviour
-	// mockProvider.SetMatchingConfig(v3.PactSerialisationOptionsV2{
-	// QueryStringStyle: v3.AlwaysArray,
-	// QueryStringStyle: v3.Array,
-	// QueryStringStyle: v3.Default,
-	// })
-
-	// TODO: probably better than deferring to the execute test phase, but not sure
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Set up our expected interactions.
 	mockProvider.
@@ -56,7 +45,6 @@ func TestConsumerV2(t *testing.T) {
 				v3.Regex("baz", "[a-z]+"),
 			},
 		}).
-		// Body: v3.MatchV2(&User{}),
 		JSON(v3.MapMatcher{
 			"id":       v3.Like(27),
 			"name":     v3.Like("billy"),
@@ -65,24 +53,56 @@ func TestConsumerV2(t *testing.T) {
 		}).
 		WillRespondWith(200).
 		Headers(v3.MapMatcher{"Content-Type": v3.Regex("application/json", "application\\/json")}).
-		// 	// Body:    v3.Match(&User{}),
 		JSON(v3.MapMatcher{
 			"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-			"name":     s("FirstName"),
-			"lastName": s("LastName"),
+			"name":     s("Billy"),
+			"lastName": s("Sampson"),
 			"itemsMin": v3.ArrayMinLike("thereshouldbe3ofthese", 3),
-			// Add any of these this to demonstrate adding a v3 matcher failing the build (not at the type system level unfortunately)
-			// "id": v3.Integer(1),
-			// "superstring": v3.Includes("foo"),
-			// "accountBalance": v3.Decimal(123.76),
-			// "itemsMinMax": v3.ArrayMinMaxLike(27, 3, 5),
-			// "equality": v3.Equality("a thing"),
 		})
 
 	// Execute pact test
-	if err := mockProvider.ExecuteTest(test); err != nil {
-		log.Fatalf("Error on Verify: %v", err)
-	}
+	err = mockProvider.ExecuteTest(test)
+	assert.NoError(t, err)
+}
+
+func TestConsumerV2_Match(t *testing.T) {
+	v3.SetLogLevel("TRACE")
+
+	mockProvider, err := v3.NewHTTPMockProviderV2(v3.MockHTTPProviderConfigV2{
+		Consumer: "V2ConsumerMatch",
+		Provider: "V2ProviderMatch",
+		Host:     "127.0.0.1",
+		Port:     8080,
+		TLS:      true,
+	})
+
+	assert.NoError(t, err)
+
+	// Set up our expected interactions.
+	mockProvider.
+		AddInteraction().
+		Given("User foo exists").
+		UponReceiving("A request to do a foo").
+		WithRequest("POST", v3.Regex("/foobar", `\/foo.*`)).
+		HeadersArray(v3.HeadersMatcher{
+			"Content-Type":  []v3.Matcher{s("application/json")},
+			"Authorization": []v3.Matcher{v3.Like("Bearer 1234")},
+		}).
+		Query(v3.QueryMatcher{
+			"baz": []v3.Matcher{
+				v3.Regex("bar", "[a-z]+"),
+				v3.Regex("bat", "[a-z]+"),
+				v3.Regex("baz", "[a-z]+"),
+			},
+		}).
+		BodyMatch(&User{}).
+		WillRespondWith(200).
+		Headers(v3.MapMatcher{"Content-Type": v3.Regex("application/json", "application\\/json")}).
+		BodyMatch(&User{})
+
+	// Execute pact test
+	err = mockProvider.ExecuteTest(test)
+	assert.NoError(t, err)
 }
 
 func TestConsumerV3(t *testing.T) {
@@ -95,10 +115,7 @@ func TestConsumerV3(t *testing.T) {
 		Port:     8080,
 		TLS:      true,
 	})
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Set up our expected interactions.
 	mockProvider.
@@ -127,11 +144,10 @@ func TestConsumerV3(t *testing.T) {
 		}).
 		WillRespondWith(200).
 		Headers(v3.MapMatcher{"Content-Type": s("application/json")}).
-		// Body:    v3.MatchV3(&User{}),
 		JSON(v3.MapMatcher{
 			"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
-			"name":           s("FirstName"),
-			"lastName":       s("LastName"),
+			"name":           s("Billy"),
+			"lastName":       s("Sampson"),
 			"superstring":    v3.Includes("foo"),
 			"id":             v3.Integer(12),
 			"accountBalance": v3.Decimal(123.76),
@@ -148,9 +164,8 @@ func TestConsumerV3(t *testing.T) {
 		})
 
 	// Execute pact test
-	if err := mockProvider.ExecuteTest(test); err != nil {
-		log.Fatalf("Error on Verify: %v", err)
-	}
+	err = mockProvider.ExecuteTest(test)
+	assert.NoError(t, err)
 }
 
 func TestMessagePact(t *testing.T) {
@@ -159,7 +174,6 @@ func TestMessagePact(t *testing.T) {
 	provider, err := v3.NewMessagePactV3(v3.MessageConfig{
 		Consumer: "V3MessageConsumer",
 		Provider: "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
-		// SpecificationVersion: v3.V3,
 	})
 	assert.NoError(t, err)
 
@@ -176,8 +190,8 @@ func TestMessagePact(t *testing.T) {
 		}).
 		JSON(v3.MapMatcher{
 			"datetime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-			"name":     s("FirstName"),
-			"lastName": s("LastName"),
+			"name":     s("Billy"),
+			"lastName": s("Sampson"),
 			"id":       v3.Integer(12),
 		}).
 		AsType(&User{}).
@@ -189,11 +203,9 @@ func TestMessagePact(t *testing.T) {
 
 type User struct {
 	ID       int    `json:"id" pact:"example=27"`
-	Name     string `json:"name" pact:"example=billy"`
-	LastName string `json:"lastName" pact:"example=sampson"`
+	Name     string `json:"name" pact:"example=Billy"`
+	LastName string `json:"lastName" pact:"example=Sampson"`
 	Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
-	// Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,regex=[0-9-]+,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
-	// Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
 }
 
 // Pass in test case
@@ -207,12 +219,10 @@ var test = func(config v3.MockServerConfig) error {
 	req := &http.Request{
 		Method: "POST",
 		URL: &url.URL{
-			Host:   fmt.Sprintf("%s:%d", "localhost", config.Port),
-			Scheme: "https",
-			Path:   "/foobar",
-			// RawQuery: "baz=foo&baz=foo&baz=foo", // TODO: Currently doesn't support matching rules being sent over the wire, so must have exact values
+			Host:     fmt.Sprintf("%s:%d", "localhost", config.Port),
+			Scheme:   "https",
+			Path:     "/foobar",
 			RawQuery: "baz=bat&baz=foo&baz=something", // Default behaviour, test matching
-			// RawQuery: "baz[]=bat&baz[]=foo&baz[]=something", // TODO: Rust v3 does not support this syntax
 		},
 		Body:   ioutil.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2021-01-01T08:00:45"}`)),
 		Header: make(http.Header),

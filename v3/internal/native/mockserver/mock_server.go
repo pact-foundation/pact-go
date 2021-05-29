@@ -501,37 +501,35 @@ func (i *Interaction) WithRequest(method string, pathOrMatcher interface{}) *Int
 	return i
 }
 
-func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string]interface{}) *Interaction {
-	// func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string]string) *Interaction {
+func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string][]interface{}) *Interaction {
 	return i.withHeaders(INTERACTION_PART_REQUEST, valueOrMatcher)
 }
 
-func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string]interface{}) *Interaction {
-	// func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string]string) *Interaction {
+func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string][]interface{}) *Interaction {
 	return i.withHeaders(INTERACTION_PART_RESPONSE, valueOrMatcher)
 }
 
-func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[string]interface{}) *Interaction {
-	// func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[string]string) *Interaction {
+func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[string][]interface{}) *Interaction {
 	for k, v := range valueOrMatcher {
 
 		cName := C.CString(k)
 		defer free(cName)
 
-		value := stringFromInterface(v)
-		fmt.Printf("withheaders, sending: %+v \n\n", value)
-		cValue := C.CString(value)
-		defer free(cValue)
+		for _, header := range v {
+			value := stringFromInterface(header)
+			cValue := C.CString(value)
+			defer free(cValue)
 
-		// TODO: the index here only applies to headers with multiple values
-		C.with_header(i.handle, C.int(part), cName, C.int(0), cValue)
+			// TODO: the index here only applies to headers with multiple values
+			C.with_header(i.handle, C.int(part), cName, C.int(0), cValue)
+		}
+
 	}
 
 	return i
 }
 
 func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Interaction {
-	// func (i *Interaction) WithQuery(valueOrMatcher map[string][]string) *Interaction {
 	for k, values := range valueOrMatcher {
 
 		cName := C.CString(k)

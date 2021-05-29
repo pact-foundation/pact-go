@@ -41,11 +41,6 @@ func (i *Interaction) WithRequest(method Method, path Matcher) *InteractionReque
 	}
 }
 
-func (i *InteractionRequest) Method(method Method) *InteractionRequest {
-
-	return i
-}
-
 func (i *InteractionRequest) Query(query QueryMatcher) *InteractionRequest {
 	q := make(map[string][]interface{})
 	for k, values := range query {
@@ -58,12 +53,14 @@ func (i *InteractionRequest) Query(query QueryMatcher) *InteractionRequest {
 	return i
 }
 
-func (i *InteractionRequest) Headers(headers HeadersMatcher) *InteractionRequest {
-	h := make(map[string]interface{})
-	for k, v := range headers {
-		h[k] = v
-	}
-	i.interaction.WithRequestHeaders(h)
+func (i *InteractionRequest) HeadersArray(headers HeadersMatcher) *InteractionRequest {
+	i.interaction.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
+
+	return i
+}
+
+func (i *InteractionRequest) Headers(headers MapMatcher) *InteractionRequest {
+	i.interaction.WithRequestHeaders(mapMatcherToNativeHeaders(headers))
 
 	return i
 }
@@ -106,6 +103,12 @@ func (i *InteractionRequest) Body(contentType string, body []byte) *InteractionR
 	return i
 }
 
+func (i *InteractionRequest) BodyMatch(body interface{}) *InteractionRequest {
+	i.interaction.WithJSONRequestBody(MatchV2(body))
+
+	return i
+}
+
 // WillRespondWith specifies the details of the HTTP response that will be used to
 // confirm that the Provider must satisfy. Mandatory.
 // Defaults to application/json.
@@ -118,21 +121,40 @@ func (i *InteractionRequest) WillRespondWith(status int) *InteractionResponse {
 	}
 }
 
-func (i *InteractionResponse) Headers(headers MapMatcher) *InteractionResponse {
-	h := make(map[string]interface{})
-	for k, v := range headers {
-		h[k] = v.(stringLike).string()
-	}
-	i.interaction.WithResponseHeaders(h)
+func (i *InteractionResponse) HeadersArray(headers HeadersMatcher) *InteractionResponse {
+	i.interaction.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
-// func (i *InteractionResponse) Status(status int) *InteractionResponse {
-// 	i.interaction.WithStatus(status)
+func (i *InteractionResponse) Headers(headers MapMatcher) *InteractionResponse {
+	i.interaction.WithRequestHeaders(mapMatcherToNativeHeaders(headers))
 
-// 	return i
-// }
+	return i
+}
+
+func headersMatcherToNativeHeaders(headers HeadersMatcher) map[string][]interface{} {
+	h := make(map[string][]interface{})
+
+	for k, v := range headers {
+		h[k] = make([]interface{}, len(v))
+		for i, vv := range v {
+			h[k][i] = vv
+		}
+	}
+
+	return h
+}
+
+func mapMatcherToNativeHeaders(headers MapMatcher) map[string][]interface{} {
+	h := make(map[string][]interface{})
+
+	for k, v := range headers {
+		h[k] = []interface{}{v}
+	}
+
+	return h
+}
 
 func (i *InteractionResponse) JSON(body interface{}) *InteractionResponse {
 	i.interaction.WithJSONResponseBody(body)
@@ -148,6 +170,12 @@ func (i *InteractionResponse) Binary(body []byte) *InteractionResponse {
 
 func (i *InteractionResponse) Body(contentType string, body []byte) *InteractionResponse {
 	i.interaction.WithResponseBody(contentType, body)
+
+	return i
+}
+
+func (i *InteractionResponse) BodyMatch(body interface{}) *InteractionResponse {
+	i.interaction.WithJSONRequestBody(MatchV2(body))
 
 	return i
 }

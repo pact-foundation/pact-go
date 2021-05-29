@@ -145,20 +145,12 @@ func TestExampleConsumerLoginHandler_UserExists(t *testing.T) {
 		AddInteraction().
 		Given("User jmarie exists").
 		UponReceiving("A request to login with user 'jmarie'").
-		WithRequest(request{
-			Method: "POST",
-			Path:   term("/login/10", "/login/[0-9]+"),
-			Query: dsl.MapMatcher{
-				"foo": term("bar", "[a-zA-Z]+"),
-			},
-			Body:    loginRequest,
-			Headers: commonHeaders,
-		}).
+
 		WillRespondWith(dsl.Response{
 			Status: 200,
-			Body: dsl.Match(ex.LoginResponse{
-				User: &ex.User{},
-			}),
+			Body: map[string]interface{}{
+				"Foo": eachLike("foo", 0),
+			},
 			Headers: dsl.MapMatcher{
 				"X-Api-Correlation-Id": dsl.Like("100"),
 				"Content-Type":         term("application/json; charset=utf-8", `application\/json`),

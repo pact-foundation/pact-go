@@ -1,1 +1,60 @@
-{"consumer":{"name":"V3MessageConsumer"},"provider":{"name":"V3MessageProvider"},"messages":[{"contents":{"datetime":"2020-01-01","id":12,"lastName":"LastName","name":"FirstName"},"providerStates":[{"name":"User with id 127 exists","params":{"id":127}}],"metadata":{"Content-Type":"application/json; charset=utf-8"},"description":"a user event","matchingRules":{"body":{"$.datetime":{"combine":"AND","matchers":[{"match":"regex","regex":"[0-9\\-]+"}]},"$.id":{"combine":"AND","matchers":[{"match":"integer"}]},"$.lastName":{"combine":"AND","matchers":[{"match":"type"}]},"$.name":{"combine":"AND","matchers":[{"match":"type"}]}},"path":{}}}],"metadata":{"pactGo":{"version":"v1.4.3"},"pactSpecification":{"version":"3.0.0"}}}
+{
+  "consumer": {
+    "name": "V3MessageConsumer"
+  },
+  "messages": [
+    {
+      "contents": {
+        "datetime": "2020-01-01",
+        "id": 12,
+        "lastName": "Sampson",
+        "name": "Billy"
+      },
+      "description": "a user event",
+      "matchingRules": {
+        "body": {
+          "$.datetime": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "[0-9\\-]+"
+              }
+            ]
+          },
+          "$.id": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "integer"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "Content-Type": "application/json",
+        "contentType": "application/json"
+      },
+      "providerStates": [
+        {
+          "name": "User with id 127 exists",
+          "params": {
+            "id": 127
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "version": "0.9.2"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "V3MessageProvider"
+  }
+}

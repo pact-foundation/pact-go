@@ -43,7 +43,7 @@ pact: install docker
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
 	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
 
-pactv3: installv3
+pactv3: clean #installv3
 	@echo "--- 🔨 Running Pact examples"
 	mkdir -p ./examples/v3/pacts
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...

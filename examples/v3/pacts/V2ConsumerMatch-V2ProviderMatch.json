@@ -1,6 +1,6 @@
 {
   "consumer": {
-    "name": "V2Consumer"
+    "name": "V2ConsumerMatch"
   },
   "interactions": [
     {
@@ -8,10 +8,10 @@
       "providerState": "User foo exists",
       "request": {
         "body": {
-          "datetime": "2020-01-01'T'08:00:45",
+          "datetime": "2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime",
           "id": 27,
-          "lastName": "billy",
-          "name": "billy"
+          "lastName": "Sampson",
+          "name": "Billy"
         },
         "headers": {
           "Authorization": "Bearer 1234",
@@ -59,29 +59,6 @@
         "query": "baz=bar&baz=bat&baz=baz"
       },
       "response": {
-        "body": {
-          "dateTime": "2020-01-01",
-          "itemsMin": [
-            "thereshouldbe3ofthese",
-            "thereshouldbe3ofthese",
-            "thereshouldbe3ofthese"
-          ],
-          "lastName": "Sampson",
-          "name": "Billy"
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "matchingRules": {
-          "$.body.dateTime": {
-            "match": "regex",
-            "regex": "[0-9\\-]+"
-          },
-          "$.body.itemsMin": {
-            "match": "type",
-            "min": 3
-          }
-        },
         "status": 200
       }
     }
@@ -95,6 +72,6 @@
     }
   },
   "provider": {
-    "name": "V2Provider"
+    "name": "V2ProviderMatch"
   }
 }

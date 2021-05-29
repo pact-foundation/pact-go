@@ -45,8 +45,11 @@ func TestV3HTTPProvider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	err := verifier.VerifyProvider(t, v3.VerifyRequest{
 		ProviderBaseURL: "http://localhost:8111",
-		PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/V3Consumer-V3Provider.json", pactDir))},
-		RequestFilter:   f,
+		PactFiles: []string{
+			filepath.ToSlash(fmt.Sprintf("%s/V3Consumer-V3Provider.json", pactDir)),
+			filepath.ToSlash(fmt.Sprintf("%s/V2ConsumerMatch-V2ProviderMatch.json", pactDir)),
+		},
+		RequestFilter: f,
 		BeforeEach: func() error {
 			log.Println("[DEBUG] HOOK before each")
 			return nil
@@ -99,9 +102,9 @@ func TestV3MessageProvider(t *testing.T) {
 			if setup {
 				user = &User{
 					ID:       127,
-					Name:     "Baz",
+					Name:     "Billy",
 					Date:     "2020-01-01",
-					LastName: "sampson",
+					LastName: "Sampson",
 				}
 			}
 
@@ -139,11 +142,19 @@ func startServer() {
 					27,
 					27,
 					27,
+					27,
 					27
 				],
-				"lastName": "LastName",
-				"name": "FirstName",
-				"superstring": "foo"
+				"lastName": "Sampson",
+				"name": "Billy",
+				"superstring": "foo",
+				"arrayContaining": [
+					"string",
+					1,
+					{
+						"foo": "bar"
+					}
+				]
 			}`,
 		)
 	})
@@ -154,7 +165,7 @@ func startServer() {
 type User struct {
 	ID       int    `json:"id" pact:"example=27"`
 	Name     string `json:"name" pact:"example=billy"`
-	LastName string `json:"lastName" pact:"example=sampson"`
+	LastName string `json:"lastName" pact:"example=Sampson"`
 	Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
 	// Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
 }
