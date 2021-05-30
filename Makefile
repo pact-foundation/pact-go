@@ -5,7 +5,7 @@ TEST?=./...
 .DEFAULT_GOAL := ci
 
 # ci:: clean deps bin pactv3
-ci:: docker deps clean bin test pactv3 pact #goveralls
+ci:: docker deps clean bin test pact #goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -29,7 +29,6 @@ deps:
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
 
-install:
 	@if [ ! -d pact/bin ]; then\
 		echo "--- 🐿 Installing Pact CLI dependencies"; \
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
@@ -38,12 +37,7 @@ install:
 installv3: bin
 	./build/pact-go	 -l DEBUG install --libDir /tmp
 
-pact: install docker
-	@echo "--- 🔨 Running Pact examples"
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
-	go test -v -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/v2/... -run TestExample
-
-pactv3: clean #installv3
+pact: clean #installv3 docker
 	@echo "--- 🔨 Running Pact examples"
 	mkdir -p ./examples/v3/pacts
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
