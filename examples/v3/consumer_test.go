@@ -50,6 +50,7 @@ func TestConsumerV2(t *testing.T) {
 			"name":     v3.Like("billy"),
 			"datetime": v3.Like("2020-01-01'T'08:00:45"),
 			"lastName": v3.Like("billy"),
+			// "equality": v3.Equality("a thing"), // Add this in and watch me panic
 		}).
 		WillRespondWith(200).
 		Headers(v3.MapMatcher{"Content-Type": v3.Regex("application/json", "application\\/json")}).
@@ -58,6 +59,7 @@ func TestConsumerV2(t *testing.T) {
 			"name":     s("Billy"),
 			"lastName": s("Sampson"),
 			"itemsMin": v3.ArrayMinLike("thereshouldbe3ofthese", 3),
+			// "equality": v3.Equality("a thing"), // Add this in and watch me panic
 		})
 
 	// Execute pact test

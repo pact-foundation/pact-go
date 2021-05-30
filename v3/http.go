@@ -215,7 +215,7 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 		return fmt.Errorf("pact validation failed: %+v", mismatches)
 	}
 
-	return p.WritePact()
+	return p.writePact()
 }
 
 // TODO: pretty print this to make it really easy to understand the problems
@@ -247,11 +247,10 @@ func (p *httpMockProvider) displayMismatches(mismatches []native.MismatchedReque
 	}
 }
 
-// WritePact should be called when all tests have been performed for a
-// given Consumer <-> Provider pair. It will write out the Pact to the
-// configured file. This is safe to call multiple times as the service is smart
-// enough to merge pacts and avoid duplicates.
-func (p *httpMockProvider) WritePact() error {
+// writePact may be called after each interaction with a mock server is completed
+// the shared core is threadsafe and will merge, as long as the requests come from a single process
+// (that is, there isn't separate) instances of the FFI running simultaneously
+func (p *httpMockProvider) writePact() error {
 	log.Println("[DEBUG] write pact file")
 	if p.config.Port != 0 {
 		return p.mockserver.WritePactFile(p.config.Port, p.config.PactDir)

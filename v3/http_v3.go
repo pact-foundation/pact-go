@@ -34,7 +34,8 @@ func (p *HTTPMockProviderV3) AddInteraction() *InteractionV3 {
 
 	i := &InteractionV3{
 		Interaction: Interaction{
-			interaction: interaction,
+			specificationVersion: V3,
+			interaction:          interaction,
 		},
 	}
 

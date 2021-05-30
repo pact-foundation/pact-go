@@ -45,8 +45,9 @@ func (m eachLike) MarshalJSON() ([]byte, error) {
 }
 
 type like struct {
-	Type  string      `json:"pact:matcher:type"`
-	Value interface{} `json:"value"`
+	Specification SpecificationVersion `json:"specification"`
+	Type          string               `json:"pact:matcher:type"`
+	Value         interface{}          `json:"value"`
 }
 
 func (m like) GetValue() interface{} {

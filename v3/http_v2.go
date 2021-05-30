@@ -38,7 +38,8 @@ func (p *HTTPMockProviderV2) AddInteraction() *InteractionV2 {
 
 	i := &InteractionV2{
 		Interaction: Interaction{
-			interaction: interaction,
+			specificationVersion: V2,
+			interaction:          interaction,
 		},
 	}
 
@@ -48,8 +49,9 @@ func (p *HTTPMockProviderV2) AddInteraction() *InteractionV2 {
 }
 
 // SetMatchingConfig allows specific contract file serialisation adjustments
-func (p *HTTPMockProviderV2) SetMatchingConfig(config PactSerialisationOptionsV2) *HTTPMockProviderV2 {
-	p.config.matchingConfig = config
+// TODO: review if this is even used now we've moved to FFI
+// func (p *HTTPMockProviderV2) SetMatchingConfig(config PactSerialisationOptionsV2) *HTTPMockProviderV2 {
+// 	p.config.matchingConfig = config
 
-	return p
-}
+// 	return p
+// }
