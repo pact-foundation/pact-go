@@ -923,8 +923,9 @@ Additional documentation can be found at the main [Pact website](https://pact.io
 
 ## Roadmap
 
-The [roadmap](https://docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
-Detail on the native Go implementation can be found [here](https://github.com/pact-foundation/pact-go/wiki/Native-implementation-roadmap).
+The current focus is on moving to the Rust shared core, the project can be followed [here](https://github.com/pact-foundation/pact-go/projects/2).
+
+The general [roadmap](https://docs.pact.io/roadmap/) for Pact is available on the Pact website.
 
 ## Contributing
 
