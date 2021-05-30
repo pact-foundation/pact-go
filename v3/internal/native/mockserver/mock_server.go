@@ -3,6 +3,7 @@ package mockserver
 /*
 // Library headers
 #include <stdlib.h>
+#include <stdint.h>
 typedef int bool;
 #define true 1
 #define false 0
