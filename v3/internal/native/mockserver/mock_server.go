@@ -152,6 +152,13 @@ void response_status(InteractionHandle interaction, int status);
 int write_pact_file(int mock_server_port, const char *directory);
 
 void with_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
+
+// Additional global logging functions
+int log_to_buffer(int level);
+int log_to_stdout(int level);
+int log_to_file(const char *file_name, int level_filter);
+char* fetch_memory_buffer();
+
 */
 import "C"
 
@@ -187,6 +194,17 @@ const (
 	SPECIFICATION_VERSION_V4
 )
 
+type logLevel int
+
+const (
+	LOG_LEVEL_OFF logLevel = iota
+	LOG_LEVEL_ERROR
+	LOG_LEVEL_WARN
+	LOG_LEVEL_INFO
+	LOG_LEVEL_DEBUG
+	LOG_LEVEL_TRACE
+)
+
 // Pact is a Go representation of the PactHandle struct
 type Pact struct {
 	handle C.PactHandle
@@ -207,10 +225,15 @@ func Version() string {
 // Init initialises the library
 func Init() {
 	log.Println("[DEBUG] initialising rust mock server interface")
-	logLevel := C.CString("LOG_LEVEL")
-	defer free(logLevel)
+	l := C.CString("LOG_LEVEL")
+	defer free(l)
 
-	C.init(logLevel)
+	C.init(l)
+
+	// Alternative log destinations
+	// NOTE: only one can be applied
+	// logToBuffer(LOG_LEVEL_INFO)
+	// logToFile("/tmp/pact.log", LOG_LEVEL_TRACE)
 }
 
 // MockServer is the public interface for managing the HTTP mock server
@@ -649,6 +672,61 @@ func stringFromInterface(obj interface{}) string {
 	}
 }
 
+// Experimental logging options
+func logToBuffer(level logLevel) error {
+	res := C.log_to_buffer(C.int(level))
+	log.Println("[DEBUG] log_to_buffer res", res)
+
+	return logResultToError(int(res))
+}
+
+func logToStdout(level logLevel) error {
+	res := C.log_to_stdout(C.int(level))
+	log.Println("[DEBUG] log_to_stdout res", res)
+
+	return logResultToError(int(res))
+}
+
+func logToFile(file string, level logLevel) error {
+	cFile := C.CString(file)
+	defer free(cFile)
+
+	res := C.log_to_file(cFile, C.int(level))
+	log.Println("[DEBUG] log_to_file res", res)
+
+	return logResultToError(int(res))
+}
+
+func getLogBuffer() string {
+	buf := C.fetch_memory_buffer()
+	defer free(buf)
+
+	return C.GoString(buf)
+}
+
+func logResultToError(res int) error {
+	switch res {
+	case 0:
+		return nil
+	case -1:
+		return ErrCantSetLogger
+	case -2:
+		return ErrNoLogger
+	case -3:
+		return ErrSpecifierNotUtf8
+	case -4:
+		return ErrUnknownSinkType
+	case -5:
+		return ErrMissingFilePath
+	case -6:
+		return ErrCantOpenSinkToFile
+	case -7:
+		return ErrCantConstructSink
+	default:
+		return fmt.Errorf("an unknown error ocurred when writing to pact file")
+	}
+}
+
 // Errors
 var (
 	// ErrHandleNotFound indicates the underlying handle was not found, and a logic error in the framework
@@ -681,4 +759,15 @@ var (
 
 	// ErrNoInteractions indicates no Interactions have been registered to a mock server, and cannot be started/stopped until at least one is added
 	ErrNoInteractions = fmt.Errorf("no interactions have been registered for the mock server")
+)
+
+// Log Errors
+var (
+	ErrCantSetLogger      = fmt.Errorf("can't set logger (applying the logger failed, perhaps because one is applied already).")
+	ErrNoLogger           = fmt.Errorf("no logger has been initialized (call `logger_init` before any other log function).")
+	ErrSpecifierNotUtf8   = fmt.Errorf("The sink specifier was not UTF-8 encoded.")
+	ErrUnknownSinkType    = fmt.Errorf(`the sink type specified is not a known type (known types: "buffer", "stdout", "stderr", or "file /some/path").`)
+	ErrMissingFilePath    = fmt.Errorf("no file path was specified in a file-type sink specification.")
+	ErrCantOpenSinkToFile = fmt.Errorf("opening a sink to the specified file path failed (check permissions).")
+	ErrCantConstructSink  = fmt.Errorf("can't construct the log sink")
 )

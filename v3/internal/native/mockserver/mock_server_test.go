@@ -115,11 +115,11 @@ func TestMockServer_WritePactfile(t *testing.T) {
 func TestMockServer_GetTLSConfig(t *testing.T) {
 	config := GetTLSConfig()
 
-	fmt.Println("tls config", config)
+	t.Log("tls config", config)
 }
 
 func TestVersion(t *testing.T) {
-	fmt.Println("version: ", Version())
+	t.Log("version: ", Version())
 }
 
 func TestHandleBasedHTTPTests(t *testing.T) {
@@ -128,25 +128,19 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 
 	m := NewHTTPMockServer("test-http-consumer", "test-http-provider")
 
-	fmt.Println("pact struct:", m)
-
 	i := m.NewInteraction("some interaction")
-	fmt.Println("pact interaction:", i)
 
 	i.UponReceiving("some interaction").
 		Given("some state").
 		WithRequest("GET", "/products").
-		// withRequestHeader("x-special-header", 0, "header")
-		// withQuery("someParam", 0, "someValue")
 		WithJSONResponseBody(`{
-	  "name": {
-      "pact:matcher:type": "type",
-      "value": "some name"
-    },
-	  "age": 23,
-	  "alive": true
-	}`).
-		// withResponseHeader(i, "x-special-header", 0, "header")
+	  	"name": {
+      	"pact:matcher:type": "type",
+      	"value": "some name"
+    	},
+	  	"age": 23,
+	  	"alive": true
+		}`).
 		WithStatus(200)
 
 	// // Start the mock service
@@ -155,7 +149,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	assert.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
-	r, err := http.Get(fmt.Sprintf("http://0.0.0.0:%d/products", port))
+	_, err = http.Get(fmt.Sprintf("http://0.0.0.0:%d/products", port))
 	assert.NoError(t, err)
 
 	mismatches := m.MockServerMismatchedRequests(port)
@@ -165,8 +159,6 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 
 	err = m.WritePactFile(port, tmpPactFolder)
 	assert.NoError(t, err)
-
-	fmt.Println(r)
 }
 
 var pactSimple = `{
