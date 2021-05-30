@@ -34,10 +34,11 @@ goveralls:
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
   fi
 
-installv3: bin
+install: bin
+	echo "--- 🐿 Installing Pact FFI dependencies"
 	./build/pact-go	 -l DEBUG install --libDir /tmp
 
-pact: clean #installv3 docker
+pact: clean install #docker
 	@echo "--- 🔨 Running Pact examples"
 	mkdir -p ./examples/v3/pacts
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/v3/...
@@ -47,7 +48,7 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
-test: deps install #installv3
+test: deps install
 	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
 	@echo "mode: count" > coverage.txt

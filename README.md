@@ -41,7 +41,6 @@ Read [Getting started with Pact] for more information for beginners.
   - [Table of Contents](#table-of-contents)
   - [Versions](#versions)
   - [Installation](#installation)
-    - [Temporary](#temporary)
     - [Go get](#go-get)
     - [Manual](#manual)
   - [Using Pact](#using-pact)
@@ -106,11 +105,6 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 
 ## Installation
 
-### Temporary
-
-1. Run `go get github.com/pact-foundation/pact-go` to install the source packages, and the installer code
-1. Install the vendored libraries from https://github.com/pact-foundation/pact-go/releases/tag/2.0.0-alpha.1 into your library search path
-
 ### Go get
 
 1. Run `go get github.com/pact-foundation/pact-go` to install the source packages, and the installer code
@@ -141,7 +135,7 @@ mv libpact_mock_server_ffi-osx-x86_64.dylib /usr/local/lib/libpact_mock_server_f
 Test the installation:
 
 ```sh
-pact help
+pact-go help
 ```
 
 ## Using Pact
