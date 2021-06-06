@@ -151,7 +151,7 @@ Pact Go runs as part of your regular Go tests.
 We'll run through a simple example to get an understanding the concepts:
 
 1.  `go get github.com/pact-foundation/pact-go`
-1.  `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/v2/`
+1.  `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
 1.  `go test -v -run TestConsumer`.
 
 The simple example looks like this:
@@ -222,7 +222,7 @@ func TestConsumer(t *testing.T) {
 ### Provider API Testing
 
 1.  `go get github.com/pact-foundation/pact-go`
-1.  `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/v2/`
+1.  `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
 1.  `go test -v -run TestProvider`.
 
 Here is the Provider test process broker down:

@@ -1,4 +1,4 @@
-// +build provider
+// +build providerv2
 
 package provider
 

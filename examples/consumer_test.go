@@ -12,13 +12,13 @@ import (
 	"strings"
 	"testing"
 
-	v3 "github.com/pact-foundation/pact-go/v3"
-	. "github.com/pact-foundation/pact-go/v3/sugar"
+	v3 "github.com/pact-foundation/pact-go/consumer"
+	. "github.com/pact-foundation/pact-go/sugar"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConsumerV2(t *testing.T) {
-	v3.SetLogLevel("TRACE")
+	SetLogLevel("TRACE")
 
 	mockProvider, err := v3.NewV2Pact(v3.MockHTTPProviderConfig{
 		Consumer: "V2Consumer",
@@ -61,7 +61,7 @@ func TestConsumerV2(t *testing.T) {
 }
 
 func TestConsumerV2_Match(t *testing.T) {
-	v3.SetLogLevel("TRACE")
+	SetLogLevel("TRACE")
 
 	mockProvider, err := v3.NewV2Pact(v3.MockHTTPProviderConfig{
 		Consumer: "V2ConsumerMatch",
@@ -92,9 +92,9 @@ func TestConsumerV2_Match(t *testing.T) {
 }
 
 func TestConsumerV3(t *testing.T) {
-	v3.SetLogLevel("TRACE")
+	SetLogLevel("TRACE")
 
-	mockProvider, err := v3.NewV3Pact(v3.MockHTTPProviderConfig{
+	mockProvider, err := NewV3Pact(MockHTTPProviderConfig{
 		Consumer: "V3Consumer",
 		Provider: "V3Provider",
 		Host:     "127.0.0.1",
@@ -105,7 +105,7 @@ func TestConsumerV3(t *testing.T) {
 	// Set up our expected interactions.
 	mockProvider.
 		AddInteraction().
-		Given(v3.ProviderStateV3{
+		Given(ProviderStateV3{
 			Name: "User foo exists",
 			Parameters: map[string]interface{}{
 				"id": "foo",
@@ -149,7 +149,7 @@ func TestConsumerV3(t *testing.T) {
 }
 
 func TestMessagePact(t *testing.T) {
-	v3.SetLogLevel("TRACE")
+	SetLogLevel("TRACE")
 
 	provider, err := NewMessagePactV3(MessageConfig{
 		Consumer: "V3MessageConsumer",

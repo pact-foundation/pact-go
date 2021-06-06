@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	v3 "github.com/pact-foundation/pact-go/v3"
+	. "github.com/pact-foundation/pact-go/sugar"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,13 +22,13 @@ var pactDir = fmt.Sprintf("%s/pacts", dir)
 // 1. cd <pact-go>/examples/v3
 // 2. go test -v -run TestProvider
 func TestV3HTTPProvider(t *testing.T) {
-	v3.SetLogLevel("TRACE")
-	v3.CheckVersion()
+	SetLogLevel("TRACE")
+	CheckVersion()
 
 	// Start provider API in the background
 	go startServer()
 
-	verifier := v3.HTTPVerifier{}
+	verifier := HTTPVerifier{}
 
 	// Authorization middleware
 	// This is your chance to modify the request before it hits your provider
@@ -43,7 +43,7 @@ func TestV3HTTPProvider(t *testing.T) {
 	}
 
 	// Verify the Provider with local Pact Files
-	err := verifier.VerifyProvider(t, v3.VerifyRequest{
+	err := verifier.VerifyProvider(t, VerifyRequest{
 		ProviderBaseURL: "http://localhost:8111",
 		PactFiles: []string{
 			filepath.ToSlash(fmt.Sprintf("%s/V3Consumer-V3Provider.json", pactDir)),
@@ -58,8 +58,8 @@ func TestV3HTTPProvider(t *testing.T) {
 			log.Println("[DEBUG] HOOK after each")
 			return nil
 		},
-		StateHandlers: v3.StateHandlers{
-			"User foo exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
+		StateHandlers: StateHandlers{
+			"User foo exists": func(setup bool, s ProviderStateV3) (ProviderStateV3Response, error) {
 
 				if setup {
 					log.Println("[DEBUG] HOOK calling user foo exists state handler", s)
@@ -70,7 +70,7 @@ func TestV3HTTPProvider(t *testing.T) {
 				// ... do something, such as create "foo" in the database
 
 				// Optionally (if there are generators in the pact) return provider state values to be used in the verification
-				return v3.ProviderStateV3Response{"uuid": "1234"}, nil
+				return ProviderStateV3Response{"uuid": "1234"}, nil
 			},
 		},
 	})
@@ -79,26 +79,26 @@ func TestV3HTTPProvider(t *testing.T) {
 }
 
 func TestV3MessageProvider(t *testing.T) {
-	v3.SetLogLevel("TRACE")
+	SetLogLevel("TRACE")
 	var user *User
 
-	verifier := v3.MessageVerifier{}
+	verifier := MessageVerifier{}
 
 	// Map test descriptions to message producer (handlers)
-	functionMappings := v3.MessageHandlers{
-		"a user event": func([]v3.ProviderStateV3) (interface{}, error) {
+	functionMappings := MessageHandlers{
+		"a user event": func([]ProviderStateV3) (interface{}, error) {
 			if user != nil {
 				return user, nil
 			} else {
-				return v3.ProviderStateV3Response{
+				return ProviderStateV3Response{
 					"message": "not found",
 				}, nil
 			}
 		},
 	}
 
-	stateMappings := v3.StateHandlers{
-		"User with id 127 exists": func(setup bool, s v3.ProviderStateV3) (v3.ProviderStateV3Response, error) {
+	stateMappings := StateHandlers{
+		"User with id 127 exists": func(setup bool, s ProviderStateV3) (ProviderStateV3Response, error) {
 			if setup {
 				user = &User{
 					ID:       127,
@@ -108,13 +108,13 @@ func TestV3MessageProvider(t *testing.T) {
 				}
 			}
 
-			return v3.ProviderStateV3Response{"id": user.ID}, nil
+			return ProviderStateV3Response{"id": user.ID}, nil
 		},
 	}
 
 	// Verify the Provider with local Pact Files
-	verifier.Verify(t, v3.VerifyMessageRequest{
-		VerifyRequest: v3.VerifyRequest{
+	verifier.Verify(t, VerifyMessageRequest{
+		VerifyRequest: VerifyRequest{
 			PactFiles:     []string{filepath.ToSlash(fmt.Sprintf("%s/V3MessageConsumer-V3MessageProvider.json", pactDir))},
 			StateHandlers: stateMappings,
 		},
