@@ -24,6 +24,7 @@ type AsynchronousMessage = v3.AsynchronousMessage
 
 // V2
 var Like = v3.Like
+var _ = v3.Like
 var EachLike = v3.EachLike
 var Term = v3.Term
 var Regex = v3.Regex

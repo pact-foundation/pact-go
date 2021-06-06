@@ -77,11 +77,10 @@ type MockHTTPProviderConfig struct {
 }
 
 // httpMockProvider is the entrypoint for http consumer tests
+// This object is not thread safe
 type httpMockProvider struct {
 	specificationVersion SpecificationVersion
 	config               MockHTTPProviderConfig
-	v2Interactions       []*InteractionV2
-	v3Interactions       []*InteractionV3
 	mockserver           *native.MockServer
 }
 
@@ -137,18 +136,11 @@ func (p *httpMockProvider) validateConfig() error {
 	return nil
 }
 
-func (p *httpMockProvider) cleanInteractions() {
-	p.v2Interactions = make([]*InteractionV2, 0)
-	p.v3Interactions = make([]*InteractionV3, 0)
-}
-
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
 func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
 	log.Println("[DEBUG] pact verify")
-
-	p.cleanInteractions()
 
 	port, err := p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
 	defer p.mockserver.CleanupMockServer(p.config.Port)

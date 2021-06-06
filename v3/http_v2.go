@@ -5,12 +5,11 @@ import (
 )
 
 // HTTPMockProviderV2 is the entrypoint for V3 http consumer tests
+//
+// This object is not thread safe
 type HTTPMockProviderV2 struct {
 	*httpMockProvider
 }
-
-// TODO: this gets cumbersome per test.
-// Make it parallelisable
 
 // NewV2Pact configures a new V2 HTTP Mock Provider for consumer tests
 func NewV2Pact(config MockHTTPProviderConfig) (*HTTPMockProviderV2, error) {
@@ -41,8 +40,6 @@ func (p *HTTPMockProviderV2) AddInteraction() *InteractionV2 {
 			interaction:          interaction,
 		},
 	}
-
-	p.httpMockProvider.v2Interactions = append(p.httpMockProvider.v2Interactions, i)
 
 	return i
 }

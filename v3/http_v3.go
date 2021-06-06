@@ -5,6 +5,7 @@ import (
 )
 
 // HTTPMockProviderV3 is the entrypoint for V3 http consumer tests
+// This object is not thread safe
 type HTTPMockProviderV3 struct {
 	*httpMockProvider
 }
@@ -39,6 +40,5 @@ func (p *HTTPMockProviderV3) AddInteraction() *InteractionV3 {
 		},
 	}
 
-	p.httpMockProvider.v3Interactions = append(p.httpMockProvider.v3Interactions, i)
 	return i
 }
