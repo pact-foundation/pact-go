@@ -1,4 +1,4 @@
-module github.com/pact-foundation/pact-go
+module github.com/pact-foundation/pact-go/v2
 
 go 1.12
 
