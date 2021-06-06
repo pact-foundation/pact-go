@@ -25,7 +25,6 @@ func TestConsumerV2(t *testing.T) {
 		Consumer: "V2Consumer",
 		Provider: "V2Provider",
 		Host:     "127.0.0.1",
-		Port:     8080,
 		TLS:      true,
 	})
 
@@ -69,7 +68,6 @@ func TestConsumerV2_Match(t *testing.T) {
 		Consumer: "V2ConsumerMatch",
 		Provider: "V2ProviderMatch",
 		Host:     "127.0.0.1",
-		Port:     8080,
 		TLS:      true,
 	})
 
@@ -101,7 +99,6 @@ func TestConsumerV3(t *testing.T) {
 		Consumer: "V3Consumer",
 		Provider: "V3Provider",
 		Host:     "127.0.0.1",
-		Port:     8080,
 		TLS:      true,
 	})
 	assert.NoError(t, err)
