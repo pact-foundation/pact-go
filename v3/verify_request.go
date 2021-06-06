@@ -2,6 +2,7 @@ package v3
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -51,7 +52,7 @@ type VerifyRequest struct {
 	// Selectors are the way we specify which pacticipants and
 	// versions we want to use when configuring verifications
 	// See https://docs.pact.io/selectors for more
-	// ConsumerVersionSelectors []ConsumerVersionSelector
+	ConsumerVersionSelectors []ConsumerVersionSelector
 
 	// Retrieve the latest pacts with this consumer version tag
 	Tags []string
@@ -132,8 +133,6 @@ type VerifyRequest struct {
 }
 
 // Validate checks that the minimum fields are provided.
-// Deprecated: This map be deleted after the native library replaces Ruby deps,
-// and should not be used outside of this library.
 func (v *VerifyRequest) validate() error {
 	v.args = []string{}
 
@@ -153,28 +152,19 @@ func (v *VerifyRequest) validate() error {
 		return fmt.Errorf("one of 'PactURLs', 'PactFiles', 'PactDIRs' or 'BrokerURL' must be specified")
 	}
 
-	// TODO:
-	// if len(v.ConsumerVersionSelectors) != 0 {
-	// 	for _, selector := range v.ConsumerVersionSelectors {
-	// 		if err = selector.Validate(); err != nil {
-	// 			return fmt.Errorf("invalid consumer version selector specified: %v", err)
-	// 		}
-	// 		body, err := json.Marshal(selector)
-	// 		if err != nil {
-	// 			return fmt.Errorf("invalid consumer version selector specified: %v", err)
-	// 		}
+	if len(v.ConsumerVersionSelectors) != 0 {
+		for _, selector := range v.ConsumerVersionSelectors {
+			if err := selector.Validate(); err != nil {
+				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+			}
+			body, err := json.Marshal(selector)
+			if err != nil {
+				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+			}
 
-	// 		v.Args = append(v.Args, "--consumer-version-selector", string(body))
-	// 	}
-	// }
-
-	// if len(v.CustomProviderHeaders) != 0 {
-	// 	for _, header := range v.CustomProviderHeaders {
-	// 		v.Args = append(v.Args, "--custom-provider-header", header)
-	// 	}
-	// }
-
-	// v.Args = append(v.Args, "--format", "json")
+			v.args = append(v.args, "--consumer-version-selector", string(body))
+		}
+	}
 
 	if v.ProviderBaseURL != "" {
 		url, err := url.Parse(v.ProviderBaseURL)

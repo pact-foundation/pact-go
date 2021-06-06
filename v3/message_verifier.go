@@ -78,11 +78,11 @@ func (v *MessageVerifier) verifyMessageProviderRaw(request VerifyMessageRequest,
 		Provider:                   request.Provider,
 		ProviderTags:               request.ProviderTags,
 		// CustomProviderHeaders:      request.CustomProviderHeaders,
-		// ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
-		EnablePending:          request.EnablePending,
-		FailIfNoPactsFound:     request.FailIfNoPactsFound,
-		IncludeWIPPactsSince:   request.IncludeWIPPactsSince,
-		ProviderStatesSetupURL: fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath),
+		ConsumerVersionSelectors: request.ConsumerVersionSelectors,
+		EnablePending:            request.EnablePending,
+		FailIfNoPactsFound:       request.FailIfNoPactsFound,
+		IncludeWIPPactsSince:     request.IncludeWIPPactsSince,
+		ProviderStatesSetupURL:   fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath),
 	}
 
 	mux.HandleFunc(providerStatesSetupPath, messageStateHandler(request.MessageHandlers, request.StateHandlers))

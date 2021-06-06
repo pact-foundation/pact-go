@@ -25,30 +25,7 @@ func init() {
 	initLogging()
 }
 
-// QueryStringStyle allows a user to specific the v2 query string serialisation format
-// Different frameworks have different ways to serialise this, which is why
-// v3 moved to storing this as a map
-type QueryStringStyle int
-
-const (
-	// Default uses the param=value1&param=value2 style
-	Default QueryStringStyle = iota
-
-	// AlwaysArray uses the [] style even if a parameter only has a single value
-	// e.g. param[]=value1&param[]=value2
-	AlwaysArray
-
-	// Array uses the [] style only if a parameter only has multiple values
-	// e.g.  param[]=value1&param[]=value2&param2=value
-	Array
-)
-
-// PactSerialisationOptionsV2 allows a user to override specific pact serialisation options
-type PactSerialisationOptionsV2 struct {
-	QueryStringStyle QueryStringStyle
-}
-
-type mockHTTPProviderConfig struct {
+type MockHTTPProviderConfig struct {
 	// Consumer is the name of the Consumer/Client.
 	Consumer string
 
@@ -94,24 +71,15 @@ type mockHTTPProviderConfig struct {
 	// Defaults to 10s
 	ClientTimeout time.Duration
 
-	matchingConfig PactSerialisationOptionsV2
-
 	// TLS enables a mock service behind a self-signed certificate
 	// TODO: document and test this
 	TLS bool
 }
 
-// MockHTTPProviderConfigV2 configures a V2 Pact HTTP Mock Provider
-type MockHTTPProviderConfigV2 = mockHTTPProviderConfig
-
-// MockHTTPProviderConfigV3 configures a V3 Pact HTTP Mock Provider
-type MockHTTPProviderConfigV3 = mockHTTPProviderConfig
-
-// httpMockProvider is the entrypoint for http consumer tests and provides the base capability for the
-// exported types HTTPMockProviderV2 and HTTPMockProviderV3
+// httpMockProvider is the entrypoint for http consumer tests
 type httpMockProvider struct {
 	specificationVersion SpecificationVersion
-	config               mockHTTPProviderConfig
+	config               MockHTTPProviderConfig
 	v2Interactions       []*InteractionV2
 	v3Interactions       []*InteractionV3
 	mockserver           *native.MockServer
@@ -129,10 +97,6 @@ type MockServerConfig struct {
 func (p *httpMockProvider) validateConfig() error {
 	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
-
-	// if p.config.Network == "" {
-	// 	p.config.Network = "tcp"
-	// }
 
 	if p.config.Host == "" {
 		p.config.Host = "127.0.0.1"
@@ -204,13 +168,13 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	}
 
 	// Run Verification Process
-	// res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
-	_, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
+	res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
 	p.displayMismatches(mismatches)
 
-	// if !res {
-	// 	return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
-	// }
+	if !res {
+		return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
+	}
+
 	if len(mismatches) > 0 {
 		return fmt.Errorf("pact validation failed: %+v", mismatches)
 	}

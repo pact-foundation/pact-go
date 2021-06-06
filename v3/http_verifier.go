@@ -102,10 +102,10 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 		ProviderStatesSetupURL:     setupURL,
 		ProviderTags:               request.ProviderTags,
 		// CustomProviderHeaders:      request.CustomProviderHeaders,
-		// ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
-		// EnablePending:              request.EnablePending,
-		FailIfNoPactsFound: request.FailIfNoPactsFound,
-		// IncludeWIPPactsSince:       request.IncludeWIPPactsSince,
+		ConsumerVersionSelectors: request.ConsumerVersionSelectors,
+		EnablePending:            request.EnablePending,
+		FailIfNoPactsFound:       request.FailIfNoPactsFound,
+		IncludeWIPPactsSince:     request.IncludeWIPPactsSince,
 	}
 
 	portErr := waitForPort(port, "tcp", "localhost", v.ClientTimeout,

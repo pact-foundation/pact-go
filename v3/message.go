@@ -100,9 +100,9 @@ func (m *Message) WithContent(contentType string, body []byte) *Message {
 	return m
 }
 
-// JSON specifies the payload as an object (to be marshalled to JSON) that
+// WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
-func (m *Message) JSON(content interface{}) *Message {
+func (m *Message) WithJSONContent(content interface{}) *Message {
 	m.messageHandle.WithJSONContents(content)
 
 	return m

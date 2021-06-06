@@ -9,8 +9,8 @@ type HTTPMockProviderV3 struct {
 	*httpMockProvider
 }
 
-// NewHTTPMockProviderV3 configures a new V3 HTTP Mock Provider for consumer tests
-func NewHTTPMockProviderV3(config MockHTTPProviderConfigV3) (*HTTPMockProviderV3, error) {
+// NewV3Pact configures a new V3 HTTP Mock Provider for consumer tests
+func NewV3Pact(config MockHTTPProviderConfig) (*HTTPMockProviderV3, error) {
 	provider := &HTTPMockProviderV3{
 		httpMockProvider: &httpMockProvider{
 			config:               config,

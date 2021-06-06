@@ -48,32 +48,20 @@ func (i *Interaction) WithRequest(method Method, path Matcher) *InteractionReque
 	}
 }
 
-func (i *InteractionRequest) Query(query QueryMatcher) *InteractionRequest {
-	q := make(map[string][]interface{})
-	for k, values := range query {
-		for _, v := range values {
-			q[k] = append(q[k], v)
-		}
-	}
-	i.interactionHandle.WithQuery(q)
+func (i *InteractionRequest) WithQuery(key string, values ...Matcher) *InteractionRequest {
+	i.interactionHandle.WithQuery(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-func (i *InteractionRequest) HeadersArray(headers HeadersMatcher) *InteractionRequest {
-	i.interactionHandle.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
+func (i *InteractionRequest) WithHeader(key string, values ...Matcher) *InteractionRequest {
+	i.interactionHandle.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-func (i *InteractionRequest) Headers(headers MapMatcher) *InteractionRequest {
-	i.interactionHandle.WithRequestHeaders(mapMatcherToNativeHeaders(headers))
-
-	return i
-}
-
-func (i *InteractionRequest) JSON(body interface{}) *InteractionRequest {
-	// TODO: Don't like panic, how to build a better builder here - nil return + log?
+func (i *InteractionRequest) WithJSONBody(body interface{}) *InteractionRequest {
+	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
 		panic(err)
 	}
@@ -94,13 +82,13 @@ func (i *InteractionRequest) JSON(body interface{}) *InteractionRequest {
 	return i
 }
 
-func (i *InteractionRequest) Binary(body []byte) *InteractionRequest {
+func (i *InteractionRequest) WithBinaryBody(body []byte) *InteractionRequest {
 	i.interactionHandle.WithBinaryRequestBody(body)
 
 	return i
 }
 
-func (i *InteractionRequest) Body(contentType string, body []byte) *InteractionRequest {
+func (i *InteractionRequest) WithBody(contentType string, body []byte) *InteractionRequest {
 	// Check if someone tried to add an object as a string representation
 	// as per original allowed implementation, e.g.
 	// { "foo": "bar", "baz": like("bat") }
@@ -115,7 +103,7 @@ func (i *InteractionRequest) Body(contentType string, body []byte) *InteractionR
 	return i
 }
 
-func (i *InteractionRequest) BodyMatch(body interface{}) *InteractionRequest {
+func (i *InteractionRequest) WithBodyMatch(body interface{}) *InteractionRequest {
 	i.interactionHandle.WithJSONRequestBody(MatchV2(body))
 
 	return i
@@ -134,42 +122,13 @@ func (i *InteractionRequest) WillRespondWith(status int) *InteractionResponse {
 	}
 }
 
-func (i *InteractionResponse) HeadersArray(headers HeadersMatcher) *InteractionResponse {
-	i.interactionHandle.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
+func (i *InteractionResponse) WithHeader(key string, values ...Matcher) *InteractionResponse {
+	i.interactionHandle.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-func (i *InteractionResponse) Headers(headers MapMatcher) *InteractionResponse {
-	i.interactionHandle.WithRequestHeaders(mapMatcherToNativeHeaders(headers))
-
-	return i
-}
-
-func headersMatcherToNativeHeaders(headers HeadersMatcher) map[string][]interface{} {
-	h := make(map[string][]interface{})
-
-	for k, v := range headers {
-		h[k] = make([]interface{}, len(v))
-		for i, vv := range v {
-			h[k][i] = vv
-		}
-	}
-
-	return h
-}
-
-func mapMatcherToNativeHeaders(headers MapMatcher) map[string][]interface{} {
-	h := make(map[string][]interface{})
-
-	for k, v := range headers {
-		h[k] = []interface{}{v}
-	}
-
-	return h
-}
-
-func (i *InteractionResponse) JSON(body interface{}) *InteractionResponse {
+func (i *InteractionResponse) WithJSONBody(body interface{}) *InteractionResponse {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
 		panic(err)
@@ -190,25 +149,29 @@ func (i *InteractionResponse) JSON(body interface{}) *InteractionResponse {
 	return i
 }
 
-func (i *InteractionResponse) Binary(body []byte) *InteractionResponse {
+func (i *InteractionResponse) WithBinaryBody(body []byte) *InteractionResponse {
 	i.interactionHandle.WithBinaryResponseBody(body)
 
 	return i
 }
 
-func (i *InteractionResponse) Body(contentType string, body []byte) *InteractionResponse {
+func (i *InteractionResponse) WithBody(contentType string, body []byte) *InteractionResponse {
 	i.interactionHandle.WithResponseBody(contentType, body)
 
 	return i
 }
 
-func (i *InteractionResponse) BodyMatch(body interface{}) *InteractionResponse {
+func (i *InteractionResponse) WithBodyMatch(body interface{}) *InteractionResponse {
 	i.interactionHandle.WithJSONRequestBody(MatchV2(body))
 
 	return i
 }
 
 func validateMatchers(version SpecificationVersion, obj interface{}) error {
+	if obj == nil {
+		return nil
+	}
+
 	str, err := json.Marshal(obj)
 	if err != nil {
 		return err
@@ -217,7 +180,8 @@ func validateMatchers(version SpecificationVersion, obj interface{}) error {
 	var maybeMatchers map[string]interface{}
 	err = json.Unmarshal(str, &maybeMatchers)
 	if err != nil {
-		return err
+		// This means the object is not really an object, it's probably a primitive
+		return nil
 	}
 
 	invalidMatchers := hasMatcherGreaterThanSpec(version, maybeMatchers)
@@ -270,3 +234,12 @@ func hasMatcherGreaterThanSpec(version SpecificationVersion, obj map[string]inte
 
 // 	return i
 // }
+
+func keyValuesToMapStringArrayInterface(key string, values ...Matcher) map[string][]interface{} {
+	q := make(map[string][]interface{})
+	for _, v := range values {
+		q[key] = append(q[key], v)
+	}
+
+	return q
+}
