@@ -13,10 +13,9 @@ import (
 	"testing"
 
 	v3 "github.com/pact-foundation/pact-go/v3"
+	. "github.com/pact-foundation/pact-go/v3/sugar"
 	"github.com/stretchr/testify/assert"
 )
-
-type s = v3.String
 
 func TestConsumerV2(t *testing.T) {
 	v3.SetLogLevel("TRACE")
@@ -35,25 +34,25 @@ func TestConsumerV2(t *testing.T) {
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", v3.Regex("/foobar", `\/foo.*`)).
-		WithHeader("Content-Type", s("application/json")).
-		WithHeader("Authorization", v3.Like("Bearer 1234")).
-		WithQuery("baz", v3.Regex("bar", "[a-z]+"), v3.Regex("bat", "[a-z]+"), v3.Regex("baz", "[a-z]+")).
-		WithJSONBody(v3.MapMatcher{
-			"id":       v3.Like(27),
-			"name":     v3.Like("billy"),
-			"datetime": v3.Like("2020-01-01'T'08:00:45"),
-			"lastName": v3.Like("billy"),
-			// "equality": v3.Equality("a thing"), // Add this in and watch me panic
+		WithRequest("POST", Regex("/foobar", `\/foo.*`)).
+		WithHeader("Content-Type", S("application/json")).
+		WithHeader("Authorization", Like("Bearer 1234")).
+		WithQuery("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
+		WithJSONBody(Map{
+			"id":       Like(27),
+			"name":     Like("billy"),
+			"datetime": Like("2020-01-01'T'08:00:45"),
+			"lastName": Like("billy"),
+			// "equality": Equality("a thing"), // Add this in and watch me panic
 		}).
 		WillRespondWith(200).
-		WithHeader("Content-Type", v3.Regex("application/json", "application\\/json")).
-		WithJSONBody(v3.MapMatcher{
-			"dateTime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-			"name":     s("Billy"),
-			"lastName": s("Sampson"),
-			"itemsMin": v3.ArrayMinLike("thereshouldbe3ofthese", 3),
-			// "equality": v3.Equality("a thing"), // Add this in and watch me panic
+		WithHeader("Content-Type", Regex("application/json", "application\\/json")).
+		WithJSONBody(Map{
+			"dateTime": Regex("2020-01-01", "[0-9\\-]+"),
+			"name":     S("Billy"),
+			"lastName": S("Sampson"),
+			"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
+			// "equality": Equality("a thing"), // Add this in and watch me panic
 		})
 
 	// Execute pact test
@@ -78,13 +77,13 @@ func TestConsumerV2_Match(t *testing.T) {
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", v3.Regex("/foobar", `\/foo.*`)).
-		WithHeader("Content-Type", s("application/json")).
-		WithHeader("Authorization", v3.Like("Bearer 1234")).
-		WithQuery("baz", v3.Regex("bar", "[a-z]+"), v3.Regex("bat", "[a-z]+"), v3.Regex("baz", "[a-z]+")).
+		WithRequest("POST", Regex("/foobar", `\/foo.*`)).
+		WithHeader("Content-Type", S("application/json")).
+		WithHeader("Authorization", Like("Bearer 1234")).
+		WithQuery("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
 		WithBodyMatch(&User{}).
 		WillRespondWith(200).
-		WithHeader("Content-Type", v3.Regex("application/json", "application\\/json")).
+		WithHeader("Content-Type", Regex("application/json", "application\\/json")).
 		WithBodyMatch(&User{})
 
 	// Execute pact test
@@ -113,33 +112,33 @@ func TestConsumerV3(t *testing.T) {
 			},
 		}).
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", v3.Regex("/foobar", `\/foo.*`)).
-		WithHeader("Content-Type", s("application/json")).
-		WithHeader("Authorization", v3.Like("Bearer 1234")).
-		WithQuery("baz", v3.Regex("bar", "[a-z]+"), v3.Regex("bat", "[a-z]+"), v3.Regex("baz", "[a-z]+")).
-		WithJSONBody(v3.MapMatcher{
-			"id":       v3.Like(27),
-			"name":     v3.FromProviderState("${name}", "billy"),
-			"lastName": v3.Like("billy"),
-			"datetime": v3.DateTimeGenerated("2020-01-01T08:00:45", "yyyy-MM-dd'T'HH:mm:ss"),
+		WithRequest("POST", Regex("/foobar", `\/foo.*`)).
+		WithHeader("Content-Type", S("application/json")).
+		WithHeader("Authorization", Like("Bearer 1234")).
+		WithQuery("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
+		WithJSONBody(Map{
+			"id":       Like(27),
+			"name":     FromProviderState("${name}", "billy"),
+			"lastName": Like("billy"),
+			"datetime": DateTimeGenerated("2020-01-01T08:00:45", "yyyy-MM-dd'T'HH:mm:ss"),
 		}).
 		WillRespondWith(200).
-		WithHeader("Content-Type", s("application/json")).
-		WithJSONBody(v3.MapMatcher{
-			"dateTime":       v3.Regex("2020-01-01", "[0-9\\-]+"),
-			"name":           s("Billy"),
-			"lastName":       s("Sampson"),
-			"superstring":    v3.Includes("foo"),
-			"id":             v3.Integer(12),
-			"accountBalance": v3.Decimal(123.76),
-			"itemsMinMax":    v3.ArrayMinMaxLike(27, 3, 5),
-			"itemsMin":       v3.ArrayMinLike("thereshouldbe3ofthese", 3),
-			"equality":       v3.Equality("a thing"),
-			"arrayContaining": v3.ArrayContaining([]interface{}{
-				v3.Like("string"),
-				v3.Integer(1),
-				v3.MapMatcher{
-					"foo": v3.Like("bar"),
+		WithHeader("Content-Type", S("application/json")).
+		WithJSONBody(Map{
+			"dateTime":       Regex("2020-01-01", "[0-9\\-]+"),
+			"name":           S("Billy"),
+			"lastName":       S("Sampson"),
+			"superstring":    Includes("foo"),
+			"id":             Integer(12),
+			"accountBalance": Decimal(123.76),
+			"itemsMinMax":    ArrayMinMaxLike(27, 3, 5),
+			"itemsMin":       ArrayMinLike("thereshouldbe3ofthese", 3),
+			"equality":       Equality("a thing"),
+			"arrayContaining": ArrayContaining([]interface{}{
+				Like("string"),
+				Integer(1),
+				Map{
+					"foo": Like("bar"),
 				},
 			}),
 		})
@@ -152,14 +151,14 @@ func TestConsumerV3(t *testing.T) {
 func TestMessagePact(t *testing.T) {
 	v3.SetLogLevel("TRACE")
 
-	provider, err := v3.NewMessagePactV3(v3.MessageConfig{
+	provider, err := NewMessagePactV3(MessageConfig{
 		Consumer: "V3MessageConsumer",
 		Provider: "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
 	})
 	assert.NoError(t, err)
 
 	err = provider.AddMessage().
-		Given(v3.ProviderStateV3{
+		Given(ProviderStateV3{
 			Name: "User with id 127 exists",
 			Parameters: map[string]interface{}{
 				"id": 127,
@@ -169,11 +168,11 @@ func TestMessagePact(t *testing.T) {
 		WithMetadata(map[string]string{
 			"Content-Type": "application/json",
 		}).
-		WithJSONContent(v3.MapMatcher{
-			"datetime": v3.Regex("2020-01-01", "[0-9\\-]+"),
-			"name":     s("Billy"),
-			"lastName": s("Sampson"),
-			"id":       v3.Integer(12),
+		WithJSONContent(Map{
+			"datetime": Regex("2020-01-01", "[0-9\\-]+"),
+			"name":     S("Billy"),
+			"lastName": S("Sampson"),
+			"id":       Integer(12),
 		}).
 		AsType(&User{}).
 		ConsumedBy(userHandlerWrapper).
@@ -190,7 +189,7 @@ type User struct {
 }
 
 // Pass in test case
-var test = func(config v3.MockServerConfig) error {
+var test = func(config MockServerConfig) error {
 	config.TLSConfig.InsecureSkipVerify = true
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -221,7 +220,7 @@ var test = func(config v3.MockServerConfig) error {
 }
 
 // Message Pact - wrapped handler extracts the message
-var userHandlerWrapper = func(m v3.AsynchronousMessage) error {
+var userHandlerWrapper = func(m AsynchronousMessage) error {
 	return userHandler(*m.Content.(*User))
 }
 
