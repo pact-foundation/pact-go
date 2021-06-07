@@ -14,7 +14,8 @@ bin:
 	go build -o build/pact-go
 
 clean:
-	rm -rf build output dist examples/v3/pacts
+	mkdir -p ./examples/pacts
+	rm -rf build output dist examples/pacts
 
 deps:
 	@echo "--- 🐿  Fetching build dependencies "
@@ -41,7 +42,6 @@ install: bin
 
 pact: clean install #docker
 	@echo "--- 🔨 Running Pact examples"
-	mkdir -p ./examples/v3/pacts
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 	go test -v -timeout=10s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 
