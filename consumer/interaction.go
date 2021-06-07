@@ -132,13 +132,13 @@ func (i *InteractionRequest) WillRespondWith(status int) *InteractionResponse {
 }
 
 func (i *InteractionResponse) WithHeader(key string, values ...matchers.Matcher) *InteractionResponse {
-	i.interactionHandle.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
+	i.interactionHandle.WithResponseHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
 func (i *InteractionResponse) WithHeaders(headers matchers.HeadersMatcher) *InteractionResponse {
-	i.interactionHandle.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
+	i.interactionHandle.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
@@ -154,7 +154,7 @@ func (i *InteractionResponse) WithJSONBody(body interface{}) *InteractionRespons
 		// as per original allowed implementation, e.g.
 		// { "foo": "bar", "baz": like("bat") }
 		if utils.IsJSONFormattedObject(string(s)) {
-			log.Println("[WARN] request body appears to be a JSON formatted object, " +
+			log.Println("[WARN] response body appears to be a JSON formatted object, " +
 				"no matching will occur. Support for structured strings has been" +
 				"deprecated as of 0.13.0. Please use the JSON() method instead")
 		}
@@ -177,7 +177,7 @@ func (i *InteractionResponse) WithBody(contentType string, body []byte) *Interac
 }
 
 func (i *InteractionResponse) WithBodyMatch(body interface{}) *InteractionResponse {
-	i.interactionHandle.WithJSONRequestBody(matchers.MatchV2(body))
+	i.interactionHandle.WithJSONResponseBody(matchers.MatchV2(body))
 
 	return i
 }
