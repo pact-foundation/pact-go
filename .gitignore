@@ -42,7 +42,6 @@ _*
 pact-go
 pacts
 logs
-log
 tmp
 coverage.txt
 
