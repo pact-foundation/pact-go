@@ -63,6 +63,12 @@ func (i *InteractionRequest) WithHeader(key string, values ...matchers.Matcher) 
 	return i
 }
 
+func (i *InteractionRequest) WithHeaders(headers matchers.HeadersMatcher) *InteractionRequest {
+	i.interactionHandle.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
+
+	return i
+}
+
 func (i *InteractionRequest) WithJSONBody(body interface{}) *InteractionRequest {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -127,6 +133,12 @@ func (i *InteractionRequest) WillRespondWith(status int) *InteractionResponse {
 
 func (i *InteractionResponse) WithHeader(key string, values ...matchers.Matcher) *InteractionResponse {
 	i.interactionHandle.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
+
+	return i
+}
+
+func (i *InteractionResponse) WithHeaders(headers matchers.HeadersMatcher) *InteractionResponse {
+	i.interactionHandle.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
@@ -245,4 +257,17 @@ func keyValuesToMapStringArrayInterface(key string, values ...matchers.Matcher) 
 	}
 
 	return q
+}
+
+func headersMatcherToNativeHeaders(headers matchers.HeadersMatcher) map[string][]interface{} {
+	h := make(map[string][]interface{})
+
+	for k, v := range headers {
+		h[k] = make([]interface{}, len(v))
+		for i, vv := range v {
+			h[k][i] = vv
+		}
+	}
+
+	return h
 }
