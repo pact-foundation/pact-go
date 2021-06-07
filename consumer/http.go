@@ -157,13 +157,12 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 		TLSConfig: GetTLSConfigForTLSMockServer(),
 	})
 
+	res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
+	p.displayMismatches(mismatches)
+
 	if err != nil {
 		return err
 	}
-
-	// Run Verification Process
-	res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
-	p.displayMismatches(mismatches)
 
 	if !res {
 		return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
