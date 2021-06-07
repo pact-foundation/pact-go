@@ -107,7 +107,7 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 
 ### Go get
 
-1. Run `go get github.com/pact-foundation/pact-go` to install the source packages, and the installer code
+1. Run `go get github.com/pact-foundation/pact-go/v2/@2.x.x` to install the source packages, and the installer code
 1. Run `pact-go -l DEBUG install` to download and install the required libraries
 
 If all is successful, you are ready to go!
