@@ -154,10 +154,10 @@ int write_pact_file(int mock_server_port, const char *directory);
 void with_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
 
 // Additional global logging functions
-int log_to_buffer(int level);
-int log_to_stdout(int level);
-int log_to_file(const char *file_name, int level_filter);
-char* fetch_memory_buffer();
+// int log_to_buffer(int level);
+// int log_to_stdout(int level);
+// int log_to_file(const char *file_name, int level_filter);
+// char* fetch_memory_buffer();
 
 */
 import "C"
@@ -673,36 +673,36 @@ func stringFromInterface(obj interface{}) string {
 }
 
 // Experimental logging options
-func logToBuffer(level logLevel) error {
-	res := C.log_to_buffer(C.int(level))
-	log.Println("[DEBUG] log_to_buffer res", res)
+// func logToBuffer(level logLevel) error {
+// 	res := C.log_to_buffer(C.int(level))
+// 	log.Println("[DEBUG] log_to_buffer res", res)
 
-	return logResultToError(int(res))
-}
+// 	return logResultToError(int(res))
+// }
 
-func logToStdout(level logLevel) error {
-	res := C.log_to_stdout(C.int(level))
-	log.Println("[DEBUG] log_to_stdout res", res)
+// func logToStdout(level logLevel) error {
+// 	res := C.log_to_stdout(C.int(level))
+// 	log.Println("[DEBUG] log_to_stdout res", res)
 
-	return logResultToError(int(res))
-}
+// 	return logResultToError(int(res))
+// }
 
-func logToFile(file string, level logLevel) error {
-	cFile := C.CString(file)
-	defer free(cFile)
+// func logToFile(file string, level logLevel) error {
+// 	cFile := C.CString(file)
+// 	defer free(cFile)
 
-	res := C.log_to_file(cFile, C.int(level))
-	log.Println("[DEBUG] log_to_file res", res)
+// 	res := C.log_to_file(cFile, C.int(level))
+// 	log.Println("[DEBUG] log_to_file res", res)
 
-	return logResultToError(int(res))
-}
+// 	return logResultToError(int(res))
+// }
 
-func getLogBuffer() string {
-	buf := C.fetch_memory_buffer()
-	defer free(buf)
+// func getLogBuffer() string {
+// 	buf := C.fetch_memory_buffer()
+// 	defer free(buf)
 
-	return C.GoString(buf)
-}
+// 	return C.GoString(buf)
+// }
 
 func logResultToError(res int) error {
 	switch res {
