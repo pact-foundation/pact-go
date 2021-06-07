@@ -141,7 +141,7 @@
               "foo": "bar"
             }
           ],
-          "dateTime": "2020-01-01",
+          "datetime": "2020-01-01",
           "equality": "a thing",
           "id": 12,
           "itemsMin": [
@@ -222,7 +222,7 @@
                 }
               ]
             },
-            "$.dateTime": {
+            "$.datetime": {
               "combine": "AND",
               "matchers": [
                 {
@@ -275,7 +275,8 @@
                 }
               ]
             }
-          }
+          },
+          "header": {}
         },
         "status": 200
       }

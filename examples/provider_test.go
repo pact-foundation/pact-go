@@ -130,7 +130,7 @@ func startServer() {
 		fmt.Fprintf(w, `
 			{
 				"accountBalance": 123.76,
-				"dateTime": "2020-01-01",
+				"datetime": "2020-01-01",
 				"equality": "a thing",
 				"id": 12,
 				"itemsMin": [

@@ -32,7 +32,10 @@
           }
         }
       },
-      "metadata": {},
+      "metadata": {
+        "Content-Type": "application/json",
+        "contentType": "application/json"
+      },
       "providerStates": [
         {
           "name": "User with id 127 exists",

@@ -33,10 +33,6 @@
           "$.header.Authorization": {
             "match": "type"
           },
-          "$.header.Content-Type": {
-            "match": "regex",
-            "regex": "application\\/json"
-          },
           "$.path": {
             "match": "regex",
             "regex": "\\/foo.*"
@@ -59,6 +55,33 @@
         "query": "baz=bar&baz=bat&baz=baz"
       },
       "response": {
+        "body": {
+          "datetime": "2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime",
+          "id": 27,
+          "lastName": "Sampson",
+          "name": "Billy"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.datetime": {
+            "match": "type"
+          },
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          },
+          "$.header.Content-Type": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        },
         "status": 200
       }
     }

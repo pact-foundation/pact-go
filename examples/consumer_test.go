@@ -48,7 +48,7 @@ func TestConsumerV2(t *testing.T) {
 		WillRespondWith(200).
 		WithHeader("Content-Type", Regex("application/json", "application\\/json")).
 		WithJSONBody(Map{
-			"dateTime": Regex("2020-01-01", "[0-9\\-]+"),
+			"datetime": Regex("2020-01-01", "[0-9\\-]+"),
 			"name":     S("Billy"),
 			"lastName": S("Sampson"),
 			"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
@@ -125,7 +125,7 @@ func TestConsumerV3(t *testing.T) {
 		WillRespondWith(200).
 		WithHeader("Content-Type", S("application/json")).
 		WithJSONBody(Map{
-			"dateTime":       Regex("2020-01-01", "[0-9\\-]+"),
+			"datetime":       Regex("2020-01-01", "[0-9\\-]+"),
 			"name":           S("Billy"),
 			"lastName":       S("Sampson"),
 			"superstring":    Includes("foo"),
