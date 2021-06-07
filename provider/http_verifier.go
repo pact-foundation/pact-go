@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pact-foundation/pact-go/models"
-	"github.com/pact-foundation/pact-go/proxy"
+	"github.com/pact-foundation/pact-go/v2/models"
+	"github.com/pact-foundation/pact-go/v2/proxy"
 )
 
 // HTTPVerifier is used to verify the provider side of an HTTP API contract

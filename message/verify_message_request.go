@@ -1,6 +1,6 @@
 package message
 
-import "github.com/pact-foundation/pact-go/provider"
+import "github.com/pact-foundation/pact-go/v2/provider"
 
 // VerifyMessageRequest contains the verification params.
 type VerifyMessageRequest struct {

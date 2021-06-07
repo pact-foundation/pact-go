@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pact-foundation/pact-go/models"
-	"github.com/pact-foundation/pact-go/provider"
-	"github.com/pact-foundation/pact-go/utils"
+	"github.com/pact-foundation/pact-go/v2/models"
+	"github.com/pact-foundation/pact-go/v2/provider"
+	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
 type MessageVerifier struct {

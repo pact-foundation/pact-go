@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	. "github.com/pact-foundation/pact-go/sugar"
+	. "github.com/pact-foundation/pact-go/v2/sugar"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -93,7 +93,7 @@ This example will result in a response body from the mock server that looks like
   }
 
 See the examples in the dsl package and the matcher tests
-(https://github.com/pact-foundation/pact-go/blob/master/dsl/matcher_test.go)
+(https://github.com/pact-foundation/pact-go/v2/blob/master/dsl/matcher_test.go)
 for more matching examples.
 
 NOTE: You will need to use valid Ruby regular expressions

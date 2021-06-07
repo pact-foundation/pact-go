@@ -17,10 +17,10 @@ import (
 	"path/filepath"
 	"time"
 
-	native "github.com/pact-foundation/pact-go/internal/native/mockserver"
-	logging "github.com/pact-foundation/pact-go/log"
-	"github.com/pact-foundation/pact-go/models"
-	"github.com/pact-foundation/pact-go/utils"
+	native "github.com/pact-foundation/pact-go/v2/internal/native/mockserver"
+	logging "github.com/pact-foundation/pact-go/v2/log"
+	"github.com/pact-foundation/pact-go/v2/models"
+	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
 func init() {

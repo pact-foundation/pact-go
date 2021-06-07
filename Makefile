@@ -18,12 +18,13 @@ clean:
 
 deps:
 	@echo "--- 🐿  Fetching build dependencies "
-	go get github.com/axw/gocov/gocov
-	go get github.com/mattn/goveralls
-	go get golang.org/x/tools/cmd/cover
-	go get github.com/modocache/gover
-	go get github.com/mitchellh/gox
-	go get -a
+	cd /tmp; \
+	go get github.com/axw/gocov/gocov; \
+	go get github.com/mattn/goveralls; \
+	go get golang.org/x/tools/cmd/cover; \
+	go get github.com/modocache/gover; \
+	go get github.com/mitchellh/gox; \
+	cd -
 
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
@@ -41,8 +42,8 @@ install: bin
 pact: clean install #docker
 	@echo "--- 🔨 Running Pact examples"
 	mkdir -p ./examples/v3/pacts
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/...
-	go test -v -timeout=10s -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/...
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	go test -v -timeout=10s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 
 release:
 	echo "--- 🚀 Releasing it"

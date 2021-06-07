@@ -3,7 +3,7 @@ package consumer
 import (
 	"log"
 
-	"github.com/pact-foundation/pact-go/models"
+	"github.com/pact-foundation/pact-go/v2/models"
 )
 
 // HTTPMockProviderV3 is the entrypoint for V3 http consumer tests

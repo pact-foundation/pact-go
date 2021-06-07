@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/pact-foundation/pact-go/installer"
+	"github.com/pact-foundation/pact-go/v2/installer"
 
 	"github.com/spf13/cobra"
 )

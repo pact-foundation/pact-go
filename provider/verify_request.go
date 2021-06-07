@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	native "github.com/pact-foundation/pact-go/internal/native/verifier"
-	logging "github.com/pact-foundation/pact-go/log"
-	"github.com/pact-foundation/pact-go/models"
-	"github.com/pact-foundation/pact-go/proxy"
+	native "github.com/pact-foundation/pact-go/v2/internal/native/verifier"
+	logging "github.com/pact-foundation/pact-go/v2/log"
+	"github.com/pact-foundation/pact-go/v2/models"
+	"github.com/pact-foundation/pact-go/v2/proxy"
 )
 
 // Hook functions are used to tap into the lifecycle of a Consumer or Provider test

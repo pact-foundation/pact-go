@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pact-foundation/pact-go/models"
+	"github.com/pact-foundation/pact-go/v2/models"
 )
 
 // Term Matcher regexes

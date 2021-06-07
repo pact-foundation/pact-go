@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	v3 "github.com/pact-foundation/pact-go/consumer"
-	. "github.com/pact-foundation/pact-go/sugar"
+	v3 "github.com/pact-foundation/pact-go/v2/consumer"
+	. "github.com/pact-foundation/pact-go/v2/sugar"
 	"github.com/stretchr/testify/assert"
 )
 

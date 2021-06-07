@@ -2,13 +2,13 @@
 package sugar
 
 import (
-	"github.com/pact-foundation/pact-go/consumer"
-	"github.com/pact-foundation/pact-go/log"
-	"github.com/pact-foundation/pact-go/matchers"
-	"github.com/pact-foundation/pact-go/message"
-	"github.com/pact-foundation/pact-go/models"
-	"github.com/pact-foundation/pact-go/provider"
-	"github.com/pact-foundation/pact-go/version"
+	"github.com/pact-foundation/pact-go/v2/consumer"
+	"github.com/pact-foundation/pact-go/v2/log"
+	"github.com/pact-foundation/pact-go/v2/matchers"
+	"github.com/pact-foundation/pact-go/v2/message"
+	"github.com/pact-foundation/pact-go/v2/models"
+	"github.com/pact-foundation/pact-go/v2/provider"
+	"github.com/pact-foundation/pact-go/v2/version"
 )
 
 // Structures

@@ -16,9 +16,7 @@ TBC
 
 ## Steps to reproduce
 
-Provide a repository, gist or reproducable code snippet so that we can test the problem.
-
-Consider forking the project and modifying the [E2E test](https://github.com/pact-foundation/pact-go/blob/master/dsl/pact_integration_test.go)
+Provide a repository, gist or reproducable code snippet so that we can test the problem. You may also want to adapt one of the examples in the repository to demonstrate the problem.
 
 ## Relevent log files
 

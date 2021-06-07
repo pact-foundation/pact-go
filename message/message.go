@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pact-foundation/pact-go/internal/native/mockserver"
-	"github.com/pact-foundation/pact-go/matchers"
-	"github.com/pact-foundation/pact-go/models"
+	"github.com/pact-foundation/pact-go/v2/internal/native/mockserver"
+	"github.com/pact-foundation/pact-go/v2/matchers"
+	"github.com/pact-foundation/pact-go/v2/models"
 )
 
 // MessageHandler is a provider function that generates a

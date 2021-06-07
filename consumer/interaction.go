@@ -6,10 +6,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/pact-foundation/pact-go/internal/native/mockserver"
-	"github.com/pact-foundation/pact-go/matchers"
-	"github.com/pact-foundation/pact-go/models"
-	"github.com/pact-foundation/pact-go/utils"
+	"github.com/pact-foundation/pact-go/v2/internal/native/mockserver"
+	"github.com/pact-foundation/pact-go/v2/matchers"
+	"github.com/pact-foundation/pact-go/v2/models"
+	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
 // Interaction is the main implementation of the Pact interface.

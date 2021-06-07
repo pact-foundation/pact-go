@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/pact-foundation/pact-go/models"
+	"github.com/pact-foundation/pact-go/v2/models"
 )
 
 // Decimal defines a matcher that accepts any decimal value.

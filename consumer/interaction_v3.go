@@ -1,6 +1,6 @@
 package consumer
 
-import "github.com/pact-foundation/pact-go/models"
+import "github.com/pact-foundation/pact-go/v2/models"
 
 // InteractionV3 sets up an expected request/response on a mock server
 // and is replayed on the provider side for verification
