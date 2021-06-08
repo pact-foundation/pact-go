@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pact-foundation/pact-go/v2/consumer"
 	v3 "github.com/pact-foundation/pact-go/v2/consumer"
 	. "github.com/pact-foundation/pact-go/v2/sugar"
 	"github.com/stretchr/testify/assert"
@@ -148,6 +149,55 @@ func TestConsumerV3(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestConsumerV2AllInOne(t *testing.T) {
+	SetLogLevel("TRACE")
+
+	mockProvider, err := v3.NewV2Pact(v3.MockHTTPProviderConfig{
+		Consumer: "V2ConsumerAllInOne",
+		Provider: "V2Provider",
+		Host:     "127.0.0.1",
+		TLS:      true,
+	})
+
+	assert.NoError(t, err)
+
+	// Set up our expected interactions.
+	mockProvider.
+		AddInteraction().
+		Given("User foo exists").
+		UponReceiving("A request to do a foo").
+		WithCompleteRequest(consumer.Request{
+			Method: "POST",
+			Path:   Regex("/foobar", `\/foo.*`),
+			Query: MapMatcher{
+				"baz": Regex("bat", "[a-zA-Z]+"),
+			},
+			Headers: commonHeaders,
+			Body: Map{
+				"id":       Like(27),
+				"name":     Like("billy"),
+				"datetime": Like("2020-01-01'T'08:00:45"),
+				"lastName": Like("billy"),
+				// "equality": Equality("a thing"), // Add this in and watch me panic
+			},
+		}).
+		WithCompleteResponse(consumer.Response{
+			Headers: commonHeaders,
+			Status:  200,
+			Body: Map{
+				"datetime": Regex("2020-01-01", "[0-9\\-]+"),
+				"name":     S("Billy"),
+				"lastName": S("Sampson"),
+				"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
+				// "equality": Equality("a thing"), // Add this in and watch me panic
+			},
+		})
+
+	// Execute pact test
+	err = mockProvider.ExecuteTest(legacyTest)
+	assert.NoError(t, err)
+}
+
 func TestMessagePact(t *testing.T) {
 	SetLogLevel("TRACE")
 
@@ -189,34 +239,43 @@ type User struct {
 }
 
 // Pass in test case
-var test = func(config MockServerConfig) error {
-	config.TLSConfig.InsecureSkipVerify = true
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: config.TLSConfig,
-		},
+
+var test = func() func(config MockServerConfig) error {
+	return rawTest("baz=bat&baz=foo&baz=something")
+}()
+
+var rawTest = func(query string) func(config MockServerConfig) error {
+
+	return func(config MockServerConfig) error {
+
+		config.TLSConfig.InsecureSkipVerify = true
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: config.TLSConfig,
+			},
+		}
+		req := &http.Request{
+			Method: "POST",
+			URL: &url.URL{
+				Host:     fmt.Sprintf("%s:%d", "localhost", config.Port),
+				Scheme:   "https",
+				Path:     "/foobar",
+				RawQuery: query,
+			},
+			Body:   ioutil.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2021-01-01T08:00:45"}`)),
+			Header: make(http.Header),
+		}
+
+		// NOTE: by default, request bodies are expected to be sent with a Content-Type
+		// of application/json. If you don't explicitly set the content-type, you
+		// will get a mismatch during Verification.
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer 1234")
+
+		_, err := client.Do(req)
+
+		return err
 	}
-	req := &http.Request{
-		Method: "POST",
-		URL: &url.URL{
-			Host:     fmt.Sprintf("%s:%d", "localhost", config.Port),
-			Scheme:   "https",
-			Path:     "/foobar",
-			RawQuery: "baz=bat&baz=foo&baz=something", // Default behaviour, test matching
-		},
-		Body:   ioutil.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2021-01-01T08:00:45"}`)),
-		Header: make(http.Header),
-	}
-
-	// NOTE: by default, request bodies are expected to be sent with a Content-Type
-	// of application/json. If you don't explicitly set the content-type, you
-	// will get a mismatch during Verification.
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer 1234")
-
-	_, err := client.Do(req)
-
-	return err
 }
 
 // Message Pact - wrapped handler extracts the message
@@ -234,3 +293,11 @@ var userHandler = func(u User) error {
 
 	return nil
 }
+
+var commonHeaders = MapMatcher{
+	"Content-Type": Regex("application/json; charset=utf-8", `application\/json`),
+}
+
+var legacyTest = func() func(config MockServerConfig) error {
+	return rawTest("baz=bat")
+}()

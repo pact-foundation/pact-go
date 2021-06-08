@@ -18,15 +18,15 @@ type Map = matchers.MapMatcher
 type String = matchers.String
 type S = matchers.S
 
-// Builders
-var NewMessagePactV3 = message.NewMessagePactV3
+// HTTP
 var NewV2Pact = consumer.NewV2Pact
 var NewV3Pact = consumer.NewV3Pact
 
-// HTTP
 type HTTPVerifier = provider.HTTPVerifier
 
 // Message
+var NewMessagePactV3 = message.NewMessagePactV3
+
 type MessageVerifier = message.MessageVerifier
 type MessageHandlers = message.MessageHandlers
 type VerifyMessageRequest = message.VerifyMessageRequest

@@ -31,6 +31,18 @@ type InteractionResponse struct {
 	interaction       *Interaction
 }
 
+type AllInteractionRequest struct {
+	// Reference to the native rust handle
+	interactionHandle *mockserver.Interaction
+	interaction       *Interaction
+}
+
+type AllInteractionResponse struct {
+	// Reference to the native rust handle
+	interactionHandle *mockserver.Interaction
+	interaction       *Interaction
+}
+
 // UponReceiving specifies the name of the test case. This becomes the name of
 // the consumer/provider pair in the Pact file. Mandatory.
 func (i *Interaction) UponReceiving(description string) *Interaction {
@@ -39,10 +51,49 @@ func (i *Interaction) UponReceiving(description string) *Interaction {
 	return i
 }
 
+// WithCompleteRequest specifies the details of the HTTP request that will be used to
+// confirm that the Provider provides an API listening on the given interface.
+// Mandatory.
+func (i *Interaction) WithCompleteRequest(request Request) *AllInteractionResponse {
+	i.interaction.WithRequest(string(request.Method), request.Path)
+
+	if request.Body != nil {
+		i.interaction.WithJSONRequestBody(request.Body)
+	}
+
+	if request.Headers != nil {
+		i.interaction.WithRequestHeaders(headersMapMatcherToNativeHeaders(request.Headers))
+	}
+
+	if request.Query != nil {
+		i.interaction.WithQuery(headersMapMatcherToNativeHeaders(request.Query))
+	}
+
+	return &AllInteractionResponse{
+		interactionHandle: i.interaction,
+		interaction:       i,
+	}
+}
+
+// WithCompleteResponse specifies the details of the HTTP response required by the consumer
+func (i *AllInteractionResponse) WithCompleteResponse(response Response) *Interaction {
+	if response.Body != nil {
+		i.interactionHandle.WithJSONResponseBody(response.Body)
+	}
+
+	if response.Headers != nil {
+		i.interactionHandle.WithResponseHeaders(headersMapMatcherToNativeHeaders(response.Headers))
+	}
+
+	i.interactionHandle.WithStatus(response.Status)
+
+	return i.interaction
+}
+
 // WithRequest specifies the details of the HTTP request that will be used to
 // confirm that the Provider provides an API listening on the given interface.
 // Mandatory.
-func (i *Interaction) WithRequest(method models.Method, path matchers.Matcher) *InteractionRequest {
+func (i *Interaction) WithRequest(method Method, path matchers.Matcher) *InteractionRequest {
 	i.interaction.WithRequest(string(method), path)
 
 	return &InteractionRequest{
@@ -93,6 +144,12 @@ func (i *InteractionRequest) WithJSONBody(body interface{}) *InteractionRequest 
 
 func (i *InteractionRequest) WithBinaryBody(body []byte) *InteractionRequest {
 	i.interactionHandle.WithBinaryRequestBody(body)
+
+	return i
+}
+
+func (i *InteractionRequest) WithMultipartBody(contentType string, filename string, mimePartName string) *InteractionRequest {
+	i.interactionHandle.WithRequestMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
@@ -166,6 +223,12 @@ func (i *InteractionResponse) WithJSONBody(body interface{}) *InteractionRespons
 
 func (i *InteractionResponse) WithBinaryBody(body []byte) *InteractionResponse {
 	i.interactionHandle.WithBinaryResponseBody(body)
+
+	return i
+}
+
+func (i *InteractionResponse) WithMultipartBody(contentType string, filename string, mimePartName string) *InteractionResponse {
+	i.interactionHandle.WithResponseMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
@@ -266,6 +329,18 @@ func headersMatcherToNativeHeaders(headers matchers.HeadersMatcher) map[string][
 		h[k] = make([]interface{}, len(v))
 		for i, vv := range v {
 			h[k][i] = vv
+		}
+	}
+
+	return h
+}
+
+func headersMapMatcherToNativeHeaders(headers matchers.MapMatcher) map[string][]interface{} {
+	h := make(map[string][]interface{})
+
+	for k, v := range headers {
+		h[k] = []interface{}{
+			v,
 		}
 	}
 
