@@ -58,11 +58,11 @@ Contract testing with Pact lets you:
 This readme offers an basic introduction to the library. The full documentation for Pact Go and the rest of the framework is available at https://docs.pact.io/.
 
 - [Installation](#installation)
-- [Consumer Testing](./docs/consumer)
-- [Provider Testing](./docs/provider)
-- [Event Driven Systems](./docs/messages)
-- [Migration guide](./MIGRATION)
-- [Troubleshooting](./docs/troubleshooting)
+- [Consumer Testing](./docs/consumer.md)
+- [Provider Testing](./docs/provider.md)
+- [Event Driven Systems](./docs/messages.md)
+- [Migration guide](./MIGRATION.md)
+- [Troubleshooting](./docs/troubleshooting.md)
 
 ### Why Pact?
 
