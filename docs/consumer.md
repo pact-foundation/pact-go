@@ -22,7 +22,7 @@ The consumer interface is in the package: `github.com/pact-foundation/pact-go/v2
 
 The two primary interfaces are `NewV2Pact` and `NewV3Pact`. If your provider is also V3 compatible, you can use the V3 variant, otherwise you should stick with V2.
 
-## Writing a Consumer test
+### Writing a Consumer test
 
 The purpose of a Pact test is to unit test the API Client of the consumer.
 
@@ -53,7 +53,7 @@ func TestProductAPIClient(t *testing.T) {
 		UponReceiving("A request for Product 10").
 		WithRequest("GET", S("/product/10")).
 		WillRespondWith(200).
-		WithBodyMatch(&Product{})
+		WithBodyMatch(&Product{}) // This uses struct tags for matchers
 
 	// Act: test our API client behaves correctly
 	err = mockProvider.ExecuteTest(func(config MockServerConfig) error {
@@ -74,10 +74,10 @@ func TestProductAPIClient(t *testing.T) {
 }
 ```
 
-## Matching
+### Matching
 
 In addition to matching on exact values, there are a number of useful matching functions
-in the `matching` package that can increase expressiveness of your tests and reduce brittle
+in the `matching` package that can increase the expressiveness of your tests and reduce brittle
 test cases.
 
 Rather than use hard-coded values which must then be present on the Provider side,
@@ -105,11 +105,24 @@ _NOTE: Some matchers are only compatible with the V3 interface, and must not be 
 | `TimeGenerated`                    | V3                 | Matches a cross platform formatted date, and generates a current time during verification                                                                                                                                                                   |
 | `DateTimeGenerated`                | V3                 | Matches a cross platform formatted datetime, and generates a current datetime during verification                                                                                                                                                           |
 
-### Matching by regular expression
+#### Match common formats
 
-_Example:_
+| method          | Min. Compatibility | description                                                                                     |
+| --------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
+| `Identifier()`  | V2                 | Match an ID (e.g. 42)                                                                           |
+| `Integer()`     | V3                 | Match all numbers that are integers (both ints and longs)                                       |
+| `Decimal()`     | V3                 | Match all real numbers (floating point and decimal)                                             |
+| `HexValue()`    | V2                 | Match all hexadecimal encoded strings                                                           |
+| `Date()`        | V2                 | Match string containing basic ISO8601 dates (e.g. 2016-01-01)                                   |
+| `Timestamp()`   | V2                 | Match a string containing an RFC3339 formatted timestamp (e.g. Mon, 31 Oct 2016 15:21:41 -0400) |
+| `Time()`        | V2                 | Match string containing times in ISO date format (e.g. T22:44:30.652Z)                          |
+| `IPv4Address()` | V2                 | Match string containing IP4 formatted address                                                   |
+| `IPv6Address()` | V2                 | Match string containing IP6 formatted address                                                   |
+| `UUID()`        | V2                 | Match strings containing UUIDs                                                                  |
 
-Here is a more complex example that shows how all 3 terms can be used together:
+#### Nesting Matchers
+
+Matchers may be nested in other objects. Here is a more complex example that shows how 3 common matchers can be used together:
 
 ```go
 	body :=
@@ -134,22 +147,7 @@ This example will result in a response body from the mock server that looks like
 }
 ```
 
-### Match common formats
-
-| method          | Min. Compatibility | description                                                                                     |
-| --------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
-| `Identifier()`  | V2                 | Match an ID (e.g. 42)                                                                           |
-| `Integer()`     | V3                 | Match all numbers that are integers (both ints and longs)                                       |
-| `Decimal()`     | V3                 | Match all real numbers (floating point and decimal)                                             |
-| `HexValue()`    | V2                 | Match all hexadecimal encoded strings                                                           |
-| `Date()`        | V2                 | Match string containing basic ISO8601 dates (e.g. 2016-01-01)                                   |
-| `Timestamp()`   | V2                 | Match a string containing an RFC3339 formatted timestamp (e.g. Mon, 31 Oct 2016 15:21:41 -0400) |
-| `Time()`        | V2                 | Match string containing times in ISO date format (e.g. T22:44:30.652Z)                          |
-| `IPv4Address()` | V2                 | Match string containing IP4 formatted address                                                   |
-| `IPv6Address()` | V2                 | Match string containing IP6 formatted address                                                   |
-| `UUID()`        | V2                 | Match strings containing UUIDs                                                                  |
-
-### Auto-generate matchers from struct tags
+#### Auto-generate matchers from struct tags
 
 Furthermore, if you isolate your Data Transfer Objects (DTOs) to an adapters package so that they exactly reflect the interface between you and your provider, then you can leverage `WithBodyMatch(object)` option to auto-generate the expected response body in your contract tests. Under the hood, it recursively traverses the DTO struct and uses `Term, Like, and EachLike` to create the contract.
 
@@ -178,7 +176,24 @@ then specifying a response body is as simple as:
 
 The `pact` struct tags shown above are optional. By default, it asserts that the JSON shape matches the struct and that the field types match.
 
-## Publishing Pacts to a Broker
+#### Matching binary payload and multipart requests
+
+Two builder methods exist for binary/file payloads:
+
+- `WithBinaryBody` accepts a `[]byte` for matching on binary payloads (e.g. images)
+- `WithMultipartFile` accepts a path to file from the file system, and the multipart boundary
+
+### Provider States
+
+There are several ways to define a provider state:
+
+1. Using the `Given` builder method passing in a plain string.
+1. Using the `GivenWithParameters` builder method, passing in a string description and a hash of parameters to be used by the provider during verification.
+1. Using the `FromProviderState` builder methid, specifying an expression to be replaced by the provider during erification, and example value to use in the consumer test. Example: `FromProviderState("${name}", "billy"),`. [Read more](https://pactflow.io/blog/injecting-values-from-provider-states/) on this feature.
+
+For V3 tests, these methods may be called multiple times, resulting in more than 1 state for a given interaction.
+
+## Publishing pacts to a Broker
 
 We recommend publishing the contracts to a Pact Broker (or https://pactflow.io) using the [CLI Tools]()https://docs.pact.io/implementation_guides/cli/#pact-cli.
 

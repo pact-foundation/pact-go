@@ -8,6 +8,7 @@
 1. Ability to create and verify both [v2] and [v3] [specification] pacts
 1. A bunch of new features, including the new v3 specification [matchers and generators](https://github.com/pact-foundation/pact-specification/tree/version-3/), injected provider states and more.
 1. Each test is given a dedicated server and port, simplifying lifecycle events and improving isolation between tests.
+1. You _must_ clear out any pact directory prior to the tests running. Any pact files will be appended to during test execution or may result in conflicts.
 
 ### Package version
 
@@ -20,6 +21,7 @@ i.e. `github.com/pact-foundation/pact-go/v2`
 #### Sugar interface
 
 The following package exposes aliases for the most commonly used interfaces for Matchers, common types and builders:
+
 ```
 . "github.com/pact-foundation/pact-go/v2/sugar"
 ```
@@ -28,8 +30,8 @@ The following package exposes aliases for the most commonly used interfaces for 
 
 #### Primary Interface
 
-* `dsl.Pact` was the primary interface. This is now replaced with `NewPactV2` and the `NewPactV3` methods, which will return you a builder for the corresponding specification.
-* `Verify` is now `ExecuteTest` to avoid ambiguity with provider side verification.
+- `dsl.Pact` was the primary interface. This is now replaced with `NewPactV2` and the `NewPactV3` methods, which will return you a builder for the corresponding specification.
+- `Verify` is now `ExecuteTest` to avoid ambiguity with provider side verification.
 
 These are available in consumer package: `"github.com/pact-foundation/pact-go/v2/consumer"`
 
@@ -48,6 +50,7 @@ You can now use proper POSIX compliant regexes :)
 #### Speed / Parallelism
 
 the `NewV2Pact` and `NewV3Pact` interfaces are not thread safe (i.e. you shouldn't run parallel tests with them), but you don't need to. Here is one of the examples run on a loop 1000 times, writing to a different file on each run:
+
 ```
 ➜  examples ✗ time go test -count=1 -tags=consumer -run TestConsumerV2 .
 ok  	github.com/pact-foundation/pact-go/examples	4.269s
@@ -67,8 +70,8 @@ The `content-type` is now a mandatory field, to improve matching for bodies of v
 
 Two new builder methods exist for binary/file payloads:
 
-* `WithBinaryBody` accepts a `[]byte` for matching on binary payloads (e.g. images)
-* `WithMultipartFile` accepts a path to file from the file system, and the multipart boundary
+- `WithBinaryBody` accepts a `[]byte` for matching on binary payloads (e.g. images)
+- `WithMultipartFile` accepts a path to file from the file system, and the multipart boundary
 
 #### Query Strings
 
@@ -78,7 +81,7 @@ Query strings are now accepted (and [encoded](https://github.com/pact-foundation
 
 #### Provider Interface
 
-* `dsl.Pact` was the primary interface. This is now replaced with `HTTPVerifier` struct and `VerifyProvider` method.
+- `dsl.Pact` was the primary interface. This is now replaced with `HTTPVerifier` struct and `VerifyProvider` method.
 
 These are available in consumer package: `"github.com/pact-foundation/pact-go/v2/provider"`
 
@@ -96,11 +99,11 @@ The `StateHandler` type has also changed in 3 important ways:
 
 #### Consumer
 
-* `dsl.Pact` was the primary interface. This is now replaced with `NewMessagePactV3` builder. The `VerifyMessageConsumer` method is now replaced by the method `Verify` on the builder.
+- `dsl.Pact` was the primary interface. This is now replaced with `NewMessagePactV3` builder. The `VerifyMessageConsumer` method is now replaced by the method `Verify` on the builder.
 
 #### Provider
 
-* `dsl.Pact` was the primary interface. This is now replaced by the `MessageVerifier` struct and the `Verify` method. The main difference is the state handlers, as discussed above.
+- `dsl.Pact` was the primary interface. This is now replaced by the `MessageVerifier` struct and the `Verify` method. The main difference is the state handlers, as discussed above.
 
 These are available in message package: `"github.com/pact-foundation/pact-go/v2/message"`
 

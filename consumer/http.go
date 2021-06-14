@@ -27,6 +27,8 @@ func init() {
 	logging.InitLogging()
 }
 
+// MockHTTPProviderConfig provides the configuration options for an HTTP mock server
+// consumer test.
 type MockHTTPProviderConfig struct {
 	// Consumer is the name of the Consumer/Client.
 	Consumer string
@@ -59,14 +61,7 @@ type MockHTTPProviderConfig struct {
 	// Port the mock service should run on. Leave blank to have one assigned
 	// automatically by the OS.
 	// Use AllowedMockServerPorts to constrain the assigned range.
-	// TODO: visit port at this level. If we want to allow multiple interaction tests for
-	// the same consumer provider, this is probably best done at the Verify() step
 	Port int
-
-	// DisableToolValidityCheck prevents CLI version checking - use this carefully!
-	// The ideal situation is to check the tool installation with  before running
-	// the tests, which should speed up large test suites significantly
-	DisableToolValidityCheck bool
 
 	// ClientTimeout specifies how long to wait for Pact CLI to start
 	// Can be increased to reduce likelihood of intermittent failure

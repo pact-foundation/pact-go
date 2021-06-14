@@ -8,7 +8,7 @@ type InteractionV3 struct {
 	Interaction
 }
 
-// Given specifies a provider state. Optional.
+// Given specifies a provider state, may be called multiple times. Optional.
 func (i *InteractionV3) Given(state models.ProviderStateV3) *InteractionV3 {
 	i.Interaction.interaction.GivenWithParameter(state.Name, state.Parameters)
 
