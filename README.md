@@ -47,6 +47,8 @@ Contract testing with Pact lets you:
 - 🗄 Remove the need for complex data fixtures
 - 🤷‍♂️ Reduce the reliance on complex test environments
 
+Watch our [series](https://www.youtube.com/playlist?list=PLwy9Bnco-IpfZ72VQ7hce8GicVZs7nm0i) on the problems with end-to-end integrated tests, and how contract testing can help.
+
 </td>
 </tr>
 </table>
@@ -63,10 +65,6 @@ This readme offers an basic introduction to the library. The full documentation 
 - [Event Driven Systems](./docs/messages.md)
 - [Migration guide](./MIGRATION.md)
 - [Troubleshooting](./docs/troubleshooting.md)
-
-### Why Pact?
-
-Watch the [video series](https://www.youtube.com/playlist?list=PLwy9Bnco-IpfZ72VQ7hce8GicVZs7nm0i) on the problems with end-to-end integrated tests, and how contract testing can help.
 
 ### Tutorial (60 minutes)
 
