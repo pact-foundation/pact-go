@@ -35,7 +35,7 @@
 
 **Why use Pact?**
 
-Contract testing with Pact let's you:
+Contract testing with Pact lets you:
 
 - ⚡ Test locally
 - 🚀 Deploy faster
@@ -43,9 +43,9 @@ Contract testing with Pact let's you:
 - 💰 Reduce the cost of API integration testing
 - 💥 Prevent breaking changes
 - 🔎 Understand your system usage
-- 📃 Get documentation for free
-- 🗄 No need for complex data fixtures
-- 🤷‍♂️ No need for complex test environments
+- 📃 Document your APIs for free
+- 🗄 Remove the need for complex data fixtures
+- 🤷‍♂️ Reduce the reliance on complex test environments
 
 </td>
 </tr>
@@ -55,12 +55,22 @@ Contract testing with Pact let's you:
 
 ## Documentation
 
-This readme offers an basic introduction to the library. The full documentation for Pact Go and the rest of the framework is available at https://docs.pact.io/
+This readme offers an basic introduction to the library. The full documentation for Pact Go and the rest of the framework is available at https://docs.pact.io/.
 
-- [Installation](https://docs.pact.io/LINK_HERE)
-- [Consumer Testing](https://docs.pact.io/LINK_HERE)
-- [Provider Testing](https://docs.pact.io/LINK_HERE)
-- [Event Driven Systems](https://docs.pact.io/LINK_HERE)
+- [Installation](#installation)
+- [Consumer Testing](./docs/consumer)
+- [Provider Testing](./docs/provider)
+- [Event Driven Systems](./docs/messages)
+- [Migration guide](./MIGRATION)
+- [Troubleshooting](./docs/troubleshooting)
+
+### Why Pact?
+
+Watch the [video series](https://www.youtube.com/playlist?list=PLwy9Bnco-IpfZ72VQ7hce8GicVZs7nm0i) on the problems with end-to-end integrated tests, and how contract testing can help.
+
+### Tutorial (60 minutes)
+
+Learn everything in Pact Go in 60 minutes: https://github.com/pact-foundation/pact-workshop-go
 
 ## Need Help
 
@@ -79,6 +89,8 @@ pact-go -l DEBUG install
 
 # 🚀 now write some tests!
 ```
+
+You can also keep the library versions up to date by running the `version.CheckVersion()` function.
 
 <details><summary>Manual Installation Instructions</summary>
 
@@ -128,7 +140,7 @@ import (
 
 ### Consumer package
 
-The consumer interface is in the package: `github.com/pact-foundation/pact-go/v2/consumer`
+The consumer interface is in the package: `github.com/pact-foundation/pact-go/v2/consumer`.
 
 #### Writing a Consumer test
 
@@ -218,7 +230,7 @@ func TestV3HTTPProvider(t *testing.T) {
 
 | Version | Stable | [Spec] Compatibility | Install            |
 | ------- | ------ | -------------------- | ------------------ |
-| 2.0.x   | Yes    | 2, 3                 | See [installation] |
+| 2.0.x   | Beta   | 2, 3                 | See [installation] |
 | 1.0.x   | Yes    | 2, 3\*               | 1.x.x [1xx]        |
 | 0.x.x   | Yes    | Up to v2             | 0.x.x [stable]     |
 

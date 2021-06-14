@@ -20,7 +20,7 @@ var pactDir = fmt.Sprintf("%s/pacts", dir)
 
 // Example Provider Pact: How to run me!
 // 1. cd <pact-go>/examples/v3
-// 2. go test -v -run TestProvider
+// 2. go test -v -tags provider .
 func TestV3HTTPProvider(t *testing.T) {
 	SetLogLevel("TRACE")
 	CheckVersion()
@@ -97,6 +97,7 @@ func TestV3MessageProvider(t *testing.T) {
 		},
 	}
 
+	// Setup any required states for the handlers
 	stateMappings := StateHandlers{
 		"User with id 127 exists": func(setup bool, s ProviderStateV3) (ProviderStateV3Response, error) {
 			if setup {
@@ -167,5 +168,4 @@ type User struct {
 	Name     string `json:"name" pact:"example=billy"`
 	LastName string `json:"lastName" pact:"example=Sampson"`
 	Date     string `json:"datetime" pact:"example=2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime"`
-	// Date     string `json:"datetime" pact:"example=20200101,regex=[0-9a-z-A-Z]+"`
 }

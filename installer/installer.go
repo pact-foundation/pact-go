@@ -116,8 +116,10 @@ func (i *Installer) checkPackageInstall() error {
 		dst, _ := i.getLibDstForPackage(pkg)
 
 		if _, err := i.fs.Stat(dst); err != nil {
-			log.Println("[DEBUG] package", info.libName, "not found")
+			log.Println("[INFO] package", info.libName, "not found")
 			return err
+		} else {
+			log.Println("[INFO] package", info.libName, "found")
 		}
 
 		lib, ok := LibRegistry[pkg]
@@ -128,7 +130,7 @@ func (i *Installer) checkPackageInstall() error {
 				return err
 			}
 		} else {
-			log.Println("[DEBUG] lib registry is currently not populated for package", pkg, "this is probably because the package is currently being installed")
+			log.Println("[DEBUG] unable to determine current version of package", pkg, "this is probably because the package is currently being installed")
 		}
 	}
 
@@ -222,7 +224,7 @@ var setOSXInstallName = func(file string, lib string) error {
 }
 
 func checkVersion(lib, version, versionRange string) error {
-	log.Println("[DEBUG] checking version", version, "of", lib, "against semver constraint", versionRange)
+	log.Println("[INFO] checking version", version, "of", lib, "against semver constraint", versionRange)
 
 	v, err := goversion.NewVersion(version)
 	if err != nil {
@@ -299,7 +301,7 @@ type downloader interface {
 type defaultDownloader struct{}
 
 func (d *defaultDownloader) download(src string, dst string) error {
-	log.Println("[DEBUG] downloading library from", src, "to", dst)
+	log.Println("[INFO] downloading library from", src, "to", dst)
 
 	return getter.GetFile(dst, src)
 }

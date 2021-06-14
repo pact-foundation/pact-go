@@ -155,6 +155,9 @@ func (a arrayContaining) GetValue() interface{} {
 
 func (a arrayContaining) isMatcher() {}
 
+// ArrayContaining allows heterogenous items to be matched within a list.
+// Unlike EachLike which must be an array with elements of the same shape,
+// ArrayContaining allows objects of different types and shapes.
 func ArrayContaining(variants []interface{}) Matcher {
 	return arrayContaining{
 		Specification: models.V3,
