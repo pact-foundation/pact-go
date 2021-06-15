@@ -183,7 +183,7 @@ Two builder methods exist for binary/file payloads:
 - `WithBinaryBody` accepts a `[]byte` for matching on binary payloads (e.g. images)
 - `WithMultipartFile` accepts a path to file from the file system, and the multipart boundary
 
-### Provider States
+### Managing Test Data (using Provider States)
 
 There are several ways to define a provider state:
 

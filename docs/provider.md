@@ -46,7 +46,7 @@ func TestV3HTTPProvider(t *testing.T) {
 }
 ```
 
-### Provider States
+### Managing Data (Provider States)
 
 If you have defined any states (as denoted by a `Given()`) in your consumer tests, the `Verifier` can put the provider into the correct state prior to sending the actual request for validation. For example, the provider can use the state to mock away certain database queries. To support this, set up a `StateHandler` for each state using hooks on the `StateHandlers` property. Here is an example:
 
