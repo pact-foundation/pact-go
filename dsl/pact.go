@@ -674,6 +674,7 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 		PactURLs:                   request.PactURLs,
 		BrokerURL:                  request.BrokerURL,
 		Tags:                       request.Tags,
+		ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
 		BrokerUsername:             request.BrokerUsername,
 		BrokerPassword:             request.BrokerPassword,
 		BrokerToken:                request.BrokerToken,

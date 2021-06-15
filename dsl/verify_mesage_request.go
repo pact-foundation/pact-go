@@ -2,6 +2,8 @@ package dsl
 
 import (
 	"fmt"
+
+	"github.com/pact-foundation/pact-go/types"
 )
 
 // VerifyMessageRequest contains the verification logic
@@ -15,6 +17,11 @@ type VerifyMessageRequest struct {
 
 	// Tags to find in Broker for matrix-based testing
 	Tags []string
+
+	// Selectors are the way we specify which pacticipants and
+	// versions we want to use when configuring verifications
+	// See https://docs.pact.io/selectors for more
+	ConsumerVersionSelectors []types.ConsumerVersionSelector
 
 	// Username when authenticating to a Pact Broker.
 	BrokerUsername string
