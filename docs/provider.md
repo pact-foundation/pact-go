@@ -46,9 +46,14 @@ func TestV3HTTPProvider(t *testing.T) {
 }
 ```
 
-### Managing Data (Provider States)
+### Managing Test Data (Provider States)
 
-If you have defined any states (as denoted by a `Given()`) in your consumer tests, the `Verifier` can put the provider into the correct state prior to sending the actual request for validation. For example, the provider can use the state to mock away certain database queries. To support this, set up a `StateHandler` for each state using hooks on the `StateHandlers` property. Here is an example:
+Each interaction in a pact should be verified in isolation, with no context maintained from the previous interactions. Tests that depend on the outcome of previous tests are brittle and hard to manage.
+Provider states is the feature that allows you to test a request that requires data to exist on the provider.
+
+Read more about [provider states](https://docs.pact.io/getting_started/provider_states/).
+
+If you have defined any states (as denoted by a `Given()`) in your consumer tests, the `Verifier` can put the provider into the correct state prior to sending the actual request for validation. For example, the provider can use the state to mock away certain API endpoints or seed data into a database. To support this, you registar a `StateHandler` func for each state using hooks on the `StateHandlers` property. Here is an example:
 
 ```go
 pact.VerifyProvider(t, types.VerifyRequest{

@@ -185,6 +185,11 @@ Two builder methods exist for binary/file payloads:
 
 ### Managing Test Data (using Provider States)
 
+Each interaction in a pact should be verified in isolation, with no context maintained from the previous interactions. Tests that depend on the outcome of previous tests are brittle and hard to manage.
+Provider states is the feature that allows you to test a request that requires data to exist on the provider.
+
+Read more about [provider states](https://docs.pact.io/getting_started/provider_states/)
+
 There are several ways to define a provider state:
 
 1. Using the `Given` builder method passing in a plain string.
