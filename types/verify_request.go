@@ -14,15 +14,20 @@ import (
 // Hook functions are used to tap into the lifecycle of a Consumer or Provider test
 type Hook func() error
 
-// VerifyRequest contains the verification params.
+// VerifyRequest configures the pact verification process.
+//
 type VerifyRequest struct {
 	// URL to hit during provider verification.
 	ProviderBaseURL string
 
 	// Local/HTTP paths to Pact files.
+	// NOTE: if specified alongside BrokerURL it will run the verification once for
+	// each dynamic pact (Broker) discovered and user specified (URL) pact.
 	PactURLs []string
 
 	// Pact Broker URL for broker-based verification
+	// NOTE: if specified alongside PactURLs it will run the verification once for
+	// each dynamic pact (Broker) discovered and user specified (URL) pact.
 	BrokerURL string
 
 	// Selectors are the way we specify which pacticipants and
