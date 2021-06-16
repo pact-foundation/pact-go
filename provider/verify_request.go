@@ -22,6 +22,8 @@ type Hook func() error
 // VerifyRequest contains the verification params.
 type VerifyRequest struct {
 	// URL to hit during provider verification.
+	// NOTE: if specified alongside PactURLs, PactFiles or PactDirs it will run the verification once for
+	// each dynamic pact (Broker) discovered and user specified (URL) pact.
 	ProviderBaseURL string
 
 	// URL of the build to associate with the published verification results.
@@ -40,12 +42,18 @@ type VerifyRequest struct {
 	FilterNoState bool
 
 	// HTTP paths to Pact files.
+	// NOTE: if specified alongside BrokerURL, PactFiles or PactDirs it will run the verification once for
+	// each dynamic pact (Broker) discovered and user specified (URL) pact.
 	PactURLs []string
 
 	// Local paths to Pact files.
+	// NOTE: if specified alongside PactURLs, BrokerURL or PactDirs it will run the verification once for
+	// each dynamic pact (Broker) discovered and user specified (URL) pact.
 	PactFiles []string
 
 	// Local path to a directory containing Pact files.
+	// NOTE: if specified alongside PactURLs, PactFiles or BrokerURL it will run the verification once for
+	// each dynamic pact (Broker) discovered and user specified (URL) pact.
 	PactDirs []string
 
 	// Pact Broker URL for broker-based verification
