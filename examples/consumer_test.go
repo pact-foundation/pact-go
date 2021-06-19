@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
-	v3 "github.com/pact-foundation/pact-go/v2/consumer"
 	. "github.com/pact-foundation/pact-go/v2/sugar"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +20,7 @@ import (
 func TestConsumerV2(t *testing.T) {
 	SetLogLevel("TRACE")
 
-	mockProvider, err := v3.NewV2Pact(v3.MockHTTPProviderConfig{
+	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "V2Consumer",
 		Provider: "V2Provider",
 		Host:     "127.0.0.1",
@@ -64,7 +63,7 @@ func TestConsumerV2(t *testing.T) {
 func TestConsumerV2_Match(t *testing.T) {
 	SetLogLevel("TRACE")
 
-	mockProvider, err := v3.NewV2Pact(v3.MockHTTPProviderConfig{
+	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "V2ConsumerMatch",
 		Provider: "V2ProviderMatch",
 		Host:     "127.0.0.1",
@@ -152,7 +151,7 @@ func TestConsumerV3(t *testing.T) {
 func TestConsumerV2AllInOne(t *testing.T) {
 	SetLogLevel("TRACE")
 
-	mockProvider, err := v3.NewV2Pact(v3.MockHTTPProviderConfig{
+	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "V2ConsumerAllInOne",
 		Provider: "V2Provider",
 		Host:     "127.0.0.1",
