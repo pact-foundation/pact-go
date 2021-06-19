@@ -562,6 +562,9 @@ func ExampleEachLike() {
 }
 
 func TestMatch(t *testing.T) {
+	type jsonStruct struct {
+		ValueWithOmitEmpty string `json:"value,omitempty"`
+	}
 	type wordDTO struct {
 		Word   string `json:"word"`
 		Length int    `json:"length"`
@@ -618,6 +621,15 @@ func TestMatch(t *testing.T) {
 			want: StructMatcher{
 				"word":   Like("string"),
 				"length": Like(1),
+			},
+		},
+		{
+			name: "recursive case - struct with json omitempty tags",
+			args: args{
+				src: jsonStruct{},
+			},
+			want: StructMatcher{
+				"value": Like("string"),
 			},
 		},
 		{
