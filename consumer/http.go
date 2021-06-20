@@ -89,8 +89,8 @@ type MockServerConfig struct {
 	TLSConfig *tls.Config
 }
 
-// validateConfig validates the configuration for the consumer test
-func (p *httpMockProvider) validateConfig() error {
+// configure validates the configuration for the consumer test
+func (p *httpMockProvider) configure() error {
 	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
 
@@ -108,17 +108,6 @@ func (p *httpMockProvider) validateConfig() error {
 
 	if p.config.ClientTimeout == 0 {
 		p.config.ClientTimeout = 10 * time.Second
-	}
-
-	var pErr error
-	if p.config.AllowedMockServerPorts != "" && p.config.Port <= 0 {
-		p.config.Port, pErr = utils.FindPortInRange(p.config.AllowedMockServerPorts)
-	} else if p.config.Port <= 0 {
-		p.config.Port, pErr = utils.GetFreePort()
-	}
-
-	if pErr != nil {
-		return fmt.Errorf("error: unable to find free port, mock server will fail to start")
 	}
 
 	p.mockserver = native.NewHTTPMockServer(p.config.Consumer, p.config.Provider)
@@ -139,15 +128,26 @@ func (p *httpMockProvider) validateConfig() error {
 func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) error) error {
 	log.Println("[DEBUG] pact verify")
 
-	port, err := p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
-	defer p.mockserver.CleanupMockServer(p.config.Port)
+	var err error
+	if p.config.AllowedMockServerPorts != "" && p.config.Port <= 0 {
+		p.config.Port, err = utils.FindPortInRange(p.config.AllowedMockServerPorts)
+	} else if p.config.Port <= 0 {
+		p.config.Port, err = 0, nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error: unable to find free port, mock server will fail to start")
+	}
+
+	p.config.Port, err = p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
+	defer p.reset()
 	if err != nil {
 		return err
 	}
 
 	// Run the integration test
 	err = integrationTest(MockServerConfig{
-		Port:      port,
+		Port:      p.config.Port,
 		Host:      p.config.Host,
 		TLSConfig: GetTLSConfigForTLSMockServer(),
 	})
@@ -168,6 +168,13 @@ func (p *httpMockProvider) ExecuteTest(integrationTest func(MockServerConfig) er
 	}
 
 	return p.writePact()
+}
+
+// Clear state between tests
+func (p *httpMockProvider) reset() {
+	p.mockserver.CleanupMockServer(p.config.Port)
+	p.config.Port = 0
+	p.configure()
 }
 
 // TODO: pretty print this to make it really easy to understand the problems

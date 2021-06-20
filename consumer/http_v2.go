@@ -21,7 +21,7 @@ func NewV2Pact(config MockHTTPProviderConfig) (*HTTPMockProviderV2, error) {
 			specificationVersion: models.V2,
 		},
 	}
-	err := provider.validateConfig()
+	err := provider.configure()
 
 	if err != nil {
 		return nil, err

@@ -20,7 +20,7 @@ func NewV3Pact(config MockHTTPProviderConfig) (*HTTPMockProviderV3, error) {
 			specificationVersion: models.V3,
 		},
 	}
-	err := provider.validateConfig()
+	err := provider.configure()
 
 	if err != nil {
 		return nil, err
