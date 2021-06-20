@@ -287,7 +287,7 @@ and giving you granular test reporting. If you don't like this behaviour, you ma
 
 Note that `PactURLs` may be a list of local pact files or remote based
 urls (e.g. from a
-[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
+[Pact Broker](https://docs.pact.io/pact_broker)).
 
 #### Provider Verification
 
