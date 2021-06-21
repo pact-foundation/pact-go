@@ -208,8 +208,7 @@ func (p *httpMockProvider) displayMismatches(t *testing.T, mismatches []native.M
 			for _, detail := range m.Mismatches {
 				switch detail.Type {
 				case "HeaderMismatch":
-					fmt.Printf("\t\t\tComparing Header: '%s'\n", detail.Key)
-					fmt.Println("\t\t\t", detail.Mismatch)
+					fmt.Printf("\t\t\t%s\n:", detail.Mismatch)
 					fmt.Println("\t\t\texpected: \t", detail.Expected)
 					fmt.Println("\t\t\tactual: \t", detail.Actual)
 				case "BodyMismatch":
