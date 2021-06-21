@@ -149,7 +149,7 @@ void response_status(InteractionHandle interaction, int status);
 /// | 1 | A general panic was caught |
 /// | 2 | The pact file was not able to be written |
 /// | 3 | A mock server with the provided port was not found |
-int write_pact_file(int mock_server_port, const char *directory);
+int write_pact_file(int mock_server_port, const char *directory, bool overwrite);
 
 void with_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
 
@@ -354,7 +354,7 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 	cDir := C.CString(dir)
 	defer free(cDir)
 
-	res := int(C.write_pact_file(C.int(port), cDir))
+	res := int(C.write_pact_file(C.int(port), cDir, C.int(0)))
 
 	// | Error | Description |
 	// |-------|-------------|
