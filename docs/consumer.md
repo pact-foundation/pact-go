@@ -56,7 +56,7 @@ func TestProductAPIClient(t *testing.T) {
 		WithBodyMatch(&Product{}) // This uses struct tags for matchers
 
 	// Act: test our API client behaves correctly
-	err = mockProvider.ExecuteTest(func(config MockServerConfig) error {
+	err = mockProvider.ExecuteTest(t, func(config MockServerConfig) error {
 		// Initialise the API client and point it at the Pact mock server
 		// Pact spins up a dedicated mock server for each test
 		client := newClient(config.Host, config.Port)

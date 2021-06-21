@@ -29,7 +29,7 @@ func TestProductAPIClient(t *testing.T) {
 		WithBodyMatch(&Product{})
 
 	// Act: test our API client behaves correctly
-	err = mockProvider.ExecuteTest(func(config MockServerConfig) error {
+	err = mockProvider.ExecuteTest(t, func(config MockServerConfig) error {
 		// Initialise the API client and point it at the Pact mock server
 		client := newClient(config.Host, config.Port)
 

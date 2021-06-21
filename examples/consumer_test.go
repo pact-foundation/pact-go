@@ -56,7 +56,7 @@ func TestConsumerV2(t *testing.T) {
 		})
 
 	// Execute pact test
-	err = mockProvider.ExecuteTest(test)
+	err = mockProvider.ExecuteTest(t, test)
 	assert.NoError(t, err)
 }
 
@@ -87,7 +87,7 @@ func TestConsumerV2_Match(t *testing.T) {
 		WithBodyMatch(&User{})
 
 	// Execute pact test
-	err = mockProvider.ExecuteTest(test)
+	err = mockProvider.ExecuteTest(t, test)
 	assert.NoError(t, err)
 }
 
@@ -144,7 +144,7 @@ func TestConsumerV3(t *testing.T) {
 		})
 
 	// Execute pact test
-	err = mockProvider.ExecuteTest(test)
+	err = mockProvider.ExecuteTest(t, test)
 	assert.NoError(t, err)
 }
 
@@ -193,7 +193,7 @@ func TestConsumerV2AllInOne(t *testing.T) {
 		})
 
 	// Execute pact test
-	err = mockProvider.ExecuteTest(legacyTest)
+	err = mockProvider.ExecuteTest(t, legacyTest)
 	assert.NoError(t, err)
 }
 
