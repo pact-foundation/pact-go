@@ -188,6 +188,8 @@ func TestUserAPIClient(t *testing.T) {
 
 You can see (and run) the full version of this in `./examples/basic_test.go`.
 
+For a full example, see the Pactflow terraform provider [pact tests](https://github.com/pactflow/terraform-provider-pact/blob/master/client/client_pact_test.go).
+
 ![----------](https://raw.githubusercontent.com/pactumjs/pactum/master/assets/rainbow.png)
 
 ### Provider package
