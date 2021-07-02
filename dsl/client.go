@@ -226,7 +226,6 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	err = cmd.Wait()
 	wg.Wait()
 
-	var verification types.ProviderVerifierResponse
 	for _, v := range verifications {
 		v = strings.TrimSpace(v)
 
@@ -235,6 +234,7 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 		// logging to stdout breaks the JSON response
 		// https://github.com/pact-foundation/pact-ruby/commit/06fa61581512ba5570c315d089f2c0fc23c8cb11
 		if v != "" && strings.Index(v, "INFO") != 0 {
+			var verification types.ProviderVerifierResponse
 			dErr := json.Unmarshal([]byte(v), &verification)
 
 			response = append(response, verification)

@@ -76,10 +76,30 @@ func TestClient_VerifyProvider(t *testing.T) {
 		BrokerPassword:         "foo",
 		ProviderStatesSetupURL: "http://foo/states/setup",
 	}
-	_, err := client.VerifyProvider(req)
+	responses, err := client.VerifyProvider(req)
 
 	if err != nil {
 		t.Fatal("Error: ", err)
+	}
+
+	if len(responses) != 2 {
+		t.Fatalf("Expected 2 ProviderVerifierResponse objects but got %d", len(responses))
+	}
+
+	if len(responses[0].Examples) != 1 {
+		t.Fatalf("Expected responses[0] to have 1 example but got %d", len(responses[0].Examples))
+	}
+
+	if responses[0].Examples[0].ID != "1" {
+		t.Fatalf("Expected responses[0].Examples[0] to have id 1 but got %s", responses[0].Examples[0].ID)
+	}
+
+	if len(responses[1].Examples) != 1 {
+		t.Fatalf("Expected responses[1] to have 1 example but got %d", len(responses[1].Examples))
+	}
+
+	if responses[1].Examples[0].ID != "2" {
+		t.Fatalf("Expected responses[1].Examples[0] to have id 2 but got %s", responses[1].Examples[0].ID)
 	}
 }
 
@@ -241,7 +261,7 @@ func TestHelperProcess(t *testing.T) {
 	}
 
 	// Success :)
-	fmt.Fprintf(os.Stdout, "{\"summary_line\":\"1 examples, 0 failures\"}\n{\"summary_line\":\"1 examples, 0 failures\"}")
+	fmt.Fprintf(os.Stdout, "{\"examples\":[{\"id\":\"1\"}],\"summary_line\":\"1 examples, 0 failures\"}\n{\"examples\":[{\"id\":\"2\"}],\"summary_line\":\"1 examples, 0 failures\"}")
 	os.Exit(0)
 }
 
