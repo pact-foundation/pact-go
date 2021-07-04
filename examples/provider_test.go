@@ -86,13 +86,13 @@ func TestV3MessageProvider(t *testing.T) {
 
 	// Map test descriptions to message producer (handlers)
 	functionMappings := MessageHandlers{
-		"a user event": func([]ProviderStateV3) (interface{}, error) {
+		"a user event": func([]ProviderStateV3) (message.MessageBody, message.MessageMetadata, error) {
 			if user != nil {
-				return user, nil
+				return user, nil, nil
 			} else {
 				return ProviderStateV3Response{
 					"message": "not found",
-				}, nil
+				}, nil, nil
 			}
 		},
 	}

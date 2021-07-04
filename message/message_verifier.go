@@ -1,6 +1,7 @@
 package message
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -133,13 +134,13 @@ var messageStateHandler = func(messageHandlers MessageHandlers, stateHandlers mo
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-		log.Printf("[TRACE] message state handler")
+		log.Printf("[TRACE] message state handler %+v", r)
 
 		// Extract message
 		var message messageStateHandlerRequest
 		body, err := ioutil.ReadAll(r.Body)
 		r.Body.Close()
-		log.Printf("[TRACE] message state handler received request: %+s, %s", body, r.URL.Path)
+		log.Printf("[TRACE] message state handler received request: %s, %s", string(body), r.URL.Path)
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -188,9 +189,46 @@ var messageStateHandler = func(messageHandlers MessageHandlers, stateHandlers mo
 
 		}
 
-		w.WriteHeader(http.StatusOK)
+		// w.WriteHeader(http.StatusOK)
 	}
 }
+
+type messageWithMetadata struct {
+	Contents []byte          `json:"pactMessageContents"`
+	Metadata MessageMetadata `json:"pactMessageMetadata"`
+}
+
+func appendMetadataToResponse(res interface{}, metadata MessageMetadata) ([]byte, error) {
+	data, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	withMetadata := &messageWithMetadata{
+		Contents: data,
+		Metadata: metadata,
+	}
+
+	return json.Marshal(withMetadata)
+}
+
+var PACT_MESSAGE_METADATA_HEADER = "PACT_MESSAGE_METADATA"
+
+func appendMetadataToResponseHeaders(metadata MessageMetadata, w http.ResponseWriter) {
+	if len(metadata) > 0 {
+		log.Println("[DEBUG] adding message metadata header", metadata)
+		json, err := json.Marshal(metadata)
+		if err != nil {
+			log.Println("[WARN] invalid metadata", metadata, ". Unable to marshal to JSON:", err)
+		}
+		log.Println("[TRACE] encoded metadata to JSON:", string(json))
+
+		encoded := base64.StdEncoding.EncodeToString(json)
+		log.Println("[TRACE] encoded metadata to base64:", encoded)
+
+		w.Header().Add(PACT_MESSAGE_METADATA_HEADER, encoded)
+	}
+}
+
 var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHandlers models.StateHandlers) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO: should this be set by the provider itself? How does the metadata go back?
@@ -226,7 +264,7 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 		}
 
 		// Execute function handler
-		res, handlerErr := f(message.States)
+		res, metadata, handlerErr := f(message.States)
 
 		if handlerErr != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -234,7 +272,9 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 		}
 
 		// Write the body back
-		resBody, errM := json.Marshal(res)
+		appendMetadataToResponseHeaders(metadata, w)
+
+		body, errM := json.Marshal(res)
 		if errM != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			log.Println("[ERROR] error marshalling objcet:", errM)
@@ -242,7 +282,7 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(resBody)
+		w.Write(body)
 	}
 }
 
