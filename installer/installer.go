@@ -278,7 +278,7 @@ const (
 var packages = map[string]packageInfo{
 	VerifierPackage: {
 		libName:     "libpact_verifier_ffi",
-		version:     "0.0.4",
+		version:     "0.0.5",
 		semverRange: ">= 0.0.2, < 1.0.0",
 	},
 	MockServerPackage: {

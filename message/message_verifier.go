@@ -246,4 +246,4 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 	}
 }
 
-const providerStatesSetupPath = "/__setup/"
+const providerStatesSetupPath = "/__setup"

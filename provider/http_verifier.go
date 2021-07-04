@@ -294,4 +294,4 @@ func WaitForPort(port int, network string, address string, timeoutDuration time.
 	}
 }
 
-const providerStatesSetupPath = "/__setup/"
+const providerStatesSetupPath = "/__setup"
