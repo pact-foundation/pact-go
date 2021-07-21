@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pact-foundation/pact-go/v2/internal/native/mockserver"
+	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/pact-foundation/pact-go/v2/models"
 )

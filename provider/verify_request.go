@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	native "github.com/pact-foundation/pact-go/v2/internal/native/verifier"
+	native "github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"

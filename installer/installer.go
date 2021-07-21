@@ -266,25 +266,19 @@ type packageInfo struct {
 }
 
 const (
-	VerifierPackage   = "pact_verifier_ffi"
-	MockServerPackage = "libpact_mock_server_ffi"
-	downloadEnvVar    = "PACT_GO_LIB_DOWNLOAD_PATH"
-	linux             = "linux"
-	windows           = "windows"
-	osx               = "osx"
-	x86_64            = "x86_64"
+	FFIPackage     = "libpact_ffi"
+	downloadEnvVar = "PACT_GO_LIB_DOWNLOAD_PATH"
+	linux          = "linux"
+	windows        = "windows"
+	osx            = "osx"
+	x86_64         = "x86_64"
 )
 
 var packages = map[string]packageInfo{
-	VerifierPackage: {
-		libName:     "libpact_verifier_ffi",
-		version:     "0.0.5",
-		semverRange: ">= 0.0.2, < 1.0.0",
-	},
-	MockServerPackage: {
-		libName:     "libpact_mock_server_ffi",
-		version:     "0.0.17",
-		semverRange: ">= 0.0.15, < 1.0.0",
+	FFIPackage: {
+		libName:     "libpact_ffi",
+		version:     "0.0.0",
+		semverRange: ">= 0.0.0, < 1.0.0",
 	},
 }
 

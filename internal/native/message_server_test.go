@@ -1,4 +1,4 @@
-package mockserver
+package native
 
 import (
 	"bytes"
