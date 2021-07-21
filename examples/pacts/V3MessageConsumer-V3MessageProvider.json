@@ -33,8 +33,11 @@
         }
       },
       "metadata": {
-        "Content-Type": "application/json",
-        "contentType": "application/json"
+        "baz": {
+          "complex": "type"
+        },
+        "contentType": "application/json",
+        "foo": "bar"
       },
       "providerStates": [
         {
@@ -48,7 +51,7 @@
   ],
   "metadata": {
     "pactRust": {
-      "version": "0.9.3"
+      "version": "0.9.5"
     },
     "pactSpecification": {
       "version": "3.0.0"

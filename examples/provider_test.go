@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/pact-foundation/pact-go/v2/message"
 	. "github.com/pact-foundation/pact-go/v2/sugar"
 	"github.com/stretchr/testify/assert"
 )
@@ -88,7 +89,12 @@ func TestV3MessageProvider(t *testing.T) {
 	functionMappings := MessageHandlers{
 		"a user event": func([]ProviderStateV3) (message.MessageBody, message.MessageMetadata, error) {
 			if user != nil {
-				return user, nil, nil
+				return user, message.MessageMetadata{
+					"foo": "bar",
+					"baz": map[string]interface{}{
+						"complex": "type",
+					},
+				}, nil
 			} else {
 				return ProviderStateV3Response{
 					"message": "not found",
