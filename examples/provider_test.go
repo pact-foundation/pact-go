@@ -90,10 +90,7 @@ func TestV3MessageProvider(t *testing.T) {
 		"a user event": func([]ProviderStateV3) (message.MessageBody, message.MessageMetadata, error) {
 			if user != nil {
 				return user, message.MessageMetadata{
-					"foo": "bar",
-					"baz": map[string]interface{}{
-						"complex": "type",
-					},
+					"Content-Type": "application/json",
 				}, nil
 			} else {
 				return ProviderStateV3Response{

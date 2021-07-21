@@ -33,11 +33,8 @@
         }
       },
       "metadata": {
-        "baz": {
-          "complex": "type"
-        },
-        "contentType": "application/json",
-        "foo": "bar"
+        "Content-Type": "application/json",
+        "contentType": "application/json"
       },
       "providerStates": [
         {
