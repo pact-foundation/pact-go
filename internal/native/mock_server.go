@@ -1,4 +1,4 @@
-package mockserver
+package native
 
 /*
 // Library headers
@@ -8,8 +8,8 @@ typedef int bool;
 #define true 1
 #define false 0
 
-void init(char* log);
-char* version();
+void pactffi_init(char* log);
+char* pactffi_version();
 
 /// Wraps a Pact model struct
 typedef struct InteractionHandle InteractionHandle;
@@ -44,7 +44,7 @@ struct MessagePactHandle {
 /// **NOTE:** Although `close()` on the listener for the mock server is called, this does not
 /// currently work and the listener will continue handling requests. In this
 /// case, it will always return a 404 once the mock server has been cleaned up.
-bool cleanup_mock_server(int mock_server_port);
+bool pactffi_cleanup_mock_server(int mock_server_port);
 
 /// External interface to create a mock server. A pointer to the pact JSON as a C string is passed in,
 /// as well as the port for the mock server to run on. A value of 0 for the port will result in a
@@ -62,30 +62,30 @@ bool cleanup_mock_server(int mock_server_port);
 /// | -4 | The method panicked |
 /// | -5 | The address is not valid |
 ///
-int create_mock_server(const char *pact_str, const char *addr_str, bool tls);
+int pactffi_create_mock_server(const char *pact_str, const char *addr_str, bool tls);
 
 /// As above, but creates it for a PactHandle
-int create_mock_server_for_pact(PactHandle pact, const char *addr_str, bool tls);
+int pactffi_create_mock_server_for_pact(PactHandle pact, const char *addr_str, bool tls);
 
-void with_specification(PactHandle pact, int specification_version);
+void pactffi_with_specification(PactHandle pact, int specification_version);
 
 /// Adds a provider state to the Interaction
-void given(InteractionHandle interaction, const char *description);
+void pactffi_given(InteractionHandle interaction, const char *description);
 
 /// Adds a provider state with params to the Interaction
-void given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
+void pactffi_given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
 
 /// Get self signed certificate for TLS mode
-char* get_tls_ca_certificate();
+char* pactffi_get_tls_ca_certificate();
 
 /// Free a string allocated on the Rust heap
-void free_string(const char *s);
+void pactffi_free_string(const char *s);
 
 /// External interface to check if a mock server has matched all its requests. The port number is
 /// passed in, and if all requests have been matched, true is returned. False is returned if there
 /// is no mock server on the given port, or if any request has not been successfully matched, or
 /// the method panics.
-bool mock_server_matched(int mock_server_port);
+bool pactffi_mock_server_matched(int mock_server_port);
 
 /// External interface to get all the mismatches from a mock server. The port number of the mock
 /// server is passed in, and a pointer to a C string with the mismatches in JSON format is
@@ -100,38 +100,38 @@ bool mock_server_matched(int mock_server_port);
 /// If there is no mock server with the provided port number, or the function panics, a NULL
 /// pointer will be returned. Don't try to dereference it, it will not end well for you.
 ///
-char* mock_server_mismatches(int mock_server_port);
+char* pactffi_mock_server_mismatches(int mock_server_port);
 
 /// Creates a new Interaction and returns a handle to it
-InteractionHandle new_interaction(PactHandle pact, const char *description);
+InteractionHandle pactffi_new_interaction(PactHandle pact, const char *description);
 
 /// Creates a new Pact model and returns a handle to it
-PactHandle new_pact(const char *consumer_name, const char *provider_name);
+PactHandle pactffi_new_pact(const char *consumer_name, const char *provider_name);
 
 /// Sets the description for the Interaction
-void upon_receiving(InteractionHandle interaction, const char *description);
+void pactffi_upon_receiving(InteractionHandle interaction, const char *description);
 
 /// Sets the description for the Interaction
-void with_request(InteractionHandle interaction, const char *method, const char *path);
+void pactffi_with_request(InteractionHandle interaction, const char *method, const char *path);
 
 /// Sets header expectations
 /// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_header.html
-void with_header(InteractionHandle interaction, int interaction_part, const char *name, int index, const char *value);
+void pactffi_with_header(InteractionHandle interaction, int interaction_part, const char *name, int index, const char *value);
 
 /// Sets query string expectation
 /// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_query_parameter.html
-void with_query_parameter(InteractionHandle interaction, const char *name, int index, const char *value);
+void pactffi_with_query_parameter(InteractionHandle interaction, const char *name, int index, const char *value);
 
 /// Sets the description for the Interaction
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_body.html
-void with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
+void pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
 
-void with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
+void pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
 
-int with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
+int pactffi_with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
 
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
-void response_status(InteractionHandle interaction, int status);
+void pactffi_response_status(InteractionHandle interaction, int status);
 
 /// External interface to trigger a mock server to write out its pact file. This function should
 /// be called if all the consumer tests have passed. The directory to write the file to is passed
@@ -149,15 +149,16 @@ void response_status(InteractionHandle interaction, int status);
 /// | 1 | A general panic was caught |
 /// | 2 | The pact file was not able to be written |
 /// | 3 | A mock server with the provided port was not found |
-int write_pact_file(int mock_server_port, const char *directory, bool overwrite);
+int pactffi_write_pact_file(int mock_server_port, const char *directory, bool overwrite);
 
-void with_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
+void pactffi_with_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
 
 // Additional global logging functions
-// int log_to_buffer(int level);
-// int log_to_stdout(int level);
-// int log_to_file(const char *file_name, int level_filter);
-// char* fetch_memory_buffer();
+//void pactffi_log_message(const char *source, const char *log_level, const char *message);
+//int pactffi_log_to_buffer(int level);
+//int pactffi_log_to_stdout(int level);
+//int pactffi_log_to_file(const char *file_name, int level_filter);
+//char* pactffi_fetch_log_buffer();
 
 */
 import "C"
@@ -217,7 +218,7 @@ type Interaction struct {
 
 // Version returns the current semver FFI interface version
 func Version() string {
-	v := C.version()
+	v := C.pactffi_version()
 
 	return C.GoString(v)
 }
@@ -228,7 +229,7 @@ func Init() {
 	l := C.CString("LOG_LEVEL")
 	defer free(l)
 
-	C.init(l)
+	C.pactffi_init(l)
 
 	// Alternative log destinations
 	// NOTE: only one can be applied
@@ -250,7 +251,7 @@ func NewHTTPMockServer(consumer string, provider string) *MockServer {
 	defer free(cConsumer)
 	defer free(cProvider)
 
-	return &MockServer{pact: &Pact{handle: C.new_pact(cConsumer, cProvider)}}
+	return &MockServer{pact: &Pact{handle: C.pactffi_new_pact(cConsumer, cProvider)}}
 }
 
 // Version returns the current semver FFI interface version
@@ -259,7 +260,7 @@ func (m *MockServer) Version() string {
 }
 
 func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
-	C.with_specification(m.pact.handle, C.int(version))
+	C.pactffi_with_specification(m.pact.handle, C.int(version))
 }
 
 // CreateMockServer creates a new Mock Server from a given Pact file.
@@ -275,7 +276,7 @@ func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (in
 		tlsEnabled = 1
 	}
 
-	p := C.create_mock_server(cPact, cAddress, C.int(tlsEnabled))
+	p := C.pactffi_create_mock_server(cPact, cAddress, C.int(tlsEnabled))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -323,7 +324,7 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 	log.Println("[DEBUG] mock server determining mismatches:", port)
 	var res []MismatchedRequest
 
-	mismatches := C.mock_server_mismatches(C.int(port))
+	mismatches := C.pactffi_mock_server_mismatches(C.int(port))
 	// This method can return a nil pointer, in which case, it
 	// should be considered a failure (or at least, an issue)
 	// converting it to a string might also do nasty things here!
@@ -343,7 +344,7 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 		return true
 	}
 	log.Println("[DEBUG] mock server cleaning up port:", port)
-	res := C.cleanup_mock_server(C.int(port))
+	res := C.pactffi_cleanup_mock_server(C.int(port))
 
 	return int(res) == 1
 }
@@ -354,7 +355,7 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 	cDir := C.CString(dir)
 	defer free(cDir)
 
-	res := int(C.write_pact_file(C.int(port), cDir, C.int(0)))
+	res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.int(0)))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -378,7 +379,7 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 // GetTLSConfig returns a tls.Config compatible with the TLS
 // mock server
 func GetTLSConfig() *tls.Config {
-	cert := C.get_tls_ca_certificate()
+	cert := C.pactffi_get_tls_ca_certificate()
 	defer libRustFree(cert)
 
 	goCert := C.GoString(cert)
@@ -395,7 +396,7 @@ func free(str *C.char) {
 }
 
 func libRustFree(str *C.char) {
-	C.free_string(str)
+	C.pactffi_free_string(str)
 }
 
 // Start starts up the mock HTTP server on the given address:port and TLS config
@@ -413,7 +414,7 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 		tlsEnabled = 1
 	}
 
-	p := C.create_mock_server_for_pact(m.pact.handle, cAddress, C.int(tlsEnabled))
+	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.int(tlsEnabled))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -455,7 +456,7 @@ func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
 	cValue := C.CString(v)
 	defer free(cValue)
 
-	C.with_pact_metadata(m.pact.handle, cNamespace, cName, cValue)
+	C.pactffi_with_pact_metadata(m.pact.handle, cNamespace, cName, cValue)
 
 	return m
 }
@@ -466,7 +467,7 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 	defer free(cDescription)
 
 	i := &Interaction{
-		handle: C.new_interaction(m.pact.handle, cDescription),
+		handle: C.pactffi_new_interaction(m.pact.handle, cDescription),
 	}
 	m.interactions = append(m.interactions, i)
 
@@ -477,7 +478,7 @@ func (i *Interaction) UponReceiving(description string) *Interaction {
 	cDescription := C.CString(description)
 	defer free(cDescription)
 
-	C.upon_receiving(i.handle, cDescription)
+	C.pactffi_upon_receiving(i.handle, cDescription)
 
 	return i
 }
@@ -486,7 +487,7 @@ func (i *Interaction) Given(state string) *Interaction {
 	cState := C.CString(state)
 	defer free(cState)
 
-	C.given(i.handle, cState)
+	C.pactffi_given(i.handle, cState)
 
 	return i
 }
@@ -502,7 +503,7 @@ func (i *Interaction) GivenWithParameter(state string, params map[string]interfa
 		cValue := C.CString(param)
 		defer free(cValue)
 
-		C.given_with_param(i.handle, cState, cKey, cValue)
+		C.pactffi_given_with_param(i.handle, cState, cKey, cValue)
 
 	}
 
@@ -517,7 +518,7 @@ func (i *Interaction) WithRequest(method string, pathOrMatcher interface{}) *Int
 	cPath := C.CString(path)
 	defer free(cPath)
 
-	C.with_request(i.handle, cMethod, cPath)
+	C.pactffi_with_request(i.handle, cMethod, cPath)
 
 	return i
 }
@@ -541,7 +542,7 @@ func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[strin
 			cValue := C.CString(value)
 			defer free(cValue)
 
-			C.with_header(i.handle, C.int(part), cName, C.int(0), cValue)
+			C.pactffi_with_header(i.handle, C.int(part), cName, C.int(0), cValue)
 		}
 
 	}
@@ -560,7 +561,7 @@ func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Intera
 			cValue := C.CString(value)
 			defer free(cValue)
 
-			C.with_query_parameter(i.handle, cName, C.int(idx), cValue)
+			C.pactffi_with_query_parameter(i.handle, cName, C.int(idx), cValue)
 		}
 	}
 
@@ -583,7 +584,7 @@ func (i *Interaction) withJSONBody(body interface{}, part interactionType) *Inte
 	cBody := C.CString(jsonBody)
 	defer free(cBody)
 
-	C.with_body(i.handle, C.int(part), cHeader, cBody)
+	C.pactffi_with_body(i.handle, C.int(part), cHeader, cBody)
 
 	return i
 }
@@ -603,7 +604,7 @@ func (i *Interaction) withBody(contentType string, body []byte, part interaction
 	cBody := C.CString(string(body))
 	defer free(cBody)
 
-	C.with_body(i.handle, C.int(part), cHeader, cBody)
+	C.pactffi_with_body(i.handle, C.int(part), cHeader, cBody)
 
 	return i
 }
@@ -612,7 +613,7 @@ func (i *Interaction) withBinaryBody(contentType string, body []byte, part inter
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	C.with_binary_file(i.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+	C.pactffi_with_binary_file(i.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 
 	return i
 }
@@ -643,14 +644,14 @@ func (i *Interaction) withMultipartFile(contentType string, filename string, mim
 	cFilename := C.CString(filename)
 	defer free(cFilename)
 
-	C.with_multipart_file(i.handle, C.int(part), cHeader, cFilename, cPartName)
+	C.pactffi_with_multipart_file(i.handle, C.int(part), cHeader, cFilename, cPartName)
 
 	return i
 }
 
 // Set the expected HTTTP response status
 func (i *Interaction) WithStatus(status int) *Interaction {
-	C.response_status(i.handle, C.int(status))
+	C.pactffi_response_status(i.handle, C.int(status))
 
 	return i
 }
@@ -673,15 +674,29 @@ func stringFromInterface(obj interface{}) string {
 }
 
 // Experimental logging options
+// func LogMessage(pkg, level, message string) {
+// 	cPkg := C.CString(pkg)
+// 	defer free(cPkg)
+
+// 	cLevel := C.CString(level)
+// 	defer free(cLevel)
+
+// 	cMessage := C.CString(message)
+// 	defer free(cMessage)
+
+// 	res := C.pactffi_log_message(cPkg, cLevel, cMessage)
+// 	log.Println("[DEBUG] log_to_buffer res", res)
+// }
+
 // func logToBuffer(level logLevel) error {
-// 	res := C.log_to_buffer(C.int(level))
+// 	res := C.pactffi_log_to_buffer(C.int(level))
 // 	log.Println("[DEBUG] log_to_buffer res", res)
 
 // 	return logResultToError(int(res))
 // }
 
 // func logToStdout(level logLevel) error {
-// 	res := C.log_to_stdout(C.int(level))
+// 	res := C.pactffi_log_to_stdout(C.int(level))
 // 	log.Println("[DEBUG] log_to_stdout res", res)
 
 // 	return logResultToError(int(res))
@@ -691,14 +706,14 @@ func stringFromInterface(obj interface{}) string {
 // 	cFile := C.CString(file)
 // 	defer free(cFile)
 
-// 	res := C.log_to_file(cFile, C.int(level))
+// 	res := C.pactffi_log_to_file(cFile, C.int(level))
 // 	log.Println("[DEBUG] log_to_file res", res)
 
 // 	return logResultToError(int(res))
 // }
 
 // func getLogBuffer() string {
-// 	buf := C.fetch_memory_buffer()
+// 	buf := C.pactffi_fetch_log_buffer()
 // 	defer free(buf)
 
 // 	return C.GoString(buf)

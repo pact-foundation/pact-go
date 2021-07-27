@@ -1,4 +1,4 @@
-package mockserver
+package native
 
 // Request is the sub-struct of Mismatch
 type Request struct {

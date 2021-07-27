@@ -14,8 +14,8 @@ func TestProductAPIClient(t *testing.T) {
 	// Specify the two applications in the integration we are testing
 	// NOTE: this can usually be extracted out of the individual test for re-use)
 	mockProvider, err := NewV2Pact(MockHTTPProviderConfig{
-		Consumer: "ProductAPIConsumer",
-		Provider: "ProductAPI",
+		Consumer: "PactGoProductAPIConsumer",
+		Provider: "PactGoProductAPI",
 	})
 	assert.NoError(t, err)
 

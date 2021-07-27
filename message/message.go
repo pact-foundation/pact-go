@@ -5,14 +5,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pact-foundation/pact-go/v2/internal/native/mockserver"
+	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
+type MessageBody interface{}
+type MessageMetadata map[string]interface{}
+
 // MessageHandler is a provider function that generates a
 // message for a Consumer given a Message context (state, description etc.)
-type MessageHandler func([]models.ProviderStateV3) (interface{}, error)
+type MessageHandler func([]models.ProviderStateV3) (MessageBody, MessageMetadata, error)
 type MessageProducer MessageHandler
 
 // MessageHandlers is a list of handlers ordered by description
@@ -29,7 +32,7 @@ type Message struct {
 	messageHandle *mockserver.Message
 	messagePactV3 *MessagePactV3
 
-	// Type to Marshall content into when sending back to the consumer
+	// Type to Marshal content into when sending back to the consumer
 	// Defaults to interface{}
 	Type interface{}
 

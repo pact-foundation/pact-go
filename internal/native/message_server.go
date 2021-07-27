@@ -1,4 +1,4 @@
-package mockserver
+package native
 
 /*
 // Library headers
@@ -20,16 +20,16 @@ struct MessagePactHandle {
   uintptr_t pact;
 };
 
-MessagePactHandle new_message_pact(const char *consumer_name, const char *provider_name);
-MessageHandle new_message(MessagePactHandle pact, const char *description);
-void message_expects_to_receive(MessageHandle message, const char *description);
-void message_given(MessageHandle message, const char *description);
-void message_given_with_param(MessageHandle message, const char *description, const char *name, const char *value);
-void message_with_contents(MessageHandle message, const char *content_type, const char *body, int size);
-void message_with_metadata(MessageHandle message, const char *key, const char *value);
-char* message_reify(MessageHandle message);
-int write_message_pact_file(MessagePactHandle pact, const char *directory, bool overwrite);
-void with_message_pact_metadata(MessagePactHandle pact, const char *namespace, const char *name, const char *value);
+MessagePactHandle pactffi_new_message_pact(const char *consumer_name, const char *provider_name);
+MessageHandle pactffi_new_message(MessagePactHandle pact, const char *description);
+void pactffi_message_expects_to_receive(MessageHandle message, const char *description);
+void pactffi_message_given(MessageHandle message, const char *description);
+void pactffi_message_given_with_param(MessageHandle message, const char *description, const char *name, const char *value);
+void pactffi_message_with_contents(MessageHandle message, const char *content_type, const char *body, int size);
+void pactffi_message_with_metadata(MessageHandle message, const char *key, const char *value);
+char* pactffi_message_reify(MessageHandle message);
+int pactffi_write_message_pact_file(MessagePactHandle pact, const char *directory, bool overwrite);
+void pactffi_with_message_pact_metadata(MessagePactHandle pact, const char *namespace, const char *name, const char *value);
 */
 import "C"
 
@@ -60,7 +60,7 @@ func NewMessageServer(consumer string, provider string) *MessageServer {
 	defer free(cConsumer)
 	defer free(cProvider)
 
-	return &MessageServer{messagePact: &MessagePact{handle: C.new_message_pact(cConsumer, cProvider)}}
+	return &MessageServer{messagePact: &MessagePact{handle: C.pactffi_new_message_pact(cConsumer, cProvider)}}
 }
 
 // Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version
@@ -72,7 +72,7 @@ func (m *MessageServer) WithMetadata(namespace, k, v string) *MessageServer {
 	cValue := C.CString(v)
 	defer free(cValue)
 
-	C.with_message_pact_metadata(m.messagePact.handle, cNamespace, cName, cValue)
+	C.pactffi_with_message_pact_metadata(m.messagePact.handle, cNamespace, cName, cValue)
 
 	return m
 }
@@ -83,7 +83,7 @@ func (m *MessageServer) NewMessage() *Message {
 	defer free(cDescription)
 
 	i := &Message{
-		handle: C.new_message(m.messagePact.handle, cDescription),
+		handle: C.pactffi_new_message(m.messagePact.handle, cDescription),
 	}
 	m.messages = append(m.messages, i)
 
@@ -94,7 +94,7 @@ func (i *Message) Given(state string) *Message {
 	cState := C.CString(state)
 	defer free(cState)
 
-	C.message_given(i.handle, cState)
+	C.pactffi_message_given(i.handle, cState)
 
 	return i
 }
@@ -110,7 +110,7 @@ func (i *Message) GivenWithParameter(state string, params map[string]interface{}
 		cValue := C.CString(param)
 		defer free(cValue)
 
-		C.message_given_with_param(i.handle, cState, cKey, cValue)
+		C.pactffi_message_given_with_param(i.handle, cState, cKey, cValue)
 
 	}
 
@@ -121,7 +121,7 @@ func (i *Message) ExpectsToReceive(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
 
-	C.message_expects_to_receive(i.handle, cDescription)
+	C.pactffi_message_expects_to_receive(i.handle, cDescription)
 
 	return i
 }
@@ -139,7 +139,7 @@ func (i *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 		cValue := C.CString(v)
 		defer free(cValue)
 
-		C.message_with_metadata(i.handle, cName, cValue)
+		C.pactffi_message_with_metadata(i.handle, cName, cValue)
 	}
 
 	return i
@@ -163,13 +163,13 @@ func (i *Message) WithContents(contentType string, body []byte) *Message {
 
 	cBytes := C.CString(string(body))
 	defer free(cBytes)
-	C.message_with_contents(i.handle, cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+	C.pactffi_message_with_contents(i.handle, cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 
 	return i
 }
 
 func (i *Message) ReifyMessage() string {
-	return C.GoString(C.message_reify(i.handle))
+	return C.GoString(C.pactffi_message_reify(i.handle))
 }
 
 // WritePactFile writes the Pact to file.
@@ -183,7 +183,7 @@ func (m *MessageServer) WritePactFile(dir string, overwrite bool) error {
 		overwritePact = 1
 	}
 
-	res := int(C.write_message_pact_file(m.messagePact.handle, cDir, C.int(overwritePact)))
+	res := int(C.pactffi_write_message_pact_file(m.messagePact.handle, cDir, C.int(overwritePact)))
 
 	/// | Error | Description |
 	/// |-------|-------------|

@@ -25,8 +25,8 @@ func TestInstallerDownloader(t *testing.T) {
 		}{
 			{
 				name: "mock server - linux x86",
-				pkg:  MockServerPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v%s/libpact_mock_server_ffi-linux-x86_64.so.gz", packages[MockServerPackage].version),
+				pkg:  FFIPackage,
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64.so.gz", packages[FFIPackage].version),
 				test: Installer{
 					os:   linux,
 					arch: x86_64,
@@ -34,8 +34,8 @@ func TestInstallerDownloader(t *testing.T) {
 			},
 			{
 				name: "mock server - osx x86",
-				pkg:  MockServerPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v%s/libpact_mock_server_ffi-osx-x86_64.dylib.gz", packages[MockServerPackage].version),
+				pkg:  FFIPackage,
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-osx-x86_64.dylib.gz", packages[FFIPackage].version),
 				test: Installer{
 					os:   osx,
 					arch: x86_64,
@@ -43,8 +43,8 @@ func TestInstallerDownloader(t *testing.T) {
 			},
 			{
 				name: "mock server - linux x86",
-				pkg:  MockServerPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v%s/libpact_mock_server_ffi-windows-x86_64.dll.gz", packages[MockServerPackage].version),
+				pkg:  FFIPackage,
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-windows-x86_64.dll.gz", packages[FFIPackage].version),
 				test: Installer{
 					os:   windows,
 					arch: x86_64,
@@ -81,15 +81,10 @@ func TestInstallerDownloader(t *testing.T) {
 		defer func() { packages = oldPackages }()
 
 		packages = map[string]packageInfo{
-			VerifierPackage: {
-				libName:     "libpact_verifier_ffi",
-				version:     "0.0.2",
-				semverRange: ">= 0.8.3, < 1.0.0",
-			},
-			MockServerPackage: {
-				libName:     "libpact_mock_server_ffi",
-				version:     "0.0.15",
-				semverRange: ">= 0.0.15, < 1.0.0",
+			FFIPackage: {
+				libName:     "libpact_ffi",
+				version:     "0.0.0",
+				semverRange: ">= 0.0.0, < 1.0.0",
 			},
 		}
 

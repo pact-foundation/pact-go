@@ -1,5 +1,16 @@
 on: [push, pull_request]
 name: Test
+
+env:
+  PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
+  PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+  REACT_APP_API_BASE_URL: http://localhost:8080
+  APP_SHA: ${{ github.sha }}
+  APP_BRANCH: ${{ github.ref }}
+  LD_LIBRARY_PATH: /tmp
+  PACT_GO_LIB_DOWNLOAD_PATH: /tmp
+  LOG_LEVEL: trace
+
 jobs:
   test:
     strategy:
@@ -9,11 +20,6 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Set Golang shared lib directory for GH Actions
-        run: |
-          echo "LD_LIBRARY_PATH=/tmp" >> $GITHUB_ENV
-          echo "PACT_GO_LIB_DOWNLOAD_PATH=/tmp" >> $GITHUB_ENV
-          echo "LOG_LEVEL=trace" >> $GITHUB_ENV
       - name: Install Go
         uses: actions/setup-go@v2
         with:
