@@ -21,7 +21,7 @@ func TestConsumerV2(t *testing.T) {
 	SetLogLevel("TRACE")
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
-		Consumer: "V2Consumer",
+		Consumer: "PactGoV2Consumer",
 		Provider: "V2Provider",
 		Host:     "127.0.0.1",
 		TLS:      true,
@@ -64,7 +64,7 @@ func TestConsumerV2_Match(t *testing.T) {
 	SetLogLevel("TRACE")
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
-		Consumer: "V2ConsumerMatch",
+		Consumer: "PactGoV2ConsumerMatch",
 		Provider: "V2ProviderMatch",
 		Host:     "127.0.0.1",
 		TLS:      true,
@@ -95,7 +95,7 @@ func TestConsumerV3(t *testing.T) {
 	SetLogLevel("TRACE")
 
 	mockProvider, err := NewV3Pact(MockHTTPProviderConfig{
-		Consumer: "V3Consumer",
+		Consumer: "PactGoV3Consumer",
 		Provider: "V3Provider",
 		Host:     "127.0.0.1",
 		TLS:      true,
@@ -152,7 +152,7 @@ func TestConsumerV2AllInOne(t *testing.T) {
 	SetLogLevel("TRACE")
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
-		Consumer: "V2ConsumerAllInOne",
+		Consumer: "PactGoV2ConsumerAllInOne",
 		Provider: "V2Provider",
 		Host:     "127.0.0.1",
 		TLS:      true,
@@ -201,7 +201,7 @@ func TestMessagePact(t *testing.T) {
 	SetLogLevel("TRACE")
 
 	provider, err := NewMessagePactV3(MessageConfig{
-		Consumer: "V3MessageConsumer",
+		Consumer: "PactGoV3MessageConsumer",
 		Provider: "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
 	})
 	assert.NoError(t, err)

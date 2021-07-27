@@ -46,9 +46,12 @@ func TestV3HTTPProvider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	err := verifier.VerifyProvider(t, VerifyRequest{
 		ProviderBaseURL: "http://localhost:8111",
+		Provider:        "V3Provider",
+		ProviderVersion: os.Getenv("APP_SHA"),
+		BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
 		PactFiles: []string{
-			filepath.ToSlash(fmt.Sprintf("%s/V3Consumer-V3Provider.json", pactDir)),
-			filepath.ToSlash(fmt.Sprintf("%s/V2ConsumerMatch-V2ProviderMatch.json", pactDir)),
+			filepath.ToSlash(fmt.Sprintf("%s/PactGoV3Consumer-V3Provider.json", pactDir)),
+			filepath.ToSlash(fmt.Sprintf("%s/PactGoV2ConsumerMatch-V2ProviderMatch.json", pactDir)),
 		},
 		RequestFilter: f,
 		BeforeEach: func() error {
@@ -119,8 +122,11 @@ func TestV3MessageProvider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	verifier.Verify(t, VerifyMessageRequest{
 		VerifyRequest: VerifyRequest{
-			PactFiles:     []string{filepath.ToSlash(fmt.Sprintf("%s/V3MessageConsumer-V3MessageProvider.json", pactDir))},
-			StateHandlers: stateMappings,
+			PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
+			StateHandlers:   stateMappings,
+			Provider:        "V3MessageProvider",
+			ProviderVersion: os.Getenv("APP_SHA"),
+			BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
 		},
 		MessageHandlers: functionMappings,
 	})

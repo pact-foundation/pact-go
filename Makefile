@@ -1,10 +1,26 @@
 include make/config.mk
 
 TEST?=./...
-
 .DEFAULT_GOAL := ci
+PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD -e PACT_BROKER_TOKEN pactfoundation/pact-cli:latest"
 
-ci:: docker deps clean bin test pact #goveralls
+ci:: deps clean bin test pact #goveralls
+
+# Run the ci target from a developer machine with the environment variables
+# set as if it was on Travis CI.
+# Use this for quick feedback when playing around with your workflows.
+fake_ci:
+	@CI=true \
+	APP_SHA=`git rev-parse --short HEAD`+`date +%s` \
+	APP_BRANCH=`git rev-parse --abbrev-ref HEAD` \
+	make ci
+
+# same as above, but just for pact
+fake_pact:
+	@CI=true \
+	APP_SHA=`git rev-parse --short HEAD`+`date +%s` \
+	APP_BRANCH=`git rev-parse --abbrev-ref HEAD` \
+	make pact
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -43,7 +59,12 @@ install: bin
 pact: clean install #docker
 	@echo "--- 🔨 Running Pact examples"
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	make publish
 	go test -v -timeout=10s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+
+publish:
+	@echo "-- 📃 Publishing pacts"
+	@"${PACT_CLI}" publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH}
 
 release:
 	echo "--- 🚀 Releasing it"
