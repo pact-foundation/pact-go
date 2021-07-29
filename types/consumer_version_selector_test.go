@@ -18,6 +18,11 @@ func TestConsumerVersionSelectorValidate(t *testing.T) {
 		{name: "pacticipant only", selector: ConsumerVersionSelector{Pacticipant: "foo"}, err: true},
 		{name: "pacticipant and tag", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo"}, err: false},
 		{name: "pacticipant, tag and all set", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo", All: true}, err: false},
+		{name: "pacticipant, tag, consumer", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo", Consumer: "bar"}, err: false},
+		{name: "pacticipant, tag, deployedOrReleased", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo", DeployedOrReleased: true}, err: false},
+		{name: "pacticipant, tag, deployed", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo", Deployed: true}, err: false},
+		{name: "pacticipant, tag, released", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo", Released: true}, err: false},
+		{name: "pacticipant, tag, environment", selector: ConsumerVersionSelector{Pacticipant: "foo", Tag: "foo", Environment: "dev"}, err: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
