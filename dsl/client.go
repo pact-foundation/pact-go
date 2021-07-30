@@ -97,8 +97,11 @@ func (p *PactClient) StartServer(args []string, port int) *types.MockServer {
 	svc := p.pactMockSvcManager.NewService(args)
 	cmd := svc.Start()
 
-	waitForPort(port, p.getNetworkInterface(), p.Address, p.TimeoutDuration,
+	err := waitForPort(port, p.getNetworkInterface(), p.Address, p.TimeoutDuration,
 		fmt.Sprintf(`Timed out waiting for Mock Server to start on port %d - are you sure it's running?`, port))
+	if err != nil {
+		log.Println("[ERROR] client: failed to wait for Mock Server:", err)
+	}
 
 	return &types.MockServer{
 		Pid:  cmd.Process.Pid,
@@ -137,7 +140,9 @@ func (p *PactClient) RemoveAllServers(server *types.MockServer) []*types.MockSer
 
 	for _, s := range p.verificationSvcManager.List() {
 		if s != nil {
-			p.pactMockSvcManager.Stop(s.Process.Pid)
+			if _, err := p.pactMockSvcManager.Stop(s.Process.Pid); err != nil {
+				log.Println("[ERROR] client: stop server failed:", err)
+			}
 		}
 	}
 	return nil
