@@ -2,10 +2,6 @@ package dsl
 
 import "testing"
 
-type t struct {
-	ID int
-}
-
 func TestMessage_DSL(t *testing.T) {
 	m := &Message{}
 	m.Given("state string").

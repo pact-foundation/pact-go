@@ -45,7 +45,7 @@ func (s *ServiceMock) Start() *exec.Cmd {
 
 	s.ServiceStartCount++
 	cmd := s.ExecFunc()
-	cmd.Start()
+	cmd.Start() // nolint:errcheck
 	if s.processes == nil {
 		s.processes = make(map[int]*exec.Cmd)
 	}
