@@ -200,8 +200,8 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 	// Each pact is verified by line, and the results (as JSON) sent to stdout.
 	// See https://github.com/pact-foundation/pact-go/issues/88#issuecomment-404686337
 	stdOutScanner := bufio.NewScanner(stdOutPipe)
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		stdOutBuf := make([]byte, bufio.MaxScanTokenSize)
 		stdOutScanner.Buffer(stdOutBuf, 64*1024*1024)
@@ -213,13 +213,12 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 
 	// Scrape errors
 	stdErrScanner := bufio.NewScanner(stdErrPipe)
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		for stdErrScanner.Scan() {
 			stdErr.WriteString(fmt.Sprintf("%s\n", stdErrScanner.Text()))
 		}
-
 	}()
 
 	err = cmd.Start()
