@@ -53,7 +53,9 @@ func (s *ServiceManager) removeServiceMonitor() {
 		select {
 		case p = <-s.commandCompleteChan:
 			if p != nil && p.Process != nil {
-				p.Process.Signal(os.Interrupt)
+				if err := p.Process.Signal(os.Interrupt); err != nil {
+					log.Println("[ERROR] service removal monitor failed to process signal:", err)
+				}
 				s.processMap.Delete(p.Process.Pid)
 			}
 		}
