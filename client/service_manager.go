@@ -35,12 +35,9 @@ func (s *ServiceManager) Setup() {
 // addServiceMonitor watches a channel to add services into operation.
 func (s *ServiceManager) addServiceMonitor() {
 	log.Println("[DEBUG] starting service creation monitor")
-	for {
-		select {
-		case p := <-s.commandCreatedChan:
-			if p != nil && p.Process != nil {
-				s.processMap.Set(p.Process.Pid, p)
-			}
+	for p := range s.commandCreatedChan {
+		if p != nil && p.Process != nil {
+			s.processMap.Set(p.Process.Pid, p)
 		}
 	}
 }
@@ -48,16 +45,12 @@ func (s *ServiceManager) addServiceMonitor() {
 // removeServiceMonitor watches a channel to remove services from operation.
 func (s *ServiceManager) removeServiceMonitor() {
 	log.Println("[DEBUG] starting service removal monitor")
-	var p *exec.Cmd
-	for {
-		select {
-		case p = <-s.commandCompleteChan:
-			if p != nil && p.Process != nil {
-				if err := p.Process.Signal(os.Interrupt); err != nil {
-					log.Println("[ERROR] service removal monitor failed to process signal:", err)
-				}
-				s.processMap.Delete(p.Process.Pid)
+	for p := range s.commandCompleteChan {
+		if p != nil && p.Process != nil {
+			if err := p.Process.Signal(os.Interrupt); err != nil {
+				log.Println("[ERROR] service removal monitor failed to process signal:", err)
 			}
+			s.processMap.Delete(p.Process.Pid)
 		}
 	}
 }
