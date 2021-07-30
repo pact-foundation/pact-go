@@ -429,13 +429,13 @@ var waitForPort = func(port int, network string, address string, timeoutDuration
 func sanitiseRubyResponse(response string) string {
 	log.Println("[TRACE] response from Ruby process pre-sanitisation:", response)
 
-	r := regexp.MustCompile("(?m)^\\s*#.*$")
+	r := regexp.MustCompile(`(?m)^\s*#.*$`)
 	s := r.ReplaceAllString(response, "")
 
 	r = regexp.MustCompile("(?m).*bundle exec rake pact:verify.*$")
 	s = r.ReplaceAllString(s, "")
 
-	r = regexp.MustCompile("\\n+")
+	r = regexp.MustCompile(`\n+`)
 	s = r.ReplaceAllString(s, "\n")
 
 	return s

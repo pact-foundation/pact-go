@@ -161,7 +161,7 @@ type processMap struct {
 func (pm *processMap) Get(k int) *exec.Cmd {
 	pm.RLock()
 	defer pm.RUnlock()
-	v, _ := pm.processes[k]
+	v := pm.processes[k]
 	return v
 }
 

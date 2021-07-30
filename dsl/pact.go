@@ -143,11 +143,11 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	}
 
 	if p.LogDir == "" {
-		p.LogDir = fmt.Sprintf(filepath.Join(dir, "logs"))
+		p.LogDir = filepath.Join(dir, "logs")
 	}
 
 	if p.PactDir == "" {
-		p.PactDir = fmt.Sprintf(filepath.Join(dir, "pacts"))
+		p.PactDir = filepath.Join(dir, "pacts")
 	}
 
 	if p.SpecificationVersion == 0 {
