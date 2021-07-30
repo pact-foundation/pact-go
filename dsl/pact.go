@@ -488,9 +488,13 @@ func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == providerStatesSetupPath {
-				var s *types.ProviderState
+				var s types.ProviderState
 				decoder := json.NewDecoder(r.Body)
-				decoder.Decode(&s)
+				if err := decoder.Decode(&s); err != nil {
+					log.Printf("[ERROR] failed to decode provider state: %v", err)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
 
 				// Setup any provider state
 				for _, state := range s.States {
@@ -582,12 +586,14 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 		resBody, errM := json.Marshal(wrappedResponse)
 		if errM != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			log.Println("[ERROR] error marshalling objcet:", errM)
+			log.Println("[ERROR] error marshalling object:", errM)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(resBody)
+		if _, err := w.Write(resBody); err != nil {
+			log.Println("[ERROR] error writing response:", err)
+		}
 	}
 }
 
