@@ -332,16 +332,16 @@ func formatJSON(object interface{}) interface{} {
 	var out bytes.Buffer
 	switch content := object.(type) {
 	case string:
-		json.Indent(&out, []byte(content), "", "\t")
+		json.Indent(&out, []byte(content), "", "\t") // nolint:errcheck
 	default:
 		jsonString, err := json.Marshal(object)
 		if err != nil {
 			log.Println("[ERROR] unable to marshal json:", err)
 		}
-		json.Indent(&out, []byte(jsonString), "", "\t")
+		json.Indent(&out, []byte(jsonString), "", "\t") // nolint:errcheck
 	}
 
-	return string(out.Bytes())
+	return out.String()
 }
 
 // Instrument the StructMatcher type to be able to assert the

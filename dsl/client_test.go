@@ -45,7 +45,10 @@ func TestClient_StartServerFail(t *testing.T) {
 func TestClient_StopServer(t *testing.T) {
 	client, svc := createMockClient(true)
 
-	client.StopServer(&types.MockServer{})
+	_, err := client.StopServer(&types.MockServer{})
+	if err != nil {
+		t.Fatalf("Failed to stop server: %v", err)
+	}
 	if svc.ServiceStopCount != 1 {
 		t.Fatalf("Expected 1 server to have been stopped, got %d", svc.ServiceStartCount)
 	}
@@ -216,13 +219,13 @@ func createMockClient(success bool) (*PactClient, *ServiceMock) {
 
 	// Start all processes to get the Pids!
 	for _, s := range svc.ServiceList {
-		s.Start()
+		s.Start() // nolint:errcheck
 	}
 
 	// Cleanup all Processes when we finish
 	defer func() {
 		for _, s := range svc.ServiceList {
-			s.Process.Kill()
+			s.Process.Kill() // nolint:errcheck
 		}
 	}()
 

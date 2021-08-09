@@ -13,7 +13,7 @@ var channelTimeout = 50 * time.Millisecond
 
 func createServiceManager() *ServiceManager {
 	cs := []string{"-test.run=TestHelperProcess", "--", os.Args[0]}
-	env := []string{"GO_WANT_HELPER_PROCESS=1", fmt.Sprintf("GO_WANT_HELPER_PROCESS_TO_SUCCEED=true")}
+	env := []string{"GO_WANT_HELPER_PROCESS=1", "GO_WANT_HELPER_PROCESS_TO_SUCCEED=true"}
 	mgr := &ServiceManager{
 		Cmd:  os.Args[0],
 		Args: cs,
@@ -24,9 +24,7 @@ func createServiceManager() *ServiceManager {
 }
 
 func TestServiceManager(t *testing.T) {
-	var manager interface{}
-	manager = new(ServiceManager)
-
+	var manager interface{} = new(ServiceManager)
 	if _, ok := manager.(*ServiceManager); !ok {
 		t.Fatalf("Must be a ServiceManager")
 	}
@@ -47,7 +45,7 @@ func TestServiceManager_Setup(t *testing.T) {
 func TestServiceManager_removeServiceMonitor(t *testing.T) {
 	mgr := createServiceManager()
 	cmd := fakeExecCommand("", true, "")
-	cmd.Start()
+	cmd.Start() // nolint:errcheck
 	mgr.processMap.processes = map[int]*exec.Cmd{
 		cmd.Process.Pid: cmd,
 	}
@@ -75,7 +73,7 @@ func TestServiceManager_removeServiceMonitor(t *testing.T) {
 func TestServiceManager_addServiceMonitor(t *testing.T) {
 	mgr := createServiceManager()
 	cmd := fakeExecCommand("", true, "")
-	cmd.Start()
+	cmd.Start() // nolint:errcheck
 	mgr.commandCreatedChan <- cmd
 	var timeout = time.After(channelTimeout)
 
@@ -128,12 +126,12 @@ func TestServiceManager_addServiceMonitorWithDeadJob(t *testing.T) {
 func TestServiceManager_Stop(t *testing.T) {
 	mgr := createServiceManager()
 	cmd := fakeExecCommand("", true, "")
-	cmd.Start()
+	cmd.Start() // nolint:errcheck
 	mgr.processMap.processes = map[int]*exec.Cmd{
 		cmd.Process.Pid: cmd,
 	}
 
-	mgr.Stop(cmd.Process.Pid)
+	mgr.Stop(cmd.Process.Pid) // nolint:errcheck
 	var timeout = time.After(channelTimeout)
 	for {
 		mgr.processMap.Lock()
@@ -157,7 +155,7 @@ func TestServiceManager_Stop(t *testing.T) {
 func TestServiceManager_List(t *testing.T) {
 	mgr := createServiceManager()
 	cmd := fakeExecCommand("", true, "")
-	cmd.Start()
+	cmd.Start() // nolint:errcheck
 	processes := map[int]*exec.Cmd{
 		cmd.Process.Pid: cmd,
 	}
@@ -194,15 +192,6 @@ func TestServiceManager_Start(t *testing.T) {
 			return
 		}
 	}
-}
-
-// Adapted from http://npf.io/2015/06/testing-exec-command/
-var fakeExecSuccessCommand = func() *exec.Cmd {
-	return fakeExecCommand("", true, "")
-}
-
-var fakeExecFailCommand = func() *exec.Cmd {
-	return fakeExecCommand("", false, "")
 }
 
 func fakeExecCommand(command string, success bool, args ...string) *exec.Cmd {

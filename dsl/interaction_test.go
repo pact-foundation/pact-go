@@ -58,7 +58,7 @@ func TestInteraction_WithRequest(t *testing.T) {
 
 	var expect interface{}
 	body, _ := json.Marshal(obj)
-	json.Unmarshal(body, &expect)
+	json.Unmarshal(body, &expect) // nolint:errcheck
 
 	if _, ok := i.Request.Body.(map[string]string); !ok {
 		t.Fatal("Expected response to be of type 'map[string]string', but got", reflect.TypeOf(i.Request.Body))
@@ -104,7 +104,7 @@ func TestInteraction_WillRespondWith(t *testing.T) {
 
 	var expect interface{}
 	body, _ := json.Marshal(obj)
-	json.Unmarshal(body, &expect)
+	json.Unmarshal(body, &expect) // nolint:errcheck
 
 	if _, ok := i.Response.Body.(map[string]string); !ok {
 		t.Fatal("Expected response to be of type 'map[string]string', but got", reflect.TypeOf(i.Response.Body))

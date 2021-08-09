@@ -408,7 +408,7 @@ func TestPact_BeforeEach(t *testing.T) {
 	}
 
 	// expect http handler to NOT have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h != "true" {
 		t.Error("expected http handler to be invoked")
 	}
 }
@@ -435,7 +435,7 @@ func TestPact_BeforeEachNotSetupPath(t *testing.T) {
 	}
 
 	// expect http handler to NOT have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h != "true" {
 		t.Error("expected http handler to be invoked")
 	}
 }
@@ -462,7 +462,7 @@ func TestPact_AfterEach(t *testing.T) {
 	}
 
 	// expect http handler to NOT have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h != "true" {
 		t.Error("expected http handler to be invoked")
 	}
 }
@@ -490,7 +490,7 @@ func TestPact_AfterEachSetupPath(t *testing.T) {
 	}
 
 	// expect http handler to NOT have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h != "true" {
 		t.Error("expected http handler to be invoked")
 	}
 }
@@ -527,7 +527,7 @@ func TestPact_StateHandlerMiddlewareStateHandlerExists(t *testing.T) {
 	}
 
 	// expect http handler to NOT have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h == "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h == "true" {
 		t.Error("expected http handler to not be invoked")
 	}
 }
@@ -558,7 +558,7 @@ func TestPact_StateHandlerMiddlewareStateHandlerNotExists(t *testing.T) {
 	}
 
 	// expect http handler to NOT have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h == "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h == "true" {
 		t.Error("expected http handler to not be invoked")
 	}
 }
@@ -591,7 +591,7 @@ func TestPact_StateHandlerMiddlewareStateHandlerError(t *testing.T) {
 	}
 
 	// expect http handler to NOT have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h == "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h == "true" {
 		t.Error("expected http handler to not be invoked")
 	}
 }
@@ -611,7 +611,7 @@ func TestPact_StateHandlerMiddlewarePassThroughInvalidPath(t *testing.T) {
 	mw(dummyHandler("X-Dummy-Handler")).ServeHTTP(rr, req)
 
 	// expect http handler to have been called
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h != "true" {
 		t.Errorf("expected target http handler to be invoked")
 	}
 }
