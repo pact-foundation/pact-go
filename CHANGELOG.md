@@ -5,6 +5,10 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.6.3 (09 August 2021)
+  * [530d6ce](https://github.com/pact-foundation/pact-go/commit/530d6ce) - chore: tidy up consumer version selectors (Matt Fellows, Mon Aug 9 17:14:57 2021 +1000)
+  * [de0bb5e](https://github.com/pact-foundation/pact-go/commit/de0bb5e) - feat: support release and environment consumer version selectors (antklim, Thu Jul 29 17:57:40 2021 +1000)
+
 ### v1.5.3 (03 July 2021)
   * [5903b70](https://github.com/pact-foundation/pact-go/commit/5903b70) - fix: handle verification response correctly (bbmokus, Fri Jul 2 16:49:11 2021 +0200)
   * [d879a4b](https://github.com/pact-foundation/pact-go/commit/d879a4b) - fix(readme): update link to pact broker (Travis Dixon, Mon Jun 21 08:35:50 2021 +1000)
