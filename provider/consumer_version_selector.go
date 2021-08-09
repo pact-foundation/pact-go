@@ -1,31 +1,36 @@
 package provider
 
-import "fmt"
-
 // ConsumerVersionSelector are the way we specify which pacticipants and
 // versions we want to use when configuring verifications
 // See https://docs.pact.io/selectors for more
+//
+// Where a new selector is available in the broker but not yet supported here,
+// you may use the UntypedConsumerVersionSelector to pass in arbitrary key/values
+//
+// Definitive list: https://github.com/pact-foundation/pact_broker/blob/master/spec/lib/pact_broker/api/contracts/verifiable_pacts_json_query_schema_combinations_spec.rb
 type ConsumerVersionSelector struct {
-	Pacticipant string `json:"pacticipant"`
-	Tag         string `json:"tag"`
-	Version     string `json:"version"`
-	Latest      bool   `json:"latest"`
-	All         bool   `json:"all"`
+	Tag                string `json:"tag,omitempty"`
+	FallbackTag        string `json:"fallbackTag,omitempty"`
+	Latest             bool   `json:"latest,omitempty"`
+	Consumer           string `json:"consumer,omitempty"`
+	DeployedOrReleased bool   `json:"deployedOrReleased,omitempty"`
+	Deployed           bool   `json:"deployed,omitempty"`
+	Released           bool   `json:"released,omitempty"`
+	Environment        string `json:"environment,omitempty"`
+	MainBranch         bool   `json:"mainBranch,omitempty"`
+	Branch             string `json:"branch,omitempty"`
 }
 
-// Validate the selector configuration
-func (c *ConsumerVersionSelector) Validate() error {
-	if c.All && c.Pacticipant == "" {
-		return fmt.Errorf("must provide a Pacticpant")
-	}
+// Type marker
+func (c *ConsumerVersionSelector) IsSelector() {
+}
 
-	if c.Pacticipant != "" && c.Tag == "" {
-		return fmt.Errorf("must provide at least a Tag if Pacticpant specified")
-	}
+type UntypedConsumerVersionSelector map[string]interface{}
 
-	if c.All && c.Latest {
-		return fmt.Errorf("cannot select both All and Latest")
-	}
+// Type marker
+func (c *UntypedConsumerVersionSelector) IsSelector() {
+}
 
-	return nil
+type Selector interface {
+	IsSelector()
 }

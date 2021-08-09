@@ -64,7 +64,7 @@ pact: clean install #docker
 
 publish:
 	@echo "-- 📃 Publishing pacts"
-	@"${PACT_CLI}" publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH}
+	@"${PACT_CLI}" publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH} --tag prod
 
 release:
 	echo "--- 🚀 Releasing it"

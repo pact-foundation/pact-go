@@ -53,7 +53,16 @@ func TestV3HTTPProvider(t *testing.T) {
 			filepath.ToSlash(fmt.Sprintf("%s/PactGoV3Consumer-V3Provider.json", pactDir)),
 			filepath.ToSlash(fmt.Sprintf("%s/PactGoV2ConsumerMatch-V2ProviderMatch.json", pactDir)),
 		},
-		RequestFilter: f,
+		ConsumerVersionSelectors: []Selector{
+			&ConsumerVersionSelector{
+				Tag: "master",
+			},
+			&ConsumerVersionSelector{
+				Tag: "prod",
+			},
+		},
+		PublishVerificationResults: true,
+		RequestFilter:              f,
 		BeforeEach: func() error {
 			log.Println("[DEBUG] HOOK before each")
 			return nil

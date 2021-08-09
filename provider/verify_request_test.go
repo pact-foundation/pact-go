@@ -81,12 +81,12 @@ func TestVerifyRequestValidate(t *testing.T) {
 			{name: "no pacticipant", request: VerifyRequest{
 				PactURLs:                 []string{"http://localhost:1234/path/to/pact"},
 				ProviderBaseURL:          "http://localhost:8080",
-				ConsumerVersionSelectors: []ConsumerVersionSelector{{}},
+				ConsumerVersionSelectors: []Selector{&ConsumerVersionSelector{}},
 			}, err: false},
 			{name: "pacticipant only", request: VerifyRequest{
 				PactURLs:                 []string{"http://localhost:1234/path/to/pact"},
 				ProviderBaseURL:          "http://localhost:8080",
-				ConsumerVersionSelectors: []ConsumerVersionSelector{{Pacticipant: "foo", Tag: "test"}},
+				ConsumerVersionSelectors: []Selector{&ConsumerVersionSelector{Consumer: "foo", Tag: "test"}},
 			}, err: false},
 		}
 		for _, tt := range tests {

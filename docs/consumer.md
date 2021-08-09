@@ -200,6 +200,6 @@ For V3 tests, these methods may be called multiple times, resulting in more than
 
 ## Publishing pacts to a Broker
 
-We recommend publishing the contracts to a Pact Broker (or https://pactflow.io) using the [CLI Tools]()https://docs.pact.io/implementation_guides/cli/#pact-cli.
+We recommend publishing the contracts to a [Pact Broker](https://docs.pact.io/pact_broker) using the [CLI Tools](https://docs.pact.io/implementation_guides/cli/#pact-cli).
 
 [Read more](https://docs.pact.io/pact_broker/publishing_and_retrieving_pacts/) about publishing pacts.

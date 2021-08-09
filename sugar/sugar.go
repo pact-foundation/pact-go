@@ -41,6 +41,8 @@ type VerifyRequest = provider.VerifyRequest
 type AsynchronousMessage = message.AsynchronousMessage
 type ProviderStateV3Response = models.ProviderStateV3Response
 type StateHandlers = models.StateHandlers
+type ConsumerVersionSelector = provider.ConsumerVersionSelector
+type Selector = provider.Selector
 
 // V2
 var Like = matchers.Like

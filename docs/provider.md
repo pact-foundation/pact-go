@@ -137,7 +137,51 @@ for different test cases:
 
 _Important Note_: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
 
-### Pending Pacts
+### Connecting to a Pact Broker
+
+In most cases, you will want to use a [Pact Broker](https://docs.pact.io/pact_broker) to manage your contracts.
+
+The first part of the configuration is to tell Pact how to connect to your broker:
+
+```golang
+		Provider:        "V3Provider",
+		ProviderVersion: os.Getenv("APP_SHA"),
+		BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
+```
+
+The provider name uniquely identifies the application and automatically discovers consumer contracts for this provider. The [version information](https://docs.pact.io/getting_started/versioning_in_the_pact_broker) is extremely important, and is used to send compatibility information back to the broker. This should be unique per build, and is recommended to be the Git SHA.
+
+#### Selecting pacts to verify
+
+Once connected to the broker, you need to configure which pacts you care about verifying. Consumer version selectors are how we do this. For example, in the following setup we collect all contracts where the tag is `master` or `prod`:
+
+```golang
+		ConsumerVersionSelectors: []Selector{
+			&ConsumerVersionSelector{
+				Tag: "master",
+			},
+			&ConsumerVersionSelector{
+				Tag: "prod",
+			},
+		},
+```
+
+Read more on [selectors](https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors/)
+
+#### Publishing test results
+
+Lastly, you will want to send the verification results so that consumers can query if they are safe
+to release. In your broker, it may look like this:
+
+![screenshot of verification result](https://cloud.githubusercontent.com/assets/53900/25884085/2066d98e-3593-11e7-82af-3b41a20af8e5.png)
+
+You need to specify the following in your verification options:
+
+```go
+PublishVerificationResults: true, // recommended only in CI
+```
+
+#### Pending Pacts
 
 Pending pacts is a feature that allows consumers to publish new contracts or changes to existing contracts without breaking Provider's builds. It does so by flagging the contract as "unverified" in the Pact Broker the first time a contract is published. A Provider can then enable a behaviour (via `EnablePending: true`) that will still perform a verification (and thus share the results back to the broker) but _not_ fail the verification step itself.
 
@@ -145,7 +189,7 @@ This enables safe introduction of new contracts into the system, without breakin
 
 See the [docs](https://docs.pact.io/pending) and this [article](http://blog.pact.io/2020/02/24/how-we-have-fixed-the-biggest-problem-with-the-pact-workflow/) for more background.
 
-### WIP Pacts
+#### WIP Pacts
 
 WIP Pacts builds upon pending pacts, enabling provider tests to pull in _any_ contracts applicable to the provider regardless of the `tag` it was given. This is useful, because often times consumers won't follow the exact same tagging convention and so their workflow would be interrupted. This feature enables any pacts determined to be "work in progress" to be verified by the Provider, without causing a build failure. You can enable this behaviour by specifying a valid `time.Time` field for `IncludeWIPPactsSince`. This sets the start window for which new WIP pacts will be pulled down for verification, regardless of the tag.
 
@@ -158,20 +202,3 @@ For each _interaction_ in a pact file, the order of execution is as follows:
 `BeforeEach` -> `StateHandler` -> `RequestFilter (pre)` -> `Execute Provider Test` -> `RequestFilter (post)` -> `AfterEach`
 
 If any of the middleware or hooks fail, the tests will also fail.
-
-### Publishing Provider Verification Results to a Pact Broker
-
-If you're using a Pact Broker (e.g. a hosted one at https://pactflow.io), you can
-publish your verification results so that consumers can query if they are safe
-to release.
-
-It looks like this:
-
-![screenshot of verification result](https://cloud.githubusercontent.com/assets/53900/25884085/2066d98e-3593-11e7-82af-3b41a20af8e5.png)
-
-You need to specify the following in your verification options:
-
-```go
-PublishVerificationResults: true,
-ProviderVersion:            "1.0.0",
-```
