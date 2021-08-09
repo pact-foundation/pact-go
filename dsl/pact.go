@@ -143,11 +143,11 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	}
 
 	if p.LogDir == "" {
-		p.LogDir = fmt.Sprintf(filepath.Join(dir, "logs"))
+		p.LogDir = filepath.Join(dir, "logs")
 	}
 
 	if p.PactDir == "" {
-		p.PactDir = fmt.Sprintf(filepath.Join(dir, "pacts"))
+		p.PactDir = filepath.Join(dir, "pacts")
 	}
 
 	if p.SpecificationVersion == 0 {
@@ -488,9 +488,13 @@ func stateHandlerMiddleware(stateHandlers types.StateHandlers) proxy.Middleware 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == providerStatesSetupPath {
-				var s *types.ProviderState
+				var s types.ProviderState
 				decoder := json.NewDecoder(r.Body)
-				decoder.Decode(&s)
+				if err := decoder.Decode(&s); err != nil {
+					log.Printf("[ERROR] failed to decode provider state: %v", err)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
 
 				// Setup any provider state
 				for _, state := range s.States {
@@ -582,12 +586,14 @@ var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHand
 		resBody, errM := json.Marshal(wrappedResponse)
 		if errM != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			log.Println("[ERROR] error marshalling objcet:", errM)
+			log.Println("[ERROR] error marshalling object:", errM)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(resBody)
+		if _, err := w.Write(resBody); err != nil {
+			log.Println("[ERROR] error writing response:", err)
+		}
 	}
 }
 
@@ -674,6 +680,7 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 		PactURLs:                   request.PactURLs,
 		BrokerURL:                  request.BrokerURL,
 		Tags:                       request.Tags,
+		ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
 		BrokerUsername:             request.BrokerUsername,
 		BrokerPassword:             request.BrokerPassword,
 		BrokerToken:                request.BrokerToken,
@@ -692,7 +699,12 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 	defer ln.Close()
 
 	log.Printf("[DEBUG] API handler starting: port %d (%s)", port, ln.Addr())
-	go http.Serve(ln, mux)
+	go func() {
+		if err := http.Serve(ln, mux); err != nil {
+			// NOTE: calling Fatalf causing test failures due to "accept tcp [::]:<port>: use of closed network connection"
+			log.Printf("[ERROR] API handler start failed: %v", err)
+		}
+	}()
 
 	portErr := waitForPort(port, "tcp", "localhost", p.ClientTimeout,
 		fmt.Sprintf(`Timed out waiting for pact proxy on port %d - check for errors`, port))
@@ -714,7 +726,7 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
 func (p *Pact) VerifyMessageConsumerRaw(message *Message, handler MessageConsumer) error {
-	log.Printf("[DEBUG] verify message")
+	log.Println("[DEBUG] verify message")
 	p.Setup(false)
 
 	// Reify the message back to its "example/generated" form

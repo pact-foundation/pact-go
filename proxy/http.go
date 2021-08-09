@@ -97,7 +97,7 @@ func HTTPReverseProxy(options Options) (int, error) {
 	wrapper := chainHandlers(append(options.Middleware, loggingMiddleware)...)
 
 	log.Println("[DEBUG] starting reverse proxy on port", port)
-	go http.ListenAndServe(fmt.Sprintf(":%d", port), wrapper(proxy))
+	go http.ListenAndServe(fmt.Sprintf(":%d", port), wrapper(proxy)) // nolint:errcheck
 
 	return port, nil
 }

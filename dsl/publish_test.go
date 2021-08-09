@@ -3,64 +3,12 @@ package dsl
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
-	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/types"
 )
-
-func createMockRemoteServer(valid bool) (*httptest.Server, string) {
-	file := createSimplePact(valid)
-	dir := filepath.Dir(file.Name())
-	path := filepath.Base(file.Name())
-	server := httptest.NewServer(http.FileServer(http.Dir(dir)))
-
-	return server, fmt.Sprintf("%s/%s", server.URL, path)
-}
-
-func createSimplePact(valid bool) *os.File {
-	var data []byte
-	if valid {
-		data = []byte(`
-    {
-      "consumer": {
-        "name": "Some Consumer"
-      },
-      "provider": {
-        "name": "Some Provider"
-      }
-    }
-  `)
-	} else {
-		data = []byte(`
-    {
-      "consumer": {
-        "name": "Some Consumer"
-      }
-    }
-  `)
-	}
-
-	tmpfile, err := ioutil.TempFile("", "pactgo")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if _, err := tmpfile.Write(data); err != nil {
-		log.Fatal(err)
-	}
-	if err := tmpfile.Close(); err != nil {
-		log.Fatal(err)
-	}
-
-	return tmpfile
-}
 
 var checkAuth = func(w http.ResponseWriter, r *http.Request) bool {
 	s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
@@ -79,21 +27,6 @@ var checkAuth = func(w http.ResponseWriter, r *http.Request) bool {
 	}
 
 	return pair[0] == "foo" && pair[1] == "bar"
-}
-
-func createMockRemoteServerWithAuth(valid bool) *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if checkAuth(w, r) {
-			w.Write([]byte("Authenticated!"))
-			return
-		}
-
-		w.Header().Set("WWW-Authenticate", `Basic realm="MY REALM"`)
-		w.WriteHeader(401)
-		w.Write([]byte("401 Unauthorized\n"))
-	}))
-
-	return ts
 }
 
 func TestPublish_Publish(t *testing.T) {

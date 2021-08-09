@@ -46,6 +46,7 @@ Read [Getting started with Pact] for more information for beginners.
   - [Installation](#installation)
     - [Go get](#go-get)
     - [Installation on \*nix](#installation-on-\nix)
+  - [V3 Beta](#v3-beta)
   - [Using Pact](#using-pact)
   - [HTTP API Testing](#http-api-testing)
     - [Consumer Side Testing](#consumer-side-testing)
@@ -99,6 +100,7 @@ Read [Getting started with Pact] for more information for beginners.
 
 | Version | Stable | [Spec] Compatibility | Install            |
 |---------|--------|----------------------|--------------------|
+| 2.x.x   | Beta   | 2, 3                 | See [v2.x.x] |
 | 1.0.x   | Yes    | 2, 3\*               | See [installation] |
 | 0.x.x   | Yes    | Up to v2             | 0.x.x [stable]     |
 
@@ -136,6 +138,10 @@ Test the installation:
 ```sh
 pact help
 ```
+
+## V3 Beta
+
+If you are interested in testing out the new new beta package that supports all of the V3 [spec], and moves to a rust shared core, please head to [v2.x.x] and also let us know on [slack].
 
 ## Using Pact
 
@@ -175,7 +181,7 @@ func TestConsumer(t *testing.T) {
 		u := fmt.Sprintf("http://localhost:%d/foobar", pact.Server.Port)
 		req, err := http.NewRequest("GET", u, strings.NewReader(`{"name":"billy"}`))
 		if err != nil {
-			return err
+			return
 		}
 
 		// NOTE: by default, request bodies are expected to be sent with a Content-Type
@@ -184,9 +190,8 @@ func TestConsumer(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer 1234")
 
-		if _, err = http.DefaultClient.Do(req); err != nil {
-			return err
-		}
+		_, err = http.DefaultClient.Do(req)
+		return
 	}
 
 	// Set up our expected interactions.
@@ -245,7 +250,7 @@ Here is the Provider test process broker down:
     }
     ```
 
-2)  Verify provider API
+2.  Verify provider API
 
     You can now tell Pact to read in your Pact files and verify that your API will
     satisfy the requirements of each of your known consumers:
@@ -282,7 +287,7 @@ and giving you granular test reporting. If you don't like this behaviour, you ma
 
 Note that `PactURLs` may be a list of local pact files or remote based
 urls (e.g. from a
-[Pact Broker](http://docs.pact.io/documentation/sharings_pacts.html)).
+[Pact Broker](https://docs.pact.io/pact_broker)).
 
 #### Provider Verification
 
@@ -918,8 +923,9 @@ Additional documentation can be found at the main [Pact website](https://pact.io
 
 ## Roadmap
 
-The [roadmap](https://docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
-Detail on the native Go implementation can be found [here](https://github.com/pact-foundation/pact-go/wiki/Native-implementation-roadmap).
+The current focus is on moving to the Rust shared core, the project can be followed [here](https://github.com/pact-foundation/pact-go/projects/2).
+
+The general [roadmap](https://docs.pact.io/roadmap/) for Pact is available on the Pact website.
 
 ## Contributing
 
@@ -931,7 +937,7 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
 [getting started with pact]: http://dius.com.au/2016/02/03/microservices-pact/
 [pact website]: https://docs.pact.io/
-[slack channel]: https://gophers.slack.com/messages/pact/
+[slack channel]: https://pact-foundation.slack.com
 [@pact_up]: https://twitter.com/pact_up
 [pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
 [pact specification v3]: https://github.com/pact-foundation/pact-specification/tree/version-3
@@ -943,3 +949,5 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [hosted broker]: https://pact.dius.com.au
 [can-i-deploy tool]: https://docs.pact.io/can_i_deploy
 [Pactflow]: https://pactflow.io
+[v2.x.x]: https://github.com/pact-foundation/pact-go/tree/2.x.x
+[slack]: https://slack.pact.io

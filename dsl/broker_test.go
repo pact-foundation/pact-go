@@ -24,7 +24,7 @@ func setupMockBroker(auth bool) *httptest.Server {
 
 				w.Header().Set("WWW-Authenticate", `Basic realm="Broker Authentication Required"`)
 				w.WriteHeader(401)
-				w.Write([]byte("401 Unauthorized\n"))
+				w.Write([]byte("401 Unauthorized\n")) // nolint:errcheck
 			})
 		}
 	} else {
@@ -67,7 +67,7 @@ func setupMockBroker(auth bool) *httptest.Server {
 	mux.Handle("/pacts/provider/broken/latest/dev", authFunc(func(w http.ResponseWriter, req *http.Request) {
 		log.Println("[DEBUG] broker broker response")
 		w.WriteHeader(500)
-		w.Write([]byte("500 Server Error\n"))
+		w.Write([]byte("500 Server Error\n")) // nolint:errcheck
 	}))
 
 	// Find 'bobby' consumers for tag 'dev'

@@ -5,6 +5,35 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.6.4 (09 August 2021)
+  * [936315b](https://github.com/pact-foundation/pact-go/commit/936315b) - chore: tidy up consumer version selectors (Matt Fellows, Mon Aug 9 17:14:57 2021 +1000)
+  * [01b8e81](https://github.com/pact-foundation/pact-go/commit/01b8e81) - fix: fixed linter errors in dsl/pact (antklim, Fri Jul 30 17:27:18 2021 +1000)
+  * [5a5ef03](https://github.com/pact-foundation/pact-go/commit/5a5ef03) - fix: fixed linter errors in client/service_manager (antklim, Fri Jul 30 17:17:37 2021 +1000)
+  * [72a05bf](https://github.com/pact-foundation/pact-go/commit/72a05bf) - fix: fixing linter errors in client/service_manager (antklim, Fri Jul 30 17:14:16 2021 +1000)
+  * [60ddda1](https://github.com/pact-foundation/pact-go/commit/60ddda1) - fix: fixed linter errors in dsl/client (antklim, Fri Jul 30 17:09:11 2021 +1000)
+  * [d88f9c3](https://github.com/pact-foundation/pact-go/commit/d88f9c3) - fix: fixing linter errors in dsl/client (antklim, Fri Jul 30 17:06:45 2021 +1000)
+  * [4f57f48](https://github.com/pact-foundation/pact-go/commit/4f57f48) - fix: fixing linter error in dsl/pact (antklim, Fri Jul 30 16:57:38 2021 +1000)
+  * [6bc61f4](https://github.com/pact-foundation/pact-go/commit/6bc61f4) - fix: fixing linter in dsl and client packages (antklim, Fri Jul 30 12:56:10 2021 +1000)
+  * [1ccc97e](https://github.com/pact-foundation/pact-go/commit/1ccc97e) - fix: fixed linter errors in test files (antklim, Fri Jul 30 12:09:44 2021 +1000)
+
+### v1.6.3 (09 August 2021)
+  * [530d6ce](https://github.com/pact-foundation/pact-go/commit/530d6ce) - chore: tidy up consumer version selectors (Matt Fellows, Mon Aug 9 17:14:57 2021 +1000)
+  * [de0bb5e](https://github.com/pact-foundation/pact-go/commit/de0bb5e) - feat: support release and environment consumer version selectors (antklim, Thu Jul 29 17:57:40 2021 +1000)
+
+### v1.5.3 (03 July 2021)
+  * [5903b70](https://github.com/pact-foundation/pact-go/commit/5903b70) - fix: handle verification response correctly (bbmokus, Fri Jul 2 16:49:11 2021 +0200)
+  * [d879a4b](https://github.com/pact-foundation/pact-go/commit/d879a4b) - fix(readme): update link to pact broker (Travis Dixon, Mon Jun 21 08:35:50 2021 +1000)
+  * [2c7a939](https://github.com/pact-foundation/pact-go/commit/2c7a939) - docs: clarify how the verification runs if both PactURLs and BrokerURL are provided (Matt Fellows, Wed Jun 16 11:16:31 2021 +1000)
+  * [65f4304](https://github.com/pact-foundation/pact-go/commit/65f4304) - Pass consumer version selectors in VerifyMessageProviderRaw (James Halsall, Tue Jun 15 09:50:46 2021 +0100)
+  * [629d508](https://github.com/pact-foundation/pact-go/commit/629d508) - docs: add note about roadmap/rust shared core (Matt Fellows, Sun May 30 12:18:41 2021 +1000)
+  * [a1d589a](https://github.com/pact-foundation/pact-go/commit/a1d589a) - chore: update slack links (Matt Fellows, Sat May 29 22:57:03 2021 +1000)
+  * [aa482a7](https://github.com/pact-foundation/pact-go/commit/aa482a7) - chore: add link to v3 beta (Matt Fellows, Sat May 29 22:55:59 2021 +1000)
+  * [bc10b4b](https://github.com/pact-foundation/pact-go/commit/bc10b4b) - fix: Dockerfile to reduce vulnerabilities (snyk-bot, Wed Mar 31 06:18:39 2021 +0000)
+  * [6d76336](https://github.com/pact-foundation/pact-go/commit/6d76336) - doc: small fix in golang README (Duke, Fri Mar 5 18:17:01 2021 -0300)
+  * [f0d0443](https://github.com/pact-foundation/pact-go/commit/f0d0443) - refactor: remove unnecessary return (g1stavo, Fri Feb 26 09:41:59 2021 -0300)
+  * [8cde90c](https://github.com/pact-foundation/pact-go/commit/8cde90c) - docs: omit explicit returns (g1stavo, Fri Feb 26 00:29:10 2021 -0300)
+  * [d1484a4](https://github.com/pact-foundation/pact-go/commit/d1484a4) - docs: add missing return (g1stavo, Fri Feb 26 00:18:43 2021 -0300)
+
 ### v1.5.2 (25 March 2021)
   * [bae7fd8](https://github.com/pact-foundation/pact-go/commit/bae7fd8) - chore: demonstrate use of loglevel and log dir for TLS provider (Matt Fellows, Thu Mar 25 13:19:45 2021 +1100)
   * [8ed3655](https://github.com/pact-foundation/pact-go/commit/8ed3655) - chore: add log level to verifier CLI (Matt Fellows, Thu Mar 25 13:15:44 2021 +1100)

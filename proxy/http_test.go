@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +31,7 @@ func TestLoggingMiddleware(t *testing.T) {
 
 	loggingMiddleware(dummyHandler("X-Dummy-Handler")).ServeHTTP(rr, req)
 
-	if h := rr.HeaderMap.Get("X-Dummy-Handler"); h != "true" {
+	if h := rr.Header().Get("X-Dummy-Handler"); h != "true" {
 		t.Errorf("expected handler to set the header 'X-Dummy-Handler: true' but got '%v'",
 			h)
 	}
@@ -63,7 +62,7 @@ func TestChainHandlers(t *testing.T) {
 	middlewareChain(dummyHandler("X-Dummy-Handler")).ServeHTTP(rr, req)
 
 	for _, h := range headers {
-		if v := rr.HeaderMap.Get(h); v != "true" {
+		if v := rr.Header().Get(h); v != "true" {
 			t.Errorf("expected handler to set the header '%v: true' but got '%v'",
 				h, v)
 		}
@@ -78,7 +77,7 @@ func TestHTTPReverseProxy(t *testing.T) {
 			DummyMiddleware("1"),
 		},
 		TargetScheme:  "http",
-		TargetAddress: fmt.Sprintf("127.0.0.1:1234"),
+		TargetAddress: "127.0.0.1:1234",
 	})
 
 	if err != nil {
