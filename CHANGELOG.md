@@ -5,6 +5,17 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.6.4 (09 August 2021)
+  * [936315b](https://github.com/pact-foundation/pact-go/commit/936315b) - chore: tidy up consumer version selectors (Matt Fellows, Mon Aug 9 17:14:57 2021 +1000)
+  * [01b8e81](https://github.com/pact-foundation/pact-go/commit/01b8e81) - fix: fixed linter errors in dsl/pact (antklim, Fri Jul 30 17:27:18 2021 +1000)
+  * [5a5ef03](https://github.com/pact-foundation/pact-go/commit/5a5ef03) - fix: fixed linter errors in client/service_manager (antklim, Fri Jul 30 17:17:37 2021 +1000)
+  * [72a05bf](https://github.com/pact-foundation/pact-go/commit/72a05bf) - fix: fixing linter errors in client/service_manager (antklim, Fri Jul 30 17:14:16 2021 +1000)
+  * [60ddda1](https://github.com/pact-foundation/pact-go/commit/60ddda1) - fix: fixed linter errors in dsl/client (antklim, Fri Jul 30 17:09:11 2021 +1000)
+  * [d88f9c3](https://github.com/pact-foundation/pact-go/commit/d88f9c3) - fix: fixing linter errors in dsl/client (antklim, Fri Jul 30 17:06:45 2021 +1000)
+  * [4f57f48](https://github.com/pact-foundation/pact-go/commit/4f57f48) - fix: fixing linter error in dsl/pact (antklim, Fri Jul 30 16:57:38 2021 +1000)
+  * [6bc61f4](https://github.com/pact-foundation/pact-go/commit/6bc61f4) - fix: fixing linter in dsl and client packages (antklim, Fri Jul 30 12:56:10 2021 +1000)
+  * [1ccc97e](https://github.com/pact-foundation/pact-go/commit/1ccc97e) - fix: fixed linter errors in test files (antklim, Fri Jul 30 12:09:44 2021 +1000)
+
 ### v1.6.3 (09 August 2021)
   * [530d6ce](https://github.com/pact-foundation/pact-go/commit/530d6ce) - chore: tidy up consumer version selectors (Matt Fellows, Mon Aug 9 17:14:57 2021 +1000)
   * [de0bb5e](https://github.com/pact-foundation/pact-go/commit/de0bb5e) - feat: support release and environment consumer version selectors (antklim, Thu Jul 29 17:57:40 2021 +1000)
