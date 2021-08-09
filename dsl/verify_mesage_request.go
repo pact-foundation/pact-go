@@ -21,7 +21,7 @@ type VerifyMessageRequest struct {
 	// Selectors are the way we specify which pacticipants and
 	// versions we want to use when configuring verifications
 	// See https://docs.pact.io/selectors for more
-	ConsumerVersionSelectors []types.ConsumerVersionSelector
+	ConsumerVersionSelectors []types.Selector
 
 	// Username when authenticating to a Pact Broker.
 	BrokerUsername string
