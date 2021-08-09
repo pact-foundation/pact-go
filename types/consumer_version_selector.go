@@ -6,11 +6,16 @@ import "fmt"
 // versions we want to use when configuring verifications
 // See https://docs.pact.io/selectors for more
 type ConsumerVersionSelector struct {
-	Pacticipant string `json:"pacticipant"`
-	Tag         string `json:"tag"`
-	Version     string `json:"version"`
-	Latest      bool   `json:"latest"`
-	All         bool   `json:"all"`
+	Pacticipant        string `json:"pacticipant"`
+	Tag                string `json:"tag"`
+	Version            string `json:"version"`
+	Latest             bool   `json:"latest"`
+	All                bool   `json:"all"`
+	Consumer           string `json:"consumer"`
+	DeployedOrReleased bool   `json:"deployedOrReleased"`
+	Deployed           bool   `json:"deployed"`
+	Released           bool   `json:"released"`
+	Environment        string `json:"environment"`
 }
 
 // Validate the selector configuration
