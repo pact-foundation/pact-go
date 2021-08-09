@@ -1,35 +1,50 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 // ConsumerVersionSelector are the way we specify which pacticipants and
 // versions we want to use when configuring verifications
 // See https://docs.pact.io/selectors for more
 type ConsumerVersionSelector struct {
-	Pacticipant        string `json:"pacticipant"`
-	Tag                string `json:"tag"`
-	Version            string `json:"version"`
-	Latest             bool   `json:"latest"`
-	All                bool   `json:"all"`
-	Consumer           string `json:"consumer"`
-	DeployedOrReleased bool   `json:"deployedOrReleased"`
-	Deployed           bool   `json:"deployed"`
-	Released           bool   `json:"released"`
-	Environment        string `json:"environment"`
+	Pacticipant        string `json:"-"` // Deprecated
+	All                bool   `json:"-"` // Deprecated
+	Version            string `json:"-"` // Deprecated
+	Tag                string `json:"tag,omitempty"`
+	FallbackTag        string `json:"fallbackTag,omitempty"`
+	Latest             bool   `json:"latest,omitempty"`
+	Consumer           string `json:"consumer,omitempty"`
+	DeployedOrReleased bool   `json:"deployedOrReleased,omitempty"`
+	Deployed           bool   `json:"deployed,omitempty"`
+	Released           bool   `json:"released,omitempty"`
+	Environment        string `json:"environment,omitempty"`
+	MainBranch         bool   `json:"mainBranch,omitempty"`
+	Branch             string `json:"branch,omitempty"`
 }
 
 // Validate the selector configuration
 func (c *ConsumerVersionSelector) Validate() error {
-	if c.All && c.Pacticipant == "" {
-		return fmt.Errorf("must provide a Pacticpant")
-	}
-
-	if c.Pacticipant != "" && c.Tag == "" {
-		return fmt.Errorf("must provide at least a Tag if Pacticpant specified")
-	}
-
 	if c.All && c.Latest {
 		return fmt.Errorf("cannot select both All and Latest")
+	}
+
+	if c.All {
+		c.Latest = false
+	}
+
+	if c.Pacticipant != "" && c.Consumer != "" {
+		return fmt.Errorf("cannot select deprecated field 'Pacticipant' along with Consumer, use only 'Consumer'")
+	}
+
+	if c.Pacticipant != "" {
+		c.Consumer = c.Pacticipant
+		log.Println("[WARN] 'Pacticipant' is deprecated, please use 'Consumer'. 'Consumer' has been automatically set to", c.Pacticipant)
+	}
+
+	if c.Version != "" {
+		log.Println("[WARN] 'Version' is deprecated and has no effect")
 	}
 
 	return nil
