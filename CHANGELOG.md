@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.0-beta.2 (09 August 2021)
+
+
 ### v2.0.0-beta.2 (27 July 2021)
   * [f149155](https://github.com/pact-foundation/pact-go/commit/f149155) - chore: update CI build properties (Matt Fellows, Tue Jul 27 23:44:39 2021 +1000)
   * [a2fee63](https://github.com/pact-foundation/pact-go/commit/a2fee63) - test: make tests validate local and files from a pact broker (Matt Fellows, Tue Jul 27 23:30:45 2021 +1000)
