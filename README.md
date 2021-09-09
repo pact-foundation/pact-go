@@ -139,6 +139,8 @@ Test the installation:
 pact help
 ```
 
+_NOTE_: the above script installs the latest standalone tools at the time it was ran. It is recommended you pin the installation to a [specific version](https://github.com/pact-foundation/pact-ruby-standalone/releases) of a release so that you may control the upgrade cycle.
+
 ## V3 Beta
 
 If you are interested in testing out the new new beta package that supports all of the V3 [spec], and moves to a rust shared core, please head to [v2.x.x] and also let us know on [slack].
