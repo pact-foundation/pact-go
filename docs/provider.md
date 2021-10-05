@@ -199,6 +199,6 @@ See the [docs](https://docs.pact.io/wip) and this [article](http://blog.pact.io/
 
 For each _interaction_ in a pact file, the order of execution is as follows:
 
-`BeforeEach` -> `StateHandler` -> `RequestFilter (pre)` -> `Execute Provider Test` -> `RequestFilter (post)` -> `AfterEach`
+`BeforeEach` -> `StateHandler (pre)` -> `RequestFilter (pre)` -> `Execute Provider Test` -> `RequestFilter (post)` -> `StateHandler (post)` -> `AfterEach`
 
 If any of the middleware or hooks fail, the tests will also fail.
