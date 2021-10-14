@@ -80,7 +80,7 @@ Learn everything in Pact Go in 60 minutes: https://github.com/pact-foundation/pa
 
 ```shell
 # install pact-go as a dev dependency
-go get github.com/pact-foundation/pact-go/v2/@2.x.x
+go get github.com/pact-foundation/pact-go/v2@2.x.x
 
 # download and install the required libraries
 pact-go -l DEBUG install
