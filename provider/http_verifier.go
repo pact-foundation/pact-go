@@ -55,6 +55,9 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 		m = append(m, afterEachMiddleware(request.AfterEach))
 	}
 
+	// TODO Results in different error messaging for missing handlers.
+	// `WARNING: State Change ignored as there is no state change URL provided`(highlighted) when len == 0 vs
+	// `[WARN] no state handler found for state: Item Exists`(non-highlighted) when len > 0 && not found
 	if len(request.StateHandlers) > 0 {
 		m = append(m, stateHandlerMiddleware(request.StateHandlers))
 	}

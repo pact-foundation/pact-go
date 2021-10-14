@@ -43,6 +43,30 @@ type AllInteractionResponse struct {
 	interaction       *Interaction
 }
 
+func (i *Interaction) Given(state string) *Interaction {
+	i.interaction.Given(state)
+
+	return i
+}
+
+func (i *Interaction) GivenWithParameter(state string, parameters map[string]interface{}) *Interaction {
+	if i.specificationVersion == models.V2 && len(parameters) > 0 {
+		// This is an error, v2 does not support parameterized states.
+		// TODO
+		// - Is there a better way to handle this? Perhaps issue a warning and call i.Given(state)
+		// - What about issuing a warning and "upgrading" this to a v3 interaction, much the way using a v3 matcher might?
+		panic("GivenWithParameter called with parameters on pact V2 Interaction.")
+	}
+
+	if len(parameters) > 0 {
+		i.interaction.GivenWithParameter(state, parameters)
+	} else {
+		i.interaction.Given(state)
+	}
+
+	return i
+}
+
 // UponReceiving specifies the name of the test case. This becomes the name of
 // the consumer/provider pair in the Pact file. Mandatory.
 func (i *Interaction) UponReceiving(description string) *Interaction {

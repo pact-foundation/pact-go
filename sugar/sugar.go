@@ -19,8 +19,7 @@ type String = matchers.String
 type S = matchers.S
 
 // HTTP
-var NewV2Pact = consumer.NewV2Pact
-var NewV3Pact = consumer.NewV3Pact
+var NewPact = consumer.NewPact
 
 type HTTPVerifier = provider.HTTPVerifier
 

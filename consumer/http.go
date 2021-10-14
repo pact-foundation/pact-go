@@ -32,6 +32,27 @@ func init() {
 	logging.InitLogging()
 }
 
+// MockProvider is the entrypoint for http consumer tests
+//
+// Not thread safe
+type MockProvider interface {
+	AddInteraction() *Interaction
+	ExecuteTest(t *testing.T, integrationTest func(MockServerConfig) error) error
+}
+
+// PactOption models functional options for NewPact
+type PactOption func(p *httpMockProvider) error
+
+func OptionV2Pact() PactOption {
+	fn := func(p *httpMockProvider) error {
+		p.specificationVersion = models.V2
+
+		return nil
+	}
+
+	return fn
+}
+
 // MockHTTPProviderConfig provides the configuration options for an HTTP mock server
 // consumer test.
 type MockHTTPProviderConfig struct {
@@ -125,6 +146,42 @@ func (p *httpMockProvider) configure() error {
 	native.Init()
 
 	return nil
+}
+
+// NewPact configures a new HTTP Mock Provider for consumer tests.
+// Uses V3 by default but can be set to V2 by passing OptionV2Pact()
+func NewPact(config MockHTTPProviderConfig, opts ...PactOption) (MockProvider, error) {
+	provider := &httpMockProvider{
+		config:               config,
+		specificationVersion: models.V3,
+	}
+
+	for _, opt := range opts {
+		err := opt(provider)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err := provider.configure()
+	if err != nil {
+		return nil, err
+	}
+
+	return provider, err
+}
+
+func (p *httpMockProvider) AddInteraction() *Interaction {
+	log.Println("[DEBUG] pact add interaction")
+
+	ni := p.mockserver.NewInteraction("")
+
+	i := &Interaction{
+		interaction:          ni,
+		specificationVersion: p.specificationVersion,
+	}
+
+	return i
 }
 
 // ExecuteTest runs the current test case against a Mock Service.

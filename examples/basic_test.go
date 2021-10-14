@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/pact-foundation/pact-go/v2/consumer"
 	. "github.com/pact-foundation/pact-go/v2/sugar"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,10 +14,10 @@ import (
 func TestProductAPIClient(t *testing.T) {
 	// Specify the two applications in the integration we are testing
 	// NOTE: this can usually be extracted out of the individual test for re-use)
-	mockProvider, err := NewV2Pact(MockHTTPProviderConfig{
+	mockProvider, err := NewPact(MockHTTPProviderConfig{
 		Consumer: "PactGoProductAPIConsumer",
 		Provider: "PactGoProductAPI",
-	})
+	}, consumer.OptionV2Pact())
 	assert.NoError(t, err)
 
 	// Arrange: Setup our expected interactions
