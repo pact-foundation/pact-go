@@ -10,7 +10,7 @@ type InteractionV3 struct {
 
 // Given specifies a provider state, may be called multiple times. Optional.
 func (i *InteractionV3) Given(state models.ProviderStateV3) *InteractionV3 {
-	if len(state.Parameters) == 0 {
+	if len(state.Parameters) > 0 {
 		i.Interaction.interaction.GivenWithParameter(state.Name, state.Parameters)
 	} else {
 		i.Interaction.interaction.Given(state.Name)
