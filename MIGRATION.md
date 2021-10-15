@@ -30,7 +30,7 @@ The following package exposes aliases for the most commonly used interfaces for 
 
 #### Primary Interface
 
-- `dsl.Pact` was the primary interface. This is now replaced with `NewPactV2` and the `NewPactV3` methods, which will return you a builder for the corresponding specification.
+- `dsl.Pact` was the primary interface. This is now replaced with `NewV2Pact` and the `NewV3Pact` methods, which will return you a builder for the corresponding specification.
 - `Verify` is now `ExecuteTest` to avoid ambiguity with provider side verification. It also accepts a `*testing.T` argument, to improve error reporting and resolution.
 
 These are available in consumer package: `"github.com/pact-foundation/pact-go/v2/consumer"`
@@ -83,7 +83,7 @@ Query strings are now accepted (and [encoded](https://github.com/pact-foundation
 
 - `dsl.Pact` was the primary interface. This is now replaced with `HTTPVerifier` struct and `VerifyProvider` method.
 
-These are available in consumer package: `"github.com/pact-foundation/pact-go/v2/provider"`
+These are available in provider package: `"github.com/pact-foundation/pact-go/v2/provider"`
 
 #### Provider State Handlers
 
