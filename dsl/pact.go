@@ -374,6 +374,7 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderV
 		ConsumerVersionSelectors:   request.ConsumerVersionSelectors,
 		EnablePending:              request.EnablePending,
 		ProviderTags:               request.ProviderTags,
+		ProviderBranch:             request.ProviderBranch,
 		Verbose:                    request.Verbose,
 		FailIfNoPactsFound:         request.FailIfNoPactsFound,
 		IncludeWIPPactsSince:       request.IncludeWIPPactsSince,
