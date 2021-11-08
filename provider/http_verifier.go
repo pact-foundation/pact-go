@@ -102,6 +102,7 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 		Provider:                   request.Provider,
 		ProviderStatesSetupURL:     setupURL,
 		ProviderTags:               request.ProviderTags,
+		ProviderBranch:             request.ProviderBranch,
 		// CustomProviderHeaders:      request.CustomProviderHeaders,
 		ConsumerVersionSelectors: request.ConsumerVersionSelectors,
 		EnablePending:            request.EnablePending,

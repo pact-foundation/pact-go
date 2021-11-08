@@ -70,6 +70,9 @@ type VerifyRequest struct {
 	// Tags to apply to the provider application version
 	ProviderTags []string
 
+	// Branch to apply to the provider application version
+	ProviderBranch string
+
 	// ProviderStatesSetupURL is the endpoint to post current provider state
 	// to on the Provider API.
 	// Deprecated: For backward compatibility ProviderStatesSetupURL is
@@ -257,6 +260,10 @@ func (v *VerifyRequest) validate() error {
 
 	if len(v.ProviderTags) > 0 {
 		v.args = append(v.args, "--provider-tags", strings.Join(v.ProviderTags, ","))
+	}
+
+	if v.ProviderBranch != "" {
+		v.args = append(v.args, "--provider-branch", v.ProviderBranch)
 	}
 
 	v.args = append(v.args, "--loglevel", strings.ToLower(string(logging.LogLevel())))
