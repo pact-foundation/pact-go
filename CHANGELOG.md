@@ -5,6 +5,18 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.6.5 (09 November 2021)
+  * [030da88](https://github.com/pact-foundation/pact-go/commit/030da88) - chore: go mod tidy (David Fleming, Mon Nov 8 12:17:25 2021 -0500)
+  * [3dc7736](https://github.com/pact-foundation/pact-go/commit/3dc7736) - feat: update to standalone 1.88.78 and support new verifier option: --provider-version-branch (David Fleming, Thu Nov 4 15:47:19 2021 -0400)
+  * [511f144](https://github.com/pact-foundation/pact-go/commit/511f144) - fix: Dockerfile to reduce vulnerabilities (snyk-bot, Thu Oct 14 07:22:29 2021 +0000)
+  * [493f853](https://github.com/pact-foundation/pact-go/commit/493f853) - fix: Dockerfile to reduce vulnerabilities (snyk-bot, Thu Sep 30 05:23:55 2021 +0000)
+  * [7549f57](https://github.com/pact-foundation/pact-go/commit/7549f57) - chore: update installation docs to recommend pinning standalone package (Matt Fellows, Thu Sep 9 13:53:27 2021 +1000)
+  * [6ab2895](https://github.com/pact-foundation/pact-go/commit/6ab2895) - build(deps): bump github.com/gin-gonic/gin from 1.6.3 to 1.7.2 (dependabot-preview[bot], Mon May 24 19:23:29 2021 +0000)
+  * [fccd0c7](https://github.com/pact-foundation/pact-go/commit/fccd0c7) - Upgrade to GitHub-native Dependabot (dependabot-preview[bot], Wed Apr 28 22:24:10 2021 +0000)
+  * [942b1a2](https://github.com/pact-foundation/pact-go/commit/942b1a2) - build(deps): bump github.com/hashicorp/go-version from 1.0.0 to 1.3.0 (dependabot-preview[bot], Wed Mar 31 19:25:44 2021 +0000)
+  * [0975c27](https://github.com/pact-foundation/pact-go/commit/0975c27) - fix: Dockerfile to reduce vulnerabilities (snyk-bot, Thu Mar 25 06:15:10 2021 +0000)
+  * [f10eb78](https://github.com/pact-foundation/pact-go/commit/f10eb78) - build(deps): bump github.com/stretchr/testify from 1.4.0 to 1.7.0 (dependabot-preview[bot], Wed Jan 13 19:43:03 2021 +0000)
+
 ### v1.6.4 (09 August 2021)
   * [936315b](https://github.com/pact-foundation/pact-go/commit/936315b) - chore: tidy up consumer version selectors (Matt Fellows, Mon Aug 9 17:14:57 2021 +1000)
   * [01b8e81](https://github.com/pact-foundation/pact-go/commit/01b8e81) - fix: fixed linter errors in dsl/pact (antklim, Fri Jul 30 17:27:18 2021 +1000)
