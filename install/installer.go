@@ -18,7 +18,7 @@ type Installer struct {
 
 const (
 	mockServiceRange = ">= 3.5.0, < 4.0.0"
-	verifierRange    = ">= 1.31.0, < 2.0.0"
+	verifierRange    = ">= 1.36.1, < 2.0.0"
 	brokerRange      = ">= 1.22.3"
 )
 
