@@ -212,6 +212,7 @@ func appendMetadataToResponse(res interface{}, metadata MessageMetadata) ([]byte
 }
 
 var PACT_MESSAGE_METADATA_HEADER = "PACT_MESSAGE_METADATA"
+var PACT_MESSAGE_METADATA_HEADER2 = "Pact-Message-Metadata"
 
 func appendMetadataToResponseHeaders(metadata MessageMetadata, w http.ResponseWriter) {
 	if len(metadata) > 0 {
@@ -226,6 +227,7 @@ func appendMetadataToResponseHeaders(metadata MessageMetadata, w http.ResponseWr
 		log.Println("[TRACE] encoded metadata to base64:", encoded)
 
 		w.Header().Add(PACT_MESSAGE_METADATA_HEADER, encoded)
+		w.Header().Add(PACT_MESSAGE_METADATA_HEADER2, encoded)
 	}
 }
 
