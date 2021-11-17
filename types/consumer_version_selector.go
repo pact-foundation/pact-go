@@ -22,6 +22,7 @@ type ConsumerVersionSelector struct {
 	Environment        string `json:"environment,omitempty"`
 	MainBranch         bool   `json:"mainBranch,omitempty"`
 	Branch             string `json:"branch,omitempty"`
+	MatchingBranch     bool   `json:"matchingBranch,omitempty"`
 }
 
 // Validate the selector configuration
