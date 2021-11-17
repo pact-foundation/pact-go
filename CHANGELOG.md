@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.0-beta.9 (17 November 2021)
+
+
 ### v2.0.0-beta.8 (14 October 2021)
 
 
