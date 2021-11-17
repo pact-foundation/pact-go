@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.6.6 (17 November 2021)
+  * [ad35b25](https://github.com/pact-foundation/pact-go/commit/ad35b25) - feat: support matching branch selector. Fixes #184 (Matt Fellows, Wed Nov 17 17:32:44 2021 +1100)
+
 ### v1.6.5 (09 November 2021)
   * [030da88](https://github.com/pact-foundation/pact-go/commit/030da88) - chore: go mod tidy (David Fleming, Mon Nov 8 12:17:25 2021 -0500)
   * [3dc7736](https://github.com/pact-foundation/pact-go/commit/3dc7736) - feat: update to standalone 1.88.78 and support new verifier option: --provider-version-branch (David Fleming, Thu Nov 4 15:47:19 2021 -0400)
