@@ -18,6 +18,7 @@ type ConsumerVersionSelector struct {
 	Released           bool   `json:"released,omitempty"`
 	Environment        string `json:"environment,omitempty"`
 	MainBranch         bool   `json:"mainBranch,omitempty"`
+	MatchingBranch     bool   `json:"matchingBranch,omitempty"`
 	Branch             string `json:"branch,omitempty"`
 }
 
