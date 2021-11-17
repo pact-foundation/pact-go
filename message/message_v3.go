@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/pact-foundation/pact-go/v2/internal/native"
 	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 )
 
@@ -34,6 +35,8 @@ func NewMessagePactV3(config MessageConfig) (*MessagePactV3, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	native.Init()
 
 	return provider, err
 }

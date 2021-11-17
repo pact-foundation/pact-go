@@ -10,14 +10,13 @@ typedef int bool;
 
 typedef struct MessageHandle MessageHandle;
 struct MessageHandle {
-	uintptr_t pact;
-  uintptr_t message;
+	unsigned int interaction_ref;
 };
 
 /// Wraps a PactMessage model struct
 typedef struct MessagePactHandle MessagePactHandle;
 struct MessagePactHandle {
-  uintptr_t pact;
+  unsigned int pact_ref;
 };
 
 MessagePactHandle pactffi_new_message_pact(const char *consumer_name, const char *provider_name);
@@ -161,8 +160,6 @@ func (i *Message) WithContents(contentType string, body []byte) *Message {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	cBytes := C.CString(string(body))
-	defer free(cBytes)
 	C.pactffi_message_with_contents(i.handle, cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 
 	return i

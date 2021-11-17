@@ -301,7 +301,6 @@ func (v *VerifyRequest) Verify(writer outputWriter) error {
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
 	service := native.Verifier{}
-	native.Init()
 	res := service.Verify(v.args)
 
 	return res

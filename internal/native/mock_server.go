@@ -15,26 +15,13 @@ char* pactffi_version();
 typedef struct InteractionHandle InteractionHandle;
 
 struct InteractionHandle {
-	uintptr_t pact;
-  uintptr_t interaction;
-};
-
-typedef struct MessageHandle MessageHandle;
-struct MessageHandle {
-	uintptr_t pact;
-  uintptr_t message;
+	unsigned int interaction_ref;
 };
 
 /// Wraps a Pact model struct
 typedef struct PactHandle PactHandle;
 struct PactHandle {
-	uintptr_t pact;
-	};
-
-/// Wraps a PactMessage model struct
-typedef struct MessagePactHandle MessagePactHandle;
-struct MessagePactHandle {
-  uintptr_t pact;
+	unsigned int pact_ref;
 };
 
 /// External interface to cleanup a mock server. This function will try terminate the mock server

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	native "github.com/pact-foundation/pact-go/v2/internal/native"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
 )
@@ -119,6 +120,7 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 	}
 
 	log.Println("[DEBUG] pact provider verification")
+	native.Init()
 
 	return verificationRequest.Verify(writer)
 }
