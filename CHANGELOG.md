@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.6.7 (20 December 2021)
+  * [5160a01](https://github.com/pact-foundation/pact-go/commit/5160a01) - fix: allow provider log level to be set/logged to file (Matt Fellows, Mon Dec 20 16:28:15 2021 +1100)
+
 ### v1.6.6 (17 November 2021)
   * [ad35b25](https://github.com/pact-foundation/pact-go/commit/ad35b25) - feat: support matching branch selector. Fixes #184 (Matt Fellows, Wed Nov 17 17:32:44 2021 +1100)
 
