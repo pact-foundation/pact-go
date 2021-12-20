@@ -689,6 +689,8 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 		ProviderVersion:            request.ProviderVersion,
 		ProviderTags:               request.ProviderTags,
 		Provider:                   p.Provider,
+		PactLogDir:                 p.LogDir,
+		PactLogLevel:               p.LogLevel,
 	}
 
 	mux.HandleFunc("/", messageVerificationHandler(request.MessageHandlers, request.StateHandlers))

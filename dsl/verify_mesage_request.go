@@ -51,6 +51,15 @@ type VerifyMessageRequest struct {
 	// verification step.
 	StateHandlers StateHandlers
 
+	// Specify an output directory to log all of the verification request/responses
+	// seen by the verification process. Useful to debug issues with your contract
+	// and API
+	PactLogDir string
+
+	// Specify the log verbosity of the CLI verifier process spawned through verification
+	// Useful for debugging issues with the framework itself
+	PactLogLevel string
+
 	// Arguments to the VerificationProvider
 	// Deprecated: This will be deleted after the native library replaces Ruby deps.
 	Args []string
@@ -84,6 +93,14 @@ func (v *VerifyMessageRequest) Validate() error {
 
 	if v.PublishVerificationResults {
 		v.Args = append(v.Args, "--publish_verification_results", "true")
+	}
+
+	if v.PactLogDir != "" {
+		v.Args = append(v.Args, "--log-dir", v.PactLogDir)
+	}
+
+	if v.PactLogLevel != "" {
+		v.Args = append(v.Args, "--log-level", v.PactLogLevel)
 	}
 
 	return nil

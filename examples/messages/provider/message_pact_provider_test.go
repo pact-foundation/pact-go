@@ -62,6 +62,8 @@ func TestExampleMessageProvider_Success(t *testing.T) {
 		PactURLs:        []string{filepath.ToSlash(fmt.Sprintf("%s/pactgomessageconsumer-pactgomessageprovider.json", pactDir))},
 		MessageHandlers: functionMappings,
 		StateHandlers:   stateMappings,
+		PactLogDir:      filepath.ToSlash(fmt.Sprintf("%s/logs", pactDir)),
+		PactLogLevel:    "DEBUG",
 	})
 }
 
@@ -75,5 +77,6 @@ func createPact() dsl.Pact {
 	return dsl.Pact{
 		Provider: "PactGoMessageProvider",
 		LogDir:   logDir,
+		LogLevel: "DEBUG",
 	}
 }
