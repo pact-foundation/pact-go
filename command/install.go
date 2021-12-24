@@ -14,7 +14,7 @@ var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Check required tools",
 	Long:  "Checks versions of required Pact CLI tools for used by the library",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		setLogLevel(verbose, logLevel)
 
 		// Run the installer

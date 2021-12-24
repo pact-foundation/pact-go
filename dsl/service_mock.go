@@ -60,6 +60,6 @@ func (s *ServiceMock) Command() *exec.Cmd {
 }
 
 // NewService creates a new MockService with default settings.
-func (s *ServiceMock) NewService(args []string) client.Service {
+func (s *ServiceMock) NewService(_ []string) client.Service {
 	return s
 }

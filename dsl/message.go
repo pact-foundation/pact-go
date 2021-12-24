@@ -58,7 +58,7 @@ type State struct {
 
 // Given specifies a provider state. Optional.
 func (p *Message) Given(state string) *Message {
-	p.States = []State{State{Name: state}}
+	p.States = []State{{Name: state}}
 
 	return p
 }

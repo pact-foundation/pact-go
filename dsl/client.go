@@ -135,7 +135,7 @@ func (p *PactClient) StopServer(server *types.MockServer) (*types.MockServer, er
 }
 
 // RemoveAllServers stops all remote Pact Mock Servers.
-func (p *PactClient) RemoveAllServers(server *types.MockServer) []*types.MockServer {
+func (p *PactClient) RemoveAllServers(_ *types.MockServer) []*types.MockServer {
 	log.Println("[DEBUG] client: stop server")
 
 	for _, s := range p.verificationSvcManager.List() {
