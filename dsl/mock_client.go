@@ -34,7 +34,7 @@ func newMockClient() *mockClient {
 }
 
 // StartServer starts a remote Pact Mock Server.
-func (p *mockClient) StartServer(args []string, port int) *types.MockServer {
+func (p *mockClient) StartServer(_ []string, _ int) *types.MockServer {
 	return p.MockServer
 }
 
@@ -44,33 +44,33 @@ func (p *mockClient) ListServers() []*types.MockServer {
 }
 
 // StopServer stops a remote Pact Mock Server.
-func (p *mockClient) StopServer(server *types.MockServer) (*types.MockServer, error) {
+func (p *mockClient) StopServer(_ *types.MockServer) (*types.MockServer, error) {
 	return p.StopServerResponse, p.StopServerError
 }
 
 // RemoveAllServers stops all remote Pact Mock Servers.
-func (p *mockClient) RemoveAllServers(server *types.MockServer) []*types.MockServer {
+func (p *mockClient) RemoveAllServers(_ *types.MockServer) []*types.MockServer {
 	return p.RemoveAllServersResponse
 }
 
 // VerifyProvider runs the verification process against a running Provider.
-func (p *mockClient) VerifyProvider(request types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
+func (p *mockClient) VerifyProvider(_ types.VerifyRequest) ([]types.ProviderVerifierResponse, error) {
 	return p.VerifyProviderResponse, p.VerifyProviderError
 }
 
 // UpdateMessagePact adds a pact message to a contract file
-func (p *mockClient) UpdateMessagePact(request types.PactMessageRequest) error {
+func (p *mockClient) UpdateMessagePact(_ types.PactMessageRequest) error {
 	return p.UpdateMessagePactError
 }
 
 // ReifyMessage takes a structured object, potentially containing nested Matchers
 // and returns an object with just the example (generated) content
 // The object may be a simple JSON primitive e.g. string or number or a complex object
-func (p *mockClient) ReifyMessage(request *types.PactReificationRequest) (res *types.ReificationResponse, err error) {
+func (p *mockClient) ReifyMessage(_ *types.PactReificationRequest) (res *types.ReificationResponse, err error) {
 	return p.ReifyMessageResponse, p.ReifyMessageError
 }
 
 // PublishPacts publishes pacts to a broker
-func (p *mockClient) PublishPacts(request types.PublishRequest) error {
+func (p *mockClient) PublishPacts(_ types.PublishRequest) error {
 	return p.PublishPactsError
 }

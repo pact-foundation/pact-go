@@ -12,7 +12,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of Pact Go",
 	Long:  `All software has versions. This is Pact Go's`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf("Pact Go CLI %s, using CLI tools version %s", version, cliToolsVersion)
 	},
 }
