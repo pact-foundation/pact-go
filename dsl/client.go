@@ -70,14 +70,14 @@ type PactClient struct {
 }
 
 // newClient creates a new Pact client manager with the provided services
-func newClient(MockServiceManager client.Service, verificationServiceManager client.Service, messageServiceManager client.Service, publishServiceManager client.Service) *PactClient {
-	MockServiceManager.Setup()
+func newClient(mockServiceManager client.Service, verificationServiceManager client.Service, messageServiceManager client.Service, publishServiceManager client.Service) *PactClient {
+	mockServiceManager.Setup()
 	verificationServiceManager.Setup()
 	messageServiceManager.Setup()
 	publishServiceManager.Setup()
 
 	return &PactClient{
-		pactMockSvcManager:     MockServiceManager,
+		pactMockSvcManager:     mockServiceManager,
 		verificationSvcManager: verificationServiceManager,
 		messageSvcManager:      messageServiceManager,
 		publishSvcManager:      publishServiceManager,
@@ -165,7 +165,6 @@ func (p *PactClient) VerifyProvider(request types.VerifyRequest) ([]types.Provid
 
 	err = waitForPort(port, p.getNetworkInterface(), address, p.TimeoutDuration,
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
-
 	if err != nil {
 		return response, err
 	}

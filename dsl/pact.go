@@ -440,13 +440,13 @@ var checkCliCompatibility = func() {
 
 // BeforeEachMiddleware is invoked before any other, only on the __setup
 // request (to avoid duplication)
-func BeforeEachMiddleware(BeforeEach types.Hook) proxy.Middleware {
+func BeforeEachMiddleware(beforeEach types.Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == providerStatesSetupPath {
 
 				log.Println("[DEBUG] executing before hook")
-				err := BeforeEach()
+				err := beforeEach()
 
 				if err != nil {
 					log.Println("[ERROR] error executing before hook:", err)
@@ -461,14 +461,14 @@ func BeforeEachMiddleware(BeforeEach types.Hook) proxy.Middleware {
 // AfterEachMiddleware is invoked after any other, and is the last
 // function to be called prior to returning to the test suite. It is
 // therefore not invoked on __setup
-func AfterEachMiddleware(AfterEach types.Hook) proxy.Middleware {
+func AfterEachMiddleware(afterEach types.Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r)
 
 			if r.URL.Path != providerStatesSetupPath {
 				log.Println("[DEBUG] executing after hook")
-				err := AfterEach()
+				err := afterEach()
 
 				if err != nil {
 					log.Println("[ERROR] error executing after hook:", err)

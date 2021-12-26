@@ -617,9 +617,9 @@ func TestPact_StateHandlerMiddlewarePassThroughInvalidPath(t *testing.T) {
 }
 
 func dummyHandler(header string) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(header, "true")
-	})
+	}
 }
 
 func TestPact_AddMessage(t *testing.T) {

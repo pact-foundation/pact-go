@@ -19,8 +19,7 @@ var installCmd = &cobra.Command{
 
 		// Run the installer
 		i := install.NewInstaller()
-		var err error
-		if err = i.CheckInstallation(); err != nil {
+		if err := i.CheckInstallation(); err != nil {
 			log.Println("[ERROR] Your Pact CLI installation is out of date, please update to the latest version. Error:", err)
 			os.Exit(1)
 		}
