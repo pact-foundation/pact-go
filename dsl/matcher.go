@@ -444,6 +444,8 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 
 			params.str.example = components[1]
 		}
+	case reflect.Ptr:
+		return pluckParams(srcType.Elem(), pactTag)
 	}
 
 	return params

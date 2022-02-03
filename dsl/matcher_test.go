@@ -557,18 +557,32 @@ func TestMatch(t *testing.T) {
 		Word   string `json:"word"`
 		Length int    `json:"length"`
 	}
+	type wordPtrDTO struct {
+		Word   *string `json:"word,omitempty"`
+		Length *int    `json:"length,omitempty"`
+	}
 	type dateDTO struct {
 		Date string `json:"date" pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
 	}
 	type wordsDTO struct {
 		Words []string `json:"words" pact:"min=2"`
 	}
+	type wordsPtrDTO struct {
+		Words *[]string `json:"words,omitempty" pact:"min=2"`
+	}
 	type boolDTO struct {
 		Boolean bool `json:"boolean" pact:"example=true"`
+	}
+	type boolPtrDTO struct {
+		Boolean *bool `json:"boolean,omitempty" pact:"example=true"`
 	}
 	type numberDTO struct {
 		Integer int     `json:"integer" pact:"example=42"`
 		Float   float32 `json:"float" pact:"example=6.66"`
+	}
+	type numberPtrDTO struct {
+		Integer *int     `json:"integer,omitempty" pact:"example=42"`
+		Float   *float32 `json:"float,omitempty" pact:"example=6.66"`
 	}
 	type jsonTagOmitemptyDTO struct {
 		Word string `json:"word,omitempty"`
@@ -626,6 +640,17 @@ func TestMatch(t *testing.T) {
 			},
 		},
 		{
+			name: "recursive case - struct with pointers",
+			args: args{
+				src: wordPtrDTO{},
+			},
+			want: StructMatcher{
+				"word":   Like("string"),
+				"length": Like(1),
+			},
+		},
+
+		{
 			name: "recursive case - struct with custom string tag",
 			args: args{
 				src: dateDTO{},
@@ -644,6 +669,15 @@ func TestMatch(t *testing.T) {
 			},
 		},
 		{
+			name: "recursive case - struct with custom slice tag and pointers",
+			args: args{
+				src: wordsPtrDTO{},
+			},
+			want: StructMatcher{
+				"words": EachLike(Like("string"), 2),
+			},
+		},
+		{
 			name: "recursive case - struct with bool",
 			args: args{
 				src: boolDTO{},
@@ -653,9 +687,28 @@ func TestMatch(t *testing.T) {
 			},
 		},
 		{
+			name: "recursive case - struct with bool pointer",
+			args: args{
+				src: boolPtrDTO{},
+			},
+			want: StructMatcher{
+				"boolean": Like(true),
+			},
+		},
+		{
 			name: "recursive case - struct with int and float",
 			args: args{
 				src: numberDTO{},
+			},
+			want: StructMatcher{
+				"integer": Like(42),
+				"float":   Like(float32(6.66)),
+			},
+		},
+		{
+			name: "recursive case - struct with int and float pointers",
+			args: args{
+				src: numberPtrDTO{},
 			},
 			want: StructMatcher{
 				"integer": Like(42),
@@ -828,6 +881,12 @@ func TestMatch(t *testing.T) {
 }
 
 func Test_pluckParams(t *testing.T) {
+	var (
+		s  string
+		i  int
+		b  bool
+		ss []string
+	)
 	type args struct {
 		srcType reflect.Type
 		pactTag string
@@ -945,6 +1004,73 @@ func Test_pluckParams(t *testing.T) {
 				},
 				str: stringParams{
 					example: "aBcD123",
+				},
+			},
+			wantPanic: false,
+		},
+		{
+			name: "expected use - example with string pointer",
+			args: args{
+				srcType: reflect.TypeOf(&s),
+				pactTag: "example=aBcD123,regex=[A-Za-z0-9]",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				str: stringParams{
+					example: "aBcD123",
+					regEx:   "[A-Za-z0-9]",
+				},
+			},
+			wantPanic: false,
+		},
+		{
+			name: "expected use - example with number pointer",
+			args: args{
+				srcType: reflect.TypeOf(&i),
+				pactTag: "example=7",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				number: numberParams{
+					integer: 7,
+				},
+			},
+			wantPanic: false,
+		},
+		{
+			name: "expected use - example with boolean pointer",
+			args: args{
+				srcType: reflect.TypeOf(&b),
+				pactTag: "example=true",
+			},
+			want: params{
+				slice: sliceParams{
+					min: getDefaults().slice.min,
+				},
+				boolean: boolParams{
+					value:   true,
+					defined: true,
+				},
+			},
+			wantPanic: false,
+		},
+		{
+			name: "expected use - example with string slice pointer",
+			args: args{
+				srcType: reflect.TypeOf(&ss),
+				pactTag: "min=2",
+			},
+			want: params{
+				slice: sliceParams{
+					min: 2,
+				},
+				str: stringParams{
+					example: getDefaults().str.example,
+					regEx:   getDefaults().str.regEx,
 				},
 			},
 			wantPanic: false,
