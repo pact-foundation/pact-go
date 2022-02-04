@@ -94,23 +94,18 @@ You can also keep the library versions up to date by running the `version.CheckV
 
 ### Manual
 
-Downlod the latest `Pact Verifier FFI` and `Pact Mock Server FFI` [libraries] for your OS, and install onto a standard library search path (for example, we suggest: `/usr/local/lib` on OSX/Linux):
+Downlod the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on OSX/Linux):
 
 Ensure you have the correct extension for your OS:
 
-- For Mac OSX: `.dylib`
+- For Mac OSX: `.dylib` (For M1 users, you need the `aarch64-apple-darwin` version)
 - For Linux: `.so`
 - For Windows: `.dll`
 
 ```sh
-wget https://github.com/pact-foundation/pact-reference/releases/download/pact_verifier_ffi-v0.0.2/libpact_verifier_ffi-osx-x86_64.dylib.gz
-gunzip libpact_verifier_ffi-osx-x86_64.dylib.gz
-mv libpact_verifier_ffi-osx-x86_64.dylib /usr/local/lib/libpact_verifier_ffi.dylib
-
-wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v0.0.15/libpact_mock_server_ffi-osx-x86_64.dylib.gz
-gunzip libpact_mock_server_ffi-osx-x86_64.dylib.gz
-mv libpact_mock_server_ffi-osx-x86_64.dylib /usr/local/lib/libpact_mock_server_ffi.dylib
-
+wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v0.1.2/liblibpact_ffi-osx-x86_64.dylib.gz
+gunzip libpact_ffi-osx-x86_64.dylib.gz
+mv libpact_ffi-osx-x86_64.dylib /usr/local/lib/libpact_ffi.dylib
 ```
 
 Test the installation:
@@ -264,7 +259,7 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 [@pact_up]: https://twitter.com/pact_up
 [pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
 [pact specification v3]: https://github.com/pact-foundation/pact-specification/tree/version-3
-[libraries]: https://github.com/pact-foundation/pact-reference/releases
+[library]: https://github.com/pact-foundation/pact-reference/releases
 [cli tools]: https://github.com/pact-foundation/pact-reference/releases
 [installation]: #installation
 [message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
