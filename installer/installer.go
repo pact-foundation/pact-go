@@ -47,9 +47,14 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 		return nil, fmt.Errorf("%s is not a supported architecture, only 64 bit architectures are supported", runtime.GOARCH)
 	}
 
-	i.arch = x86_64
-	if runtime.GOARCH != "amd64" {
-		log.Println("[WARN] amd64 architecture not detected, behaviour may be undefined")
+	switch runtime.GOARCH {
+	case "amd64":
+		i.arch = x86_64
+	case "arm64":
+		i.arch = osx_aarch64
+	default:
+		i.arch = x86_64
+		log.Println("[WARN] amd64 architecture not detected, defaulting to x86_64. Behaviour may be undefined")
 	}
 
 	return i, nil
@@ -272,6 +277,7 @@ const (
 	windows        = "windows"
 	osx            = "osx"
 	x86_64         = "x86_64"
+	osx_aarch64    = "aarch64-apple-darwin"
 )
 
 var packages = map[string]packageInfo{

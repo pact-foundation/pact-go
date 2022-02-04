@@ -24,7 +24,7 @@ func TestInstallerDownloader(t *testing.T) {
 			test Installer
 		}{
 			{
-				name: "mock server - linux x86",
+				name: "ffi lib - linux x86",
 				pkg:  FFIPackage,
 				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64.so.gz", packages[FFIPackage].version),
 				test: Installer{
@@ -33,7 +33,7 @@ func TestInstallerDownloader(t *testing.T) {
 				},
 			},
 			{
-				name: "mock server - osx x86",
+				name: "ffi lib - osx x86",
 				pkg:  FFIPackage,
 				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-osx-x86_64.dylib.gz", packages[FFIPackage].version),
 				test: Installer{
@@ -42,7 +42,16 @@ func TestInstallerDownloader(t *testing.T) {
 				},
 			},
 			{
-				name: "mock server - linux x86",
+				name: "ffi lib - osx arm64",
+				pkg:  FFIPackage,
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-osx-aarch64-apple-darwin.dylib.gz", packages[FFIPackage].version),
+				test: Installer{
+					os:   osx,
+					arch: osx_aarch64,
+				},
+			},
+			{
+				name: "ffi lib - linux x86",
 				pkg:  FFIPackage,
 				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-windows-x86_64.dll.gz", packages[FFIPackage].version),
 				test: Installer{
