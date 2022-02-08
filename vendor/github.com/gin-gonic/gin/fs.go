@@ -9,14 +9,13 @@ import (
 	"os"
 )
 
-type (
-	onlyfilesFS struct {
-		fs http.FileSystem
-	}
-	neuteredReaddirFile struct {
-		http.File
-	}
-)
+type onlyFilesFS struct {
+	fs http.FileSystem
+}
+
+type neuteredReaddirFile struct {
+	http.File
+}
 
 // Dir returns a http.Filesystem that can be used by http.FileServer(). It is used internally
 // in router.Static().
@@ -27,11 +26,11 @@ func Dir(root string, listDirectory bool) http.FileSystem {
 	if listDirectory {
 		return fs
 	}
-	return &onlyfilesFS{fs}
+	return &onlyFilesFS{fs}
 }
 
-// Conforms to http.Filesystem
-func (fs onlyfilesFS) Open(name string) (http.File, error) {
+// Open conforms to http.Filesystem.
+func (fs onlyFilesFS) Open(name string) (http.File, error) {
 	f, err := fs.fs.Open(name)
 	if err != nil {
 		return nil, err
@@ -39,7 +38,7 @@ func (fs onlyfilesFS) Open(name string) (http.File, error) {
 	return neuteredReaddirFile{f}, nil
 }
 
-// Overrides the http.File default implementation
+// Readdir overrides the http.File default implementation.
 func (f neuteredReaddirFile) Readdir(count int) ([]os.FileInfo, error) {
 	// this disables directory listing
 	return nil, nil

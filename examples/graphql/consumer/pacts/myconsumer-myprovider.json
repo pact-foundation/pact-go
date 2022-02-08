@@ -1,0 +1,53 @@
+{
+  "consumer": {
+    "name": "MyConsumer"
+  },
+  "provider": {
+    "name": "MyProvider"
+  },
+  "interactions": [
+    {
+      "description": "A request to get foo",
+      "providerState": "User foo exists",
+      "request": {
+        "method": "POST",
+        "path": "/query",
+        "body": {
+          "query": "query ($characterID:ID!){\n\t\t\t\thero {\n\t\t\t\t\tid,\n\t\t\t\t\tname\n\t\t\t\t},\n\t\t\t\tcharacter(id: $characterID)\n\t\t\t\t{\n\t\t\t\t\tname,\n\t\t\t\t\tfriends{\n\t\t\t\t\t\tname,\n\t\t\t\t\t\t__typename\n\t\t\t\t\t},\n\t\t\t\t\tappearsIn\n\t\t\t\t}\n\t\t\t}",
+          "variables": {
+            "characterID": "1003"
+          }
+        },
+        "matchingRules": {
+          "$.body.query": {
+            "match": "regex",
+            "regex": "query\\s*\\(\\$characterID:ID!\\)\\{\\s*hero\\s*\\{\\s*id,\\s*name\\s*\\},\\s*character\\(id:\\s*\\$characterID\\)\\s*\\{\\s*name,\\s*friends\\{\\s*name,\\s*__typename\\s*\\},\\s*appearsIn\\s*\\}\\s*\\}"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "lastName": "sampson",
+          "name": "billy"
+        },
+        "matchingRules": {
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
