@@ -301,7 +301,8 @@ func match(srcType reflect.Type, params params) Matcher {
 
 		for i := 0; i < srcType.NumField(); i++ {
 			field := srcType.Field(i)
-			if !field.IsExported() {
+			// Skip unexported fields.
+			if field.PkgPath != "" {
 				continue
 			}
 			fieldName := getJsonFieldName(field)
