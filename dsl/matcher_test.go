@@ -584,6 +584,9 @@ func TestMatch(t *testing.T) {
 		Word     string `json:"word"`
 		WordDash string `json:"-,"`
 	}
+	type unexportedDTO struct {
+		unexported string
+	}
 	str := "str"
 	type args struct {
 		src interface{}
@@ -698,6 +701,13 @@ func TestMatch(t *testing.T) {
 				"word": Like("string"),
 				"-":    Like("string"),
 			},
+		},
+		{
+			name: "recursive case - struct with unexported field",
+			args: args{
+				src: unexportedDTO{},
+			},
+			want: StructMatcher{},
 		},
 		{
 			name: "base case - string",
