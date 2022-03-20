@@ -1,3 +1,6 @@
+package native
+
+import "fmt"
 
 // Plugin Errors
 var (
