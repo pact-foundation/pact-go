@@ -33,7 +33,7 @@ clean:
 	mkdir -p ./examples/pacts
 	rm -rf build output dist examples/pacts
 
-deps:
+deps: download_plugins
 	@echo "--- 🐿  Fetching build dependencies "
 	cd /tmp; \
 	go get github.com/axw/gocov/gocov; \
@@ -42,6 +42,8 @@ deps:
 	go get github.com/modocache/gover; \
 	go get github.com/mitchellh/gox; \
 	cd -
+
+download_plugins:
 	@if [ ! -d ~/.pact/plugins/protobuf-0.0.3 ]; then\
 		@echo "--- 🐿  Installing plugins"; \
 		mkdir -p ~/.pact/plugins/protobuf-0.0.3; \

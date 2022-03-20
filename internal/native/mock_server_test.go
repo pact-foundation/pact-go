@@ -204,7 +204,7 @@ func TestPluginInteraction(t *testing.T) {
 	proto.Unmarshal(bytes, initPluginRequest)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "pact-go-driver", initPluginRequest.Implementation, initPluginRequest.Version, "0.0.0")
+	assert.Equal(t, "pact-go-driver", initPluginRequest.Implementation)
 	assert.Equal(t, "0.0.0", initPluginRequest.Version)
 
 	mismatches := m.MockServerMismatchedRequests(port)
