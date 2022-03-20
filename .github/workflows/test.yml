@@ -35,3 +35,7 @@ jobs:
       #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Test
         run: make
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Upload plugin logs
+          path: ~/.pact/plugins/**/plugin.log
