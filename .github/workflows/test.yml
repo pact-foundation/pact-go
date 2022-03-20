@@ -39,4 +39,4 @@ jobs:
         with:
           name: Upload plugin logs
           path: ~/.pact/plugins/**/plugin.log
-          if: ${{ failure() }}
+          if: ${{ always() }}
