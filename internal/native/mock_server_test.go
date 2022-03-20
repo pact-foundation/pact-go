@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -176,8 +177,11 @@ func TestPluginInteraction(t *testing.T) {
 
 	i := m.NewInteraction("some plugin interaction")
 
+	dir, _ := os.Getwd()
+	path := fmt.Sprintf("%s/plugin.proto", dir)
+
 	protobufInteraction := `{
-			"pact:proto": "/Users/matthewfellows/go/src/github.com/pact-foundation/pact-go/internal/native/plugin.proto",
+			"pact:proto": "` + path + `",
 			"pact:message-type": "InitPluginRequest",
 			"pact:content-type": "application/protobuf",
 			"implementation": "notEmpty('pact-go-driver')",
