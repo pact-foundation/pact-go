@@ -42,6 +42,12 @@ deps:
 	go get github.com/modocache/gover; \
 	go get github.com/mitchellh/gox; \
 	cd -
+	@echo "--- 🐿  Installing plugins"
+	mkdir -p ~/.pact/plugins/protobuf-0.0.3
+	wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.0.3/pact-plugin.json -O ~/.pact/plugins/protobuf-0.0.3/pact-plugin.json
+	wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.0.3/pact-protobuf-plugin-linux-x86_64.gz -O ~/.pact/plugins/protobuf-0.0.3/pact-protobuf-plugin-linux-x86_64.gz
+	gunzip -N ~/.pact/plugins/protobuf-0.0.3/pact-protobuf-plugin-linux-x86_64.gz
+	chmod +x ~/.pact/plugins/protobuf-0.0.3/pact-protobuf-plugin
 
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)

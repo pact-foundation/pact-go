@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -155,6 +157,59 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	mismatches := m.MockServerMismatchedRequests(port)
 	if len(mismatches) != 0 {
 		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
+	}
+
+	err = m.WritePactFile(port, tmpPactFolder)
+	assert.NoError(t, err)
+}
+
+func TestPluginInteraction(t *testing.T) {
+	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	assert.NoError(t, err)
+	log.SetLogLevel("trace")
+
+	m := NewHTTPMockServer("test-plugin-consumer", "test-plugin-provider")
+
+	// Protobuf plugin test
+	m.UsingPlugin("protobuf", "0.0.3")
+	m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
+
+	i := m.NewInteraction("some plugin interaction")
+
+	protobufInteraction := `{
+			"pact:proto": "/Users/matthewfellows/go/src/github.com/pact-foundation/pact-go/internal/native/plugin.proto",
+			"pact:message-type": "InitPluginRequest",
+			"pact:content-type": "application/protobuf",
+			"implementation": "notEmpty('pact-go-driver')",
+			"version": "matching(semver, '0.0.0')"
+		}`
+
+	i.UponReceiving("some interaction").
+		Given("plugin state").
+		WithRequest("GET", "/protobuf").
+		WithStatus(200).
+		WithPluginInteractionContents(INTERACTION_PART_RESPONSE, "application/protobuf", protobufInteraction)
+
+	port, err := m.Start("0.0.0.0:0", false)
+	assert.NoError(t, err)
+	defer m.CleanupMockServer(port)
+
+	res, err := http.Get(fmt.Sprintf("http://0.0.0.0:%d/protobuf", port))
+	assert.NoError(t, err)
+
+	bytes, err := ioutil.ReadAll(res.Body)
+	assert.NoError(t, err)
+
+	initPluginRequest := &InitPluginRequest{}
+	proto.Unmarshal(bytes, initPluginRequest)
+	assert.NoError(t, err)
+
+	assert.Equal(t, initPluginRequest.Implementation, "pact-go-driver", initPluginRequest.Version, "0.0.0")
+
+	mismatches := m.MockServerMismatchedRequests(port)
+	if len(mismatches) != 0 {
+		assert.Len(t, mismatches, 0)
+		t.Log(mismatches)
 	}
 
 	err = m.WritePactFile(port, tmpPactFolder)

@@ -18,6 +18,11 @@ struct InteractionHandle {
 	unsigned int interaction_ref;
 };
 
+typedef enum InteractionPart {
+  InteractionPart_Request,
+  InteractionPart_Response,
+} InteractionPart;
+
 /// Wraps a Pact model struct
 typedef struct PactHandle PactHandle;
 struct PactHandle {
@@ -146,6 +151,10 @@ void pactffi_with_pact_metadata(PactHandle pact, const char *namespace, const ch
 //int pactffi_log_to_stdout(int level);
 //int pactffi_log_to_file(const char *file_name, int level_filter);
 //char* pactffi_fetch_log_buffer();
+
+int pactffi_using_plugin(PactHandle pact, const char *plugin_name, const char *plugin_version);
+void pactffi_cleanup_plugins(PactHandle pact);
+int pactffi_interaction_contents(InteractionHandle interaction, int interaction_part, const char *content_type, const char *contents);
 
 */
 import "C"
@@ -449,6 +458,40 @@ func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
 }
 
 // NewInteraction initialises a new interaction for the current contract
+func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error {
+	cPluginName := C.CString(pluginName)
+	defer free(cPluginName)
+	cPluginVersion := C.CString(pluginVersion)
+	defer free(cPluginVersion)
+
+	r := C.pactffi_using_plugin(m.pact.handle, cPluginName, cPluginVersion)
+
+	// 1 - A general panic was caught.
+	// 2 - Failed to load the plugin.
+	// 3 - Pact Handle is not valid.
+	res := int(r)
+	switch res {
+	case 1:
+		return ErrPluginGenericPanic
+	case 2:
+		return ErrPluginFailed
+	case 3:
+		return ErrHandleNotFound
+	default:
+		if res != 0 {
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+		}
+	}
+
+	return nil
+}
+
+// NewInteraction initialises a new interaction for the current contract
+func (m *MockServer) CleanupPlugins(pluginName string, pluginVersion string) {
+	C.pactffi_cleanup_plugins(m.pact.handle)
+}
+
+// NewInteraction initialises a new interaction for the current contract
 func (m *MockServer) NewInteraction(description string) *Interaction {
 	cDescription := C.CString(description)
 	defer free(cDescription)
@@ -459,6 +502,45 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 	m.interactions = append(m.interactions, i)
 
 	return i
+}
+
+// NewInteraction initialises a new interaction for the current contract
+// TODO: why specify the name and version twice?
+func (i *Interaction) WithPluginInteractionContents(interactionPart interactionType, contentType string, contents string) error {
+	cContentType := C.CString(contentType)
+	defer free(cContentType)
+	cContents := C.CString(contents)
+	defer free(cContents)
+
+	r := C.pactffi_interaction_contents(i.handle, C.int(interactionPart), cContentType, cContents)
+
+	// 1 - A general panic was caught.
+	// 2 - The mock server has already been started.
+	// 3 - The interaction handle is invalid.
+	// 4 - The content type is not valid.
+	// 5 - The contents JSON is not valid JSON.
+	// 6 - The plugin returned an error.
+	res := int(r)
+	switch res {
+	case 1:
+		return ErrPluginGenericPanic
+	case 2:
+		return ErrPluginMockServerStarted
+	case 3:
+		return ErrPluginInteractionHandleInvalid
+	case 4:
+		return ErrPluginInvalidContentType
+	case 5:
+		return ErrPluginInvalidJson
+	case 6:
+		return ErrPluginSpecificError
+	default:
+		if res != 0 {
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+		}
+	}
+
+	return nil
 }
 
 func (i *Interaction) UponReceiving(description string) *Interaction {
@@ -761,6 +843,9 @@ var (
 
 	// ErrNoInteractions indicates no Interactions have been registered to a mock server, and cannot be started/stopped until at least one is added
 	ErrNoInteractions = fmt.Errorf("no interactions have been registered for the mock server")
+
+	// ErrPluginFailed indicates the plugin could not be started
+	ErrPluginFailed = fmt.Errorf("the plugin could not be started")
 )
 
 // Log Errors
