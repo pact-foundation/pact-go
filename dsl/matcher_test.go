@@ -599,7 +599,7 @@ func TestMatch(t *testing.T) {
 		WordDash string `json:"-,"`
 	}
 	type unexportedDTO struct {
-		unexported string
+		unexported string //nolint
 	}
 	str := "str"
 	type args struct {
