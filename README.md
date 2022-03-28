@@ -472,7 +472,7 @@ Using a [Pact Broker] is recommended for any serious workloads, you can run your
 
 By integrating with a Broker, you get much more advanced collaboration features and can take advantage of automation tools, such as the [can-i-deploy tool], which can tell you at any point in time, which component is safe to release.
 
-See the [Pact Broker](https://docs.pact.io/getting-started/sharing-pacts-with-the-pact-broker)
+See the [Pact Broker](https://docs.pact.io/getting_started/sharing_pacts)
 documentation for more details on the Broker.
 
 #### Publishing from Go code
