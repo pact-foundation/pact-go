@@ -71,7 +71,7 @@ updatedeps:
 	go get -d -v -p 2 ./...
 
 snyk-install:
-	npm i -g snyk
+	which snyk || npm i -g snyk
 
 snyk:
 	@if [ "$$TRAVIS_PULL_REQUEST" != "false" ]; then\
