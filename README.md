@@ -40,67 +40,63 @@ Read [Getting started with Pact] for more information for beginners.
 <!-- TOC -->
 
 - [Pact Go](#pact-go)
-	- [Introduction](#introduction)
-	- [Table of Contents](#table-of-contents)
-	- [Versions](#versions)
-	- [Installation](#installation)
-		- [Go get](#go-get)
-		- [Installation on \*nix](#installation-on-nix)
-	- [V3 Beta](#v3-beta)
-	- [Using Pact](#using-pact)
-	- [HTTP API Testing](#http-api-testing)
-		- [Consumer Side Testing](#consumer-side-testing)
-		- [Provider API Testing](#provider-api-testing)
-			- [Provider Verification](#provider-verification)
-			- [Provider States](#provider-states)
-			- [Before and After Hooks](#before-and-after-hooks)
-			- [Request Filtering](#request-filtering)
-				- [Example: API with Authorization](#example-api-with-authorization)
-			- [Pending Pacts](#pending-pacts)
-			- [WIP Pacts](#wip-pacts)
-			- [Lifecycle of a provider verification](#lifecycle-of-a-provider-verification)
-		- [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
-			- [Publishing from Go code](#publishing-from-go-code)
-			- [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
-			- [Publishing from the CLI](#publishing-from-the-cli)
-			- [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-			- [Using the Pact Broker with Bearer Token authentication](#using-the-pact-broker-with-bearer-token-authentication)
-	- [Asynchronous API Testing](#asynchronous-api-testing)
-		- [Consumer](#consumer)
-		- [Provider (Producer)](#provider-producer)
-		- [Pact Broker Integration](#pact-broker-integration)
-	- [Matching](#matching)
-		- [Matching on types](#matching-on-types)
-		- [Matching on arrays](#matching-on-arrays)
-		- [Matching by regular expression](#matching-by-regular-expression)
-		- [Match common formats](#match-common-formats)
-			- [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
-	- [Tutorial (60 minutes)](#tutorial-60-minutes)
-	- [Examples](#examples)
-		- [HTTP APIs](#http-apis)
-		- [Asynchronous APIs](#asynchronous-apis)
-		- [Integrated examples](#integrated-examples)
-	- [Troubleshooting](#troubleshooting)
-			- [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-			- [Output Logging](#output-logging)
-			- [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
-			- [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
-			- [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
-		- [Verifying APIs with a self-signed certificate](#verifying-apis-with-a-self-signed-certificate)
-		- [Testing AWS API Gateway APIs](#testing-aws-api-gateway-apis)
-	- [Contact](#contact)
-	- [Documentation](#documentation)
-	- [Roadmap](#roadmap)
-	- [Contributing](#contributing)
+  - [Introduction](#introduction)
+  - [Table of Contents](#table-of-contents)
+  - [Versions](#versions)
+  - [Installation](#installation)
+    - [Go get](#go-get)
+    - [Installation on \*nix](#installation-on-nix)
+  - [V3 Beta](#v3-beta)
+  - [Using Pact](#using-pact)
+  - [HTTP API Testing](#http-api-testing)
+    - [Consumer Side Testing](#consumer-side-testing)
+    - [Provider API Testing](#provider-api-testing)
+      - [Provider Verification](#provider-verification)
+      - [Provider States](#provider-states)
+      - [Before and After Hooks](#before-and-after-hooks)
+      - [Request Filtering](#request-filtering)
+        - [Example: API with Authorization](#example-api-with-authorization)
+      - [Pending Pacts](#pending-pacts)
+      - [WIP Pacts](#wip-pacts)
+      - [Lifecycle of a provider verification](#lifecycle-of-a-provider-verification)
+    - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+      - [Publishing from Go code](#publishing-from-go-code)
+      - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+      - [Publishing from the CLI](#publishing-from-the-cli)
+      - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+      - [Using the Pact Broker with Bearer Token authentication](#using-the-pact-broker-with-bearer-token-authentication)
+  - [Asynchronous API Testing](#asynchronous-api-testing)
+    - [Consumer](#consumer)
+    - [Provider (Producer)](#provider-producer)
+    - [Pact Broker Integration](#pact-broker-integration)
+  - [Matching](#matching)
+    - [Matching on types](#matching-on-types)
+    - [Matching on arrays](#matching-on-arrays)
+    - [Matching by regular expression](#matching-by-regular-expression)
+    - [Match common formats](#match-common-formats)
+      - [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
+  - [Tutorial (60 minutes)](#tutorial-60-minutes)
+  - [Examples](#examples)
+    - [HTTP APIs](#http-apis)
+    - [Asynchronous APIs](#asynchronous-apis)
+    - [Integrated examples](#integrated-examples)
+  - [Troubleshooting](#troubleshooting) - [Splitting tests across multiple files](#splitting-tests-across-multiple-files) - [Output Logging](#output-logging) - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date) - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests) - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
+    - [Verifying APIs with a self-signed certificate](#verifying-apis-with-a-self-signed-certificate)
+    - [Testing AWS API Gateway APIs](#testing-aws-api-gateway-apis)
+  - [Contact](#contact)
+  - [Documentation](#documentation)
+  - [Roadmap](#roadmap)
+  - [Contributing](#contributing)
 
 <!-- /TOC -->
+
 ## Versions
 
 <details><summary>Specification Compatibility</summary>
 
 | Version | Stable | [Spec] Compatibility | Install            |
-|---------|--------|----------------------|--------------------|
-| 2.x.x   | Beta   | 2, 3                 | See [v2.x.x] |
+| ------- | ------ | -------------------- | ------------------ |
+| 2.x.x   | Beta   | 2, 3                 | See [v2.x.x]       |
 | 1.0.x   | Yes    | 2, 3\*               | See [installation] |
 | 0.x.x   | Yes    | Up to v2             | 0.x.x [stable]     |
 
@@ -442,6 +438,7 @@ for different test cases:
 _Important Note_: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
 
 #### Pending Pacts
+
 _NOTE_: This feature is currently only available on [Pactflow]
 
 Pending pacts is a feature that allows consumers to publish new contracts or changes to existing contracts without breaking Provider's builds. It does so by flagging the contract as "unverified" in the Pact Broker the first time a contract is published. A Provider can then enable a behaviour (via `EnablePending: true`) that will still perform a verification (and thus share the results back to the broker) but _not_ fail the verification step itself.
@@ -489,7 +486,7 @@ err := p.Publish(types.PublishRequest{
 
 #### Publishing Provider Verification Results to a Pact Broker
 
-If you're using a Pact Broker (e.g. a hosted one at pact.dius.com.au), you can
+If you're using a Pact Broker (e.g. a hosted one at pactflow.io), you can
 publish your verification results so that consumers can query if they are safe
 to release.
 
@@ -719,7 +716,7 @@ This example will result in a response body from the mock server that looks like
 Often times, you find yourself having to re-write regular expressions for common formats. We've created a number of them for you to save you the time:
 
 | method          | description                                                                                     |
-|-----------------|-------------------------------------------------------------------------------------------------|
+| --------------- | ----------------------------------------------------------------------------------------------- |
 | `Identifier()`  | Match an ID (e.g. 42)                                                                           |
 | `Integer()`     | Match all numbers that are integers (both ints and longs)                                       |
 | `Decimal()`     | Match all real numbers (floating point and decimal)                                             |
@@ -948,8 +945,8 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
 [changelog]: https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md
 [pact broker]: https://github.com/pact-foundation/pact_broker
-[hosted broker]: https://pact.dius.com.au
+[hosted broker]: https://pactflow.io
 [can-i-deploy tool]: https://docs.pact.io/can_i_deploy
-[Pactflow]: https://pactflow.io
+[pactflow]: https://pactflow.io
 [v2.x.x]: https://github.com/pact-foundation/pact-go/tree/2.x.x
 [slack]: https://slack.pact.io
