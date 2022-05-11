@@ -138,8 +138,11 @@ func (c *Copier) callRewrite(ctx context.Context, rawObj *raw.Object) (*raw.Rewr
 	var res *raw.RewriteResponse
 	var err error
 	setClientHeader(call.Header())
-	err = runWithRetry(ctx, func() error { res, err = call.Do(); return err })
-	if err != nil {
+
+	retryCall := func() error { res, err = call.Do(); return err }
+	isIdempotent := c.dst.conds != nil && (c.dst.conds.GenerationMatch != 0 || c.dst.conds.DoesNotExist)
+
+	if err := run(ctx, retryCall, c.dst.retry, isIdempotent); err != nil {
 		return nil, err
 	}
 	c.RewriteToken = res.RewriteToken
@@ -166,6 +169,13 @@ type Composer struct {
 	// or zero-valued attributes are ignored.
 	ObjectAttrs
 
+	// SendCRC specifies whether to transmit a CRC32C field. It should be set
+	// to true in addition to setting the Composer's CRC32C field, because zero
+	// is a valid CRC and normally a zero would not be transmitted.
+	// If a CRC32C is sent, and the data in the destination object does not match
+	// the checksum, the compose will be rejected.
+	SendCRC32C bool
+
 	dst  *ObjectHandle
 	srcs []*ObjectHandle
 }
@@ -186,6 +196,9 @@ func (c *Composer) Run(ctx context.Context) (attrs *ObjectAttrs, err error) {
 	// Compose requires a non-empty Destination, so we always set it,
 	// even if the caller-provided ObjectAttrs is the zero value.
 	req.Destination = c.ObjectAttrs.toRawObject(c.dst.bucket)
+	if c.SendCRC32C {
+		req.Destination.Crc32c = encodeUint32(c.ObjectAttrs.CRC32C)
+	}
 	for _, src := range c.srcs {
 		if err := src.validate(); err != nil {
 			return nil, err
@@ -220,8 +233,11 @@ func (c *Composer) Run(ctx context.Context) (attrs *ObjectAttrs, err error) {
 	}
 	var obj *raw.Object
 	setClientHeader(call.Header())
-	err = runWithRetry(ctx, func() error { obj, err = call.Do(); return err })
-	if err != nil {
+
+	retryCall := func() error { obj, err = call.Do(); return err }
+	isIdempotent := c.dst.conds != nil && (c.dst.conds.GenerationMatch != 0 || c.dst.conds.DoesNotExist)
+
+	if err := run(ctx, retryCall, c.dst.retry, isIdempotent); err != nil {
 		return nil, err
 	}
 	return newObject(obj), nil
