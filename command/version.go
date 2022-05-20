@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Version = "v2.0.0-beta.10"
+var Version = "v2.0.0-beta.11"
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of Pact Go",
