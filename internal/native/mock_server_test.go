@@ -6,10 +6,16 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/golang/protobuf/proto"
+	"context"
+	l "log"
+
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/proto"
 )
 
 func init() {
@@ -292,9 +298,10 @@ var pactComplex = `{
 }`
 
 func TestGrpcPluginInteraction(t *testing.T) {
-	// tmpPactFolder, err := ioutil.TempDir("", "pact-go")
-	// assert.NoError(t, err)
-	// log.SetLogLevel("TRACE")
+	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	assert.NoError(t, err)
+	log.InitLogging()
+	log.SetLogLevel("TRACE")
 
 	m := NewHTTPMockServer("test-grpc-consumer", "test-plugin-provider")
 
@@ -336,20 +343,34 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	defer m.CleanupMockServer(port)
 
 	// Now we can make a normal gRPC request
-	// initPluginRequest := &InitPluginRequest{
-	// 	Implementation: "pact-go-test",
-	// 	Version: "1.0.0",
-	// }
+	initPluginRequest := &InitPluginRequest{
+		Implementation: "pact-go-test",
+		Version:        "1.0.0",
+	}
 
 	// Need to make a gRPC call here
+	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		l.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := NewPactPluginClient(conn)
 
-	// TODO: once gRPC call is made
-	// 	mismatches := m.MockServerMismatchedRequests(port)
-	// 	if len(mismatches) != 0 {
-	// 		assert.Len(t, mismatches, 0)
-	// 		t.Log(mismatches)
-	// 	}
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := c.InitPlugin(ctx, initPluginRequest)
+	if err != nil {
+		l.Fatalf("could not initialise the plugin: %v", err)
+	}
+	l.Printf("InitPluginResponse: %v", r)
 
-	// 	err = m.WritePactFile(port, tmpPactFolder)
-	// 	assert.NoError(t, err)
+	mismatches := m.MockServerMismatchedRequests(port)
+	if len(mismatches) != 0 {
+		assert.Len(t, mismatches, 0)
+		t.Log(mismatches)
+	}
+
+	err = m.WritePactFile(port, tmpPactFolder)
+	assert.NoError(t, err)
 }

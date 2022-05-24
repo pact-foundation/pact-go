@@ -103,7 +103,7 @@ Ensure you have the correct extension for your OS:
 - For Windows: `.dll`
 
 ```sh
-wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v0.1.2/liblibpact_ffi-osx-x86_64.dylib.gz
+wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v0.1.2/libpact_ffi-osx-x86_64.dylib.gz
 gunzip libpact_ffi-osx-x86_64.dylib.gz
 mv libpact_ffi-osx-x86_64.dylib /usr/local/lib/libpact_ffi.dylib
 ```
