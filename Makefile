@@ -36,21 +36,21 @@ clean:
 deps: download_plugins
 	@echo "--- 🐿  Fetching build dependencies "
 	cd /tmp; \
-	go get github.com/axw/gocov/gocov; \
-	go get github.com/mattn/goveralls; \
-	go get golang.org/x/tools/cmd/cover; \
-	go get github.com/modocache/gover; \
-	go get github.com/mitchellh/gox; \
+	go install github.com/axw/gocov/gocov@latest; \
+	go install github.com/mattn/goveralls@latest; \
+	go install golang.org/x/tools/cmd/cover@latest; \
+	go install github.com/modocache/gover@latest; \
+	go install github.com/mitchellh/gox@latest; \
 	cd -
 
 download_plugins:
-	@if [ ! -d ~/.pact/plugins/protobuf-0.0.3 ]; then\
+	@if [ ! -d ~/.pact/plugins/protobuf-0.1.5 ]; then\
 		@echo "--- 🐿  Installing plugins"; \
-		mkdir -p ~/.pact/plugins/protobuf-0.0.3; \
-		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.0.3/pact-plugin.json -O ~/.pact/plugins/protobuf-0.0.3/pact-plugin.json; \
-		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.0.3/pact-protobuf-plugin-linux-x86_64.gz -O ~/.pact/plugins/protobuf-0.0.3/pact-protobuf-plugin-linux-x86_64.gz; \
-		gunzip -N ~/.pact/plugins/protobuf-0.0.3/pact-protobuf-plugin-linux-x86_64.gz; \
-		chmod +x ~/.pact/plugins/protobuf-0.0.3/pact-protobuf-plugin; \
+		mkdir -p ~/.pact/plugins/protobuf-0.1.5; \
+		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.5/pact-plugin.json -O ~/.pact/plugins/protobuf-0.1.5/pact-plugin.json; \
+		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.5/pact-protobuf-plugin-linux-x86_64.gz -O ~/.pact/plugins/protobuf-0.1.5/pact-protobuf-plugin-linux-x86_64.gz; \
+		gunzip -N ~/.pact/plugins/protobuf-0.1.5/pact-protobuf-plugin-linux-x86_64.gz; \
+		chmod +x ~/.pact/plugins/protobuf-0.1.5/pact-protobuf-plugin; \
 	fi
 
 goveralls:

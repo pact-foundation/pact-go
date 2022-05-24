@@ -125,6 +125,9 @@ int pactffi_with_multipart_file(InteractionHandle interaction, int interaction_p
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
 void pactffi_response_status(InteractionHandle interaction, int status);
 
+// Creates a new synchronous message interaction (request/response) and return a handle to it
+ InteractionHandle pactffi_new_sync_message_interaction(PactHandle pact, const char *description);
+
 /// External interface to trigger a mock server to write out its pact file. This function should
 /// be called if all the consumer tests have passed. The directory to write the file to is passed
 /// as the second parameter. If a NULL pointer is passed, the current working directory is used.
@@ -155,6 +158,9 @@ void pactffi_with_pact_metadata(PactHandle pact, const char *namespace, const ch
 int pactffi_using_plugin(PactHandle pact, const char *plugin_name, const char *plugin_version);
 void pactffi_cleanup_plugins(PactHandle pact);
 int pactffi_interaction_contents(InteractionHandle interaction, int interaction_part, const char *content_type, const char *contents);
+
+// Create a mock server for the provided Pact handle and transport.
+int pactffi_create_mock_server_for_transport(PactHandle pact, const char *addr, int port, const char *transport, const char *transport_config);
 
 */
 import "C"
@@ -443,6 +449,54 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	}
 }
 
+// StartTransport starts up a mock server on the given address:port for the given transport
+// https://docs.rs/pact_ffi/latest/pact_ffi/mock_server/fn.pactffi_create_mock_server_for_transport.html
+func (m *MockServer) StartTransport(transport string, address string, port int, config map[string][]interface{}) (int, error) {
+	if len(m.interactions) == 0 {
+		return 0, ErrNoInteractions
+	}
+
+	log.Println("[DEBUG] mock server starting on address:", address, port)
+	cAddress := C.CString(address)
+	defer free(cAddress)
+	
+	cTransport := C.CString(transport)
+	defer free(cTransport)
+
+	configJson := stringFromInterface(config)
+	cConfig := C.CString(configJson)
+	defer free(cConfig)
+
+	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.int(port), cTransport, cConfig)
+
+	// | Error | Description 
+	// |-------|-------------
+	// | -1	   | An invalid handle was received. Handles should be created with pactffi_new_pact
+	// | -2	   | transport_config is not valid JSON
+	// | -3	   | The mock server could not be started
+	// | -4	   | The method panicked
+	// | -5	   | The address is not valid
+	msPort := int(p)
+	switch msPort {
+	case -1:
+		return 0, ErrInvalidMockServerConfig
+	case -2:
+		return 0, ErrInvalidMockServerConfig
+	case -3:
+		return 0, ErrMockServerUnableToStart
+	case -4:
+		return 0, ErrMockServerPanic
+	case -5:
+		return 0, ErrInvalidAddress
+	default:
+		if msPort > 0 {
+			log.Println("[DEBUG] mock server running on port:", msPort)
+			return msPort, nil
+		}
+		return msPort, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", msPort)
+	}
+}
+
 // Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version
 func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
 	cNamespace := C.CString(namespace)
@@ -498,6 +552,19 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 
 	i := &Interaction{
 		handle: C.pactffi_new_interaction(m.pact.handle, cDescription),
+	}
+	m.interactions = append(m.interactions, i)
+
+	return i
+}
+
+// NewSyncMessageInteraction initialises a new synchronous message interaction for the current contract
+func (m *MockServer) NewSyncMessageInteraction(description string) *Interaction {
+	cDescription := C.CString(description)
+	defer free(cDescription)
+
+	i := &Interaction{
+		handle: C.pactffi_new_sync_message_interaction(m.pact.handle, cDescription),
 	}
 	m.interactions = append(m.interactions, i)
 
