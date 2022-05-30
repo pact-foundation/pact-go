@@ -44,13 +44,13 @@ deps: download_plugins
 	cd -
 
 download_plugins:
-	@if [ ! -d ~/.pact/plugins/protobuf-0.1.5 ]; then\
+	@if [ ! -d ~/.pact/plugins/protobuf-0.1.7 ]; then\
 		@echo "--- 🐿  Installing plugins"; \
-		mkdir -p ~/.pact/plugins/protobuf-0.1.5; \
-		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.5/pact-plugin.json -O ~/.pact/plugins/protobuf-0.1.5/pact-plugin.json; \
-		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.5/pact-protobuf-plugin-linux-x86_64.gz -O ~/.pact/plugins/protobuf-0.1.5/pact-protobuf-plugin-linux-x86_64.gz; \
-		gunzip -N ~/.pact/plugins/protobuf-0.1.5/pact-protobuf-plugin-linux-x86_64.gz; \
-		chmod +x ~/.pact/plugins/protobuf-0.1.5/pact-protobuf-plugin; \
+		mkdir -p ~/.pact/plugins/protobuf-0.1.7; \
+		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.7/pact-plugin.json -O ~/.pact/plugins/protobuf-0.1.7/pact-plugin.json; \
+		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.7/pact-protobuf-plugin-linux-x86_64.gz -O ~/.pact/plugins/protobuf-0.1.7/pact-protobuf-plugin-linux-x86_64.gz; \
+		gunzip -N ~/.pact/plugins/protobuf-0.1.7/pact-protobuf-plugin-linux-x86_64.gz; \
+		chmod +x ~/.pact/plugins/protobuf-0.1.7/pact-protobuf-plugin; \
 	fi
 
 goveralls:
