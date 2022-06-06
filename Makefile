@@ -33,15 +33,21 @@ clean:
 	mkdir -p ./examples/pacts
 	rm -rf build output dist examples/pacts
 
-deps:
+deps: download_plugins
 	@echo "--- 🐿  Fetching build dependencies "
 	cd /tmp; \
-	go get github.com/axw/gocov/gocov; \
-	go get github.com/mattn/goveralls; \
-	go get golang.org/x/tools/cmd/cover; \
-	go get github.com/modocache/gover; \
-	go get github.com/mitchellh/gox; \
+	go install github.com/axw/gocov/gocov@latest; \
+	go install github.com/mattn/goveralls@latest; \
+	go install golang.org/x/tools/cmd/cover@latest; \
+	go install github.com/modocache/gover@latest; \
+	go install github.com/mitchellh/gox@latest; \
 	cd -
+
+
+download_plugins:
+	@echo "--- 🐿  Installing plugins"; \
+	./scripts/install-cli.sh
+	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.1.7
 
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
@@ -50,7 +56,7 @@ cli:
 	@if [ ! -d pact/bin ]; then\
 		echo "--- 🐿 Installing Pact CLI dependencies"; \
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
-  fi
+	fi
 
 install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"

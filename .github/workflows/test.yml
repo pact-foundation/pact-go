@@ -15,7 +15,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.15.x, 1.14.x, 1.13.x]
+        go-version: [1.17.x, 1.18.x]
         # os: [ubuntu-latest, macos-latest, windows-latest]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
@@ -33,3 +33,8 @@ jobs:
       #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Test
         run: make
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Upload plugin logs
+          path: ~/.pact/plugins/**/plugin.log
+        if: ${{ always() }}
