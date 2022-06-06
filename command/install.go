@@ -13,13 +13,18 @@ var libDir string
 var force bool
 var installCmd = &cobra.Command{
 	Use:   "install",
-	Short: "Check required tools",
-	Long:  "Checks versions of required Pact CLI tools for used by the library",
+	Short: "Install required libraries",
+	Long:  "Install the correct version of required libraries",
 	Run: func(cmd *cobra.Command, args []string) {
 		setLogLevel(verbose, logLevel)
 
 		// Run the installer
 		i, err := installer.NewInstaller()
+
+		if err != nil {
+			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
+			os.Exit(1)
+		}
 
 		if libDir != "" {
 			log.Println("[INFO] set lib dir target to", libDir)
@@ -27,11 +32,6 @@ var installCmd = &cobra.Command{
 		}
 
 		i.Force(force)
-
-		if err != nil {
-			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
-			os.Exit(1)
-		}
 
 		if err = i.CheckInstallation(); err != nil {
 			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)

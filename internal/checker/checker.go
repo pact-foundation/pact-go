@@ -6,9 +6,8 @@ import (
 )
 
 func CheckInstall() error {
-	// initialised the lib registry
+	// initialised the lib registry. It just needs one of the main lib interfaces Version() here
 	installer.LibRegistry[installer.FFIPackage] = &native.MockServer{}
-	installer.LibRegistry[installer.FFIPackage] = &native.Verifier{}
 
 	i, err := installer.NewInstaller()
 	if err != nil {

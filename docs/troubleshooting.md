@@ -14,9 +14,19 @@ You can also export `LOG_LEVEL=trace` before running a test to increase verbosit
 
 ## Library status check
 
-Pact ships with a CLI that you can also use to check if the tools are up to date. Simply run `pact-go install`, exit status `0` is good, `1` or higher is bad.
+Pact ships with a CLI that you can also use to check if the tools are up to date. Simply run `pact-go check` - an exit status of `0` is good, `1` or higher is bad. `pact-go install` will also do this, and also install any dependencies if missing.
 
-You can also opt to have Pact automatically upgrade library version using the function `CheckVersion()`
+You can also opt to have Pact automatically upgrade library version using the function `CheckVersion()`.
+
+Pact go from 2.0.0-beta-11 onwards, also stores a configuration file in `~/.pact/pact-go.yml` that contains the version information for the current libraries it manages. You should not edit this file, however it has a structure as follows:
+
+```yaml
+libraries:
+  libpact_ffi:
+    libname: libpact_ffi
+    version: 0.3.2
+    hash: d6503769896eecbc027815d20aff19c3
+```
 
 #### Re-run a specific provider verification test
 

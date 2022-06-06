@@ -115,6 +115,8 @@ func TestInstallerCheckInstallation(t *testing.T) {
 		i := &Installer{
 			fs:         afero.NewMemMapFs(),
 			downloader: &mockDownloader{},
+			hasher:     &mockHasher{},
+			config:     &mockConfiguration{},
 			os:         "osx",
 		}
 		err := i.CheckInstallation()
@@ -127,6 +129,8 @@ func TestInstallerCheckInstallation(t *testing.T) {
 		i := &Installer{
 			fs:         mockFs,
 			downloader: &mockDownloader{},
+			hasher:     &mockHasher{},
+			config:     &mockConfiguration{},
 			os:         "osx",
 		}
 
@@ -158,7 +162,9 @@ func TestInstallerCheckPackageInstall(t *testing.T) {
 					}
 				},
 			},
-			os: "osx",
+			hasher: &mockHasher{},
+			config: &mockConfiguration{},
+			os:     "osx",
 		}
 
 		err := i.CheckInstallation()
@@ -184,6 +190,26 @@ func (m *mockDownloader) download(src, dst string) error {
 	return nil
 }
 
+type mockHasher struct {
+}
+
+func (m *mockHasher) hash(src string) (string, error) {
+	return "1234", nil
+}
+
+type mockConfiguration struct {
+}
+
+func (m *mockConfiguration) readConfig() pactConfig {
+	return pactConfig{
+		Libraries: make(map[string]packageMetadata),
+	}
+}
+
+func (m *mockConfiguration) writeConfig(pactConfig) error {
+	return nil
+}
+
 func restoreOSXInstallName() func() {
 	old := setOSXInstallName
 	setOSXInstallName = func(string, string) error {
@@ -193,4 +219,8 @@ func restoreOSXInstallName() func() {
 	return func() {
 		setOSXInstallName = old
 	}
+}
+
+func TestUpdateConfiguration(t *testing.T) {
+
 }
