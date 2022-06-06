@@ -43,15 +43,11 @@ deps: download_plugins
 	go install github.com/mitchellh/gox@latest; \
 	cd -
 
+
 download_plugins:
-	@if [ ! -d ~/.pact/plugins/protobuf-0.1.7 ]; then\
-		@echo "--- 🐿  Installing plugins"; \
-		mkdir -p ~/.pact/plugins/protobuf-0.1.7; \
-		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.7/pact-plugin.json -O ~/.pact/plugins/protobuf-0.1.7/pact-plugin.json; \
-		wget https://github.com/pactflow/pact-protobuf-plugin/releases/download/v-0.1.7/pact-protobuf-plugin-linux-x86_64.gz -O ~/.pact/plugins/protobuf-0.1.7/pact-protobuf-plugin-linux-x86_64.gz; \
-		gunzip -N ~/.pact/plugins/protobuf-0.1.7/pact-protobuf-plugin-linux-x86_64.gz; \
-		chmod +x ~/.pact/plugins/protobuf-0.1.7/pact-protobuf-plugin; \
-	fi
+	@echo "--- 🐿  Installing plugins"; \
+	./scripts/install-cli.sh
+	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.1.7
 
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
@@ -60,7 +56,7 @@ cli:
 	@if [ ! -d pact/bin ]; then\
 		echo "--- 🐿 Installing Pact CLI dependencies"; \
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
-  fi
+	fi
 
 install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
