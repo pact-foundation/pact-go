@@ -6,15 +6,9 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
-
-	"context"
-	l "log"
 
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -135,7 +129,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
 
-	m := NewHTTPMockServer("test-http-consumer", "test-http-provider")
+	m := NewPact("test-http-consumer", "test-http-provider")
 
 	i := m.NewInteraction("some interaction")
 
@@ -175,7 +169,7 @@ func TestPluginInteraction(t *testing.T) {
 	assert.NoError(t, err)
 	log.SetLogLevel("trace")
 
-	m := NewHTTPMockServer("test-plugin-consumer", "test-plugin-provider")
+	m := NewPact("test-plugin-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test
 	m.UsingPlugin("protobuf", "0.0.3")
@@ -296,81 +290,3 @@ var pactComplex = `{
     }
   }]
 }`
-
-func TestGrpcPluginInteraction(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
-	assert.NoError(t, err)
-	log.InitLogging()
-	log.SetLogLevel("TRACE")
-
-	m := NewHTTPMockServer("test-grpc-consumer", "test-plugin-provider")
-
-	// Protobuf plugin test
-	m.UsingPlugin("protobuf", "0.1.5")
-	// m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
-
-	i := m.NewSyncMessageInteraction("grpc interaction")
-
-	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/plugin.proto", dir)
-
-	grpcInteraction := `{
-			"pact:proto": "` + path + `",
-			"pact:proto-service": "PactPlugin/InitPlugin",
-			"pact:content-type": "application/protobuf",
-			"request": {
-				"implementation": "notEmpty('pact-go-driver')",
-				"version": "matching(semver, '0.0.0')"	
-			},
-			"response": {
-				"catalogue": [
-					{
-						"type": "INTERACTION",
-						"key": "test"
-					}
-				]
-			}
-		}`
-
-	i.
-		Given("plugin state").
-		// For gRPC interactions we prpvide the config once for both the request and response parts
-		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
-
-	// Start the gRPC mock server
-	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]interface{}))
-	assert.NoError(t, err)
-	defer m.CleanupMockServer(port)
-
-	// Now we can make a normal gRPC request
-	initPluginRequest := &InitPluginRequest{
-		Implementation: "pact-go-test",
-		Version:        "1.0.0",
-	}
-
-	// Need to make a gRPC call here
-	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		l.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := NewPactPluginClient(conn)
-
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.InitPlugin(ctx, initPluginRequest)
-	if err != nil {
-		l.Fatalf("could not initialise the plugin: %v", err)
-	}
-	l.Printf("InitPluginResponse: %v", r)
-
-	mismatches := m.MockServerMismatchedRequests(port)
-	if len(mismatches) != 0 {
-		assert.Len(t, mismatches, 0)
-		t.Log(mismatches)
-	}
-
-	err = m.WritePactFile(port, tmpPactFolder)
-	assert.NoError(t, err)
-}

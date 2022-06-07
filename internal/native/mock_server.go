@@ -125,9 +125,6 @@ int pactffi_with_multipart_file(InteractionHandle interaction, int interaction_p
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
 void pactffi_response_status(InteractionHandle interaction, int status);
 
-// Creates a new synchronous message interaction (request/response) and return a handle to it
- InteractionHandle pactffi_new_sync_message_interaction(PactHandle pact, const char *description);
-
 /// External interface to trigger a mock server to write out its pact file. This function should
 /// be called if all the consumer tests have passed. The directory to write the file to is passed
 /// as the second parameter. If a NULL pointer is passed, the current working directory is used.
@@ -247,7 +244,7 @@ type MockServer struct {
 }
 
 // NewMockServer creates a new mock server for a given consumer/provider
-func NewHTTPMockServer(consumer string, provider string) *MockServer {
+func NewPact(consumer string, provider string) *MockServer {
 	cConsumer := C.CString(consumer)
 	cProvider := C.CString(provider)
 	defer free(cConsumer)
@@ -352,11 +349,18 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 }
 
 // WritePactFile writes the Pact to file.
+// TODO: expose overwrite
 func (m *MockServer) WritePactFile(port int, dir string) error {
 	log.Println("[DEBUG] writing pact file for mock server on port:", port, ", dir:", dir)
 	cDir := C.CString(dir)
 	defer free(cDir)
 
+	// overwritePact := 0
+	// if overwrite {
+	// 	overwritePact = 1
+	// }
+
+	// res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.int(overwritePact)))
 	res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.int(0)))
 
 	// | Error | Description |
@@ -459,7 +463,7 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 	log.Println("[DEBUG] mock server starting on address:", address, port)
 	cAddress := C.CString(address)
 	defer free(cAddress)
-	
+
 	cTransport := C.CString(transport)
 	defer free(cTransport)
 
@@ -469,7 +473,7 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 
 	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.int(port), cTransport, cConfig)
 
-	// | Error | Description 
+	// | Error | Description
 	// |-------|-------------
 	// | -1	   | An invalid handle was received. Handles should be created with pactffi_new_pact
 	// | -2	   | transport_config is not valid JSON
@@ -558,21 +562,7 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 	return i
 }
 
-// NewSyncMessageInteraction initialises a new synchronous message interaction for the current contract
-func (m *MockServer) NewSyncMessageInteraction(description string) *Interaction {
-	cDescription := C.CString(description)
-	defer free(cDescription)
-
-	i := &Interaction{
-		handle: C.pactffi_new_sync_message_interaction(m.pact.handle, cDescription),
-	}
-	m.interactions = append(m.interactions, i)
-
-	return i
-}
-
 // NewInteraction initialises a new interaction for the current contract
-// TODO: why specify the name and version twice?
 func (i *Interaction) WithPluginInteractionContents(interactionPart interactionType, contentType string, contents string) error {
 	cContentType := C.CString(contentType)
 	defer free(cContentType)

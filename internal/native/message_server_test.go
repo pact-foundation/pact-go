@@ -3,13 +3,21 @@ package native
 import (
 	"bytes"
 	"compress/gzip"
+	context "context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
+	l "log"
+	"os"
 	"testing"
+	"time"
+
+	"github.com/pact-foundation/pact-go/v2/log"
 
 	"github.com/stretchr/testify/assert"
+	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func TestHandleBasedMessageTestsWithString(t *testing.T) {
@@ -63,7 +71,7 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 		})
 
 	body := m.ReifyMessage()
-	log.Println(body) // TODO: JSON is not stringified - probably should be?
+	l.Println(body) // TODO: JSON is not stringified - probably should be?
 
 	var res jsonMessage
 	err = json.Unmarshal([]byte(body), &res)
@@ -147,3 +155,109 @@ type jsonMessage struct {
 	Metadata       map[string]string        `json:"metadata"`
 	Contents       interface{}              `json:"contents"`
 }
+
+func TestGrpcPluginInteraction(t *testing.T) {
+	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	assert.NoError(t, err)
+	log.InitLogging()
+	log.SetLogLevel("TRACE")
+
+	m := NewMessageServer("test-message-consumer", "test-message-provider")
+	// m := NewPact("test-grpc-consumer", "test-plugin-provider")
+
+	// Protobuf plugin test
+	m.UsingPlugin("protobuf", "0.1.5")
+	// m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
+
+	i := m.NewSyncMessageInteraction("grpc interaction")
+
+	dir, _ := os.Getwd()
+	path := fmt.Sprintf("%s/plugin.proto", dir)
+
+	grpcInteraction := `{
+			"pact:proto": "` + path + `",
+			"pact:proto-service": "PactPlugin/InitPlugin",
+			"pact:content-type": "application/protobuf",
+			"request": {
+				"implementation": "notEmpty('pact-go-driver')",
+				"version": "matching(semver, '0.0.0')"	
+			},
+			"response": {
+				"catalogue": [
+					{
+						"type": "INTERACTION",
+						"key": "test"
+					}
+				]
+			}
+		}`
+
+	i.
+		Given("plugin state").
+		// For gRPC interactions we prpvide the config once for both the request and response parts
+		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
+
+	// Start the gRPC mock server
+	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]interface{}))
+	assert.NoError(t, err)
+	defer m.CleanupMockServer(port)
+
+	// Now we can make a normal gRPC request
+	initPluginRequest := &InitPluginRequest{
+		Implementation: "pact-go-test",
+		Version:        "1.0.0",
+	}
+
+	// Need to make a gRPC call here
+	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		l.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := NewPactPluginClient(conn)
+
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := c.InitPlugin(ctx, initPluginRequest)
+	if err != nil {
+		l.Fatalf("could not initialise the plugin: %v", err)
+	}
+	l.Printf("InitPluginResponse: %v", r)
+
+	mismatches := m.MockServerMismatchedRequests(port)
+	if len(mismatches) != 0 {
+		assert.Len(t, mismatches, 0)
+		t.Log(mismatches)
+	}
+
+	err = m.WritePactFileForServer(port, tmpPactFolder, true)
+	assert.NoError(t, err)
+}
+
+// TODO:
+
+// In the test, you use `NewSyncMessageInteraction` but don't set a response type on the FFI, just the plugin. This is a little awkward
+// Does this imply that a sync can be async?
+// WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
+
+// // How to add metadata, binary contents ?
+
+// // -> https://docs.pact.io/slack/libpact_ffi-users.html#1646812690.612989
+
+// Is the mental model to Ignore the V3 message pact stuff now (MessagePactHandle and MessageHandle) and just assume `PactHandle` and `InteractionHandle` are the main thinngs?
+// If so, is it possible to get an updated view of which functions are essentially deprecated? I'm finding it very hard to know which methods to call.
+
+// For example,
+
+// MessagePactHandle                     PactHandle
+// pactffi_with_message_pact_metadata --> pactffi_with_pact_metadata
+
+// MessageHandle                      --> InteractionHandle
+// pactffi_with_message_pact_metadata --> pactffi_with_binary_file This would be confusing though
+
+// Example of methods on Interaction that don't make sense for all types. This means all client libraries need to know the cases in which it can/can't be used
+// pactffi_response_status, pactffi_with_query_parameter, pactffi_with_request, pactffi_with_binary_file
+
+// Example of methods on MessageHandle that don't have equivalent on InteractionHandle
+// pactffi_message_expects_to_receive, pactffi_message_with_contents, pactffi_message_reify

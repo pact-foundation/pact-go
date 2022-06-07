@@ -115,7 +115,7 @@ func (p *httpMockProvider) configure() error {
 		p.config.ClientTimeout = 10 * time.Second
 	}
 
-	p.mockserver = native.NewHTTPMockServer(p.config.Consumer, p.config.Provider)
+	p.mockserver = native.NewPact(p.config.Consumer, p.config.Provider)
 	switch p.specificationVersion {
 	case models.V2:
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)
