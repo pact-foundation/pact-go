@@ -121,7 +121,7 @@ func (v *MessageVerifier) verifyMessageProviderRaw(request VerifyMessageRequest,
 
 type messageVerificationHandlerRequest struct {
 	Description string                   `json:"description"`
-	States      []models.ProviderStateV3 `json:"providerStates"`
+	States      []models.V3ProviderState `json:"providerStates"`
 }
 
 type messageStateHandlerRequest struct {
@@ -130,7 +130,7 @@ type messageStateHandlerRequest struct {
 	Action string                 `json:"action"`
 }
 
-var messageStateHandler = func(messageHandlers MessageHandlers, stateHandlers models.StateHandlers) http.HandlerFunc {
+var messageStateHandler = func(messageHandlers Handlers, stateHandlers models.StateHandlers) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -161,7 +161,7 @@ var messageStateHandler = func(messageHandlers MessageHandlers, stateHandlers mo
 			log.Printf("[WARN] state handler not found for state: %v", message.State)
 		} else {
 			// Execute state handler
-			res, err := sf(message.Action == "setup", models.ProviderStateV3{
+			res, err := sf(message.Action == "setup", models.V3ProviderState{
 				Name:       message.State,
 				Parameters: message.Params,
 			})
@@ -194,11 +194,11 @@ var messageStateHandler = func(messageHandlers MessageHandlers, stateHandlers mo
 }
 
 type messageWithMetadata struct {
-	Contents []byte          `json:"pactMessageContents"`
-	Metadata MessageMetadata `json:"pactMessageMetadata"`
+	Contents []byte   `json:"pactMessageContents"`
+	Metadata Metadata `json:"pactMessageMetadata"`
 }
 
-func appendMetadataToResponse(res interface{}, metadata MessageMetadata) ([]byte, error) {
+func appendMetadataToResponse(res interface{}, metadata Metadata) ([]byte, error) {
 	data, err := json.Marshal(res)
 	if err != nil {
 		return nil, err
@@ -214,7 +214,7 @@ func appendMetadataToResponse(res interface{}, metadata MessageMetadata) ([]byte
 var PACT_MESSAGE_METADATA_HEADER = "PACT_MESSAGE_METADATA"
 var PACT_MESSAGE_METADATA_HEADER2 = "Pact-Message-Metadata"
 
-func appendMetadataToResponseHeaders(metadata MessageMetadata, w http.ResponseWriter) {
+func appendMetadataToResponseHeaders(metadata Metadata, w http.ResponseWriter) {
 	if len(metadata) > 0 {
 		log.Println("[DEBUG] adding message metadata header", metadata)
 		json, err := json.Marshal(metadata)
@@ -231,7 +231,7 @@ func appendMetadataToResponseHeaders(metadata MessageMetadata, w http.ResponseWr
 	}
 }
 
-var messageVerificationHandler = func(messageHandlers MessageHandlers, stateHandlers models.StateHandlers) http.HandlerFunc {
+var messageVerificationHandler = func(messageHandlers Handlers, stateHandlers models.StateHandlers) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO: should this be set by the provider itself? How does the metadata go back?
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")

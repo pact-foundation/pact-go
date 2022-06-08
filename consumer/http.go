@@ -2,7 +2,7 @@
 // collaboration test cases, and Provider contract test verification.
 package consumer
 
-// TODO: setup a proper state machine to prevent actions
+// TODO: setup a proper state machine to prevent actions -> use type state fluent pattern
 // Current issues
 // 1. Setup needs to be initialised to get a port -> should be resolved by creating the server at the point of verification
 // 2. Ensure that interactions are properly cleared
@@ -115,7 +115,7 @@ func (p *httpMockProvider) configure() error {
 		p.config.ClientTimeout = 10 * time.Second
 	}
 
-	p.mockserver = native.NewPact(p.config.Consumer, p.config.Provider)
+	p.mockserver = native.NewHTTPPact(p.config.Consumer, p.config.Provider)
 	switch p.specificationVersion {
 	case models.V2:
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)

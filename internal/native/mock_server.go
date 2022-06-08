@@ -243,8 +243,8 @@ type MockServer struct {
 	interactions []*Interaction
 }
 
-// NewMockServer creates a new mock server for a given consumer/provider
-func NewPact(consumer string, provider string) *MockServer {
+// NewHTTPPact creates a new HTTP mock server for a given consumer/provider
+func NewHTTPPact(consumer string, provider string) *MockServer {
 	cConsumer := C.CString(consumer)
 	cProvider := C.CString(provider)
 	defer free(cConsumer)

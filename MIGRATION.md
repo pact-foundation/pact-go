@@ -16,16 +16,6 @@ The new package is migratable, with the the `/v2` major version bump
 
 i.e. `github.com/pact-foundation/pact-go/v2`
 
-### General
-
-#### Sugar interface
-
-The following package exposes aliases for the most commonly used interfaces for Matchers, common types and builders:
-
-```
-. "github.com/pact-foundation/pact-go/v2/sugar"
-```
-
 ### Consumer
 
 #### Primary Interface

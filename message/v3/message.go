@@ -1,4 +1,4 @@
-package message
+package v3
 
 import (
 	"github.com/pact-foundation/pact-go/v2/matchers"
@@ -35,4 +35,10 @@ type AsynchronousMessage struct {
 
 	// Description to be written into the Pact file
 	Description string `json:"description"`
+}
+
+type Config struct {
+	Consumer string
+	Provider string
+	PactDir  string
 }

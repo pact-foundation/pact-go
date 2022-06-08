@@ -129,7 +129,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
 
-	m := NewPact("test-http-consumer", "test-http-provider")
+	m := NewHTTPPact("test-http-consumer", "test-http-provider")
 
 	i := m.NewInteraction("some interaction")
 
@@ -169,7 +169,7 @@ func TestPluginInteraction(t *testing.T) {
 	assert.NoError(t, err)
 	log.SetLogLevel("trace")
 
-	m := NewPact("test-plugin-consumer", "test-plugin-provider")
+	m := NewHTTPPact("test-plugin-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test
 	m.UsingPlugin("protobuf", "0.0.3")

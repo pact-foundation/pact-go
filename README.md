@@ -120,17 +120,6 @@ pact-go help
 
 ## Usage
 
-### Sugar API
-
-A convenience package exists with common interfaces in the `sugar` package. You can use a dot import to use it:
-
-```golang
-import (
-  // ...
-  . "github.com/pact-foundation/pact-go/v2/sugar"
-)
-```
-
 ### Consumer package
 
 The consumer interface is in the package: `github.com/pact-foundation/pact-go/v2/consumer`.

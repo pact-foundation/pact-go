@@ -6,14 +6,17 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/pact-foundation/pact-go/v2/sugar"
+	"github.com/pact-foundation/pact-go/v2/consumer"
+	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/stretchr/testify/assert"
 )
+
+type S = matchers.S
 
 func TestProductAPIClient(t *testing.T) {
 	// Specify the two applications in the integration we are testing
 	// NOTE: this can usually be extracted out of the individual test for re-use)
-	mockProvider, err := NewV2Pact(MockHTTPProviderConfig{
+	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoProductAPIConsumer",
 		Provider: "PactGoProductAPI",
 	})
@@ -29,7 +32,7 @@ func TestProductAPIClient(t *testing.T) {
 		WithBodyMatch(&Product{})
 
 	// Act: test our API client behaves correctly
-	err = mockProvider.ExecuteTest(t, func(config MockServerConfig) error {
+	err = mockProvider.ExecuteTest(t, func(config consumer.MockServerConfig) error {
 		// Initialise the API client and point it at the Pact mock server
 		client := newClient(config.Host, config.Port)
 

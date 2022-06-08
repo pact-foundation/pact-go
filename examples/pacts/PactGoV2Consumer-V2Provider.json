@@ -1,0 +1,102 @@
+{
+  "consumer": {
+    "name": "PactGoV2Consumer"
+  },
+  "interactions": [
+    {
+      "description": "A request to do a foo",
+      "providerState": "User foo exists",
+      "request": {
+        "body": {
+          "datetime": "2020-01-01'T'08:00:45",
+          "id": 27,
+          "lastName": "billy",
+          "name": "billy"
+        },
+        "headers": {
+          "Authorization": "Bearer 1234",
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.datetime": {
+            "match": "type"
+          },
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          },
+          "$.header.$.Authorization": {
+            "match": "type"
+          },
+          "$.path": {
+            "match": "regex",
+            "regex": "\\/foo.*"
+          },
+          "$.query.$.baz[0]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.query.$.baz[1]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.query.$.baz[2]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          }
+        },
+        "method": "POST",
+        "path": "/foobar",
+        "query": "baz=bar&baz=bat&baz=baz"
+      },
+      "response": {
+        "body": {
+          "datetime": "2020-01-01",
+          "itemsMin": [
+            "thereshouldbe3ofthese",
+            "thereshouldbe3ofthese",
+            "thereshouldbe3ofthese"
+          ],
+          "lastName": "Sampson",
+          "name": "Billy"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.datetime": {
+            "match": "regex",
+            "regex": "[0-9\\-]+"
+          },
+          "$.body.itemsMin": {
+            "match": "type",
+            "min": 3
+          },
+          "$.header.$['Content-Type']": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.3.2",
+      "mockserver": "0.9.2",
+      "models": "0.4.1"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "V2Provider"
+  }
+}

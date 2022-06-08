@@ -193,6 +193,7 @@ func (i *Message) WithJSONContents(body interface{}) *Message {
 	return i.WithContents("application/json", []byte(value))
 }
 
+// TODO: note that string values here must be NUL terminated.
 func (i *Message) WithContents(contentType string, body []byte) *Message {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
