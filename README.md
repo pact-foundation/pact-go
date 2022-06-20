@@ -45,7 +45,7 @@ Read [Getting started with Pact] for more information for beginners.
   - [Versions](#versions)
   - [Installation](#installation)
     - [Go get](#go-get)
-    - [Installation on \*nix](#installation-on-\nix)
+    - [Installation on \*nix](#installation-on-nix)
   - [V3 Beta](#v3-beta)
   - [Using Pact](#using-pact)
   - [HTTP API Testing](#http-api-testing)
@@ -80,12 +80,7 @@ Read [Getting started with Pact] for more information for beginners.
     - [HTTP APIs](#http-apis)
     - [Asynchronous APIs](#asynchronous-apis)
     - [Integrated examples](#integrated-examples)
-  - [Troubleshooting](#troubleshooting)
-      - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-      - [Output Logging](#output-logging)
-      - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
-      - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
-      - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
+  - [Troubleshooting](#troubleshooting) - [Splitting tests across multiple files](#splitting-tests-across-multiple-files) - [Output Logging](#output-logging) - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date) - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests) - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
     - [Verifying APIs with a self-signed certificate](#verifying-apis-with-a-self-signed-certificate)
     - [Testing AWS API Gateway APIs](#testing-aws-api-gateway-apis)
   - [Contact](#contact)
@@ -94,13 +89,14 @@ Read [Getting started with Pact] for more information for beginners.
   - [Contributing](#contributing)
 
 <!-- /TOC -->
+
 ## Versions
 
 <details><summary>Specification Compatibility</summary>
 
 | Version | Stable | [Spec] Compatibility | Install            |
-|---------|--------|----------------------|--------------------|
-| 2.x.x   | Beta   | 2, 3                 | See [v2.x.x] |
+| ------- | ------ | -------------------- | ------------------ |
+| 2.x.x   | Beta   | 2, 3                 | See [v2.x.x]       |
 | 1.0.x   | Yes    | 2, 3\*               | See [installation] |
 | 0.x.x   | Yes    | Up to v2             | 0.x.x [stable]     |
 
@@ -442,13 +438,14 @@ for different test cases:
 _Important Note_: You should only use this feature for things that can not be persisted in the pact file. By modifying the request, you are potentially modifying the contract from the consumer tests!
 
 #### Pending Pacts
+
 _NOTE_: This feature is currently only available on [Pactflow]
 
 Pending pacts is a feature that allows consumers to publish new contracts or changes to existing contracts without breaking Provider's builds. It does so by flagging the contract as "unverified" in the Pact Broker the first time a contract is published. A Provider can then enable a behaviour (via `EnablePending: true`) that will still perform a verification (and thus share the results back to the broker) but _not_ fail the verification step itself.
 
 This enables safe introduction of new contracts into the system, without breaking Provider builds, whilst still providing feedback to Consumers as per before.
 
-See the [docs](https://docs.pact.io/pending) and this [article](http://blog.pact.io/2020/02/24/how-we-have-fixed-the-biggest-problem-with-the-pact-workflow/) for more background.
+See the [docs](https://docs.pact.io/pending) and this [article](https://docs.pact.io/blog/2020/02/24/how-weve-fixed-the-biggest-problem-with-the-pact-workflow) for more background.
 
 #### WIP Pacts
 
@@ -456,7 +453,7 @@ _NOTE_: This feature is currently only available on [Pactflow]
 
 WIP Pacts builds upon pending pacts, enabling provider tests to pull in _any_ contracts applicable to the provider regardless of the `tag` it was given. This is useful, because often times consumers won't follow the exact same tagging convention and so their workflow would be interrupted. This feature enables any pacts determined to be "work in progress" to be verified by the Provider, without causing a build failure. You can enable this behaviour by specifying a valid `time.Time` field for `IncludeWIPPactsSince`. This sets the start window for which new WIP pacts will be pulled down for verification, regardless of the tag.
 
-See the [docs](https://docs.pact.io/wip) and this [article](http://blog.pact.io/2020/02/24/introducing-wip-pacts/) for more background.
+See the [docs](https://docs.pact.io/wip) and this [article](https://docs.pact.io/blog/2020/02/24/introducing-wip-pacts) for more background.
 
 #### Lifecycle of a provider verification
 
@@ -472,7 +469,7 @@ Using a [Pact Broker] is recommended for any serious workloads, you can run your
 
 By integrating with a Broker, you get much more advanced collaboration features and can take advantage of automation tools, such as the [can-i-deploy tool], which can tell you at any point in time, which component is safe to release.
 
-See the [Pact Broker](https://docs.pact.io/getting-started/sharing-pacts-with-the-pact-broker)
+See the [Pact Broker](https://docs.pact.io/getting_started/sharing_pacts)
 documentation for more details on the Broker.
 
 #### Publishing from Go code
@@ -489,7 +486,7 @@ err := p.Publish(types.PublishRequest{
 
 #### Publishing Provider Verification Results to a Pact Broker
 
-If you're using a Pact Broker (e.g. a hosted one at pact.dius.com.au), you can
+If you're using a Pact Broker (e.g. a hosted one at pactflow.io), you can
 publish your verification results so that consumers can query if they are safe
 to release.
 
@@ -719,7 +716,7 @@ This example will result in a response body from the mock server that looks like
 Often times, you find yourself having to re-write regular expressions for common formats. We've created a number of them for you to save you the time:
 
 | method          | description                                                                                     |
-|-----------------|-------------------------------------------------------------------------------------------------|
+| --------------- | ----------------------------------------------------------------------------------------------- |
 | `Identifier()`  | Match an ID (e.g. 42)                                                                           |
 | `Integer()`     | Match all numbers that are integers (both ints and longs)                                       |
 | `Decimal()`     | Match all real numbers (floating point and decimal)                                             |
@@ -948,8 +945,8 @@ See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRI
 [message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
 [changelog]: https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md
 [pact broker]: https://github.com/pact-foundation/pact_broker
-[hosted broker]: https://pact.dius.com.au
+[hosted broker]: https://pactflow.io
 [can-i-deploy tool]: https://docs.pact.io/can_i_deploy
-[Pactflow]: https://pactflow.io
+[pactflow]: https://pactflow.io
 [v2.x.x]: https://github.com/pact-foundation/pact-go/tree/2.x.x
 [slack]: https://slack.pact.io
