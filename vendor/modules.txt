@@ -17,7 +17,7 @@ github.com/go-playground/universal-translator
 github.com/go-playground/validator/v10
 # github.com/golang/protobuf v1.4.2
 github.com/golang/protobuf/proto
-# github.com/hashicorp/go-version v1.3.0
+# github.com/hashicorp/go-version v1.5.0
 github.com/hashicorp/go-version
 # github.com/hashicorp/logutils v0.0.0-20150609070431-0dc08b1671f3
 github.com/hashicorp/logutils
