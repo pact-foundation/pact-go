@@ -3,7 +3,7 @@
     "name": "consumer"
   },
   "provider": {
-    "name": "httpbin"
+    "name": "selfsignedtls"
   },
   "interactions": [
     {

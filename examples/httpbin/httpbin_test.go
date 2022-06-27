@@ -1,3 +1,4 @@
+//go:build provider
 // +build provider
 
 package provider
@@ -42,7 +43,7 @@ var port, _ = utils.GetFreePort()
 func createPact() dsl.Pact {
 	return dsl.Pact{
 		Consumer:                 "consumer",
-		Provider:                 "httpbinprovider",
+		Provider:                 "httpbin",
 		LogDir:                   logDir,
 		PactDir:                  pactDir,
 		DisableToolValidityCheck: true,
