@@ -571,10 +571,8 @@ var userHandlerWrapper = func(m dsl.Message) error {
 
 // 3 Create the Pact Message Consumer
 pact := dsl.Pact {
-	return dsl.Pact{
-		Consumer:                 "PactGoMessageConsumer",
-		Provider:                 "PactGoMessageProvider",
-	}
+	Consumer: "PactGoMessageConsumer",
+	Provider: "PactGoMessageProvider",
 }
 
 // 4 Write the consumer test, and call VerifyMessageConsumer
@@ -591,7 +589,7 @@ func TestMessageConsumer_Success(t *testing.T) {
 			"access": eachLike(map[string]interface{}{
 				"role": term("admin", "admin|controller|user"),
 			}, 3),
-    })
+    }).
     AsType(&User{}) // Optional
 
 	pact.VerifyMessageConsumer(t, message, userHandlerWrapper)
