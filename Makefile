@@ -4,7 +4,7 @@ TEST?=./...
 
 .DEFAULT_GOAL := ci
 
-ci:: docker deps snyk clean bin test pact goveralls
+ci:: docker deps clean bin test pact goveralls
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -21,13 +21,15 @@ bin:
 clean:
 	rm -rf build output dist
 
-deps: snyk-install
+deps:
 	@echo "--- 🐿  Fetching build dependencies "
-	go get github.com/axw/gocov/gocov
-	go get github.com/mattn/goveralls
-	go get golang.org/x/tools/cmd/cover
-	go get github.com/modocache/gover
-	go get github.com/mitchellh/gox
+	cd /tmp; \
+	go install github.com/axw/gocov/gocov@latest; \
+	go install github.com/mattn/goveralls@latest; \
+	go install golang.org/x/tools/cmd/cover@latest; \
+	go install github.com/modocache/gover@latest; \
+	go install github.com/mitchellh/gox@latest; \
+	cd -
 
 goveralls:
 	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
@@ -69,13 +71,5 @@ testrace:
 
 updatedeps:
 	go get -d -v -p 2 ./...
-
-snyk-install:
-	npm i -g snyk
-
-snyk:
-	@if [ "$$TRAVIS_PULL_REQUEST" != "false" ]; then\
-		snyk test; \
-	fi
 
 .PHONY: install bin default dev test pact updatedeps clean release
