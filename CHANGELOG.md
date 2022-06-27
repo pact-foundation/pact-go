@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.6.9 (09 February 2022)
+  * [25a5ad5](https://github.com/pact-foundation/pact-go/commit/25a5ad5) - Match should skip unexported fields as they won't be serialized (#201) (Cody A. Ray, Tue Feb 8 21:07:54 2022 -0600)
+
 ### v1.6.8 (04 February 2022)
   * [18c791e](https://github.com/pact-foundation/pact-go/commit/18c791e) - fix: support struct tags for pointers (Sonia Hamilton, Tue Feb 1 10:31:07 2022 +1100)
   * [0360e55](https://github.com/pact-foundation/pact-go/commit/0360e55) - refactor(all): Small refactor (#193) (Sasha Melentyev, Sun Dec 26 15:44:11 2021 +0300)

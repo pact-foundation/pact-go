@@ -21,4 +21,4 @@
 
 - Ask a question on stackoverflow and tag it `pact-ruby`
 
-Tried to retrieve diff with previous pact from https://test.pact.dius.com.au/pacts/provider/loginprovider/consumer/jmarie/version/1.0.0/diff/previous-distinct, but received response code 401 Unauthorized.
+Tried to retrieve diff with previous pact from https://test.pactflow.io/pacts/provider/loginprovider/consumer/jmarie/version/1.0.0/diff/previous-distinct, but received response code 401 Unauthorized.

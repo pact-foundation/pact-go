@@ -13,6 +13,7 @@ docker:
 
 bin:
 	gox -os="darwin" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
+	gox -os="darwin" -arch="arm64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="windows" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="linux" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="linux" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
@@ -30,7 +31,7 @@ deps:
 
 install:
 	@if [ ! -d pact/bin ]; then\
-		@echo "--- 🐿 Installing Pact CLI dependencies"; \
+		echo "--- 🐿 Installing Pact CLI dependencies"; \
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
   	fi
 
