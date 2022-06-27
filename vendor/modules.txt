@@ -39,7 +39,7 @@ github.com/pmezard/go-difflib/difflib
 github.com/spf13/cobra
 # github.com/spf13/pflag v0.0.0-20160427162146-cb88ea77998c
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.7.3
+# github.com/stretchr/testify v1.7.4
 github.com/stretchr/testify/assert
 # github.com/ugorji/go/codec v1.1.7
 github.com/ugorji/go/codec
