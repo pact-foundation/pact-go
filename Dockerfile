@@ -1,4 +1,4 @@
-FROM golang:1
+FROM golang:1.17.8
 
 # Install pact ruby standalone binaries
 RUN curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.78/pact-1.88.78-linux-x86_64.tar.gz; \
