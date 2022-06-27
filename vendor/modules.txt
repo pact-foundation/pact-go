@@ -41,7 +41,7 @@ github.com/graph-gophers/graphql-go/types
 github.com/hashicorp/go-version
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hasura/go-graphql-client v0.6.3
+# github.com/hasura/go-graphql-client v0.7.1
 github.com/hasura/go-graphql-client
 github.com/hasura/go-graphql-client/ident
 github.com/hasura/go-graphql-client/internal/jsonutil
