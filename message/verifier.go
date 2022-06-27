@@ -16,14 +16,14 @@ import (
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
-type MessageVerifier struct {
+type Verifier struct {
 	// ClientTimeout specifies how long to wait for Pact CLI to start
 	// Can be increased to reduce likelihood of intermittent failure
 	// Defaults to 10s
 	ClientTimeout time.Duration
 }
 
-func (v *MessageVerifier) validateConfig() error {
+func (v *Verifier) validateConfig() error {
 	if v.ClientTimeout == 0 {
 		v.ClientTimeout = 10 * time.Second
 	}
@@ -31,7 +31,7 @@ func (v *MessageVerifier) validateConfig() error {
 	return nil
 }
 
-func (v *MessageVerifier) Verify(t *testing.T, request VerifyMessageRequest) error {
+func (v *Verifier) Verify(t *testing.T, request VerifyMessageRequest) error {
 	err := v.verifyMessageProviderRaw(request, t)
 
 	t.Run("Provider pact verification", func(t *testing.T) {
@@ -53,7 +53,7 @@ type outputWriter interface {
 // A Message Producer is analagous to Consumer in the HTTP Interaction model.
 // It is the initiator of an interaction, and expects something on the other end
 // of the interaction to respond - just in this case, not immediately.
-func (v *MessageVerifier) verifyMessageProviderRaw(request VerifyMessageRequest, writer outputWriter) error {
+func (v *Verifier) verifyMessageProviderRaw(request VerifyMessageRequest, writer outputWriter) error {
 	err := v.validateConfig()
 
 	if err != nil {

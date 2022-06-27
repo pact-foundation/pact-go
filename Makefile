@@ -2,9 +2,10 @@ include make/config.mk
 
 TEST?=./...
 .DEFAULT_GOAL := ci
-PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD -e PACT_BROKER_TOKEN pactfoundation/pact-cli:latest"
+DOCKER_HOST_HTTP?="http://host.docker.internal"
+PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
 
-ci:: deps clean bin test pact #goveralls
+ci:: docker deps clean bin test pact
 
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
@@ -36,10 +37,6 @@ clean:
 deps: download_plugins
 	@echo "--- 🐿  Fetching build dependencies "
 	cd /tmp; \
-	go install github.com/axw/gocov/gocov@latest; \
-	go install github.com/mattn/goveralls@latest; \
-	go install golang.org/x/tools/cmd/cover@latest; \
-	go install github.com/modocache/gover@latest; \
 	go install github.com/mitchellh/gox@latest; \
 	cd -
 
@@ -49,9 +46,6 @@ download_plugins:
 	./scripts/install-cli.sh
 	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.1.7
 	~/.pact/bin/pact-plugin-cli -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-0.0.1
-
-goveralls:
-	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
 
 cli:
 	@if [ ! -d pact/bin ]; then\
@@ -63,7 +57,7 @@ install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
 	./build/pact-go	 -l DEBUG install --libDir /tmp
 
-pact: clean install #docker
+pact: clean install docker
 	@echo "--- 🔨 Running Pact examples"
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 	make publish

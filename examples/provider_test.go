@@ -1,3 +1,4 @@
+//go:build provider
 // +build provider
 
 // Package main contains a runnable Provider Pact test example.
@@ -5,14 +6,17 @@ package main
 
 import (
 	"fmt"
-	"log"
+	l "log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/message"
-	. "github.com/pact-foundation/pact-go/v2/sugar"
+	"github.com/pact-foundation/pact-go/v2/models"
+	"github.com/pact-foundation/pact-go/v2/provider"
+	"github.com/pact-foundation/pact-go/v2/version"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,13 +27,13 @@ var pactDir = fmt.Sprintf("%s/pacts", dir)
 // 1. cd <pact-go>/examples/v3
 // 2. go test -v -tags provider .
 func TestV3HTTPProvider(t *testing.T) {
-	SetLogLevel("TRACE")
-	CheckVersion()
+	log.SetLogLevel("TRACE")
+	version.CheckVersion()
 
 	// Start provider API in the background
 	go startServer()
 
-	verifier := HTTPVerifier{}
+	verifier := provider.HTTPVerifier{}
 
 	// Authorization middleware
 	// This is your chance to modify the request before it hits your provider
@@ -37,14 +41,14 @@ func TestV3HTTPProvider(t *testing.T) {
 	// _change_ the contract
 	f := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Println("[DEBUG] HOOK request filter")
+			l.Println("[DEBUG] HOOK request filter")
 			r.Header.Add("Authorization", "Bearer 1234-dynamic-value")
 			next.ServeHTTP(w, r)
 		})
 	}
 
 	// Verify the Provider with local Pact Files
-	err := verifier.VerifyProvider(t, VerifyRequest{
+	err := verifier.VerifyProvider(t, provider.VerifyRequest{
 		ProviderBaseURL: "http://localhost:8111",
 		Provider:        "V3Provider",
 		ProviderVersion: os.Getenv("APP_SHA"),
@@ -53,37 +57,37 @@ func TestV3HTTPProvider(t *testing.T) {
 			filepath.ToSlash(fmt.Sprintf("%s/PactGoV3Consumer-V3Provider.json", pactDir)),
 			filepath.ToSlash(fmt.Sprintf("%s/PactGoV2ConsumerMatch-V2ProviderMatch.json", pactDir)),
 		},
-		ConsumerVersionSelectors: []Selector{
-			&ConsumerVersionSelector{
+		ConsumerVersionSelectors: []provider.Selector{
+			&provider.ConsumerVersionSelector{
 				Tag: "master",
 			},
-			&ConsumerVersionSelector{
+			&provider.ConsumerVersionSelector{
 				Tag: "prod",
 			},
 		},
 		PublishVerificationResults: true,
 		RequestFilter:              f,
 		BeforeEach: func() error {
-			log.Println("[DEBUG] HOOK before each")
+			l.Println("[DEBUG] HOOK before each")
 			return nil
 		},
 		AfterEach: func() error {
-			log.Println("[DEBUG] HOOK after each")
+			l.Println("[DEBUG] HOOK after each")
 			return nil
 		},
-		StateHandlers: StateHandlers{
-			"User foo exists": func(setup bool, s ProviderStateV3) (ProviderStateV3Response, error) {
+		StateHandlers: models.StateHandlers{
+			"User foo exists": func(setup bool, s models.V3ProviderState) (models.V3ProviderStateResponse, error) {
 
 				if setup {
-					log.Println("[DEBUG] HOOK calling user foo exists state handler", s)
+					l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
 				} else {
-					log.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
+					l.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
 				}
 
 				// ... do something, such as create "foo" in the database
 
 				// Optionally (if there are generators in the pact) return provider state values to be used in the verification
-				return ProviderStateV3Response{"uuid": "1234"}, nil
+				return models.V3ProviderStateResponse{"uuid": "1234"}, nil
 			},
 		},
 	})
@@ -92,20 +96,20 @@ func TestV3HTTPProvider(t *testing.T) {
 }
 
 func TestV3MessageProvider(t *testing.T) {
-	SetLogLevel("TRACE")
+	log.SetLogLevel("TRACE")
 	var user *User
 
-	verifier := MessageVerifier{}
+	verifier := message.Verifier{}
 
 	// Map test descriptions to message producer (handlers)
-	functionMappings := MessageHandlers{
-		"a user event": func([]ProviderStateV3) (message.MessageBody, message.MessageMetadata, error) {
+	functionMappings := message.Handlers{
+		"a user event": func([]models.V3ProviderState) (message.Body, message.Metadata, error) {
 			if user != nil {
-				return user, message.MessageMetadata{
+				return user, message.Metadata{
 					"Content-Type": "application/json",
 				}, nil
 			} else {
-				return ProviderStateV3Response{
+				return models.V3ProviderStateResponse{
 					"message": "not found",
 				}, nil, nil
 			}
@@ -113,8 +117,8 @@ func TestV3MessageProvider(t *testing.T) {
 	}
 
 	// Setup any required states for the handlers
-	stateMappings := StateHandlers{
-		"User with id 127 exists": func(setup bool, s ProviderStateV3) (ProviderStateV3Response, error) {
+	stateMappings := models.StateHandlers{
+		"User with id 127 exists": func(setup bool, s models.V3ProviderState) (models.V3ProviderStateResponse, error) {
 			if setup {
 				user = &User{
 					ID:       127,
@@ -124,13 +128,13 @@ func TestV3MessageProvider(t *testing.T) {
 				}
 			}
 
-			return ProviderStateV3Response{"id": user.ID}, nil
+			return models.V3ProviderStateResponse{"id": user.ID}, nil
 		},
 	}
 
 	// Verify the Provider with local Pact Files
-	verifier.Verify(t, VerifyMessageRequest{
-		VerifyRequest: VerifyRequest{
+	verifier.Verify(t, message.VerifyMessageRequest{
+		VerifyRequest: provider.VerifyRequest{
 			PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
 			StateHandlers:   stateMappings,
 			Provider:        "V3MessageProvider",
@@ -178,7 +182,7 @@ func startServer() {
 		)
 	})
 
-	log.Fatal(http.ListenAndServe("localhost:8111", mux))
+	l.Fatal(http.ListenAndServe("localhost:8111", mux))
 }
 
 type User struct {
