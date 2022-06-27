@@ -5,6 +5,28 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.7.0 (27 June 2022)
+  * [2e27286](https://github.com/pact-foundation/pact-go/commit/2e27286) - chore: don't use pactflow during builds (Matt Fellows, Mon Jun 27 14:38:12 2022 +1000)
+  * [9ea1907](https://github.com/pact-foundation/pact-go/commit/9ea1907) - chore: all provider builds now also use a broker (Matt Fellows, Mon Jun 27 14:33:40 2022 +1000)
+  * [c924c86](https://github.com/pact-foundation/pact-go/commit/c924c86) - chore: update build and add coveralls service to gh (Matt Fellows, Mon Jun 27 11:15:06 2022 +1000)
+  * [c040311](https://github.com/pact-foundation/pact-go/commit/c040311) - feat: add GraphQL response type (Matt Fellows, Mon Jun 27 11:10:01 2022 +1000)
+  * [09bde2a](https://github.com/pact-foundation/pact-go/commit/09bde2a) - chore: add github build (Matt Fellows, Mon Jun 27 11:00:22 2022 +1000)
+  * [dcd8e0e](https://github.com/pact-foundation/pact-go/commit/dcd8e0e) - feat: graphql interface (Matt Fellows, Tue Feb 8 12:58:21 2022 +1100)
+  * [583fe15](https://github.com/pact-foundation/pact-go/commit/583fe15) - docs: fix syntax issues in readme (#204) (Joseph Woodward, Mon Jun 27 05:19:16 2022 +0100)
+  * [dfc7c3a](https://github.com/pact-foundation/pact-go/commit/dfc7c3a) - fix: Dockerfile to reduce vulnerabilities (#206) (Snyk bot, Mon Jun 27 05:17:04 2022 +0100)
+  * [d4f8070](https://github.com/pact-foundation/pact-go/commit/d4f8070) - build(deps): bump github.com/stretchr/testify from 1.7.3 to 1.7.4 (#219) (dependabot[bot], Mon Jun 27 14:16:45 2022 +1000)
+  * [5c8e7e4](https://github.com/pact-foundation/pact-go/commit/5c8e7e4) - build(deps): bump github.com/hashicorp/go-version from 1.3.0 to 1.5.0 (#214) (dependabot[bot], Tue Jun 21 09:17:22 2022 +1000)
+  * [a66652a](https://github.com/pact-foundation/pact-go/commit/a66652a) - build(deps): bump github.com/stretchr/testify from 1.7.0 to 1.7.3 (#218) (dependabot[bot], Tue Jun 21 09:15:21 2022 +1000)
+  * [52fae3c](https://github.com/pact-foundation/pact-go/commit/52fae3c) - chore: update references from pact.dius.com.au -> pactflow.io (Matt Fellows, Mon May 2 22:23:45 2022 +1000)
+  * [91f2ac8](https://github.com/pact-foundation/pact-go/commit/91f2ac8) - fix: build on darwin arm64 (#211) (Wim Vander Schelden, Fri Apr 22 02:59:43 2022 +0200)
+  * [4199e8f](https://github.com/pact-foundation/pact-go/commit/4199e8f) - docs: update blog link (Yousaf Nabi, Tue Mar 29 16:42:33 2022 +0100)
+  * [17275b9](https://github.com/pact-foundation/pact-go/commit/17275b9) - docs: update readme pact broker getting started link (Yousaf Nabi, Mon Mar 28 18:39:49 2022 +0100)
+  * [59f097f](https://github.com/pact-foundation/pact-go/commit/59f097f) - fix: add option to tag provider with git branch from Verify methods (Jeffrey, Mon Mar 28 15:57:12 2022 +0200)
+  * [6c60bf7](https://github.com/pact-foundation/pact-go/commit/6c60bf7) - docs: update pact-support@googlegroups.com to pact-foundation (#208) (Yousaf Nabi, Wed Mar 23 11:17:01 2022 +0000)
+  * [f82584d](https://github.com/pact-foundation/pact-go/commit/f82584d) - fix: Dockerfile to reduce vulnerabilities (#207) (Snyk bot, Mon Mar 21 23:16:03 2022 +0000)
+  * [a40972e](https://github.com/pact-foundation/pact-go/commit/a40972e) - chore: minor spelling correction (#203) (Joseph Woodward, Fri Mar 4 22:12:36 2022 +0000)
+  * [25a5ad5](https://github.com/pact-foundation/pact-go/commit/25a5ad5) - Match should skip unexported fields as they won't be serialized (#201) (Cody A. Ray, Tue Feb 8 21:07:54 2022 -0600)
+
 ### v1.6.9 (09 February 2022)
   * [25a5ad5](https://github.com/pact-foundation/pact-go/commit/25a5ad5) - Match should skip unexported fields as they won't be serialized (#201) (Cody A. Ray, Tue Feb 8 21:07:54 2022 -0600)
 
