@@ -1,3 +1,4 @@
+//go:build provider
 // +build provider
 
 package provider
@@ -41,7 +42,7 @@ func TestExample_GinProvider(t *testing.T) {
 	// Verify the Provider - Latest Published Pacts for any known consumers
 	_, err := pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL:            fmt.Sprintf("http://127.0.0.1:%d", port),
-		BrokerURL:                  fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
+		BrokerURL:                  os.Getenv("PACT_BROKER_BASE_URL"),
 		BrokerToken:                os.Getenv("PACT_BROKER_TOKEN"),
 		BrokerUsername:             os.Getenv("PACT_BROKER_USERNAME"),
 		BrokerPassword:             os.Getenv("PACT_BROKER_PASSWORD"),
@@ -58,7 +59,7 @@ func TestExample_GinProvider(t *testing.T) {
 	// Verify the Provider - Tag-based Published Pacts for any known consumers
 	_, err = pact.VerifyProvider(t, types.VerifyRequest{
 		ProviderBaseURL: fmt.Sprintf("http://127.0.0.1:%d", port),
-		BrokerURL:       fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
+		BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
 		// Use ConsumerVersionSelectors instead of Tags for
 		ConsumerVersionSelectors:   selectors,
 		BrokerToken:                os.Getenv("PACT_BROKER_TOKEN"),

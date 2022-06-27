@@ -1,10 +1,11 @@
 include make/config.mk
 
 TEST?=./...
-
 .DEFAULT_GOAL := ci
+DOCKER_HOST_HTTP?="http://host.docker.internal"
+PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
 
-ci:: docker deps clean bin test pact goveralls
+ci:: docker deps clean bin test pact 
 
 docker:
 	@echo "--- 🛠 Starting docker"
@@ -24,26 +25,29 @@ clean:
 deps:
 	@echo "--- 🐿  Fetching build dependencies "
 	cd /tmp; \
-	go install github.com/axw/gocov/gocov@latest; \
-	go install github.com/mattn/goveralls@latest; \
-	go install golang.org/x/tools/cmd/cover@latest; \
-	go install github.com/modocache/gover@latest; \
 	go install github.com/mitchellh/gox@latest; \
 	cd -
-
-goveralls:
-	goveralls -service="travis-ci" -coverprofile=coverage.txt -repotoken $(COVERALLS_TOKEN)
 
 install:
 	@if [ ! -d pact/bin ]; then\
 		@echo "--- 🐿 Installing Pact CLI dependencies"; \
 		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash -x; \
-  fi
+  	fi
+
+publish_pacts: 
+	@echo "\n========== STAGE: publish pacts ==========\n"
+	@"${PACT_CLI}" publish ${PWD}/examples/pacts --consumer-app-version ${GIT_COMMIT} --tag ${GIT_BRANCH} --tag dev --tag prod
+
+pact_local:
+	GIT_COMMIT=`git rev-parse --short HEAD`+`date +%s` \
+	GIT_BRANCH=`git rev-parse --abbrev-ref HEAD` \
+	make pact
 
 pact: install docker
 	@echo "--- 🔨 Running Pact examples"
-	go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
-	go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+	# go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
+	make publish_pacts
+	# go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 
 release:
 	echo "--- 🚀 Releasing it"
@@ -55,13 +59,13 @@ test: deps install
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -race -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -race -coverprofile=profile.cov -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \
-			if [ -f profile.out ]; then \
-					cat profile.out | tail -n +2 >> coverage.txt; \
-					rm profile.out; \
+			if [ -f profile.cov ]; then \
+					cat profile.cov | tail -n +2 >> coverage.txt; \
+					rm profile.cov; \
 			fi; \
 	done; \
 	go tool cover -func coverage.txt
