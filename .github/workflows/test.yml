@@ -2,8 +2,6 @@ on: [push, pull_request]
 name: Test
 
 env:
-  PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
-  PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   REACT_APP_API_BASE_URL: http://localhost:8080
   APP_SHA: ${{ github.sha }}
   APP_BRANCH: ${{ github.ref }}
