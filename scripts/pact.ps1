@@ -5,8 +5,7 @@ $exitCode = 0
 if (!($env:GOPATH)) {
   $env:GOPATH = "c:\go"
 }
-$env:PACT_BROKER_PROTO = "http"
-$env:PACT_BROKER_URL = "localhost"
+$env:PACT_BROKER_BASE_URL = "http://localhost"
 $env:PACT_BROKER_USERNAME = "pact_workshop"
 $env:PACT_BROKER_PASSWORD = "pact_workshop"
 

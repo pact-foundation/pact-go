@@ -1,3 +1,4 @@
+//go:build consumer
 // +build consumer
 
 package goconsumer
@@ -5,19 +6,15 @@ package goconsumer
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/pact-foundation/pact-go/dsl"
 	ex "github.com/pact-foundation/pact-go/examples/types"
-	"github.com/pact-foundation/pact-go/types"
 )
 
 // Common test data
@@ -58,29 +55,6 @@ func TestMain(m *testing.M) {
 	// Shutdown the Mock Service and Write pact files to disk
 	pact.WritePact()
 	pact.Teardown()
-
-	// Enable when running E2E/integration tests before a release
-	version := fmt.Sprintf("1.0.%s-%d", os.Getenv("TRAVIS_COMMIT"), time.Now().Unix())
-
-	// Publish the Pacts...
-	p := dsl.Publisher{
-		LogLevel: "DEBUG",
-	}
-
-	err := p.Publish(types.PublishRequest{
-		PactURLs:        []string{filepath.FromSlash(fmt.Sprintf("%s/jmarie-loginprovider.json", pactDir))},
-		PactBroker:      fmt.Sprintf("%s://%s", os.Getenv("PACT_BROKER_PROTO"), os.Getenv("PACT_BROKER_URL")),
-		ConsumerVersion: version,
-		Tags:            []string{"dev", "prod"},
-		BrokerToken:     os.Getenv("PACT_BROKER_TOKEN"),
-		BrokerUsername:  os.Getenv("PACT_BROKER_USERNAME"),
-		BrokerPassword:  os.Getenv("PACT_BROKER_PASSWORD"),
-	})
-
-	if err != nil {
-		log.Println("ERROR: ", err)
-		os.Exit(1)
-	}
 
 	os.Exit(code)
 }
