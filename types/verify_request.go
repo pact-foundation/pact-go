@@ -126,6 +126,9 @@ type VerifyRequest struct {
 	// Deprecated
 	Verbose bool
 
+	// Tag the provider with the current git branch in the Pact Broker
+	TagWithGitBranch bool
+
 	// Arguments to the VerificationProvider
 	// Deprecated: This will be deleted after the native library replaces Ruby deps.
 	Args []string
@@ -244,6 +247,10 @@ func (v *VerifyRequest) Validate() error {
 
 	if v.PactLogLevel != "" {
 		v.Args = append(v.Args, "--log-level", v.PactLogLevel)
+	}
+
+	if v.TagWithGitBranch {
+		v.Args = append(v.Args, "--tag-with-git-branch", "true")
 	}
 
 	return nil
