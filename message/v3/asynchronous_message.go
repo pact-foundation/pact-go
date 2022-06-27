@@ -14,12 +14,14 @@ import (
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
-// Message is a representation of a single, unidirectional message
+// TODO: make a builder?
+
+// AsynchronousMessage is a representation of a single, unidirectional message
 // e.g. MQ, pub/sub, Websocket, Lambda
-// Message is the main implementation of the Pact Message interface.
-type Message struct {
+// AsynchronousMessage is the main implementation of the Pact AsynchronousMessage interface.
+type AsynchronousMessage struct {
 	messageHandle *mockserver.Message
-	messagePactV3 *Pact
+	messagePactV3 *AsynchronousPact
 
 	// Type to Marshal content into when sending back to the consumer
 	// Defaults to interface{}
@@ -30,7 +32,7 @@ type Message struct {
 }
 
 // Given specifies a provider state. Optional.
-func (m *Message) Given(state models.V3ProviderState) *Message {
+func (m *AsynchronousMessage) Given(state models.V3ProviderState) *AsynchronousMessage {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
 
 	return m
@@ -39,7 +41,7 @@ func (m *Message) Given(state models.V3ProviderState) *Message {
 // ExpectsToReceive specifies the content it is expecting to be
 // given from the Provider. The function must be able to handle this
 // message for the interaction to succeed.
-func (m *Message) ExpectsToReceive(description string) *Message {
+func (m *AsynchronousMessage) ExpectsToReceive(description string) *AsynchronousMessage {
 	m.messageHandle.ExpectsToReceive(description)
 
 	return m
@@ -48,21 +50,21 @@ func (m *Message) ExpectsToReceive(description string) *Message {
 // WithMetadata specifies message-implementation specific metadata
 // to go with the content
 // func (m *Message) WithMetadata(metadata MapMatcher) *Message {
-func (m *Message) WithMetadata(metadata map[string]string) *Message {
+func (m *AsynchronousMessage) WithMetadata(metadata map[string]string) *AsynchronousMessage {
 	m.messageHandle.WithMetadata(metadata)
 
 	return m
 }
 
 // WithBinaryContent accepts a binary payload
-func (m *Message) WithBinaryContent(contentType string, body []byte) *Message {
+func (m *AsynchronousMessage) WithBinaryContent(contentType string, body []byte) *AsynchronousMessage {
 	m.messageHandle.WithContents(contentType, body)
 
 	return m
 }
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
-func (m *Message) WithContent(contentType string, body []byte) *Message {
+func (m *AsynchronousMessage) WithContent(contentType string, body []byte) *AsynchronousMessage {
 	m.messageHandle.WithContents(contentType, body)
 
 	return m
@@ -70,7 +72,7 @@ func (m *Message) WithContent(contentType string, body []byte) *Message {
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
-func (m *Message) WithJSONContent(content interface{}) *Message {
+func (m *AsynchronousMessage) WithJSONContent(content interface{}) *AsynchronousMessage {
 	m.messageHandle.WithJSONContents(content)
 
 	return m
@@ -78,7 +80,7 @@ func (m *Message) WithJSONContent(content interface{}) *Message {
 
 // // AsType specifies that the content sent through to the
 // consumer handler should be sent as the given type
-func (m *Message) AsType(t interface{}) *Message {
+func (m *AsynchronousMessage) AsType(t interface{}) *AsynchronousMessage {
 	log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
 	m.Type = t
 
@@ -86,26 +88,29 @@ func (m *Message) AsType(t interface{}) *Message {
 }
 
 // The function that will consume the message
-func (m *Message) ConsumedBy(handler AsynchronousConsumer) *Message {
+func (m *AsynchronousMessage) ConsumedBy(handler AsynchronousConsumer) *AsynchronousMessage {
 	m.handler = handler
 
 	return m
 }
 
 // The function that will consume the message
-func (m *Message) Verify(t *testing.T) error {
+func (m *AsynchronousMessage) Verify(t *testing.T) error {
 	return m.messagePactV3.Verify(t, m, m.handler)
 }
 
-type Pact struct {
+type AsynchronousPact struct {
 	config Config
 
 	// Reference to the native rust handle
 	messageserver *mockserver.MessageServer
 }
 
-func NewMessagePact(config Config) (*Pact, error) {
-	provider := &Pact{
+// Deprecated: use NewAsynchronousPact
+var NewMessagePact = NewAsynchronousPact
+
+func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
+	provider := &AsynchronousPact{
 		config: config,
 	}
 	err := provider.validateConfig()
@@ -120,7 +125,7 @@ func NewMessagePact(config Config) (*Pact, error) {
 }
 
 // validateConfig validates the configuration for the consumer test
-func (p *Pact) validateConfig() error {
+func (p *AsynchronousPact) validateConfig() error {
 	log.Println("[DEBUG] pact message validate config")
 	dir, _ := os.Getwd()
 
@@ -135,17 +140,17 @@ func (p *Pact) validateConfig() error {
 
 // AddMessage creates a new asynchronous consumer expectation
 // Deprecated: use AddAsynchronousMessage() instead
-func (p *Pact) AddMessage() *Message {
+func (p *AsynchronousPact) AddMessage() *AsynchronousMessage {
 	return p.AddAsynchronousMessage()
 }
 
 // AddMessage creates a new asynchronous consumer expectation
-func (p *Pact) AddAsynchronousMessage() *Message {
+func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessage {
 	log.Println("[DEBUG] add message")
 
 	message := p.messageserver.NewMessage()
 
-	m := &Message{
+	m := &AsynchronousMessage{
 		messageHandle: message,
 		messagePactV3: p,
 	}
@@ -160,7 +165,7 @@ func (p *Pact) AddAsynchronousMessage() *Message {
 // A Message Consumer is analagous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
-func (p *Pact) verifyMessageConsumerRaw(messageToVerify *Message, handler AsynchronousConsumer) error {
+func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *AsynchronousMessage, handler AsynchronousConsumer) error {
 	log.Printf("[DEBUG] verify message")
 
 	// 1. Strip out the matchers
@@ -169,7 +174,7 @@ func (p *Pact) verifyMessageConsumerRaw(messageToVerify *Message, handler Asynch
 
 	log.Println("[DEBUG] reified message raw", body)
 
-	var m AsynchronousMessage
+	var m MessageContents
 	err := json.Unmarshal([]byte(body), &m)
 	if err != nil {
 		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
@@ -206,7 +211,7 @@ func (p *Pact) verifyMessageConsumerRaw(messageToVerify *Message, handler Asynch
 
 // VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
 // accepting an instance of `*testing.T`
-func (p *Pact) Verify(t *testing.T, message *Message, handler AsynchronousConsumer) error {
+func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessage, handler AsynchronousConsumer) error {
 	err := p.verifyMessageConsumerRaw(message, handler)
 
 	if err != nil {

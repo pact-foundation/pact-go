@@ -166,7 +166,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	// m := NewPact("test-grpc-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test
-	m.UsingPlugin("protobuf", "0.1.5")
+	m.UsingPlugin("protobuf", "0.1.7")
 	// m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
 
 	i := m.NewSyncMessageInteraction("grpc interaction")

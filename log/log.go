@@ -27,13 +27,13 @@ func InitLogging() {
 			Writer:   os.Stderr,
 		}
 		log.SetOutput(logFilter)
+		log.Println("[DEBUG] initialised logging")
 	}
-	log.Println("[DEBUG] initialised logging")
-
 }
 
 // SetLogLevel sets the default log level for the Pact framework
 func SetLogLevel(level logutils.LogLevel) error {
+	InitLogging()
 	switch level {
 	case logLevelTrace, logLevelDebug, logLevelError, logLevelInfo, logLevelWarn:
 		logFilter.SetMinLevel(level)

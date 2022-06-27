@@ -1,13 +1,13 @@
 package v4
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/internal/native"
-	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
@@ -15,72 +15,103 @@ type SynchronousPact struct {
 	config Config
 
 	// Reference to the native rust handle
-	// mockserver *native.MockServer
 	mockserver *native.MessageServer
 }
 
 // SynchronousMessage contains a req/res message
-type SynchronousMessageDetail struct {
-	// TODO: what goes here?
-	// Message Body
-	Content interface{} `json:"contents"`
-
-	// Provider state to be written into the Pact file
-	States []models.V3ProviderState `json:"providerStates"`
-
-	// Message metadata
-	Metadata matchers.MetadataMatcher `json:"metadata"`
-
-	// Description to be written into the Pact file
-	Description string `json:"description"`
+// It is currently an empty struct to allow future expansion
+type SynchronousMessage struct {
+	// TODO: should we pass this in? Probably need to be able to reify the message
+	//       in these cases
+	// Request  MessageContents
+	// Response []MessageContents
 }
 
-type SynchronousConsumer func(SynchronousMessageDetail) error
+// SynchronousMessageBuilder is a representation of a single, bidirectional message
+type SynchronousMessageBuilder struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
+}
 
-type UnconfiguredSynchronousMessage struct {
+// Given specifies a provider state
+func (m *UnconfiguredSynchronousMessageBuilder) Given(state string) *UnconfiguredSynchronousMessageBuilder {
+	m.messageHandle.Given(state)
+
+	return &UnconfiguredSynchronousMessageBuilder{
+		pact:          m.pact,
+		messageHandle: m.messageHandle,
+	}
+}
+
+// Given specifies a provider state
+func (m *UnconfiguredSynchronousMessageBuilder) GivenWithParameter(state models.V3ProviderState) *UnconfiguredSynchronousMessageBuilder {
+	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
+
+	return &UnconfiguredSynchronousMessageBuilder{
+		pact:          m.pact,
+		messageHandle: m.messageHandle,
+	}
+}
+
+type UnconfiguredSynchronousMessageBuilder struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
 }
 
 // AddMessage creates a new asynchronous consumer expectation
-func (m *UnconfiguredSynchronousMessage) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
-	// m.Pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
+	m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
 
-	return &SynchronousMessageWithPlugin{}
+	return &SynchronousMessageWithPlugin{
+		pact:          m.pact,
+		messageHandle: m.messageHandle,
+	}
+}
+
+// AddMessage creates a new asynchronous consumer expectation
+func (m *UnconfiguredSynchronousMessageBuilder) WithRequest(r RequestBuilder) *SynchronousMessageWithRequest {
+	r(&SynchronousMessageWithRequestBuilder{
+		messageHandle: m.messageHandle,
+		pact:          m.pact,
+	})
+
+	return &SynchronousMessageWithRequest{
+		pact:          m.pact,
+		messageHandle: m.messageHandle,
+	}
 }
 
 type SynchronousMessageWithRequest struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
 }
 
 type RequestBuilder func(*SynchronousMessageWithRequestBuilder)
 
-// AddMessage creates a new asynchronous consumer expectation
-func (m *UnconfiguredSynchronousMessage) WithRequest(r RequestBuilder) *SynchronousMessageWithRequest {
-	// m.Pact.mockserver.UsingPlugin(config.Plugin, config.Version)
-
-	return &SynchronousMessageWithRequest{}
-}
-
 type SynchronousMessageWithRequestBuilder struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
 }
 
 // WithMetadata specifies message-implementation specific metadata
 // to go with the content
 // func (m *Message) WithMetadata(metadata MapMatcher) *Message {
 func (m *SynchronousMessageWithRequestBuilder) WithMetadata(metadata map[string]string) *SynchronousMessageWithRequestBuilder {
-	// m.messageHandle.WithMetadata(metadata)
+	m.messageHandle.WithMetadata(metadata)
 
 	return m
 }
 
 // WithBinaryContent accepts a binary payload
 func (m *SynchronousMessageWithRequestBuilder) WithBinaryContent(contentType string, body []byte) *SynchronousMessageWithRequestBuilder {
-	// m.messageHandle.WithContents(contentType, body)
+	m.messageHandle.WithContents(contentType, body)
 
 	return m
 }
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *SynchronousMessageWithRequestBuilder) WithContent(contentType string, body []byte) *SynchronousMessageWithRequestBuilder {
-	// m.messageHandle.WithContents(contentType, body)
+	m.messageHandle.WithContents(contentType, body)
 
 	return m
 }
@@ -88,54 +119,55 @@ func (m *SynchronousMessageWithRequestBuilder) WithContent(contentType string, b
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
 func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithRequestBuilder {
-	// m.messageHandle.WithJSONContents(content)
-
-	return m
-}
-
-// AsType specifies that the content sent through to the
-// consumer handler should be sent as the given type
-func (m *SynchronousMessageWithRequestBuilder) AsType(t interface{}) *SynchronousMessageWithRequestBuilder {
-	// log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
-	// m.Type = t
+	m.messageHandle.WithJSONContents(content)
 
 	return m
 }
 
 // AddMessage creates a new asynchronous consumer expectation
 func (m *SynchronousMessageWithRequest) WithResponse(builder ResponseBuilder) *SynchronousMessageWithResponse {
-	// m.Pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	builder(&SynchronousMessageWithResponseBuilder{
+		messageHandle: m.messageHandle,
+		pact:          m.pact,
+	})
 
-	return &SynchronousMessageWithResponse{}
+	return &SynchronousMessageWithResponse{
+		pact:          m.pact,
+		messageHandle: m.messageHandle,
+	}
 }
 
 type SynchronousMessageWithResponse struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
 }
 
 type ResponseBuilder func(*SynchronousMessageWithResponseBuilder)
 
 type SynchronousMessageWithResponseBuilder struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
 }
 
 // WithMetadata specifies message-implementation specific metadata
 // to go with the content
 // func (m *Message) WithMetadata(metadata MapMatcher) *Message {
 func (m *SynchronousMessageWithResponseBuilder) WithMetadata(metadata map[string]string) *SynchronousMessageWithResponseBuilder {
-	// m.messageHandle.WithMetadata(metadata)
+	m.messageHandle.WithMetadata(metadata)
 
 	return m
 }
 
 // WithBinaryContent accepts a binary payload
 func (m *SynchronousMessageWithResponseBuilder) WithBinaryContent(contentType string, body []byte) *SynchronousMessageWithResponseBuilder {
-	// m.messageHandle.WithContents(contentType, body)
+	m.messageHandle.WithContents(contentType, body)
 
 	return m
 }
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, body []byte) *SynchronousMessageWithResponseBuilder {
-	// m.messageHandle.WithContents(contentType, body)
+	m.messageHandle.WithContents(contentType, body)
 
 	return m
 }
@@ -143,92 +175,89 @@ func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
 func (m *SynchronousMessageWithResponseBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithResponseBuilder {
-	// m.messageHandle.WithJSONContents(content)
-
-	return m
-}
-
-// AsType specifies that the content sent through to the
-// consumer handler should be sent as the given type
-func (m *SynchronousMessageWithResponseBuilder) AsType(t interface{}) *SynchronousMessageWithResponseBuilder {
-	// log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
-	// m.Type = t
+	m.messageHandle.WithJSONContents(content)
 
 	return m
 }
 
 type SynchronousMessageWithPlugin struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
 }
 
-func (s *SynchronousMessageWithPlugin) WithContents() *SynchronousMessageWithPluginContents {
-	return &SynchronousMessageWithPluginContents{}
+func (s *SynchronousMessageWithPlugin) WithContents(contents string, contentType string) *SynchronousMessageWithPluginContents {
+	s.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
+
+	return &SynchronousMessageWithPluginContents{
+		pact:          s.pact,
+		messageHandle: s.messageHandle,
+	}
 }
 
 type SynchronousMessageWithPluginContents struct {
+	messageHandle *native.Message
+	pact          *SynchronousPact
 }
 
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
-func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(TransportConfig) error) error {
-	return nil
+// NOTE: currently, this function is not very useful because without a transport,
+//       there is no useful way to test your actual code (because the message isn't passed back in)
+//       Use at your own risk ;)
+func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m SynchronousMessage) error) error {
+	message := SynchronousMessage{}
+
+	err := integrationTest(message)
+
+	if err != nil {
+		return err
+	}
+
+	return m.pact.mockserver.WritePactFile(m.pact.config.PactDir, false)
 }
 
-func (s *SynchronousMessageWithPluginContents) StartTransport() *SynchronousMessageWithTransport {
-	return &SynchronousMessageWithTransport{}
-}
+func (s *SynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]interface{}) *SynchronousMessageWithTransport {
+	port, err := s.pact.mockserver.StartTransport(transport, address, 0, make(map[string][]interface{}))
 
-type SynchronousMessageWithPluginTransport struct {
-}
+	if err != nil {
+		log.Fatalln("unable to start plugin transport:", err)
+	}
 
-func (s *SynchronousMessageWithPluginTransport) StartTransport() *SynchronousMessageWithTransport {
-	return &SynchronousMessageWithTransport{}
+	return &SynchronousMessageWithTransport{
+		pact:          s.pact,
+		messageHandle: s.messageHandle,
+		transport: TransportConfig{
+			Port:    port,
+			Address: address,
+		},
+	}
 }
 
 type SynchronousMessageWithTransport struct {
-}
-
-func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(TransportConfig) error) error {
-	return nil
-}
-
-// SynchronousMessage is a representation of a single, bidirectional message
-type SynchronousMessage struct {
 	messageHandle *native.Message
-	Pact          *SynchronousPact
-
-	// Type to Marshal content into when sending back to the consumer
-	// Defaults to interface{}
-	Type interface{}
-
-	// The handler for this message
-	handler SynchronousConsumer
+	pact          *SynchronousPact
+	transport     TransportConfig
 }
 
-// Given specifies a provider state. Optional.
-func (m *SynchronousMessage) Given(state string) *UnconfiguredSynchronousMessage {
-	m.messageHandle.Given(state)
+func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m SynchronousMessage) error) error {
+	message := SynchronousMessage{}
 
-	return &UnconfiguredSynchronousMessage{}
-}
+	defer s.pact.mockserver.CleanupMockServer(s.transport.Port)
 
-// Given specifies a provider state. Optional.
-func (m *SynchronousMessage) GivenWithParameter(state models.V3ProviderState) *UnconfiguredSynchronousMessage {
-	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
+	err := integrationTest(s.transport, message)
 
-	return &UnconfiguredSynchronousMessage{}
-}
+	if err != nil {
+		return err
+	}
 
-// The function that will consume the message
-// func (m *SynchronousMessage) ConsumedBy(handler SynchronousConsumer) *SynchronousMessage {
-// 	m.handler = handler
+	mismatches := s.pact.mockserver.MockServerMismatchedRequests(s.transport.Port)
 
-// 	return m
-// }
+	if len(mismatches) > 0 {
+		return fmt.Errorf("pact validation failed: %+v", mismatches)
+	}
 
-// The function that will consume the message
-func (m *SynchronousMessage) Verify(t *testing.T) error {
-	return m.Pact.Verify(t, m, m.handler)
+	return s.pact.mockserver.WritePactFileForServer(s.transport.Port, s.pact.config.PactDir, false)
 }
 
 type PluginConfig struct {
@@ -253,7 +282,7 @@ func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 
 // validateConfig validates the configuration for the consumer test
 func (m *SynchronousPact) validateConfig() error {
-	log.Println("[DEBUG] pact message validate config")
+	log.Println("[DEBUG] pact synchronous message validate config")
 	dir, _ := os.Getwd()
 
 	if m.config.PactDir == "" {
@@ -265,97 +294,28 @@ func (m *SynchronousPact) validateConfig() error {
 	return nil
 }
 
-func (m *SynchronousPact) AddSynchronousMessage(description string) *SynchronousMessage {
+func (m *SynchronousPact) AddSynchronousMessage(description string) *UnconfiguredSynchronousMessageBuilder {
 	log.Println("[DEBUG] add sync message")
 
 	message := m.mockserver.NewSyncMessageInteraction(description)
 
-	return &SynchronousMessage{
+	return &UnconfiguredSynchronousMessageBuilder{
 		messageHandle: message,
-		Pact:          m,
+		pact:          m,
 	}
 }
-
-// TODO
-// func (m *Pact) AddAsynchronousMessage(description string) *AsynchronousMessage {
-// 	log.Println("[DEBUG] add async message")
-
-// 	message := m.mockserver.NewAsyncMessageInteraction("")
-
-// 	return &SynchronousMessage{
-// 		messageHandle: message,
-// 		Pact:          m,
-// 	}
-// }
 
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
-func (m *SynchronousMessageWithResponse) ExecuteTest(t *testing.T, integrationTest func(TransportConfig) error) error {
-	// log.Println("[DEBUG] pact verify")
+func (m *SynchronousMessageWithResponse) ExecuteTest(t *testing.T, integrationTest func(md SynchronousMessage) error) error {
+	message := SynchronousMessage{}
 
-	// var err error
-	// if p.config.AllowedMockServerPorts != "" && p.config.Port <= 0 {
-	// 	p.config.Port, err = utils.FindPortInRange(p.config.AllowedMockServerPorts)
-	// } else if p.config.Port <= 0 {
-	// 	p.config.Port, err = 0, nil
-	// }
-
-	// if err != nil {
-	// 	return fmt.Errorf("error: unable to find free port, mock server will fail to start")
-	// }
-
-	// p.config.Port, err = p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
-	// defer p.reset()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// // Run the integration test
-	// err = integrationTest(MockServerConfig{
-	// 	Port:      p.config.Port,
-	// 	Host:      p.config.Host,
-	// 	TLSConfig: GetTLSConfigForTLSMockServer(),
-	// })
-
-	// res, mismatches := p.mockserver.Verify(p.config.Port, p.config.PactDir)
-	// p.displayMismatches(t, mismatches)
-
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if !res {
-	// 	return fmt.Errorf("pact validation failed: %+v %+v", res, mismatches)
-	// }
-
-	// if len(mismatches) > 0 {
-	// 	return fmt.Errorf("pact validation failed: %+v", mismatches)
-	// }
-
-	// return p.writePact()
-	return nil
-}
-
-// Verifymessage.AsynchronousConsumerRaw creates a new Pact _message_ interaction to build a testable
-// interaction.
-//
-//
-// A Message Consumer is analagous to a Provider in the HTTP Interaction model.
-// It is the receiver of an interaction, and needs to be able to handle whatever
-// request was provided.
-func (m *SynchronousPact) verifySynchronousConsumerRaw(message *SynchronousMessage, handler SynchronousConsumer) error {
-	return nil
-}
-
-// Verifymessage.AsynchronousConsumer is a test convience function for Verifymessage.AsynchronousConsumerRaw,
-// accepting an instance of `*testing.T`
-func (m *SynchronousPact) Verify(t *testing.T, message *SynchronousMessage, handler SynchronousConsumer) error {
-	err := m.verifySynchronousConsumerRaw(message, handler)
+	err := integrationTest(message)
 
 	if err != nil {
-		t.Errorf("Verifymessage.AsynchronousConsumer failed: %v", err)
+		return err
 	}
 
-	return err
+	return m.pact.mockserver.WritePactFile(m.pact.config.PactDir, false)
 }

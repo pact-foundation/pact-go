@@ -119,7 +119,7 @@ func TestMessagePact(t *testing.T) {
 }
 
 // Message Pact - wrapped handler extracts the message
-var userHandlerWrapper = func(m message.AsynchronousMessage) error {
+var userHandlerWrapper = func(m message.MessageContents) error {
 	return userHandler(*m.Content.(*User))
 }
 

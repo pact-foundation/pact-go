@@ -139,15 +139,22 @@ func (i *Message) GivenWithParameter(state string, params map[string]interface{}
 	cState := C.CString(state)
 	defer free(cState)
 
-	for k, v := range params {
-		cKey := C.CString(k)
-		defer free(cKey)
-		param := stringFromInterface(v)
-		cValue := C.CString(param)
-		defer free(cValue)
+	if len(params) == 0 {
+		cState := C.CString(state)
+		defer free(cState)
 
-		C.pactffi_message_given_with_param(i.handle, cState, cKey, cValue)
+		C.pactffi_message_given(i.handle, cState)
+	} else {
+		for k, v := range params {
+			cKey := C.CString(k)
+			defer free(cKey)
+			param := stringFromInterface(v)
+			cValue := C.CString(param)
+			defer free(cValue)
 
+			C.pactffi_message_given_with_param(i.handle, cState, cKey, cValue)
+
+		}
 	}
 
 	return i

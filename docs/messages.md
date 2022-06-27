@@ -30,7 +30,7 @@ The process looks like this on the provider (producer) side:
 
 In this document, we will cover steps 1-3.
 
-## Consumer
+### Consumer
 
 A Consumer is the system that will be reading a message from a queue or some intermediary - like a Kinesis stream, websocket or S3 bucket - and be able to handle it.
 
@@ -102,7 +102,7 @@ func TestMessagePact(t *testing.T) {
     - All handlers to be tested must be of the shape `func(AsynchronousMessage) error` - that is, they must accept a `AsynchronousMessage` and return an `error`. This is how we get around all of the various protocols, and will often require a lightweight adapter function to convert it.
     - In this case, we wrap the actual `userHandler` with `userHandlerWrapper` provided by Pact.
 
-## Provider (Producer)
+### Provider (Producer)
 
 A Provider (Producer in messaging parlance) is the system that will be putting a message onto the queue.
 
@@ -159,3 +159,17 @@ func TestV3MessageProvider(t *testing.T) {
 1. We configure the function mappings. In this case, we have a function that generates `a user event` which is responsible for generating the `User` event that will be sent to the consumer via some message queue
 1. We setup any provider states for the interaction (see [provider](./provider.md) for more on this).
 1. We configure Pact to stand-in for the queue and run the verification process. Pact will read all of the interactions specified by its consumer, invokisc each function that is responsible for generating that message and inspecting their responses
+
+
+## Contract Testing (Synchronous)
+
+In additional to "fire and forget", Pact supports bi-directional messaging protocols such as gRPC and websockets.
+
+[Diagram TBC]
+
+| Mode  | Custom Transport | Method |
+| ----- | ---------------- | ------ |
+| Sync  | Yes              | b      |
+| Sync  | No               | c      |
+| Async | Yes              | d      |
+| Async | No               | e      |
