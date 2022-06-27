@@ -28,7 +28,7 @@ fi
 # Generate changelog
 step "Generating changelog"
 if [ $? = 0 ]; then
-  log=$(git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' ${lastVersion}..HEAD | egrep -v "wip(:|\()" | grep -v "docs(" | grep -v "chore(" | grep -v Merge | grep -v "test(")
+  log=$(git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' ${lastVersion}..HEAD | egrep -v "wip(:|\()" | egrep -v "^docs" | egrep -v "^chore" | grep -v Merge | egrep -v "^test")
 
   log "Updating CHANGELOG"
   ed CHANGELOG.md << END
