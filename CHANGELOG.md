@@ -7,9 +7,11 @@ Do this to generate your change history
 
 ### v2.0.0-beta.14 (28 June 2022)
 
-
+* [53fb79f](https://github.com/pact-foundation/pact-go/commit/53fb79f) Matt Fellows: refactor: more type name improvements/consistency/cleanup
+* 
 ### v2.0.0-beta.13 (28 June 2022)
 
+* [f718679](https://github.com/pact-foundation/pact-go/commit/f718679) Matt Fellows: refactor: rename builder func signature struct names to reduce noise in API
 
 ### v2.0.0-beta.12 (28 June 2022)
   * [60aaec1](https://github.com/pact-foundation/pact-go/commit/60aaec1) - fix: rename problematic generic plugin.proto. Fixes https://github.com/pact-foundation/pact-plugins/issues/4 (Matt Fellows, Tue Jun 28 22:08:49 2022 +1000)
