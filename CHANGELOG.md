@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.0-beta.13 (28 June 2022)
+
+
 ### v2.0.0-beta.12 (28 June 2022)
   * [60aaec1](https://github.com/pact-foundation/pact-go/commit/60aaec1) - fix: rename problematic generic plugin.proto. Fixes https://github.com/pact-foundation/pact-plugins/issues/4 (Matt Fellows, Tue Jun 28 22:08:49 2022 +1000)
   * [13081bf](https://github.com/pact-foundation/pact-go/commit/13081bf) - feat: support plugin provider verifier (with grpc example) (Matt Fellows, Tue Jun 28 13:33:39 2022 +1000)
