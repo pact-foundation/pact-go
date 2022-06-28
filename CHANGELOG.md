@@ -5,7 +5,15 @@ Do this to generate your change history
 
 ## Versions
 
-### v2.0.0-beta.12 (27 June 2022)
+### v2.0.0-beta.12 (28 June 2022)
+  * [60aaec1](https://github.com/pact-foundation/pact-go/commit/60aaec1) - fix: rename problematic generic plugin.proto. Fixes https://github.com/pact-foundation/pact-plugins/issues/4 (Matt Fellows, Tue Jun 28 22:08:49 2022 +1000)
+  * [13081bf](https://github.com/pact-foundation/pact-go/commit/13081bf) - feat: support plugin provider verifier (with grpc example) (Matt Fellows, Tue Jun 28 13:33:39 2022 +1000)
+  * [d373fdc](https://github.com/pact-foundation/pact-go/commit/d373fdc) - feat: grpc consumer example (Matt Fellows, Tue Jun 28 12:40:54 2022 +1000)
+  * [1202555](https://github.com/pact-foundation/pact-go/commit/1202555) - feat: further refactoring with better type state setup (Matt Fellows, Mon Jun 27 23:11:25 2022 +1000)
+  * [b017cad](https://github.com/pact-foundation/pact-go/commit/b017cad) - refactor: improve segregation between HTTP and Message based functions (Matt Fellows, Tue Jun 7 13:57:12 2022 +1000)
+  * [45b9311](https://github.com/pact-foundation/pact-go/commit/45b9311) - feat: improve installation by storing lib metadata locally (Matt Fellows, Mon Jun 6 19:59:20 2022 +1000)
+  * [a05c1bc](https://github.com/pact-foundation/pact-go/commit/a05c1bc) - feat: add support for gRPC mock server (Ronald Holshausen, Tue May 24 15:38:10 2022 +1000)
+  * [445d91b](https://github.com/pact-foundation/pact-go/commit/445d91b) - feat: initial plugin API in core (Matt Fellows, Sun Mar 20 12:30:36 2022 +1100)
 
 
 ### v2.0.0-beta.11 (20 May 2022)
