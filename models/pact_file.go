@@ -9,4 +9,6 @@ const (
 
 	// V3 signals the use of version 3 of the pact spec
 	V3 = "3.0.0"
+
+	V4 = "4.0.0"
 )

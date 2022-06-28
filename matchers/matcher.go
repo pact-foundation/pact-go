@@ -259,6 +259,7 @@ func (m StructMatcher) GetValue() interface{} {
 // MapMatcher allows a map[string]string-like object
 // to also contain complex matchers
 type MapMatcher map[string]Matcher
+type Map MapMatcher
 
 // UnmarshalJSON is a custom JSON parser for MapMatcher
 // It treats the matchers as strings

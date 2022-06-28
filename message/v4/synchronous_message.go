@@ -58,7 +58,7 @@ type UnconfiguredSynchronousMessageBuilder struct {
 	pact          *SynchronousPact
 }
 
-// AddMessage creates a new asynchronous consumer expectation
+// UsingPlugin enables a plugin for use in the current test case
 func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
 	m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
 
@@ -66,6 +66,13 @@ func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig)
 		pact:          m.pact,
 		messageHandle: m.messageHandle,
 	}
+}
+
+// UsingPlugin enables a plugin for use in the current test case
+func (m *SynchronousMessageWithPlugin) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
+	m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+
+	return m
 }
 
 // AddMessage creates a new asynchronous consumer expectation

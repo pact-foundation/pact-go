@@ -32,11 +32,11 @@ func NewV2Pact(config MockHTTPProviderConfig) (*V2HTTPMockProvider, error) {
 
 // AddInteraction creates a new Pact interaction, initialising all
 // required things. Will automatically start a Mock Service if none running.
-func (p *V2HTTPMockProvider) AddInteraction() *InteractionV2 {
+func (p *V2HTTPMockProvider) AddInteraction() *V2Interaction {
 	log.Println("[DEBUG] pact add v2 interaction")
 	interaction := p.httpMockProvider.mockserver.NewInteraction("")
 
-	i := &InteractionV2{
+	i := &V2Interaction{
 		Interaction: Interaction{
 			specificationVersion: models.V2,
 			interaction:          interaction,
@@ -46,14 +46,14 @@ func (p *V2HTTPMockProvider) AddInteraction() *InteractionV2 {
 	return i
 }
 
-// InteractionV2 sets up an expected request/response on a mock server
+// V2Interaction sets up an expected request/response on a mock server
 // and is replayed on the provider side for verification
-type InteractionV2 struct {
+type V2Interaction struct {
 	Interaction
 }
 
 // Given specifies a provider state. Optional.
-func (i *InteractionV2) Given(state string) *InteractionV2 {
+func (i *V2Interaction) Given(state string) *V2Interaction {
 	i.interaction.Given(state)
 
 	return i

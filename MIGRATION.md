@@ -8,7 +8,7 @@
 1. Ability to create and verify both [v2] and [v3] [specification] pacts
 1. A bunch of new features, including the new v3 specification [matchers and generators](https://github.com/pact-foundation/pact-specification/tree/version-3/), injected provider states and more.
 1. Each test is given a dedicated server and port, simplifying lifecycle events and improving isolation between tests.
-1. You _must_ clear out any pact directory prior to the tests running. Any pact files will be appended to during test execution or may result in conflicts.
+1. You _must_ clear out any pact directory prior to the tests running. Any pact files will be appended to during test execution or may **result** in conflicts.
 
 ### Package version
 

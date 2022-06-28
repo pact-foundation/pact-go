@@ -31,11 +31,11 @@ func NewV3Pact(config MockHTTPProviderConfig) (*V3HTTPMockProvider, error) {
 
 // AddInteraction creates a new Pact interaction, initialising all
 // required things. Will automatically start a Mock Service if none running.
-func (p *V3HTTPMockProvider) AddInteraction() *InteractionV3 {
+func (p *V3HTTPMockProvider) AddInteraction() *V3Interaction {
 	log.Println("[DEBUG] pact add v3 interaction")
 	interaction := p.httpMockProvider.mockserver.NewInteraction("")
 
-	i := &InteractionV3{
+	i := &V3Interaction{
 		Interaction: Interaction{
 			specificationVersion: models.V3,
 			interaction:          interaction,
@@ -45,14 +45,21 @@ func (p *V3HTTPMockProvider) AddInteraction() *InteractionV3 {
 	return i
 }
 
-// InteractionV3 sets up an expected request/response on a mock server
+// V3Interaction sets up an expected request/response on a mock server
 // and is replayed on the provider side for verification
-type InteractionV3 struct {
+type V3Interaction struct {
 	Interaction
 }
 
 // Given specifies a provider state, may be called multiple times. Optional.
-func (i *InteractionV3) Given(state models.V3ProviderState) *InteractionV3 {
+func (i *V3Interaction) Given(state string) *V3Interaction {
+	i.Interaction.interaction.Given(state)
+
+	return i
+}
+
+// Given specifies a provider state, may be called multiple times. Optional.
+func (i *V3Interaction) GivenWithParameter(state models.V3ProviderState) *V3Interaction {
 	if len(state.Parameters) > 0 {
 		i.Interaction.interaction.GivenWithParameter(state.Name, state.Parameters)
 	} else {

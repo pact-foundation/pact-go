@@ -1,5 +1,7 @@
 # Provider Verification
 
+Pact Go supports both HTTP and non-HTTP verification (using plugins).
+
 ## Contract Testing Process (HTTP)
 
 Pact is a consumer-driven contract testing tool, which is a fancy way of saying that the API `Consumer` writes a test to set out its assumptions and needs of its API `Provider`(s). By unit testing our API client with Pact, it will produce a `contract` that we can share to our `Provider` to confirm these assumptions and prevent breaking changes.
@@ -16,7 +18,7 @@ The process looks like this:
 
 In this document, we will cover steps 4-5.
 
-## Provider package
+## HTTP Provider package
 
 The provider interface is in the package: `github.com/pact-foundation/pact-go/v2/provider`.
 
@@ -202,3 +204,35 @@ For each _interaction_ in a pact file, the order of execution is as follows:
 `BeforeEach` -> `StateHandler (pre)` -> `RequestFilter (pre)` -> `Execute Provider Test` -> `RequestFilter (post)` -> `StateHandler (post)` -> `AfterEach`
 
 If any of the middleware or hooks fail, the tests will also fail.
+
+## Non-HTTP providers
+
+Non-HTTP based providers are supported through the plugin framework.
+
+The plugin provider interface is in the package: `github.com/pact-foundation/pact-go/v2/provider`.
+
+### Verifying a Provider
+
+A provider test takes one or more pact files (contracts) as input, and Pact verifies that your provider adheres to the contract. In the simplest case, you can verify a provider as per below.
+
+```golang
+func TestPluginProvider(t *testing.T) {
+	// 1. Start your Provider API in the background
+	go startServer()
+
+	verifier := PluginVerifier{}
+
+	// Verify the Provider with local Pact Files
+	// The console will display if the verification was successful or not, the
+	// assertions being made and any discrepancies with the contract
+	err := verifier.VerifyProvider(t, VerifyPluginRequest{
+		ProviderAddress: "http://localhost:1234",
+		PactFiles: []string{
+			filepath.ToSlash("/path/to/SomeConsumer-SomeProvider.json"),
+		},
+	})
+
+	// Ensure the verification succeeded
+	assert.NoError(t, err)
+}
+```
