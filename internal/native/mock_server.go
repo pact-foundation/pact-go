@@ -148,8 +148,8 @@ void pactffi_with_pact_metadata(PactHandle pact, const char *namespace, const ch
 // Additional global logging functions
 //void pactffi_log_message(const char *source, const char *log_level, const char *message);
 //int pactffi_log_to_buffer(int level);
-//int pactffi_log_to_stdout(int level);
-//int pactffi_log_to_file(const char *file_name, int level_filter);
+int pactffi_log_to_stdout(int level);
+int pactffi_log_to_file(const char *file_name, int level_filter);
 //char* pactffi_fetch_log_buffer();
 
 int pactffi_using_plugin(PactHandle pact, const char *plugin_name, const char *plugin_version);
@@ -168,6 +168,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"unsafe"
 )
 
@@ -205,6 +206,20 @@ const (
 	LOG_LEVEL_TRACE
 )
 
+var logLevelStringToInt = map[string]logLevel{
+	"OFF":   LOG_LEVEL_OFF,
+	"error": LOG_LEVEL_ERROR,
+	"warn":  LOG_LEVEL_WARN,
+	"info":  LOG_LEVEL_INFO,
+	"debug": LOG_LEVEL_DEBUG,
+	"trace": LOG_LEVEL_TRACE,
+	"ERROR": LOG_LEVEL_ERROR,
+	"WARN":  LOG_LEVEL_WARN,
+	"INFO":  LOG_LEVEL_INFO,
+	"DEBUG": LOG_LEVEL_DEBUG,
+	"TRACE": LOG_LEVEL_TRACE,
+}
+
 // Pact is a Go representation of the PactHandle struct
 type Pact struct {
 	handle C.PactHandle
@@ -225,15 +240,28 @@ func Version() string {
 // Init initialises the library
 func Init() {
 	log.Println("[DEBUG] initialising rust mock server interface")
-	l := C.CString("LOG_LEVEL")
-	defer free(l)
 
-	C.pactffi_init(l)
+	// Log to file if specified
+	pactLogLevel := os.Getenv("PACT_LOG_LEVEL")
+	logLevel := os.Getenv("LOG_LEVEL")
 
-	// Alternative log destinations
-	// NOTE: only one can be applied
-	// logToBuffer(LOG_LEVEL_INFO)
-	// logToFile("/tmp/pact.log", LOG_LEVEL_TRACE)
+	level := "INFO"
+	if pactLogLevel != "" {
+		level = pactLogLevel
+	} else if logLevel != "" {
+		level = logLevel
+	}
+
+	l, ok := logLevelStringToInt[level]
+	if !ok {
+		l = LOG_LEVEL_INFO
+	}
+
+	if os.Getenv("PACT_LOG_PATH") != "" {
+		logToFile(os.Getenv("PACT_LOG_PATH"), l)
+	} else {
+		logToStdout(l)
+	}
 }
 
 // MockServer is the public interface for managing the HTTP mock server
@@ -821,22 +849,22 @@ func stringFromInterface(obj interface{}) string {
 // 	return logResultToError(int(res))
 // }
 
-// func logToStdout(level logLevel) error {
-// 	res := C.pactffi_log_to_stdout(C.int(level))
-// 	log.Println("[DEBUG] log_to_stdout res", res)
+func logToStdout(level logLevel) error {
+	res := C.pactffi_log_to_stdout(C.int(level))
+	log.Println("[DEBUG] log_to_stdout res", res)
 
-// 	return logResultToError(int(res))
-// }
+	return logResultToError(int(res))
+}
 
-// func logToFile(file string, level logLevel) error {
-// 	cFile := C.CString(file)
-// 	defer free(cFile)
+func logToFile(file string, level logLevel) error {
+	cFile := C.CString(file)
+	defer free(cFile)
 
-// 	res := C.pactffi_log_to_file(cFile, C.int(level))
-// 	log.Println("[DEBUG] log_to_file res", res)
+	res := C.pactffi_log_to_file(cFile, C.int(level))
+	log.Println("[DEBUG] log_to_file res", res)
 
-// 	return logResultToError(int(res))
-// }
+	return logResultToError(int(res))
+}
 
 // func getLogBuffer() string {
 // 	buf := C.pactffi_fetch_log_buffer()

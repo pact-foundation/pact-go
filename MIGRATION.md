@@ -16,6 +16,15 @@ The new package is migratable, with the the `/v2` major version bump
 
 i.e. `github.com/pact-foundation/pact-go/v2`
 
+### Logging / Debugging
+
+By default, all logging is to stdout. 
+
+You can configure logging with the following environment variables:
+
+* `PACT_LOG_LEVEL` (it also respects `LOG_LEVEL`) - the level to log at. Must be one of "trace", "debug", "info", "warn", "error" or "off".
+* `PACT_LOG_PATH` - a path to a file to redirect logs
+
 ### Consumer
 
 #### Primary Interface
