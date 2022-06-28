@@ -7,6 +7,9 @@
       "description": "A request to do a foo",
       "providerStates": [
         {
+          "name": "state 1"
+        },
+        {
           "name": "User foo exists",
           "params": {
             "id": "foo"

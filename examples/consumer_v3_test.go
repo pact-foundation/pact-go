@@ -43,7 +43,8 @@ func TestConsumerV3(t *testing.T) {
 	// Set up our expected interactions.
 	mockProvider.
 		AddInteraction().
-		Given(models.V3ProviderState{
+		Given("state 1").
+		GivenWithParameter(models.V3ProviderState{
 			Name: "User foo exists",
 			Parameters: map[string]interface{}{
 				"id": "foo",
