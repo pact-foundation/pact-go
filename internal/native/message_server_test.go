@@ -234,30 +234,3 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	err = m.WritePactFileForServer(port, tmpPactFolder, true)
 	assert.NoError(t, err)
 }
-
-// TODO:
-
-// In the test, you use `NewSyncMessageInteraction` but don't set a response type on the FFI, just the plugin. This is a little awkward
-// Does this imply that a sync can be async?
-// WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
-
-// // How to add metadata, binary contents ?
-
-// // -> https://docs.pact.io/slack/libpact_ffi-users.html#1646812690.612989
-
-// Is the mental model to Ignore the V3 message pact stuff now (MessagePactHandle and MessageHandle) and just assume `PactHandle` and `InteractionHandle` are the main thinngs?
-// If so, is it possible to get an updated view of which functions are essentially deprecated? I'm finding it very hard to know which methods to call.
-
-// For example,
-
-// MessagePactHandle                     PactHandle
-// pactffi_with_message_pact_metadata --> pactffi_with_pact_metadata
-
-// MessageHandle                      --> InteractionHandle
-// pactffi_with_message_pact_metadata --> pactffi_with_binary_file This would be confusing though
-
-// Example of methods on Interaction that don't make sense for all types. This means all client libraries need to know the cases in which it can/can't be used
-// pactffi_response_status, pactffi_with_query_parameter, pactffi_with_request, pactffi_with_binary_file
-
-// Example of methods on MessageHandle that don't have equivalent on InteractionHandle
-// pactffi_message_expects_to_receive, pactffi_message_with_contents, pactffi_message_reify

@@ -46,6 +46,10 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 
 	u, err := url.Parse(request.ProviderBaseURL)
 
+	if err != nil {
+		return err
+	}
+
 	m := []proxy.Middleware{}
 
 	if request.BeforeEach != nil {

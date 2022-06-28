@@ -31,6 +31,9 @@ func InitLogging() {
 	}
 }
 
+// TODO: fail/warn if this is changed at runtime
+// TODO: use the unified logging method to the FFI
+
 // SetLogLevel sets the default log level for the Pact framework
 func SetLogLevel(level logutils.LogLevel) error {
 	InitLogging()

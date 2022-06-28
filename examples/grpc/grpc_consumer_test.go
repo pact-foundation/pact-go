@@ -1,9 +1,13 @@
+//go:build consumer
+// +build consumer
+
 package grpc
 
 import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -16,11 +20,13 @@ import (
 	"github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide"
 )
 
+var dir, _ = os.Getwd()
+
 func TestGrpcInteraction(t *testing.T) {
 	p, _ := message.NewSynchronousPact(message.Config{
-		Consumer: "consumer",
-		Provider: "provider",
-		PactDir:  "/tmp/",
+		Consumer: "grpcconsumer",
+		Provider: "grpcprovider",
+		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
 	log.SetLogLevel("INFO")
 
