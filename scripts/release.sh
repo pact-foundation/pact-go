@@ -14,7 +14,7 @@ step "Releasing Pact Go"
 # Get current versions
 log "Finding current version"
 version=$(cat command/version.go | egrep -o "v([0-9\.]+)-?([a-zA-Z\-\+\.0-9]+)?")
-lastVersion=$(git log  --grep='chore(release)' | grep chore | head -n1 | egrep -o "v([0-9\.]+)-?([a-zA-Z\-]+)?")
+lastVersion=$(git log --grep='chore(release)' | grep chore | head -n1 | egrep -o "v([0-9\.]+)-?([a-zA-Z\-]+)?")
 date=$(date "+%d %B %Y")
 
 # Check tags
@@ -28,14 +28,14 @@ fi
 # Generate changelog
 step "Generating changelog"
 if [ $? = 0 ]; then
-  log=$(git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' ${lastVersion}..HEAD | egrep -v "wip(:|\()" | grep -v "docs(" | grep -v "chore(" | grep -v Merge | grep -v "test(")
+  changes=$(git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' ${lastVersion}..HEAD | egrep -v "wip(:|\()" | egrep -v "docs(:|\()" | egrep -v "chore(:|\()" | egrep -v "Merge branch" | egrep -v "test(:|\()")
 
   log "Updating CHANGELOG"
   ed CHANGELOG.md << END
 7i
 
 ### $version ($date)
-$log
+$changes
 .
 w
 q

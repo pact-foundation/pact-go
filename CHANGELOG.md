@@ -18,21 +18,30 @@ Do this to generate your change history
 
 ### v2.0.0-beta.11 (20 May 2022)
 
+  * [686f649](https://github.com/pact-foundation/pact-go/commit/686f649) - feat: support M1 silicon (Matt Fellows, Fri May 20 22:30:35 2022 +1000)
 
 ### v2.0.0-beta.10 (05 February 2022)
 
-
+  * [cac3cf0](https://github.com/pact-foundation/pact-go/commit/cac3cf0) - feat: support matching branch selector (Matt Fellows, Wed Nov 17 17:31:30 2021 +1100)
+  
 ### v2.0.0-beta.9 (17 November 2021)
 
+  * [5a48fa6](https://github.com/pact-foundation/pact-go/commit/5a48fa6) - feat: upgrade to ffi 0.1.2, w\ support for branches. Fixes #180 (Matt Fellows, Wed Nov 17 17:19:03 2021 +1100)
+  * [965f535](https://github.com/pact-foundation/pact-go/commit/965f535) - fix: support new header format for message metadata verification (Matt Fellows, Mon Nov 15 13:36:36 2021 +1100)
+  * [90519ac](https://github.com/pact-foundation/pact-go/commit/90519ac) - feat: support provider branch. Fixes #180 (Matt Fellows, Tue Nov 9 08:36:43 2021 +1100)
+  * [2be2cde](https://github.com/pact-foundation/pact-go/commit/2be2cde) - Merge pull request #187 from dabfleming/fix-ld-warning (Matt Fellows, Fri Oct 15 22:19:31 2021 +1100)
+  * [a1e0f84](https://github.com/pact-foundation/pact-go/commit/a1e0f84) - Merge pull request #186 from dabfleming/docs-fix (Matt Fellows, Fri Oct 15 22:17:53 2021 +1100)
+  * [d4cca08](https://github.com/pact-foundation/pact-go/commit/d4cca08) - fix: linker warning (David Fleming, Thu Oct 14 16:31:58 2021 -0400)
 
 ### v2.0.0-beta.8 (14 October 2021)
 
+  * [b4d460b](https://github.com/pact-foundation/pact-go/commit/b4d460b) - fix: v3 provider state without parameters not correctly handled (Matt Fellows, Thu Oct 14 20:45:30 2021 +1100)
 
 ### v2.0.0-beta.7 (14 October 2021)
 
-
-### v2.0.0-beta.2 (09 August 2021)
-
+  * [f857347](https://github.com/pact-foundation/pact-go/commit/f857347) - fix: v3 provider state without parameters not correctly handled (Matt Fellows, Thu Oct 14 16:45:30 2021 +1100)
+  * [40cbc80](https://github.com/pact-foundation/pact-go/commit/40cbc80) - feat: update consumer version selectors (Matt Fellows, Mon Aug 9 13:00:35 2021 +1000)
+  * 
 
 ### v2.0.0-beta.2 (27 July 2021)
   * [f149155](https://github.com/pact-foundation/pact-go/commit/f149155) - chore: update CI build properties (Matt Fellows, Tue Jul 27 23:44:39 2021 +1000)
