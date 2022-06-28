@@ -33,11 +33,11 @@ func NewV2Pact(config MockHTTPProviderConfig) (*V2HTTPMockProvider, error) {
 }
 
 // AddInteraction to the pact
-func (p *V2HTTPMockProvider) AddInteraction() *UnconfiguredV2Interaction {
+func (p *V2HTTPMockProvider) AddInteraction() *V2UnconfiguredInteraction {
 	log.Println("[DEBUG] pact add V2 interaction")
 	interaction := p.httpMockProvider.mockserver.NewInteraction("")
 
-	i := &UnconfiguredV2Interaction{
+	i := &V2UnconfiguredInteraction{
 		interaction: &Interaction{
 			specificationVersion: models.V2,
 			interaction:          interaction,
@@ -48,13 +48,13 @@ func (p *V2HTTPMockProvider) AddInteraction() *UnconfiguredV2Interaction {
 	return i
 }
 
-type UnconfiguredV2Interaction struct {
+type V2UnconfiguredInteraction struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
 }
 
 // Given specifies a provider state, may be called multiple times. Optional.
-func (i *UnconfiguredV2Interaction) Given(state string) *UnconfiguredV2Interaction {
+func (i *V2UnconfiguredInteraction) Given(state string) *V2UnconfiguredInteraction {
 	i.interaction.interaction.Given(state)
 
 	return i
@@ -74,14 +74,14 @@ type V2RequestBuilder struct {
 
 // UponReceiving specifies the name of the test case. This becomes the name of
 // the consumer/provider pair in the Pact file. Mandatory.
-func (i *UnconfiguredV2Interaction) UponReceiving(description string) *UnconfiguredV2Interaction {
+func (i *V2UnconfiguredInteraction) UponReceiving(description string) *V2UnconfiguredInteraction {
 	i.interaction.interaction.UponReceiving(description)
 
 	return i
 }
 
 // WithRequest provides a builder for the expected request
-func (i *UnconfiguredV2Interaction) WithCompleteRequest(request Request) *V2InteractionWithCompleteRequest {
+func (i *V2UnconfiguredInteraction) WithCompleteRequest(request Request) *V2InteractionWithCompleteRequest {
 	i.interaction.WithCompleteRequest(request)
 
 	return &V2InteractionWithCompleteRequest{
@@ -106,12 +106,12 @@ func (i *V2InteractionWithCompleteRequest) WithCompleteResponse(response Respons
 }
 
 // WithRequest provides a builder for the expected request
-func (i *UnconfiguredV2Interaction) WithRequest(method Method, path string, builders ...V2RequestBuilderFunc) *V2InteractionWithRequest {
+func (i *V2UnconfiguredInteraction) WithRequest(method Method, path string, builders ...V2RequestBuilderFunc) *V2InteractionWithRequest {
 	return i.WithRequestPathMatcher(method, matchers.String(path), builders...)
 }
 
 // WithRequestPathMatcher allows a matcher in the expected request path
-func (i *UnconfiguredV2Interaction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V2RequestBuilderFunc) *V2InteractionWithRequest {
+func (i *V2UnconfiguredInteraction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V2RequestBuilderFunc) *V2InteractionWithRequest {
 	i.interaction.interaction.WithRequest(string(method), path)
 
 	for _, builder := range builders {

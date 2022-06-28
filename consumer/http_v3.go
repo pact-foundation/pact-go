@@ -33,11 +33,11 @@ func NewV3Pact(config MockHTTPProviderConfig) (*V3HTTPMockProvider, error) {
 }
 
 // AddInteraction to the pact
-func (p *V3HTTPMockProvider) AddInteraction() *UnconfiguredV3Interaction {
+func (p *V3HTTPMockProvider) AddInteraction() *V3UnconfiguredInteraction {
 	log.Println("[DEBUG] pact add V3 interaction")
 	interaction := p.httpMockProvider.mockserver.NewInteraction("")
 
-	i := &UnconfiguredV3Interaction{
+	i := &V3UnconfiguredInteraction{
 		interaction: &Interaction{
 			specificationVersion: models.V3,
 			interaction:          interaction,
@@ -48,20 +48,20 @@ func (p *V3HTTPMockProvider) AddInteraction() *UnconfiguredV3Interaction {
 	return i
 }
 
-type UnconfiguredV3Interaction struct {
+type V3UnconfiguredInteraction struct {
 	interaction *Interaction
 	provider    *V3HTTPMockProvider
 }
 
 // Given specifies a provider state, may be called multiple times. Optional.
-func (i *UnconfiguredV3Interaction) Given(state string) *UnconfiguredV3Interaction {
+func (i *V3UnconfiguredInteraction) Given(state string) *V3UnconfiguredInteraction {
 	i.interaction.interaction.Given(state)
 
 	return i
 }
 
 // GivenWithParameter specifies a provider state with parameters, may be called multiple times. Optional.
-func (i *UnconfiguredV3Interaction) GivenWithParameter(state models.ProviderState) *UnconfiguredV3Interaction {
+func (i *V3UnconfiguredInteraction) GivenWithParameter(state models.ProviderState) *V3UnconfiguredInteraction {
 	if len(state.Parameters) > 0 {
 		i.interaction.interaction.GivenWithParameter(state.Name, state.Parameters)
 	} else {
@@ -85,19 +85,44 @@ type V3RequestBuilder struct {
 
 // UponReceiving specifies the name of the test case. This becomes the name of
 // the consumer/provider pair in the Pact file. Mandatory.
-func (i *UnconfiguredV3Interaction) UponReceiving(description string) *UnconfiguredV3Interaction {
+func (i *V3UnconfiguredInteraction) UponReceiving(description string) *V3UnconfiguredInteraction {
 	i.interaction.interaction.UponReceiving(description)
 
 	return i
 }
 
 // WithRequest provides a builder for the expected request
-func (i *UnconfiguredV3Interaction) WithRequest(method Method, path string, builders ...V3RequestBuilderFunc) *V3InteractionWithRequest {
+func (i *V3UnconfiguredInteraction) WithCompleteRequest(request Request) *V3InteractionWithCompleteRequest {
+	i.interaction.WithCompleteRequest(request)
+
+	return &V3InteractionWithCompleteRequest{
+		interaction: i.interaction,
+		provider:    i.provider,
+	}
+}
+
+type V3InteractionWithCompleteRequest struct {
+	interaction *Interaction
+	provider    *V3HTTPMockProvider
+}
+
+// WithRequest provides a builder for the expected request
+func (i *V3InteractionWithCompleteRequest) WithCompleteResponse(response Response) *V3InteractionWithResponse {
+	i.interaction.WithCompleteResponse(response)
+
+	return &V3InteractionWithResponse{
+		interaction: i.interaction,
+		provider:    i.provider,
+	}
+}
+
+// WithRequest provides a builder for the expected request
+func (i *V3UnconfiguredInteraction) WithRequest(method Method, path string, builders ...V3RequestBuilderFunc) *V3InteractionWithRequest {
 	return i.WithRequestPathMatcher(method, matchers.String(path), builders...)
 }
 
 // WithRequestPathMatcher allows a matcher in the expected request path
-func (i *UnconfiguredV3Interaction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V3RequestBuilderFunc) *V3InteractionWithRequest {
+func (i *V3UnconfiguredInteraction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V3RequestBuilderFunc) *V3InteractionWithRequest {
 	i.interaction.interaction.WithRequest(string(method), path)
 
 	for _, builder := range builders {

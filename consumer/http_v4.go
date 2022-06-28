@@ -91,11 +91,30 @@ func (i *V4UnconfiguredInteraction) UponReceiving(description string) *V4Unconfi
 	return i
 }
 
-// TODO: all in one?
-// TODO: all in one?
-// TODO: all in one?
-// TODO: all in one?
-// TODO: all in one?
+// WithRequest provides a builder for the expected request
+func (i *V4UnconfiguredInteraction) WithCompleteRequest(request Request) *V4InteractionWithCompleteRequest {
+	i.interaction.WithCompleteRequest(request)
+
+	return &V4InteractionWithCompleteRequest{
+		interaction: i.interaction,
+		provider:    i.provider,
+	}
+}
+
+type V4InteractionWithCompleteRequest struct {
+	interaction *Interaction
+	provider    *V4HTTPMockProvider
+}
+
+// WithRequest provides a builder for the expected request
+func (i *V4InteractionWithCompleteRequest) WithCompleteResponse(response Response) *V4InteractionWithResponse {
+	i.interaction.WithCompleteResponse(response)
+
+	return &V4InteractionWithResponse{
+		interaction: i.interaction,
+		provider:    i.provider,
+	}
+}
 
 // WithRequest provides a builder for the expected request
 func (i *V4UnconfiguredInteraction) WithRequest(method Method, path string, builders ...V4RequestBuilderFunc) *V4InteractionWithRequest {
