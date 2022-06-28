@@ -121,6 +121,8 @@ func (p *httpMockProvider) configure() error {
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)
 	case models.V3:
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V3)
+	case models.V4:
+		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	}
 	native.Init()
 

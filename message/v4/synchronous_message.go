@@ -44,7 +44,7 @@ func (m *UnconfiguredSynchronousMessageBuilder) Given(state string) *Unconfigure
 }
 
 // Given specifies a provider state
-func (m *UnconfiguredSynchronousMessageBuilder) GivenWithParameter(state models.V3ProviderState) *UnconfiguredSynchronousMessageBuilder {
+func (m *UnconfiguredSynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *UnconfiguredSynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
 
 	return &UnconfiguredSynchronousMessageBuilder{

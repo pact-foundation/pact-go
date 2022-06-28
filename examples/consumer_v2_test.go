@@ -51,29 +51,30 @@ func TestConsumerV2(t *testing.T) {
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", Regex("/foobar", `\/foo.*`)).
-		WithHeader("Content-Type", S("application/json")).
-		WithHeader("Authorization", Like("Bearer 1234")).
-		WithQuery("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
-		WithJSONBody(Map{
-			"id":       Like(27),
-			"name":     Like("billy"),
-			"datetime": Like("2020-01-01'T'08:00:45"),
-			"lastName": Like("billy"),
-			// "equality": Equality("a thing"), // Add this in and watch me panic
+		WithRequestPathMatcher("POST", Regex("/foobar", `\/foo.*`), func(b *consumer.V2InteractionWithRequestBuilder) {
+			b.
+				Header("Content-Type", S("application/json")).
+				Header("Authorization", Like("Bearer 1234")).
+				Query("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
+				JSONBody(Map{
+					"id":       Like(27),
+					"name":     Like("billy"),
+					"datetime": Like("2020-01-01'T'08:00:45"),
+					"lastName": Like("billy"),
+					// "equality": Equality("a thing"), // Add this in and watch me panic
+				})
 		}).
-		WillRespondWith(200).
-		WithHeader("Content-Type", Regex("application/json", "application\\/json")).
-		WithJSONBody(Map{
-			"datetime": Regex("2020-01-01", "[0-9\\-]+"),
-			"name":     S("Billy"),
-			"lastName": S("Sampson"),
-			"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
-			// "equality": Equality("a thing"), // Add this in and watch me panic
-		})
-
-	// Execute pact test
-	err = mockProvider.ExecuteTest(t, test)
+		WillRespondWith(200, func(b *consumer.V2InteractionWithResponseBuilder) {
+			b.Header("Content-Type", Regex("application/json", "application\\/json"))
+			b.JSONBody(Map{
+				"datetime": Regex("2020-01-01", "[0-9\\-]+"),
+				"name":     S("Billy"),
+				"lastName": S("Sampson"),
+				"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
+				// "equality": Equality("a thing"), // Add this in and watch me panic
+			})
+		}).
+		ExecuteTest(t, test)
 	assert.NoError(t, err)
 }
 
@@ -94,17 +95,18 @@ func TestConsumerV2_Match(t *testing.T) {
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", Regex("/foobar", `\/foo.*`)).
-		WithHeader("Content-Type", S("application/json")).
-		WithHeader("Authorization", Like("Bearer 1234")).
-		WithQuery("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
-		WithBodyMatch(&User{}).
-		WillRespondWith(200).
-		WithHeader("Content-Type", Regex("application/json", "application\\/json")).
-		WithBodyMatch(&User{})
+		WithRequest("POST", "/foobar", func(b *consumer.V2InteractionWithRequestBuilder) {
+			b.Header("Content-Type", S("application/json"))
+			b.Header("Authorization", Like("Bearer 1234"))
+			b.Query("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+"))
+			b.BodyMatch(&User{})
 
-	// Execute pact test
-	err = mockProvider.ExecuteTest(t, test)
+		}).
+		WillRespondWith(200, func(b *consumer.V2InteractionWithResponseBuilder) {
+			b.Header("Content-Type", Regex("application/json", "application\\/json"))
+			b.BodyMatch(&User{})
+		}).
+		ExecuteTest(t, test)
 	assert.NoError(t, err)
 }
 
@@ -121,7 +123,7 @@ func TestConsumerV2AllInOne(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Set up our expected interactions.
-	mockProvider.
+	err = mockProvider.
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
@@ -150,10 +152,8 @@ func TestConsumerV2AllInOne(t *testing.T) {
 				"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
 				// "equality": Equality("a thing"), // Add this in and watch me panic
 			},
-		})
-
-	// Execute pact test
-	err = mockProvider.ExecuteTest(t, legacyTest)
+		}).
+		ExecuteTest(t, legacyTest)
 	assert.NoError(t, err)
 }
 

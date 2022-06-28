@@ -4,11 +4,12 @@ package models
 type SpecificationVersion string
 
 const (
-	// V2 signals the use of version 2 of the pact spec
+	// V2 spec
 	V2 SpecificationVersion = "2.0.0"
 
-	// V3 signals the use of version 3 of the pact spec
+	// V3 spec
 	V3 = "3.0.0"
 
+	// V4 spec
 	V4 = "4.0.0"
 )

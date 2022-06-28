@@ -120,8 +120,8 @@ func (v *Verifier) verifyMessageProviderRaw(request VerifyMessageRequest, writer
 }
 
 type messageVerificationHandlerRequest struct {
-	Description string                   `json:"description"`
-	States      []models.V3ProviderState `json:"providerStates"`
+	Description string                 `json:"description"`
+	States      []models.ProviderState `json:"providerStates"`
 }
 
 type messageStateHandlerRequest struct {
@@ -161,7 +161,7 @@ var messageStateHandler = func(messageHandlers Handlers, stateHandlers models.St
 			log.Printf("[WARN] state handler not found for state: %v", message.State)
 		} else {
 			// Execute state handler
-			res, err := sf(message.Action == "setup", models.V3ProviderState{
+			res, err := sf(message.Action == "setup", models.ProviderState{
 				Name:       message.State,
 				Parameters: message.Params,
 			})

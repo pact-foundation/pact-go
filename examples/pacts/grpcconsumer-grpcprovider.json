@@ -9,7 +9,7 @@
         "markup": "```protobuf\nmessage Feature {\n    string name = 1;\n    message .routeguide.Point location = 2;\n}\n```\n",
         "markupType": "COMMON_MARK"
       },
-      "key": "e14ee37e1a8ad0d",
+      "key": "474c0e1ab003dafb",
       "pending": false,
       "pluginConfiguration": {
         "protobuf": {

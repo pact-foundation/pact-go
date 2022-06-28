@@ -23,9 +23,6 @@ import (
 var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/pacts", dir)
 
-// Example Provider Pact: How to run me!
-// 1. cd <pact-go>/examples/v3
-// 2. go test -v -tags provider .
 func TestV3HTTPProvider(t *testing.T) {
 	log.SetLogLevel("TRACE")
 	version.CheckVersion()
@@ -76,7 +73,7 @@ func TestV3HTTPProvider(t *testing.T) {
 			return nil
 		},
 		StateHandlers: models.StateHandlers{
-			"User foo exists": func(setup bool, s models.V3ProviderState) (models.V3ProviderStateResponse, error) {
+			"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
 
 				if setup {
 					l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
@@ -87,7 +84,7 @@ func TestV3HTTPProvider(t *testing.T) {
 				// ... do something, such as create "foo" in the database
 
 				// Optionally (if there are generators in the pact) return provider state values to be used in the verification
-				return models.V3ProviderStateResponse{"uuid": "1234"}, nil
+				return models.ProviderStateResponse{"uuid": "1234"}, nil
 			},
 		},
 	})
@@ -103,13 +100,13 @@ func TestV3MessageProvider(t *testing.T) {
 
 	// Map test descriptions to message producer (handlers)
 	functionMappings := message.Handlers{
-		"a user event": func([]models.V3ProviderState) (message.Body, message.Metadata, error) {
+		"a user event": func([]models.ProviderState) (message.Body, message.Metadata, error) {
 			if user != nil {
 				return user, message.Metadata{
 					"Content-Type": "application/json",
 				}, nil
 			} else {
-				return models.V3ProviderStateResponse{
+				return models.ProviderStateResponse{
 					"message": "not found",
 				}, nil, nil
 			}
@@ -118,7 +115,7 @@ func TestV3MessageProvider(t *testing.T) {
 
 	// Setup any required states for the handlers
 	stateMappings := models.StateHandlers{
-		"User with id 127 exists": func(setup bool, s models.V3ProviderState) (models.V3ProviderStateResponse, error) {
+		"User with id 127 exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
 			if setup {
 				user = &User{
 					ID:       127,
@@ -128,7 +125,7 @@ func TestV3MessageProvider(t *testing.T) {
 				}
 			}
 
-			return models.V3ProviderStateResponse{"id": user.ID}, nil
+			return models.ProviderStateResponse{"id": user.ID}, nil
 		},
 	}
 

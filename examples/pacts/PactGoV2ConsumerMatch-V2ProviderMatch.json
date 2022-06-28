@@ -33,10 +33,6 @@
           "$.header.$.Authorization": {
             "match": "type"
           },
-          "$.path": {
-            "match": "regex",
-            "regex": "\\/foo.*"
-          },
           "$.query.$.baz[0]": {
             "match": "regex",
             "regex": "[a-z]+"

@@ -9,18 +9,18 @@ import (
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
-// V4HTTPMockProvider is the entrypoint for V3 http consumer tests
+// V4HTTPMockProvider is the entrypoint for V4 http consumer tests
 // This object is not thread safe
 type V4HTTPMockProvider struct {
 	*httpMockProvider
 }
 
-// NewV4Pact configures a new V3 HTTP Mock Provider for consumer tests
+// NewV4Pact configures a new V4 HTTP Mock Provider for consumer tests
 func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 	provider := &V4HTTPMockProvider{
 		httpMockProvider: &httpMockProvider{
 			config:               config,
-			specificationVersion: models.V3,
+			specificationVersion: models.V4,
 		},
 	}
 	err := provider.configure()
@@ -32,13 +32,12 @@ func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 	return provider, err
 }
 
-// AddInteraction creates a new Pact interaction, initialising all
-// required things. Will automatically start a Mock Service if none running.
-func (p *V4HTTPMockProvider) AddInteraction() *UnconfiguredV4Interaction {
-	log.Println("[DEBUG] pact add v3 interaction")
+// AddInteraction to the pact
+func (p *V4HTTPMockProvider) AddInteraction() *V4UnconfiguredInteraction {
+	log.Println("[DEBUG] pact add V4 interaction")
 	interaction := p.httpMockProvider.mockserver.NewInteraction("")
 
-	i := &UnconfiguredV4Interaction{
+	i := &V4UnconfiguredInteraction{
 		interaction: &Interaction{
 			specificationVersion: models.V4,
 			interaction:          interaction,
@@ -49,25 +48,20 @@ func (p *V4HTTPMockProvider) AddInteraction() *UnconfiguredV4Interaction {
 	return i
 }
 
-// V4Interaction sets up an expected request/response on a mock server
-// and is replayed on the provider side for verification
-type V4Interaction struct {
-}
-
-type UnconfiguredV4Interaction struct {
+type V4UnconfiguredInteraction struct {
 	interaction *Interaction
 	provider    *V4HTTPMockProvider
 }
 
 // Given specifies a provider state, may be called multiple times. Optional.
-func (i *UnconfiguredV4Interaction) Given(state string) *UnconfiguredV4Interaction {
+func (i *V4UnconfiguredInteraction) Given(state string) *V4UnconfiguredInteraction {
 	i.interaction.interaction.Given(state)
 
 	return i
 }
 
-// Given specifies a provider state, may be called multiple times. Optional.
-func (i *UnconfiguredV4Interaction) GivenWithParameter(state models.V3ProviderState) *UnconfiguredV4Interaction {
+// GivenWithParameter specifies a provider state with parameters, may be called multiple times. Optional.
+func (i *V4UnconfiguredInteraction) GivenWithParameter(state models.ProviderState) *V4UnconfiguredInteraction {
 	if len(state.Parameters) > 0 {
 		i.interaction.interaction.GivenWithParameter(state.Name, state.Parameters)
 	} else {
@@ -82,7 +76,7 @@ type V4InteractionWithRequest struct {
 	provider    *V4HTTPMockProvider
 }
 
-type RequestBuilder func(*V4InteractionWithRequestBuilder)
+type V4RequestBuilder func(*V4InteractionWithRequestBuilder)
 
 type V4InteractionWithRequestBuilder struct {
 	interaction *Interaction
@@ -91,18 +85,26 @@ type V4InteractionWithRequestBuilder struct {
 
 // UponReceiving specifies the name of the test case. This becomes the name of
 // the consumer/provider pair in the Pact file. Mandatory.
-func (i *UnconfiguredV4Interaction) UponReceiving(description string) *UnconfiguredV4Interaction {
-	i.interaction.UponReceiving(description)
+func (i *V4UnconfiguredInteraction) UponReceiving(description string) *V4UnconfiguredInteraction {
+	i.interaction.interaction.UponReceiving(description)
 
 	return i
 }
 
-// WithRequest provides a builder for the request interface
-// It specifies the details of the HTTP request that will be used to
-// confirm that the Provider provides an API listening on the given interface.
-// Mandatory.
-func (i *UnconfiguredV4Interaction) WithRequest(method Method, path string, builders ...RequestBuilder) *V4InteractionWithRequest {
-	i.interaction.WithRequest(method, matchers.String(path))
+// TODO: all in one?
+// TODO: all in one?
+// TODO: all in one?
+// TODO: all in one?
+// TODO: all in one?
+
+// WithRequest provides a builder for the expected request
+func (i *V4UnconfiguredInteraction) WithRequest(method Method, path string, builders ...V4RequestBuilder) *V4InteractionWithRequest {
+	return i.WithRequestPathMatcher(method, matchers.String(path), builders...)
+}
+
+// WithRequestPathMatcher allows a matcher in the expected request path
+func (i *V4UnconfiguredInteraction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V4RequestBuilder) *V4InteractionWithRequest {
+	i.interaction.interaction.WithRequest(string(method), path)
 
 	for _, builder := range builders {
 		builder(&V4InteractionWithRequestBuilder{
@@ -116,40 +118,29 @@ func (i *UnconfiguredV4Interaction) WithRequest(method Method, path string, buil
 		provider:    i.provider,
 	}
 }
-func (i *UnconfiguredV4Interaction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...RequestBuilder) *V4InteractionWithRequest {
-	i.interaction.WithRequest(method, path)
 
-	for _, builder := range builders {
-		builder(&V4InteractionWithRequestBuilder{
-			interaction: i.interaction,
-			provider:    i.provider,
-		})
-	}
-
-	return &V4InteractionWithRequest{
-		interaction: i.interaction,
-		provider:    i.provider,
-	}
-}
-
+// Query specifies any query string on the expect request
 func (i *V4InteractionWithRequestBuilder) Query(key string, values ...matchers.Matcher) *V4InteractionWithRequestBuilder {
 	i.interaction.interaction.WithQuery(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
+// Header adds a header to the expected request
 func (i *V4InteractionWithRequestBuilder) Header(key string, values ...matchers.Matcher) *V4InteractionWithRequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
+// Headers sets the headers on the expected request
 func (i *V4InteractionWithRequestBuilder) Headers(headers matchers.HeadersMatcher) *V4InteractionWithRequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
+// JSONBody adds a JSON body to the expected request
 func (i *V4InteractionWithRequestBuilder) JSONBody(body interface{}) *V4InteractionWithRequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -172,18 +163,21 @@ func (i *V4InteractionWithRequestBuilder) JSONBody(body interface{}) *V4Interact
 	return i
 }
 
+// BinaryBody adds a binary body to the expected request
 func (i *V4InteractionWithRequestBuilder) BinaryBody(body []byte) *V4InteractionWithRequestBuilder {
 	i.interaction.interaction.WithBinaryRequestBody(body)
 
 	return i
 }
 
+// MultipartBody adds a multipart  body to the expected request
 func (i *V4InteractionWithRequestBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4InteractionWithRequestBuilder {
 	i.interaction.interaction.WithRequestMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
+// Body adds general body to the expected request
 func (i *V4InteractionWithRequestBuilder) Body(contentType string, body []byte) *V4InteractionWithRequestBuilder {
 	// Check if someone tried to add an object as a string representation
 	// as per original allowed implementation, e.g.
@@ -199,14 +193,15 @@ func (i *V4InteractionWithRequestBuilder) Body(contentType string, body []byte) 
 	return i
 }
 
+// BodyMatch uses struct tags to automatically determine matchers from the given struct
 func (i *V4InteractionWithRequestBuilder) BodyMatch(body interface{}) *V4InteractionWithRequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
 }
 
-// WithRequest provides a builder for the request interface
-func (i *V4InteractionWithRequest) WillRespondWith(status int, builders ...ResponseBuilder) *V4InteractionWithResponse {
+// WillRespondWith sets the expected status and provides a response builder
+func (i *V4InteractionWithRequest) WillRespondWith(status int, builders ...V4ResponseBuilder) *V4InteractionWithResponse {
 	i.interaction.interaction.WithStatus(status)
 
 	for _, builder := range builders {
@@ -223,7 +218,7 @@ func (i *V4InteractionWithRequest) WillRespondWith(status int, builders ...Respo
 	}
 }
 
-type ResponseBuilder func(*V4InteractionWithResponseBuilder)
+type V4ResponseBuilder func(*V4InteractionWithResponseBuilder)
 
 type V4InteractionWithResponseBuilder struct {
 	interaction *Interaction
@@ -235,18 +230,21 @@ type V4InteractionWithResponse struct {
 	provider    *V4HTTPMockProvider
 }
 
+// Header adds a header to the expected response
 func (i *V4InteractionWithResponseBuilder) Header(key string, values ...matchers.Matcher) *V4InteractionWithResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
+// Headers sets the headers on the expected response
 func (i *V4InteractionWithResponseBuilder) Headers(headers matchers.HeadersMatcher) *V4InteractionWithResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
+// JSONBody adds a JSON body to the expected response
 func (i *V4InteractionWithResponseBuilder) JSONBody(body interface{}) *V4InteractionWithResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -268,24 +266,28 @@ func (i *V4InteractionWithResponseBuilder) JSONBody(body interface{}) *V4Interac
 	return i
 }
 
+// BinaryBody adds a binary body to the expected response
 func (i *V4InteractionWithResponseBuilder) BinaryBody(body []byte) *V4InteractionWithResponseBuilder {
 	i.interaction.interaction.WithBinaryResponseBody(body)
 
 	return i
 }
 
+// MultipartBody adds a multipart  body to the expected response
 func (i *V4InteractionWithResponseBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4InteractionWithResponseBuilder {
 	i.interaction.interaction.WithResponseMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
+// Body adds general body to the expected request
 func (i *V4InteractionWithResponseBuilder) Body(contentType string, body []byte) *V4InteractionWithResponseBuilder {
 	i.interaction.interaction.WithResponseBody(contentType, body)
 
 	return i
 }
 
+// BodyMatch uses struct tags to automatically determine matchers from the given struct
 func (i *V4InteractionWithResponseBuilder) BodyMatch(body interface{}) *V4InteractionWithResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 
@@ -299,7 +301,7 @@ func (m *V4InteractionWithResponse) ExecuteTest(t *testing.T, integrationTest fu
 
 ////////////
 // Plugin //
-///////////
+////////////
 
 type PluginConfig struct {
 	Plugin  string
@@ -311,9 +313,9 @@ type V4InteractionWithPlugin struct {
 	provider    *V4HTTPMockProvider
 }
 
-// UponReceiving specifies the name of the test case. This becomes the name of
-// the consumer/provider pair in the Pact file. Mandatory.
-func (i *UnconfiguredV4Interaction) UsingPlugin(config PluginConfig) *V4InteractionWithPlugin {
+// UsingPlugin specifies the current interaction relies on one or more plugins for operation
+// If the plugin is not correctly installed, this method will terminate the test immediately with a non-zero status
+func (i *V4UnconfiguredInteraction) UsingPlugin(config PluginConfig) *V4InteractionWithPlugin {
 	res := i.provider.mockserver.UsingPlugin(config.Plugin, config.Version)
 	if res != nil {
 		log.Fatal("pact setup failed:", res)
@@ -325,8 +327,8 @@ func (i *UnconfiguredV4Interaction) UsingPlugin(config PluginConfig) *V4Interact
 	}
 }
 
-// UponReceiving specifies the name of the test case. This becomes the name of
-// the consumer/provider pair in the Pact file. Mandatory.
+// UsingPlugin specifies the current interaction relies on one or more plugins for operation
+// If the plugin is not correctly installed, this method will terminate the test immediately with a non-zero status
 func (i *V4InteractionWithPlugin) UsingPlugin(config PluginConfig) *V4InteractionWithPlugin {
 	res := i.provider.mockserver.UsingPlugin(config.Plugin, config.Version)
 	if res != nil {
@@ -345,12 +347,11 @@ type PluginRequestBuilder func(*V4InteractionWithPluginRequestBuilder)
 
 type V4InteractionWithPluginRequestBuilder struct {
 	interaction *Interaction
-	provider    *V4HTTPMockProvider
 }
 
-// WithRequest provides a builder for the request interface
+// WithRequest provides a builder for the expected request
 func (i *V4InteractionWithPlugin) WithRequest(method Method, path string, builders ...PluginRequestBuilder) *V4InteractionWithPluginRequest {
-	i.interaction.WithRequest(method, matchers.String(path))
+	i.interaction.interaction.WithRequest(string(method), matchers.String(path))
 
 	for _, builder := range builders {
 		builder(&V4InteractionWithPluginRequestBuilder{
@@ -364,9 +365,9 @@ func (i *V4InteractionWithPlugin) WithRequest(method Method, path string, builde
 	}
 }
 
-// WithRequest provides a builder for the request interface
+// WithRequestPathMatcher allows a matcher in the expected request path
 func (i *V4InteractionWithPlugin) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...PluginRequestBuilder) *V4InteractionWithPluginRequest {
-	i.interaction.WithRequest(method, path)
+	i.interaction.interaction.WithRequest(string(method), path)
 
 	for _, builder := range builders {
 		builder(&V4InteractionWithPluginRequestBuilder{
@@ -380,7 +381,7 @@ func (i *V4InteractionWithPlugin) WithRequestPathMatcher(method Method, path mat
 	}
 }
 
-// WithRequest provides a builder for the request interface
+// WillResponseWithContent provides a builder for the expected response
 func (i *V4InteractionWithPluginRequest) WillRespondWith(status int, builders ...PluginResponseBuilder) *V4InteractionWithPluginResponse {
 	i.interaction.interaction.WithStatus(status)
 
@@ -414,29 +415,34 @@ func (m *V4InteractionWithPluginResponse) ExecuteTest(t *testing.T, integrationT
 	return m.provider.ExecuteTest(t, integrationTest)
 }
 
+// Query specifies any query string on the expect request
 func (i *V4InteractionWithPluginRequestBuilder) Query(key string, values ...matchers.Matcher) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithQuery(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
+// Header adds a header to the expected request
 func (i *V4InteractionWithPluginRequestBuilder) Header(key string, values ...matchers.Matcher) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
+// Headers sets the headers on the expected request
 func (i *V4InteractionWithPluginRequestBuilder) Headers(headers matchers.HeadersMatcher) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
-func (i *V4InteractionWithPluginRequestBuilder) PluginContents(contents string, contentType string) *V4InteractionWithPluginRequestBuilder {
+// PluginContents configures a plugin. This may be called once per plugin registered.
+func (i *V4InteractionWithPluginRequestBuilder) PluginContents(contentType string, contents string) *V4InteractionWithPluginRequestBuilder {
 
 	return i
 }
 
+// JSONBody adds a JSON body to the expected request
 func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body interface{}) *V4InteractionWithPluginRequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -459,18 +465,21 @@ func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body interface{}) *V4In
 	return i
 }
 
+// BinaryBody adds a binary body to the expected request
 func (i *V4InteractionWithPluginRequestBuilder) BinaryBody(body []byte) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithBinaryRequestBody(body)
 
 	return i
 }
 
+// MultipartBody adds a multipart  body to the expected request
 func (i *V4InteractionWithPluginRequestBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithRequestMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
+// Body adds general body to the expected request
 func (i *V4InteractionWithPluginRequestBuilder) Body(contentType string, body []byte) *V4InteractionWithPluginRequestBuilder {
 	// Check if someone tried to add an object as a string representation
 	// as per original allowed implementation, e.g.
@@ -486,29 +495,34 @@ func (i *V4InteractionWithPluginRequestBuilder) Body(contentType string, body []
 	return i
 }
 
+// BodyMatch uses struct tags to automatically determine matchers from the given struct
 func (i *V4InteractionWithPluginRequestBuilder) BodyMatch(body interface{}) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
 }
 
+// Header adds a header to the expected response
 func (i *V4InteractionWithPluginResponseBuilder) Header(key string, values ...matchers.Matcher) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
+// Headers sets the headers on the expected response
 func (i *V4InteractionWithPluginResponseBuilder) Headers(headers matchers.HeadersMatcher) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
-func (i *V4InteractionWithPluginResponseBuilder) PluginContents(contents string, contentType string) *V4InteractionWithPluginResponseBuilder {
+// PluginContents configures a plugin. This may be called once per plugin registered.
+func (i *V4InteractionWithPluginResponseBuilder) PluginContents(contentType string, contents string) *V4InteractionWithPluginResponseBuilder {
 
 	return i
 }
 
+// JSONBody adds a JSON body to the expected response
 func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body interface{}) *V4InteractionWithPluginResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -530,24 +544,28 @@ func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body interface{}) *V4I
 	return i
 }
 
+// BinaryBody adds a binary body to the expected response
 func (i *V4InteractionWithPluginResponseBuilder) BinaryBody(body []byte) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithBinaryResponseBody(body)
 
 	return i
 }
 
+// MultipartBody adds a multipart  body to the expected response
 func (i *V4InteractionWithPluginResponseBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
+// Body adds general body to the expected request
 func (i *V4InteractionWithPluginResponseBuilder) Body(contentType string, body []byte) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseBody(contentType, body)
 
 	return i
 }
 
+// BodyMatch uses struct tags to automatically determine matchers from the given struct
 func (i *V4InteractionWithPluginResponseBuilder) BodyMatch(body interface{}) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 

@@ -221,7 +221,7 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers) proxy.Middleware
 				}
 
 				// Extract the params from the payload. They are in the root, so we need to do some more work to achieve this
-				var params models.V3ProviderStateResponse
+				var params models.ProviderStateResponse
 				err = json.Unmarshal([]byte(buf.String()), &params)
 				if err != nil {
 					log.Println("[ERROR] unable to decode incoming state change payload", err)
@@ -243,7 +243,7 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers) proxy.Middleware
 					log.Printf("[WARN] no state handler found for state: %v", state.State)
 				} else {
 					// Execute state handler
-					res, err := sf(state.Action == "setup", models.V3ProviderState{Name: state.State, Parameters: state.Params})
+					res, err := sf(state.Action == "setup", models.ProviderState{Name: state.State, Parameters: state.Params})
 
 					if err != nil {
 						log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)

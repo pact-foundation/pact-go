@@ -44,7 +44,7 @@ func (m *AsynchronousMessageBuilder) Given(state string) *AsynchronousMessageBui
 }
 
 // Given specifies a provider state. Optional.
-func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.V3ProviderState) *AsynchronousMessageBuilder {
+func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *AsynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
 
 	return m

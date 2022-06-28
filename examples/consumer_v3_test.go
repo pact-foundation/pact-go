@@ -41,49 +41,52 @@ func TestConsumerV3(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Set up our expected interactions.
-	mockProvider.
+	err = mockProvider.
 		AddInteraction().
 		Given("state 1").
-		GivenWithParameter(models.V3ProviderState{
+		GivenWithParameter(models.ProviderState{
 			Name: "User foo exists",
 			Parameters: map[string]interface{}{
 				"id": "foo",
 			},
 		}).
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", Regex("/foobar", `\/foo.*`)).
-		WithHeader("Content-Type", S("application/json")).
-		WithHeader("Authorization", Like("Bearer 1234")).
-		WithQuery("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
-		WithJSONBody(Map{
-			"id":       Like(27),
-			"name":     FromProviderState("${name}", "billy"),
-			"lastName": Like("billy"),
-			"datetime": DateTimeGenerated("2020-01-01T08:00:45", "yyyy-MM-dd'T'HH:mm:ss"),
-		}).
-		WillRespondWith(200).
-		WithHeader("Content-Type", S("application/json")).
-		WithJSONBody(Map{
-			"datetime":       Regex("2020-01-01", "[0-9\\-]+"),
-			"name":           S("Billy"),
-			"lastName":       S("Sampson"),
-			"superstring":    Includes("foo"),
-			"id":             Integer(12),
-			"accountBalance": Decimal(123.76),
-			"itemsMinMax":    ArrayMinMaxLike(27, 3, 5),
-			"itemsMin":       ArrayMinLike("thereshouldbe3ofthese", 3),
-			"equality":       Equality("a thing"),
-			"arrayContaining": ArrayContaining([]interface{}{
-				Like("string"),
-				Integer(1),
-				Map{
-					"foo": Like("bar"),
-				},
-			}),
-		})
+		WithRequest("POST", "/foobar", func(b *consumer.V3InteractionWithRequestBuilder) {
+			b.
+				Header("Content-Type", S("application/json")).
+				Header("Authorization", Like("Bearer 1234")).
+				Query("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+")).
+				JSONBody(Map{
+					"id":       Like(27),
+					"name":     FromProviderState("${name}", "billy"),
+					"lastName": Like("billy"),
+					"datetime": DateTimeGenerated("2020-01-01T08:00:45", "yyyy-MM-dd'T'HH:mm:ss"),
+				})
 
-	// Execute pact test
-	err = mockProvider.ExecuteTest(t, test)
+		}).
+		WillRespondWith(200, func(b *consumer.V3InteractionWithResponseBuilder) {
+			b.
+				Header("Content-Type", S("application/json")).
+				JSONBody(Map{
+					"datetime":       Regex("2020-01-01", "[0-9\\-]+"),
+					"name":           S("Billy"),
+					"lastName":       S("Sampson"),
+					"superstring":    Includes("foo"),
+					"id":             Integer(12),
+					"accountBalance": Decimal(123.76),
+					"itemsMinMax":    ArrayMinMaxLike(27, 3, 5),
+					"itemsMin":       ArrayMinLike("thereshouldbe3ofthese", 3),
+					"equality":       Equality("a thing"),
+					"arrayContaining": ArrayContaining([]interface{}{
+						Like("string"),
+						Integer(1),
+						Map{
+							"foo": Like("bar"),
+						},
+					}),
+				})
+		}).
+		ExecuteTest(t, test)
 	assert.NoError(t, err)
 }
 func TestMessagePact(t *testing.T) {
@@ -96,7 +99,7 @@ func TestMessagePact(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = provider.AddMessage().
-		Given(models.V3ProviderState{
+		GivenWithParameter(models.ProviderState{
 			Name: "User with id 127 exists",
 			Parameters: map[string]interface{}{
 				"id": 127,

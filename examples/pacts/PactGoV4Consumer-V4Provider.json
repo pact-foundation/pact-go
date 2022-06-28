@@ -1,10 +1,12 @@
 {
   "consumer": {
-    "name": "PactGoV3Consumer"
+    "name": "PactGoV4Consumer"
   },
   "interactions": [
     {
       "description": "A request to do a foo",
+      "key": "1524c392b16b529a",
+      "pending": false,
       "providerStates": [
         {
           "name": "state 1"
@@ -18,10 +20,14 @@
       ],
       "request": {
         "body": {
-          "datetime": "2020-01-01T08:00:45",
-          "id": 27,
-          "lastName": "billy",
-          "name": "billy"
+          "content": {
+            "datetime": "2020-01-01T08:00:45",
+            "id": 27,
+            "lastName": "billy",
+            "name": "billy"
+          },
+          "contentType": "application/json",
+          "encoded": false
         },
         "generators": {
           "body": {
@@ -36,8 +42,12 @@
           }
         },
         "headers": {
-          "Authorization": "Bearer 1234",
-          "Content-Type": "application/json"
+          "Authorization": [
+            "Bearer 1234"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
         },
         "matchingRules": {
           "body": {
@@ -127,35 +137,41 @@
       },
       "response": {
         "body": {
-          "accountBalance": 123.76,
-          "arrayContaining": [
-            "string",
-            1,
-            {
-              "foo": "bar"
-            }
-          ],
-          "datetime": "2020-01-01",
-          "equality": "a thing",
-          "id": 12,
-          "itemsMin": [
-            "thereshouldbe3ofthese",
-            "thereshouldbe3ofthese",
-            "thereshouldbe3ofthese"
-          ],
-          "itemsMinMax": [
-            27,
-            27,
-            27,
-            27,
-            27
-          ],
-          "lastName": "Sampson",
-          "name": "Billy",
-          "superstring": "foo"
+          "content": {
+            "accountBalance": 123.76,
+            "arrayContaining": [
+              "string",
+              1,
+              {
+                "foo": "bar"
+              }
+            ],
+            "datetime": "2020-01-01",
+            "equality": "a thing",
+            "id": 12,
+            "itemsMin": [
+              "thereshouldbe3ofthese",
+              "thereshouldbe3ofthese",
+              "thereshouldbe3ofthese"
+            ],
+            "itemsMinMax": [
+              27,
+              27,
+              27,
+              27,
+              27
+            ],
+            "lastName": "Sampson",
+            "name": "Billy",
+            "superstring": "foo"
+          },
+          "contentType": "application/json",
+          "encoded": false
         },
         "headers": {
-          "Content-Type": "application/json"
+          "Content-Type": [
+            "application/json"
+          ]
         },
         "matchingRules": {
           "body": {
@@ -273,7 +289,9 @@
           "header": {}
         },
         "status": 200
-      }
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {
@@ -283,10 +301,10 @@
       "models": "0.4.1"
     },
     "pactSpecification": {
-      "version": "3.0.0"
+      "version": "4.0"
     }
   },
   "provider": {
-    "name": "V3Provider"
+    "name": "V4Provider"
   }
 }

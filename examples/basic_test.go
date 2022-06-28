@@ -23,28 +23,29 @@ func TestProductAPIClient(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Arrange: Setup our expected interactions
-	mockProvider.
+	err = mockProvider.
 		AddInteraction().
 		Given("A product with ID 10 exists").
 		UponReceiving("A request for Product 10").
-		WithRequest("GET", S("/products/10")).
-		WillRespondWith(200).
-		WithBodyMatch(&Product{})
+		WithRequest("GET", "/products/10").
+		WillRespondWith(200, func(b *consumer.V2InteractionWithResponseBuilder) {
+			b.BodyMatch(&Product{})
+		}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			// Act: test our API client behaves correctly
+			// Initialise the API client and point it at the Pact mock server
+			client := newClient(config.Host, config.Port)
 
-	// Act: test our API client behaves correctly
-	err = mockProvider.ExecuteTest(t, func(config consumer.MockServerConfig) error {
-		// Initialise the API client and point it at the Pact mock server
-		client := newClient(config.Host, config.Port)
+			// Execute the API client
+			product, err := client.GetProduct("10")
 
-		// Execute the API client
-		product, err := client.GetProduct("10")
+			// Assert: check the result
+			assert.NoError(t, err)
+			assert.Equal(t, 10, product.ID)
 
-		// Assert: check the result
-		assert.NoError(t, err)
-		assert.Equal(t, 10, product.ID)
+			return err
+		})
 
-		return err
-	})
 	assert.NoError(t, err)
 }
 

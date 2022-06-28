@@ -16,10 +16,10 @@ import (
 
 // TODO: make a builder?
 
-// AsynchronousMessage is a representation of a single, unidirectional message
+// AsynchronousMessageBuilder is a representation of a single, unidirectional message
 // e.g. MQ, pub/sub, Websocket, Lambda
-// AsynchronousMessage is the main implementation of the Pact AsynchronousMessage interface.
-type AsynchronousMessage struct {
+// AsynchronousMessageBuilder is the main implementation of the Pact AsynchronousMessageBuilder interface.
+type AsynchronousMessageBuilder struct {
 	messageHandle *mockserver.Message
 	messagePactV3 *AsynchronousPact
 
@@ -31,9 +31,20 @@ type AsynchronousMessage struct {
 	handler AsynchronousConsumer
 }
 
+type UnconfiguredAsynchronousMessageBuilder struct {
+	rootBuilder *AsynchronousMessageBuilder
+}
+
 // Given specifies a provider state. Optional.
-func (m *AsynchronousMessage) Given(state models.V3ProviderState) *AsynchronousMessage {
+func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *AsynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
+
+	return m
+}
+
+// Given specifies a provider state. Optional.
+func (m *AsynchronousMessageBuilder) Given(state string) *AsynchronousMessageBuilder {
+	m.messageHandle.Given(state)
 
 	return m
 }
@@ -41,62 +52,80 @@ func (m *AsynchronousMessage) Given(state models.V3ProviderState) *AsynchronousM
 // ExpectsToReceive specifies the content it is expecting to be
 // given from the Provider. The function must be able to handle this
 // message for the interaction to succeed.
-func (m *AsynchronousMessage) ExpectsToReceive(description string) *AsynchronousMessage {
+func (m *AsynchronousMessageBuilder) ExpectsToReceive(description string) *UnconfiguredAsynchronousMessageBuilder {
 	m.messageHandle.ExpectsToReceive(description)
 
-	return m
+	return &UnconfiguredAsynchronousMessageBuilder{
+		rootBuilder: m,
+	}
 }
 
 // WithMetadata specifies message-implementation specific metadata
 // to go with the content
 // func (m *Message) WithMetadata(metadata MapMatcher) *Message {
-func (m *AsynchronousMessage) WithMetadata(metadata map[string]string) *AsynchronousMessage {
-	m.messageHandle.WithMetadata(metadata)
+func (m *UnconfiguredAsynchronousMessageBuilder) WithMetadata(metadata map[string]string) *UnconfiguredAsynchronousMessageBuilder {
+	m.rootBuilder.messageHandle.WithMetadata(metadata)
 
 	return m
+}
+
+type AsynchronousMessageBuilderWithContents struct {
+	rootBuilder *AsynchronousMessageBuilder
 }
 
 // WithBinaryContent accepts a binary payload
-func (m *AsynchronousMessage) WithBinaryContent(contentType string, body []byte) *AsynchronousMessage {
-	m.messageHandle.WithContents(contentType, body)
+func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
+	m.rootBuilder.messageHandle.WithContents(contentType, body)
 
-	return m
+	return &AsynchronousMessageBuilderWithContents{
+		rootBuilder: m.rootBuilder,
+	}
 }
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
-func (m *AsynchronousMessage) WithContent(contentType string, body []byte) *AsynchronousMessage {
-	m.messageHandle.WithContents(contentType, body)
+func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
+	m.rootBuilder.messageHandle.WithContents(contentType, body)
 
-	return m
+	return &AsynchronousMessageBuilderWithContents{
+		rootBuilder: m.rootBuilder,
+	}
 }
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
-func (m *AsynchronousMessage) WithJSONContent(content interface{}) *AsynchronousMessage {
-	m.messageHandle.WithJSONContents(content)
+func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interface{}) *AsynchronousMessageBuilderWithContents {
+	m.rootBuilder.messageHandle.WithJSONContents(content)
 
-	return m
+	return &AsynchronousMessageBuilderWithContents{
+		rootBuilder: m.rootBuilder,
+	}
 }
 
 // // AsType specifies that the content sent through to the
 // consumer handler should be sent as the given type
-func (m *AsynchronousMessage) AsType(t interface{}) *AsynchronousMessage {
+func (m *AsynchronousMessageBuilderWithContents) AsType(t interface{}) *AsynchronousMessageBuilderWithContents {
 	log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
-	m.Type = t
+	m.rootBuilder.Type = t
 
 	return m
 }
 
-// The function that will consume the message
-func (m *AsynchronousMessage) ConsumedBy(handler AsynchronousConsumer) *AsynchronousMessage {
-	m.handler = handler
-
-	return m
+type AsynchronousMessageBuilderWithConsumer struct {
+	rootBuilder *AsynchronousMessageBuilder
 }
 
 // The function that will consume the message
-func (m *AsynchronousMessage) Verify(t *testing.T) error {
-	return m.messagePactV3.Verify(t, m, m.handler)
+func (m *AsynchronousMessageBuilderWithContents) ConsumedBy(handler AsynchronousConsumer) *AsynchronousMessageBuilderWithConsumer {
+	m.rootBuilder.handler = handler
+
+	return &AsynchronousMessageBuilderWithConsumer{
+		rootBuilder: m.rootBuilder,
+	}
+}
+
+// The function that will consume the message
+func (m *AsynchronousMessageBuilderWithConsumer) Verify(t *testing.T) error {
+	return m.rootBuilder.messagePactV3.Verify(t, m.rootBuilder, m.rootBuilder.handler)
 }
 
 type AsynchronousPact struct {
@@ -140,17 +169,17 @@ func (p *AsynchronousPact) validateConfig() error {
 
 // AddMessage creates a new asynchronous consumer expectation
 // Deprecated: use AddAsynchronousMessage() instead
-func (p *AsynchronousPact) AddMessage() *AsynchronousMessage {
+func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 	return p.AddAsynchronousMessage()
 }
 
 // AddMessage creates a new asynchronous consumer expectation
-func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessage {
+func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder {
 	log.Println("[DEBUG] add message")
 
 	message := p.messageserver.NewMessage()
 
-	m := &AsynchronousMessage{
+	m := &AsynchronousMessageBuilder{
 		messageHandle: message,
 		messagePactV3: p,
 	}
@@ -165,7 +194,7 @@ func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessage {
 // A Message Consumer is analagous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
-func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *AsynchronousMessage, handler AsynchronousConsumer) error {
+func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
 	log.Printf("[DEBUG] verify message")
 
 	// 1. Strip out the matchers
@@ -211,7 +240,7 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 
 // VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
 // accepting an instance of `*testing.T`
-func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessage, handler AsynchronousConsumer) error {
+func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
 	err := p.verifyMessageConsumerRaw(message, handler)
 
 	if err != nil {
