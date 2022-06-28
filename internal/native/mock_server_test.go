@@ -178,7 +178,7 @@ func TestPluginInteraction(t *testing.T) {
 	i := m.NewInteraction("some plugin interaction")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/plugin.proto", dir)
+	path := fmt.Sprintf("%s/pact_plugin.proto", dir)
 
 	protobufInteraction := `{
 			"pact:proto": "` + path + `",

@@ -19,7 +19,7 @@ func TestSyncTypeSystem(t *testing.T) {
 	log.SetLogLevel("TRACE")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/../../internal/native/plugin.proto", dir)
+	path := fmt.Sprintf("%s/../../internal/native/pact_plugin.proto", dir)
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",

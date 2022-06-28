@@ -4,7 +4,7 @@
 // versions:
 // 	protoc-gen-go v1.28.0
 // 	protoc        v3.19.4
-// source: plugin.proto
+// source: pact_plugin.proto
 
 package io_pact_plugin
 
