@@ -28,7 +28,7 @@ func TestProductAPIClient(t *testing.T) {
 		Given("A product with ID 10 exists").
 		UponReceiving("A request for Product 10").
 		WithRequest("GET", "/products/10").
-		WillRespondWith(200, func(b *consumer.V2InteractionWithResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
 			b.BodyMatch(&Product{})
 		}).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {

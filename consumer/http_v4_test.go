@@ -18,7 +18,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 	err = p.AddInteraction().
 		Given("some state").
 		UponReceiving("some scenario").
-		WithRequest("GET", "/", func(b *V4InteractionWithRequestBuilder) {
+		WithRequest("GET", "/", func(b *V4RequestBuilder) {
 			b.
 				Header("Content-Type", S("application/json")).
 				Header("Authorization", Like("Bearer 1234")).
@@ -30,7 +30,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 					"lastName": Like("billy"),
 				})
 		}).
-		WillRespondWith(200, func(b *V4InteractionWithResponseBuilder) {
+		WillRespondWith(200, func(b *V4ResponseBuilder) {
 			b.
 				Header("Content-Type", Regex("application/json", "application\\/json")).
 				JSONBody(Map{

@@ -65,9 +65,9 @@ type V2InteractionWithRequest struct {
 	provider    *V2HTTPMockProvider
 }
 
-type V2RequestBuilder func(*V2InteractionWithRequestBuilder)
+type V2RequestBuilderFunc func(*V2RequestBuilder)
 
-type V2InteractionWithRequestBuilder struct {
+type V2RequestBuilder struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
 }
@@ -106,16 +106,16 @@ func (i *V2InteractionWithCompleteRequest) WithCompleteResponse(response Respons
 }
 
 // WithRequest provides a builder for the expected request
-func (i *UnconfiguredV2Interaction) WithRequest(method Method, path string, builders ...V2RequestBuilder) *V2InteractionWithRequest {
+func (i *UnconfiguredV2Interaction) WithRequest(method Method, path string, builders ...V2RequestBuilderFunc) *V2InteractionWithRequest {
 	return i.WithRequestPathMatcher(method, matchers.String(path), builders...)
 }
 
 // WithRequestPathMatcher allows a matcher in the expected request path
-func (i *UnconfiguredV2Interaction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V2RequestBuilder) *V2InteractionWithRequest {
+func (i *UnconfiguredV2Interaction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V2RequestBuilderFunc) *V2InteractionWithRequest {
 	i.interaction.interaction.WithRequest(string(method), path)
 
 	for _, builder := range builders {
-		builder(&V2InteractionWithRequestBuilder{
+		builder(&V2RequestBuilder{
 			interaction: i.interaction,
 			provider:    i.provider,
 		})
@@ -128,28 +128,28 @@ func (i *UnconfiguredV2Interaction) WithRequestPathMatcher(method Method, path m
 }
 
 // Query specifies any query string on the expect request
-func (i *V2InteractionWithRequestBuilder) Query(key string, values ...matchers.Matcher) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) Query(key string, values ...matchers.Matcher) *V2RequestBuilder {
 	i.interaction.interaction.WithQuery(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
 // Header adds a header to the expected request
-func (i *V2InteractionWithRequestBuilder) Header(key string, values ...matchers.Matcher) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) Header(key string, values ...matchers.Matcher) *V2RequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
 // Headers sets the headers on the expected request
-func (i *V2InteractionWithRequestBuilder) Headers(headers matchers.HeadersMatcher) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) Headers(headers matchers.HeadersMatcher) *V2RequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
 // JSONBody adds a JSON body to the expected request
-func (i *V2InteractionWithRequestBuilder) JSONBody(body interface{}) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) JSONBody(body interface{}) *V2RequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
 		panic(err)
@@ -172,21 +172,21 @@ func (i *V2InteractionWithRequestBuilder) JSONBody(body interface{}) *V2Interact
 }
 
 // BinaryBody adds a binary body to the expected request
-func (i *V2InteractionWithRequestBuilder) BinaryBody(body []byte) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) BinaryBody(body []byte) *V2RequestBuilder {
 	i.interaction.interaction.WithBinaryRequestBody(body)
 
 	return i
 }
 
 // MultipartBody adds a multipart  body to the expected request
-func (i *V2InteractionWithRequestBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V2RequestBuilder {
 	i.interaction.interaction.WithRequestMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
 // Body adds general body to the expected request
-func (i *V2InteractionWithRequestBuilder) Body(contentType string, body []byte) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) Body(contentType string, body []byte) *V2RequestBuilder {
 	// Check if someone tried to add an object as a string representation
 	// as per original allowed implementation, e.g.
 	// { "foo": "bar", "baz": like("bat") }
@@ -202,19 +202,19 @@ func (i *V2InteractionWithRequestBuilder) Body(contentType string, body []byte) 
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct
-func (i *V2InteractionWithRequestBuilder) BodyMatch(body interface{}) *V2InteractionWithRequestBuilder {
+func (i *V2RequestBuilder) BodyMatch(body interface{}) *V2RequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
 }
 
 // WillRespondWith sets the expected status and provides a response builder
-func (i *V2InteractionWithRequest) WillRespondWith(status int, builders ...V2ResponseBuilder) *V2InteractionWithResponse {
+func (i *V2InteractionWithRequest) WillRespondWith(status int, builders ...V2ResponseBuilderFunc) *V2InteractionWithResponse {
 	i.interaction.interaction.WithStatus(status)
 
 	for _, builder := range builders {
 
-		builder(&V2InteractionWithResponseBuilder{
+		builder(&V2ResponseBuilder{
 			interaction: i.interaction,
 			provider:    i.provider,
 		})
@@ -226,9 +226,9 @@ func (i *V2InteractionWithRequest) WillRespondWith(status int, builders ...V2Res
 	}
 }
 
-type V2ResponseBuilder func(*V2InteractionWithResponseBuilder)
+type V2ResponseBuilderFunc func(*V2ResponseBuilder)
 
-type V2InteractionWithResponseBuilder struct {
+type V2ResponseBuilder struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
 }
@@ -239,21 +239,21 @@ type V2InteractionWithResponse struct {
 }
 
 // Header adds a header to the expected response
-func (i *V2InteractionWithResponseBuilder) Header(key string, values ...matchers.Matcher) *V2InteractionWithResponseBuilder {
+func (i *V2ResponseBuilder) Header(key string, values ...matchers.Matcher) *V2ResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
 // Headers sets the headers on the expected response
-func (i *V2InteractionWithResponseBuilder) Headers(headers matchers.HeadersMatcher) *V2InteractionWithResponseBuilder {
+func (i *V2ResponseBuilder) Headers(headers matchers.HeadersMatcher) *V2ResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
 // JSONBody adds a JSON body to the expected response
-func (i *V2InteractionWithResponseBuilder) JSONBody(body interface{}) *V2InteractionWithResponseBuilder {
+func (i *V2ResponseBuilder) JSONBody(body interface{}) *V2ResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
 		panic(err)
@@ -275,28 +275,28 @@ func (i *V2InteractionWithResponseBuilder) JSONBody(body interface{}) *V2Interac
 }
 
 // BinaryBody adds a binary body to the expected response
-func (i *V2InteractionWithResponseBuilder) BinaryBody(body []byte) *V2InteractionWithResponseBuilder {
+func (i *V2ResponseBuilder) BinaryBody(body []byte) *V2ResponseBuilder {
 	i.interaction.interaction.WithBinaryResponseBody(body)
 
 	return i
 }
 
 // MultipartBody adds a multipart  body to the expected response
-func (i *V2InteractionWithResponseBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V2InteractionWithResponseBuilder {
+func (i *V2ResponseBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V2ResponseBuilder {
 	i.interaction.interaction.WithResponseMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
 // Body adds general body to the expected request
-func (i *V2InteractionWithResponseBuilder) Body(contentType string, body []byte) *V2InteractionWithResponseBuilder {
+func (i *V2ResponseBuilder) Body(contentType string, body []byte) *V2ResponseBuilder {
 	i.interaction.interaction.WithResponseBody(contentType, body)
 
 	return i
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct
-func (i *V2InteractionWithResponseBuilder) BodyMatch(body interface{}) *V2InteractionWithResponseBuilder {
+func (i *V2ResponseBuilder) BodyMatch(body interface{}) *V2ResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 
 	return i

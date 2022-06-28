@@ -76,7 +76,7 @@ func (m *SynchronousMessageWithPlugin) UsingPlugin(config PluginConfig) *Synchro
 }
 
 // AddMessage creates a new asynchronous consumer expectation
-func (m *UnconfiguredSynchronousMessageBuilder) WithRequest(r RequestBuilder) *SynchronousMessageWithRequest {
+func (m *UnconfiguredSynchronousMessageBuilder) WithRequest(r RequestBuilderFunc) *SynchronousMessageWithRequest {
 	r(&SynchronousMessageWithRequestBuilder{
 		messageHandle: m.messageHandle,
 		pact:          m.pact,
@@ -93,7 +93,7 @@ type SynchronousMessageWithRequest struct {
 	pact          *SynchronousPact
 }
 
-type RequestBuilder func(*SynchronousMessageWithRequestBuilder)
+type RequestBuilderFunc func(*SynchronousMessageWithRequestBuilder)
 
 type SynchronousMessageWithRequestBuilder struct {
 	messageHandle *native.Message
@@ -132,7 +132,7 @@ func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content interface
 }
 
 // AddMessage creates a new asynchronous consumer expectation
-func (m *SynchronousMessageWithRequest) WithResponse(builder ResponseBuilder) *SynchronousMessageWithResponse {
+func (m *SynchronousMessageWithRequest) WithResponse(builder ResponseBuilderFunc) *SynchronousMessageWithResponse {
 	builder(&SynchronousMessageWithResponseBuilder{
 		messageHandle: m.messageHandle,
 		pact:          m.pact,
@@ -149,7 +149,7 @@ type SynchronousMessageWithResponse struct {
 	pact          *SynchronousPact
 }
 
-type ResponseBuilder func(*SynchronousMessageWithResponseBuilder)
+type ResponseBuilderFunc func(*SynchronousMessageWithResponseBuilder)
 
 type SynchronousMessageWithResponseBuilder struct {
 	messageHandle *native.Message

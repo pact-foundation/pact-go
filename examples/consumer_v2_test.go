@@ -51,7 +51,7 @@ func TestConsumerV2(t *testing.T) {
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
-		WithRequestPathMatcher("POST", Regex("/foobar", `\/foo.*`), func(b *consumer.V2InteractionWithRequestBuilder) {
+		WithRequestPathMatcher("POST", Regex("/foobar", `\/foo.*`), func(b *consumer.V2RequestBuilder) {
 			b.
 				Header("Content-Type", S("application/json")).
 				Header("Authorization", Like("Bearer 1234")).
@@ -64,7 +64,7 @@ func TestConsumerV2(t *testing.T) {
 					// "equality": Equality("a thing"), // Add this in and watch me panic
 				})
 		}).
-		WillRespondWith(200, func(b *consumer.V2InteractionWithResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
 			b.Header("Content-Type", Regex("application/json", "application\\/json"))
 			b.JSONBody(Map{
 				"datetime": Regex("2020-01-01", "[0-9\\-]+"),
@@ -95,14 +95,14 @@ func TestConsumerV2_Match(t *testing.T) {
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", "/foobar", func(b *consumer.V2InteractionWithRequestBuilder) {
+		WithRequest("POST", "/foobar", func(b *consumer.V2RequestBuilder) {
 			b.Header("Content-Type", S("application/json"))
 			b.Header("Authorization", Like("Bearer 1234"))
 			b.Query("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+"))
 			b.BodyMatch(&User{})
 
 		}).
-		WillRespondWith(200, func(b *consumer.V2InteractionWithResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
 			b.Header("Content-Type", Regex("application/json", "application\\/json"))
 			b.BodyMatch(&User{})
 		}).

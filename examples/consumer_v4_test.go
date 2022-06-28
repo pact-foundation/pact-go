@@ -35,7 +35,7 @@ func TestConsumerV4(t *testing.T) {
 			},
 		}).
 		UponReceiving("A request to do a foo").
-		WithRequest("POST", "/foobar", func(b *consumer.V4InteractionWithRequestBuilder) {
+		WithRequest("POST", "/foobar", func(b *consumer.V4RequestBuilder) {
 			b.
 				Header("Content-Type", S("application/json")).
 				Header("Authorization", Like("Bearer 1234")).
@@ -48,7 +48,7 @@ func TestConsumerV4(t *testing.T) {
 				})
 
 		}).
-		WillRespondWith(200, func(b *consumer.V4InteractionWithResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
 			b.
 				Header("Content-Type", S("application/json")).
 				JSONBody(Map{
