@@ -33,18 +33,26 @@ Read [Getting started with Pact] for more information for beginners.
   </a>
 </p>
 
+## Announcement 📣
+
+| :zap: New beta release supporting Pact V3, Plugins and more |
+|-----------------------------------------|
+
+If you are interested in testing out the new new beta package that supports all of the V3 and V4 [spec], including synchronous messages, plugins, moves to a rust shared core and more, please head to [v2.x.x] and also let us know on [slack].
+
+
 ## Table of Contents
 
 <!-- TOC -->
 
 - [Pact Go](#pact-go)
 	- [Introduction](#introduction)
+	- [Announcement 📣](#announcement-)
 	- [Table of Contents](#table-of-contents)
 	- [Versions](#versions)
 	- [Installation](#installation)
 		- [Go get](#go-get)
 		- [Installation on \*nix](#installation-on-nix)
-	- [V3 Beta](#v3-beta)
 	- [Using Pact](#using-pact)
 	- [HTTP API Testing](#http-api-testing)
 		- [Consumer Side Testing](#consumer-side-testing)
@@ -139,10 +147,6 @@ pact help
 ```
 
 _NOTE_: the above script installs the latest standalone tools at the time it was ran. It is recommended you pin the installation to a [specific version](https://github.com/pact-foundation/pact-ruby-standalone/releases) of a release so that you may control the upgrade cycle.
-
-## V3 Beta
-
-If you are interested in testing out the new new beta package that supports all of the V3 [spec], and moves to a rust shared core, please head to [v2.x.x] and also let us know on [slack].
 
 ## Using Pact
 
