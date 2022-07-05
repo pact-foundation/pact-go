@@ -20,27 +20,33 @@ For more information, see package [`github.com/shurcooL/githubv4`](https://githu
 		- [Simple Query](#simple-query)
 		- [Arguments and Variables](#arguments-and-variables)
 		- [Custom scalar tag](#custom-scalar-tag)
+		- [Skip GraphQL field](#skip-graphql-field)
 		- [Inline Fragments](#inline-fragments)
+		- [Specify GraphQL type name](#specify-graphql-type-name)
 		- [Mutations](#mutations)
 			- [Mutations Without Fields](#mutations-without-fields)
 		- [Subscription](#subscription)
 			- [Usage](#usage-1)
 			- [Subscribe](#subscribe)
+			- [Stop the subscription](#stop-the-subscription)
 			- [Authentication](#authentication-1)
 			- [Options](#options)
 			- [Events](#events)
+			- [Custom HTTP Client](#custom-http-client)
 			- [Custom WebSocket client](#custom-websocket-client)
 		- [Options](#options-1)
+		- [Execute pre-built query](#execute-pre-built-query)
 		- [With operation name (deprecated)](#with-operation-name-deprecated)
 		- [Raw bytes response](#raw-bytes-response)
 		- [Multiple mutations with ordered map](#multiple-mutations-with-ordered-map)
+		- [Debugging and Unit test](#debugging-and-unit-test)
 	- [Directories](#directories)
 	- [References](#references)
 	- [License](#license)
   
 ## Installation
 
-`go-graphql-client` requires Go version 1.13 or later.
+`go-graphql-client` requires Go version 1.16 or later. For older Go versions, downgrade the library version below v0.7.1.
 
 ```bash
 go get -u github.com/hasura/go-graphql-client
@@ -215,6 +221,22 @@ struct {
 // { viewer }
 ```
 
+### Skip GraphQL field
+
+```go
+struct {
+  Viewer struct {
+		ID         interface{} `graphql:"-"`
+		Login      string
+		CreatedAt  time.Time `graphql:"-"`
+		DatabaseID int
+  }
+}
+
+// Output
+// {viewer{login,databaseId}}
+```
+
 ### Inline Fragments
 
 Some GraphQL queries contain inline fragments. You can use the `graphql` struct field tag to express them.
@@ -287,6 +309,31 @@ fmt.Println(q.Hero.Height)
 // R2-D2
 // Astromech
 // 0
+```
+
+### Specify GraphQL type name
+
+The GraphQL type is automatically inferred from Go type by reflection. However, it's cumbersome in some use cases, e.g lowercase names. In Go, a type name with a first lowercase letter is considered private. If we need to reuse it for other packages, there are 2 approaches: type alias or implement `GetGraphQLType` method.
+
+```go
+type UserReviewInput struct {
+	Review String
+	UserID String
+}
+
+// type alias
+type user_review_input UserReviewInput
+// or implement GetGraphQLType method
+func (u UserReviewInput) GetGraphQLType() string { return "user_review_input" }
+
+variables := map[string]interface{}{
+  "input": UserReviewInput{}
+}
+
+//query arguments without GetGraphQLType() defined
+//($input: UserReviewInput!)
+//query arguments with GetGraphQLType() defined:w
+//($input: user_review_input!)
 ```
 
 ### Mutations
@@ -444,13 +491,30 @@ subscriptionId, err := client.Subscribe(&query, nil, func(dataValue *json.RawMes
 	fmt.Println(query.Me.Name)
 
 	// Output: Luke Skywalker
+	return nil
+})
+
+if err != nil {
+	// Handle error.
+}
+```
+
+#### Stop the subscription
+
+You can programmatically stop the subscription while the client is running by using the `Unsubscribe` method, or returning a special error to stop it in the callback.
+
+```Go
+subscriptionId, err := client.Subscribe(&query, nil, func(dataValue *json.RawMessage, errValue error) error {
+	// ...
+	// return this error to stop the subscription in the callback
+	return graphql.ErrSubscriptionStopped
 })
 
 if err != nil {
 	// Handle error.
 }
 
-// you can unsubscribe the subscription while the client is running
+// unsubscribe the subscription while the client is running with the subscription ID
 client.Unsubscribe(subscriptionId)
 ```
 
@@ -491,13 +555,26 @@ client.
 // OnConnected event is triggered when the websocket connected to GraphQL server sucessfully
 client.OnConnected(fn func())
 
-// OnDisconnected event is triggered when the websocket server was stil down after retry timeout
+// OnDisconnected event is triggered when the websocket client was disconnected
 client.OnDisconnected(fn func())
 
 // OnConnected event is triggered when there is any connection error. This is bottom exception handler level
 // If this function is empty, or returns nil, the error is ignored
 // If returns error, the websocket connection will be terminated
 client.OnError(onError func(sc *SubscriptionClient, err error) error)
+```
+
+#### Custom HTTP Client
+
+Use `WithWebSocketOptions` to customize the HTTP client which is used by the subscription client.
+
+```go
+client.WithWebSocketOptions(WebsocketOptions{
+	HTTPClient: &http.Client{
+		Transport: http.DefaultTransport,
+		Timeout: time.Minute,
+	}
+})
 ```
 
 #### Custom WebSocket client
@@ -601,6 +678,40 @@ func (cd cachedDirective) String() string {
 client.Query(ctx, &q, variables, graphql.OperationName("MyQuery"), cachedDirective{})
 ```
 
+### Execute pre-built query
+
+The `Exec` function allows you to executing pre-built queries. While using reflection to build queries is convenient as you get some resemblance of type safety, it gets very cumbersome when you need to create queries semi-dynamically. For instance, imagine you are building a CLI tool to query data from a graphql endpoint and you want users to be able to narrow down the query by passing cli flags or something.
+
+```Go
+// filters would be built dynamically somehow from the command line flags
+filters := []string{
+   `fieldA: {subfieldA: {_eq: "a"}}`,
+   `fieldB: {_eq: "b"}`,
+   ...
+}
+
+query := "query{something(where: {" + strings.Join(filters, ", ") + "}){id}}"
+res := struct {
+	Somethings []Something
+}{}
+
+if err := client.Exec(ctx, query, &res, map[string]any{}); err != nil {
+	panic(err)
+}
+
+subscription := "subscription{something(where: {" + strings.Join(filters, ", ") + "}){id}}"
+subscriptionId, err := subscriptionClient.Exec(subscription, nil, func(dataValue *json.RawMessage, errValue error) error {
+	if errValue != nil {
+		// handle error
+		// if returns error, it will failback to `onError` event
+		return nil
+	}
+	data := query{}
+	err := json.Unmarshal(dataValue, &data)
+	// ...
+})
+```
+
 ### With operation name (deprecated)
 
 Operation name is still on API decision plan https://github.com/shurcooL/graphql/issues/12. However, in my opinion separate methods are easier choice to avoid breaking changes
@@ -663,6 +774,59 @@ variables := map[string]interface{}{
 	"login2": graphql.String("diman"),
 	"login3": graphql.String("indigo"),
 }
+```
+
+### Debugging and Unit test
+
+Enable debug mode with the `WithDebug` function. If the request is failed, the request and response information will be included in `extensions[].internal` property.
+
+```json
+{
+	"errors": [
+		{
+			"message":"Field 'user' is missing required arguments: login",
+			"extensions": {
+				"internal": {
+					"request": {
+						"body":"{\"query\":\"{user{name}}\"}",
+						"headers": {
+							"Content-Type": ["application/json"]
+						}
+					},
+					"response": {
+						"body":"{\"errors\": [{\"message\": \"Field 'user' is missing required arguments: login\",\"locations\": [{\"line\": 7,\"column\": 3}]}]}",
+						"headers": {
+							"Content-Type": ["application/json"]
+						}
+					}
+				}
+			},
+			"locations": [
+				{
+					"line":7,
+					"column":3
+				}
+			]
+		}
+	]
+}
+```
+
+Because the GraphQL query string is generated in runtime using reflection, it isn't really safe. To assure the GraphQL query is expected, it's necessary to write some unit test for query construction.
+
+```go
+// ConstructQuery build GraphQL query string from struct and variables
+func ConstructQuery(v interface{}, variables map[string]interface{}, options ...Option) (string, error)
+
+// ConstructQuery build GraphQL mutation string from struct and variables
+func ConstructMutation(v interface{}, variables map[string]interface{}, options ...Option) (string, error)
+
+// ConstructSubscription build GraphQL subscription string from struct and variables
+func ConstructSubscription(v interface{}, variables map[string]interface{}, options ...Option) (string, error) 
+
+// UnmarshalGraphQL parses the JSON-encoded GraphQL response data and stores
+// the result in the GraphQL query data structure pointed to by v.
+func UnmarshalGraphQL(data []byte, v interface{}) error 
 ```
 
 Directories

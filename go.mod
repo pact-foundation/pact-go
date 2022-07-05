@@ -5,15 +5,12 @@ go 1.12
 require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/golang/protobuf v1.4.2 // indirect
-	github.com/graph-gophers/graphql-go v1.3.0
+	github.com/graph-gophers/graphql-go v1.4.0
 	github.com/hashicorp/go-version v1.5.0
 	github.com/hashicorp/logutils v1.0.0
-	github.com/hasura/go-graphql-client v0.6.3
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/hasura/go-graphql-client v0.7.2
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.4
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect

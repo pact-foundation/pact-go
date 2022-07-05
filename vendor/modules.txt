@@ -19,7 +19,7 @@ github.com/go-playground/validator/v10
 github.com/golang/protobuf/proto
 # github.com/google/uuid v1.3.0
 github.com/google/uuid
-# github.com/graph-gophers/graphql-go v1.3.0
+# github.com/graph-gophers/graphql-go v1.4.0
 github.com/graph-gophers/graphql-go
 github.com/graph-gophers/graphql-go/decode
 github.com/graph-gophers/graphql-go/errors
@@ -35,13 +35,14 @@ github.com/graph-gophers/graphql-go/internal/validation
 github.com/graph-gophers/graphql-go/introspection
 github.com/graph-gophers/graphql-go/log
 github.com/graph-gophers/graphql-go/relay
-github.com/graph-gophers/graphql-go/trace
+github.com/graph-gophers/graphql-go/trace/noop
+github.com/graph-gophers/graphql-go/trace/tracer
 github.com/graph-gophers/graphql-go/types
 # github.com/hashicorp/go-version v1.5.0
 github.com/hashicorp/go-version
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hasura/go-graphql-client v0.6.3
+# github.com/hasura/go-graphql-client v0.7.2
 github.com/hasura/go-graphql-client
 github.com/hasura/go-graphql-client/ident
 github.com/hasura/go-graphql-client/internal/jsonutil
@@ -59,10 +60,6 @@ github.com/mattn/go-isatty
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
-# github.com/opentracing/opentracing-go v1.1.0
-github.com/opentracing/opentracing-go
-github.com/opentracing/opentracing-go/ext
-github.com/opentracing/opentracing-go/log
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/spf13/cobra v1.1.3
