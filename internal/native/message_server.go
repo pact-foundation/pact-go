@@ -10,6 +10,7 @@ typedef int bool;
 
 /// Wraps a Pact model struct
 typedef struct InteractionHandle InteractionHandle;
+typedef struct PactMessageIterator PactMessageIterator;
 
 struct InteractionHandle {
 	unsigned int interaction_ref;
@@ -45,11 +46,41 @@ int pactffi_interaction_contents(InteractionHandle interaction, int interaction_
 int pactffi_create_mock_server_for_transport(PactHandle pact, const char *addr, int port, const char *transport, const char *transport_config);
 bool pactffi_cleanup_mock_server(int mock_server_port);
 char* pactffi_mock_server_mismatches(int mock_server_port);
+
+//bool pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
+bool pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const uint8_t *body, size_t size);
+
+// Functions to get message contents
+
+// Sync
+// Get the request contents of a `SynchronousMessage` as a pointer to an array of bytes.
+// The number of bytes in the buffer will be returned by `pactffi_sync_message_get_request_contents_length`.
+const unsigned char *pactffi_sync_message_get_request_contents_bin(InteractionHandle *message);
+
+// Get the length of the request contents of a `SynchronousMessage`.
+size_t pactffi_sync_message_get_request_contents_length(InteractionHandle *message);
+struct PactSyncMessageIterator *pactffi_pact_handle_get_sync_message_iter(PactHandle pact);
+struct InteractionHandle *pactffi_pact_sync_message_iter_next(struct PactSyncMessageIterator *iter);
+
+// Async
+// Get the length of the contents of a `Message`.
+size_t pactffi_message_get_contents_length(InteractionHandle *message);
+
+//  Get the contents of a `Message` as a pointer to an array of bytes.
+const unsigned char *pactffi_message_get_contents_bin(const InteractionHandle *message);
+struct PactMessageIterator *pactffi_pact_handle_get_message_iter(PactHandle pact);
+struct InteractionHandle *pactffi_pact_message_iter_next(struct PactMessageIterator *iter);
+
+// Need the index of the body to get
+const unsigned char *pactffi_sync_message_get_response_contents_bin(const struct InteractionHandle *message, size_t index);
+size_t pactffi_sync_message_get_response_contents_length(const struct InteractionHandle *message, size_t index);
+
 */
 import "C"
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"unsafe"
@@ -59,8 +90,19 @@ type MessagePact struct {
 	handle C.PactHandle
 }
 
+type messageType int
+
+const (
+	MESSAGE_TYPE_ASYNC messageType = iota
+	MESSAGE_TYPE_SYNC
+)
+
 type Message struct {
-	handle C.InteractionHandle
+	handle      C.InteractionHandle
+	messageType messageType
+	pact        *MessagePact
+	index       int
+	server      *MessageServer
 }
 
 // MessageServer is the public interface for managing the message based interface
@@ -105,8 +147,16 @@ func (m *MessageServer) NewSyncMessageInteraction(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
 
+	fmt.Println("*****************")
+	fmt.Println("Adding message at index", len(m.messages))
+	fmt.Println("*****************")
+
 	i := &Message{
-		handle: C.pactffi_new_sync_message_interaction(m.messagePact.handle, cDescription),
+		handle:      C.pactffi_new_sync_message_interaction(m.messagePact.handle, cDescription),
+		messageType: MESSAGE_TYPE_SYNC,
+		pact:        m.messagePact,
+		index:       len(m.messages),
+		server:      m,
 	}
 	m.messages = append(m.messages, i)
 
@@ -118,24 +168,32 @@ func (m *MessageServer) NewAsyncMessageInteraction(description string) *Message 
 	cDescription := C.CString(description)
 	defer free(cDescription)
 
+	fmt.Println("*****************")
+	fmt.Println("Adding message at index", len(m.messages))
+	fmt.Println("*****************")
+
 	i := &Message{
-		handle: C.pactffi_new_message_interaction(m.messagePact.handle, cDescription),
+		handle:      C.pactffi_new_message_interaction(m.messagePact.handle, cDescription),
+		messageType: MESSAGE_TYPE_ASYNC,
+		pact:        m.messagePact,
+		index:       len(m.messages),
+		server:      m,
 	}
 	m.messages = append(m.messages, i)
 
 	return i
 }
 
-func (i *Message) Given(state string) *Message {
+func (m *Message) Given(state string) *Message {
 	cState := C.CString(state)
 	defer free(cState)
 
-	C.pactffi_message_given(i.handle, cState)
+	C.pactffi_message_given(m.handle, cState)
 
-	return i
+	return m
 }
 
-func (i *Message) GivenWithParameter(state string, params map[string]interface{}) *Message {
+func (m *Message) GivenWithParameter(state string, params map[string]interface{}) *Message {
 	cState := C.CString(state)
 	defer free(cState)
 
@@ -143,7 +201,7 @@ func (i *Message) GivenWithParameter(state string, params map[string]interface{}
 		cState := C.CString(state)
 		defer free(cState)
 
-		C.pactffi_message_given(i.handle, cState)
+		C.pactffi_message_given(m.handle, cState)
 	} else {
 		for k, v := range params {
 			cKey := C.CString(k)
@@ -152,24 +210,24 @@ func (i *Message) GivenWithParameter(state string, params map[string]interface{}
 			cValue := C.CString(param)
 			defer free(cValue)
 
-			C.pactffi_message_given_with_param(i.handle, cState, cKey, cValue)
+			C.pactffi_message_given_with_param(m.handle, cState, cKey, cValue)
 
 		}
 	}
 
-	return i
+	return m
 }
 
-func (i *Message) ExpectsToReceive(description string) *Message {
+func (m *Message) ExpectsToReceive(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
 
-	C.pactffi_message_expects_to_receive(i.handle, cDescription)
+	C.pactffi_message_expects_to_receive(m.handle, cDescription)
 
-	return i
+	return m
 }
 
-func (i *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
+func (m *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 	for k, v := range valueOrMatcher {
 
 		cName := C.CString(k)
@@ -182,32 +240,58 @@ func (i *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 		cValue := C.CString(v)
 		defer free(cValue)
 
-		C.pactffi_message_with_metadata(i.handle, cName, cValue)
+		C.pactffi_message_with_metadata(m.handle, cName, cValue)
 	}
 
-	return i
+	return m
 }
 
-func (i *Message) WithBinaryContents(body []byte) *Message {
-	return i.WithContents("application/octet-stream", body)
+func (m *Message) WithRequestBinaryContents(body []byte) *Message {
+	cHeader := C.CString("application/octet-stream")
+	defer free(cHeader)
+
+	// TODO: handle response
+	C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+
+	return m
 }
 
-func (i *Message) WithJSONContents(body interface{}) *Message {
+func (m *Message) WithRequestJSONContents(body interface{}) *Message {
 	value := stringFromInterface(body)
 
 	log.Println("[DEBUG] message WithJSONContents", value)
 
-	return i.WithContents("application/json", []byte(value))
+	return m.WithContents(INTERACTION_PART_REQUEST, "application/json", []byte(value))
+}
+func (m *Message) WithResponseBinaryContents(body []byte) *Message {
+	cHeader := C.CString("application/octet-stream")
+	defer free(cHeader)
+
+	// TODO: handle response
+	C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_RESPONSE), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+
+	return m
+}
+
+func (m *Message) WithResponseJSONContents(body interface{}) *Message {
+	value := stringFromInterface(body)
+
+	log.Println("[DEBUG] message WithJSONContents", value)
+
+	return m.WithContents(INTERACTION_PART_RESPONSE, "application/json", []byte(value))
 }
 
 // TODO: note that string values here must be NUL terminated.
-func (i *Message) WithContents(contentType string, body []byte) *Message {
+// Only accepts JSON
+func (m *Message) WithContents(part interactionPart, contentType string, body []byte) *Message {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	C.pactffi_message_with_contents(i.handle, cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+	// C.pactffi_message_with_contents(m.handle, cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+	res := C.pactffi_interaction_contents(m.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])))
+	log.Println("[DEBUG] response from pactffi_interaction_contents", res)
 
-	return i
+	return m
 }
 
 // TODO: migrate plugin code to shared struct/code?
@@ -242,13 +326,13 @@ func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) err
 }
 
 // NewInteraction initialises a new interaction for the current contract
-func (i *Message) WithPluginInteractionContents(interactionPart interactionType, contentType string, contents string) error {
+func (m *Message) WithPluginInteractionContents(part interactionPart, contentType string, contents string) error {
 	cContentType := C.CString(contentType)
 	defer free(cContentType)
 	cContents := C.CString(contents)
 	defer free(cContents)
 
-	r := C.pactffi_interaction_contents(i.handle, C.int(interactionPart), cContentType, cContents)
+	r := C.pactffi_interaction_contents(m.handle, C.int(part), cContentType, cContents)
 
 	// 1 - A general panic was caught.
 	// 2 - The mock server has already been started.
@@ -277,6 +361,121 @@ func (i *Message) WithPluginInteractionContents(interactionPart interactionType,
 	}
 
 	return nil
+}
+
+// GetMessageContents retreives the binary contents of the request for a given message
+// any matchers are stripped away if given
+// if the contents is from a plugin, the byte[] representation of the parsed
+// plugin data is returned, again, with any matchers etc. removed
+func (m *Message) GetMessageRequestContents() ([]byte, error) {
+
+	fmt.Println("*****************")
+	fmt.Println("Retreiving message at index", m.index)
+	fmt.Println("*****************")
+
+	if m.messageType == MESSAGE_TYPE_ASYNC {
+		iter := C.pactffi_pact_handle_get_message_iter(m.pact.handle)
+		if iter == nil {
+			return nil, errors.New("unable to get a message iterator")
+		}
+
+		for i := 0; i < len(m.server.messages); i++ {
+			message := C.pactffi_pact_message_iter_next(iter)
+
+			if i == m.index {
+
+				if message == nil {
+					return nil, errors.New("retreived a null message pointer")
+				}
+
+				len := C.pactffi_message_get_contents_length(message)
+				if len == 0 {
+					return nil, errors.New("retreived an empty message")
+				}
+				data := C.pactffi_message_get_contents_bin(message)
+				if data == nil {
+					return nil, errors.New("retreived an empty pointer to the message contents")
+				}
+				ptr := unsafe.Pointer(data)
+				bytes := C.GoBytes(ptr, C.int(len))
+
+				return bytes, nil
+			}
+		}
+
+	} else {
+		iter := C.pactffi_pact_handle_get_sync_message_iter(m.pact.handle)
+		if iter == nil {
+			return nil, errors.New("unable to get a message iterator")
+		}
+
+		for i := 0; i < len(m.server.messages); i++ {
+			message := C.pactffi_pact_sync_message_iter_next(iter)
+
+			if i == m.index {
+				if message == nil {
+					return nil, errors.New("retreived a null message pointer")
+				}
+
+				len := C.pactffi_sync_message_get_request_contents_length(message)
+				if len == 0 {
+					return nil, errors.New("retreived an empty message")
+				}
+				data := C.pactffi_sync_message_get_request_contents_bin(message)
+				if data == nil {
+					return nil, errors.New("retreived an empty pointer to the message contents")
+				}
+				ptr := unsafe.Pointer(data)
+				bytes := C.GoBytes(ptr, C.int(len))
+
+				return bytes, nil
+			}
+		}
+	}
+
+	return nil, errors.New("unable to find the message")
+}
+
+// GetMessageResponseContents retreives the binary contents of the response for a given message
+// any matchers are stripped away if given
+// if the contents is from a plugin, the byte[] representation of the parsed
+// plugin data is returned, again, with any matchers etc. removed
+func (m *Message) GetMessageResponseContents(index int) ([]byte, error) {
+
+	if m.messageType == MESSAGE_TYPE_ASYNC {
+		return nil, errors.New("invalid request: asynchronous messages do not have response")
+	} else {
+		iter := C.pactffi_pact_handle_get_sync_message_iter(m.pact.handle)
+		if iter == nil {
+			return nil, errors.New("unable to get a message iterator")
+		}
+
+		for i := 0; i < len(m.server.messages); i++ {
+			message := C.pactffi_pact_sync_message_iter_next(iter)
+
+			if i == m.index {
+				if message == nil {
+					return nil, errors.New("retreived a null message pointer")
+				}
+
+				// Get Response body
+				len := C.pactffi_sync_message_get_response_contents_length(message, C.ulong(index))
+				if len == 0 {
+					return nil, errors.New("retreived an empty message")
+				}
+				data := C.pactffi_sync_message_get_response_contents_bin(message, C.ulong(index))
+				if data == nil {
+					return nil, errors.New("retreived an empty pointer to the message contents")
+				}
+				ptr := unsafe.Pointer(data)
+				bytes := C.GoBytes(ptr, C.int(len))
+
+				return bytes, nil
+			}
+		}
+	}
+
+	return nil, errors.New("unable to find the message")
 }
 
 // StartTransport starts up a mock server on the given address:port for the given transport
@@ -363,8 +562,8 @@ func (m *MessageServer) MockServerMismatchedRequests(port int) []MismatchedReque
 	return res
 }
 
-func (i *Message) ReifyMessage() string {
-	return C.GoString(C.pactffi_message_reify(i.handle))
+func (m *Message) ReifyMessage() string {
+	return C.GoString(C.pactffi_message_reify(m.handle))
 }
 
 // WritePactFile writes the Pact to file.

@@ -172,15 +172,15 @@ import (
 	"unsafe"
 )
 
-type interactionType int
+type interactionPart int
 
 const (
-	INTERACTION_PART_REQUEST interactionType = iota
+	INTERACTION_PART_REQUEST interactionPart = iota
 	INTERACTION_PART_RESPONSE
 )
 
 const (
-	RESULT_OK interactionType = iota
+	RESULT_OK interactionPart = iota
 	RESULT_FAILED
 )
 
@@ -591,13 +591,13 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 }
 
 // NewInteraction initialises a new interaction for the current contract
-func (i *Interaction) WithPluginInteractionContents(interactionPart interactionType, contentType string, contents string) error {
+func (i *Interaction) WithPluginInteractionContents(part interactionPart, contentType string, contents string) error {
 	cContentType := C.CString(contentType)
 	defer free(cContentType)
 	cContents := C.CString(contents)
 	defer free(cContents)
 
-	r := C.pactffi_interaction_contents(i.handle, C.int(interactionPart), cContentType, cContents)
+	r := C.pactffi_interaction_contents(i.handle, C.int(part), cContentType, cContents)
 
 	// 1 - A general panic was caught.
 	// 2 - The mock server has already been started.
@@ -685,7 +685,7 @@ func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string][]interface{
 	return i.withHeaders(INTERACTION_PART_RESPONSE, valueOrMatcher)
 }
 
-func (i *Interaction) withHeaders(part interactionType, valueOrMatcher map[string][]interface{}) *Interaction {
+func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[string][]interface{}) *Interaction {
 	for k, v := range valueOrMatcher {
 
 		cName := C.CString(k)
@@ -730,7 +730,7 @@ func (i *Interaction) WithJSONResponseBody(body interface{}) *Interaction {
 	return i.withJSONBody(body, INTERACTION_PART_RESPONSE)
 }
 
-func (i *Interaction) withJSONBody(body interface{}, part interactionType) *Interaction {
+func (i *Interaction) withJSONBody(body interface{}, part interactionPart) *Interaction {
 	cHeader := C.CString("application/json")
 	defer free(cHeader)
 
@@ -751,7 +751,7 @@ func (i *Interaction) WithResponseBody(contentType string, body []byte) *Interac
 	return i.withBody(contentType, body, 1)
 }
 
-func (i *Interaction) withBody(contentType string, body []byte, part interactionType) *Interaction {
+func (i *Interaction) withBody(contentType string, body []byte, part interactionPart) *Interaction {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
@@ -763,7 +763,7 @@ func (i *Interaction) withBody(contentType string, body []byte, part interaction
 	return i
 }
 
-func (i *Interaction) withBinaryBody(contentType string, body []byte, part interactionType) *Interaction {
+func (i *Interaction) withBinaryBody(contentType string, body []byte, part interactionPart) *Interaction {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
@@ -788,7 +788,7 @@ func (i *Interaction) WithResponseMultipartFile(contentType string, filename str
 	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_RESPONSE)
 }
 
-func (i *Interaction) withMultipartFile(contentType string, filename string, mimePartName string, part interactionType) *Interaction {
+func (i *Interaction) withMultipartFile(contentType string, filename string, mimePartName string, part interactionPart) *Interaction {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 

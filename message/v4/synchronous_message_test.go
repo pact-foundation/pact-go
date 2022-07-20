@@ -67,14 +67,14 @@ func TestSyncTypeSystem(t *testing.T) {
 
 	// Sync - with plugin, but no transport
 	csvInteraction := `{
-		"request.path", "/reports/report002.csv",
-		"response.status", "200",
+		"request.path": "/reports/report002.csv",
+		"response.status": "200",
 		"response.contents": {
-			"pact:content-type": "text/csv",                               // Set the content type to CSV
-			"csvHeaders": true,                                            // We have a header row
-			"column:Name": "matching(type,'Name')",                        // Column with header Name must match by type (which is actually useless with CSV)
-			"column:Number", "matching(number,100)",                       // Column with header Number must match a number format
-			"column:Date", "matching(datetime, 'yyyy-MM-dd','2000-01-01')" // Column with header Date must match an ISO format yyyy-MM-dd
+			"pact:content-type": "text/csv",
+			"csvHeaders": true,
+			"column:Name": "matching(type,'Name')",
+			"column:Number": "matching(number,100)",
+			"column:Date": "matching(datetime, 'yyyy-MM-dd','2000-01-01')"
 		}
 	}`
 	p.AddSynchronousMessage("some description").
