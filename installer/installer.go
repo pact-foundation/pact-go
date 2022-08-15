@@ -60,7 +60,11 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 	case "amd64":
 		i.arch = x86_64
 	case "arm64":
-		i.arch = osx_aarch64
+		if runtime.GOOS == "darwin" {
+			i.arch = osx_aarch64
+		} else {
+			i.arch = aarch64
+		}
 	default:
 		i.arch = x86_64
 		log.Println("[WARN] amd64 architecture not detected, defaulting to x86_64. Behaviour may be undefined")
@@ -331,6 +335,7 @@ const (
 	osx            = "osx"
 	x86_64         = "x86_64"
 	osx_aarch64    = "aarch64-apple-darwin"
+	aarch64        = "aarch64"
 )
 
 var packages = map[string]packageInfo{
