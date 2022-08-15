@@ -27,7 +27,7 @@ function detect_osarch() {
     esac
 }
 
-package=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/pact-foundation/pact-plugins/releases/latest))
+package=$(curl https://api.github.com/repos/pact-foundation/pact-plugins/releases | grep pact-plugin-cli | grep tag_name | head -n1 | egrep -o "pact-plugin-cli-v.[0-9\.]+")
 detect_osarch
 
 if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then
