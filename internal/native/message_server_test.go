@@ -108,7 +108,7 @@ func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
 		WithMetadata(map[string]string{
 			"meta": "data",
 		}).
-		WithRequestBinaryContents(buf.Bytes())
+		WithRequestBinaryContentType("application/gzip", buf.Bytes())
 
 	body, err := m.GetMessageRequestContents()
 	assert.NoError(t, err)

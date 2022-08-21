@@ -263,6 +263,17 @@ func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 
 	return m
 }
+func (m *Message) WithRequestBinaryContentType(contentType string, body []byte) *Message {
+	cHeader := C.CString(contentType)
+	defer free(cHeader)
+
+	// TODO: handle response
+	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+
+	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", res)
+
+	return m
+}
 
 func (m *Message) WithRequestJSONContents(body interface{}) *Message {
 	value := stringFromInterface(body)
