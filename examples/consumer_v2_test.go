@@ -205,7 +205,7 @@ var rawTest = func(query string) func(config consumer.MockServerConfig) error {
 }
 
 var commonHeaders = Map{
-	"Content-Type": Regex("application/json; charset=utf-8", `application\/json`),
+	"Content-Type": S("application/json"),
 }
 
 var legacyTest = func() func(config consumer.MockServerConfig) error {
