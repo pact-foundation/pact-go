@@ -319,7 +319,10 @@ func getAsynchronousMessageWithReifiedContents(message *mockserver.Message, reif
 
 	// 1. Strip out the matchers
 	// Reify the message back to its "example/generated" form
-	body := message.ReifyMessage()
+	body, err := message.GetMessageRequestContents()
+	if err != nil {
+		return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %v", err)
+	}
 
 	log.Println("[DEBUG] reified message raw", body)
 

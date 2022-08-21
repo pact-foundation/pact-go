@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	context "context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -37,15 +36,10 @@ func TestHandleBasedMessageTestsWithString(t *testing.T) {
 		}).
 		WithContents(INTERACTION_PART_REQUEST, "text/plain", []byte("some string"))
 
-	body := m.ReifyMessage()
+	body, err := m.GetMessageRequestContents()
 
-	var res jsonMessage
-	err = json.Unmarshal([]byte(body), &res)
 	assert.NoError(t, err)
-
-	assert.Equal(t, res.Description, "some message")
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
+	assert.Equal(t, "some string", string(body))
 
 	// This is where you would invoke the real function with the message
 
@@ -71,16 +65,15 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 			"some": "json",
 		})
 
-	body := m.ReifyMessage()
-	l.Println(body) // TODO: JSON is not stringified - probably should be?
-
-	var res jsonMessage
-	err = json.Unmarshal([]byte(body), &res)
+	body, err := m.GetMessageRequestContents()
 	assert.NoError(t, err)
 
-	assert.Equal(t, "some message", res.Description)
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
+	var res struct {
+		Some string `json:"some"`
+	}
+	err = json.Unmarshal(body, &res)
+	assert.NoError(t, err)
+	assert.Equal(t, "json", res.Some)
 
 	// This is where you would invoke the real function with the message
 
@@ -117,25 +110,15 @@ func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
 		}).
 		WithRequestBinaryContents(buf.Bytes())
 
-	body := m.ReifyMessage()
-
-	// Check the reified message is good
-
-	var res binaryMessage
-	err = json.Unmarshal([]byte(body), &res)
+	body, err := m.GetMessageRequestContents()
 	assert.NoError(t, err)
 
 	// Extract binary payload, base 64 decode it, unzip it
-	data, err := base64.RawStdEncoding.DecodeString(res.Contents)
-	assert.NoError(t, err)
-	r, err := gzip.NewReader(bytes.NewReader(data))
+	r, err := gzip.NewReader(bytes.NewReader(body))
 	assert.NoError(t, err)
 	result, _ := ioutil.ReadAll(r)
 
 	assert.Equal(t, encodedMessage, string(result))
-	assert.Equal(t, "some binary message", res.Description)
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
 
 	// This is where you would invoke the real function with the message...
 
@@ -199,7 +182,7 @@ func TestGetSyncMessageContentsAsBytes(t *testing.T) {
 		Some string `json:"some"`
 	}
 	json.Unmarshal(bytes[0], &v)
-	assert.Equal(t, "json", v.Some)
+	assert.Equal(t, "response", v.Some)
 }
 
 func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {

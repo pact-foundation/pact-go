@@ -33,7 +33,6 @@ void pactffi_message_given(InteractionHandle message, const char *description);
 void pactffi_message_given_with_param(InteractionHandle message, const char *description, const char *name, const char *value);
 void pactffi_message_with_contents(InteractionHandle message, const char *content_type, const char *body, int size);
 void pactffi_message_with_metadata(InteractionHandle message, const char *key, const char *value);
-char* pactffi_message_reify(InteractionHandle message);
 int pactffi_write_message_pact_file(PactHandle pact, const char *directory, bool overwrite);
 void pactffi_with_message_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
 int pactffi_write_pact_file(int mock_server_port, const char *directory, bool overwrite);
@@ -162,10 +161,6 @@ func (m *MessageServer) NewSyncMessageInteraction(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
 
-	fmt.Println("*****************")
-	fmt.Println("Adding message at index", len(m.messages))
-	fmt.Println("*****************")
-
 	i := &Message{
 		handle:      C.pactffi_new_sync_message_interaction(m.messagePact.handle, cDescription),
 		messageType: MESSAGE_TYPE_SYNC,
@@ -182,10 +177,6 @@ func (m *MessageServer) NewSyncMessageInteraction(description string) *Message {
 func (m *MessageServer) NewAsyncMessageInteraction(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
-
-	fmt.Println("*****************")
-	fmt.Println("Adding message at index", len(m.messages))
-	fmt.Println("*****************")
 
 	i := &Message{
 		handle:      C.pactffi_new_message_interaction(m.messagePact.handle, cDescription),
@@ -384,11 +375,6 @@ func (m *Message) WithPluginInteractionContents(part interactionPart, contentTyp
 // if the contents is from a plugin, the byte[] representation of the parsed
 // plugin data is returned, again, with any matchers etc. removed
 func (m *Message) GetMessageRequestContents() ([]byte, error) {
-
-	fmt.Println("*****************")
-	fmt.Println("Retreiving message at index", m.index)
-	fmt.Println("*****************")
-
 	if m.messageType == MESSAGE_TYPE_ASYNC {
 		iter := C.pactffi_pact_handle_get_message_iter(m.pact.handle)
 		if iter == nil {
@@ -574,10 +560,6 @@ func (m *MessageServer) MockServerMismatchedRequests(port int) []MismatchedReque
 	json.Unmarshal([]byte(C.GoString(mismatches)), &res)
 
 	return res
-}
-
-func (m *Message) ReifyMessage() string {
-	return C.GoString(C.pactffi_message_reify(m.handle))
 }
 
 // WritePactFile writes the Pact to file.

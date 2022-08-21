@@ -199,12 +199,15 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 
 	// 1. Strip out the matchers
 	// Reify the message back to its "example/generated" form
-	body := messageToVerify.messageHandle.ReifyMessage()
+	body, err := messageToVerify.messageHandle.GetMessageRequestContents()
+	if err != nil {
+		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
+	}
 
 	log.Println("[DEBUG] reified message raw", body)
 
 	var m MessageContents
-	err := json.Unmarshal([]byte(body), &m)
+	err = json.Unmarshal(body, &m)
 	if err != nil {
 		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
 	}
