@@ -85,10 +85,10 @@ void pactffi_sync_message_set_response_contents(InteractionHandle *message, size
 void pactffi_sync_message_set_response_contents_bin(InteractionHandle *message, size_t index, const unsigned char *contents, size_t len, const char *content_type);
 
 // Can be used instead of the above as a general abstraction for non-binary bodies
-bool pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
+int pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
 
 // Can be used instead of the above as a general abstraction for binary bodies
-bool pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const uint8_t *body, size_t size);
+int pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const uint8_t *body, size_t size);
 */
 import "C"
 
@@ -259,7 +259,7 @@ func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 	// TODO: handle response
 	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 
-	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", res)
+	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", int(res))
 
 	return m
 }
@@ -270,7 +270,7 @@ func (m *Message) WithRequestBinaryContentType(contentType string, body []byte) 
 	// TODO: handle response
 	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 
-	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", res)
+	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", int(res))
 
 	return m
 }

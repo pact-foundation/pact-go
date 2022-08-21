@@ -118,7 +118,7 @@ void pactffi_with_query_parameter_v2(InteractionHandle interaction, const char *
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_body.html
 void pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
 
-void pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
+int pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
 
 int pactffi_with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
 
