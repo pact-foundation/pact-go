@@ -17,10 +17,11 @@ type MessageContents struct {
 	Contents []byte
 
 	// Body is the attempt to reify the message body back into a specified type
+	// Not populated for synchronous  messages
 	Body interface{} `json:"contents"`
 
 	// Message metadata. Currently not populated for synchronous messages
-	Metadata Metadata `json:"metadata"`
+	// Metadata Metadata `json:"metadata"`
 }
 
 type Config struct {

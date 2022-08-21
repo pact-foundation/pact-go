@@ -190,7 +190,7 @@ func TestGetSyncMessageContentsAsBytes(t *testing.T) {
 			"some": "response",
 		})
 
-	bytes, err := m.GetMessageResponseContents(0)
+	bytes, err := m.GetMessageResponseContents()
 	assert.NoError(t, err)
 	assert.NotNil(t, bytes)
 
@@ -198,7 +198,7 @@ func TestGetSyncMessageContentsAsBytes(t *testing.T) {
 	var v struct {
 		Some string `json:"some"`
 	}
-	json.Unmarshal(bytes, &v)
+	json.Unmarshal(bytes[0], &v)
 	assert.Equal(t, "json", v.Some)
 }
 
@@ -246,11 +246,11 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	assert.Equal(t, "0.0.0", p.Version)
 
 	// Should be able to convert response into a protobuf
-	response, err := i.GetMessageResponseContents(0)
+	response, err := i.GetMessageResponseContents()
 	assert.NoError(t, err)
 	assert.NotNil(t, bytes)
 	r := &InitPluginResponse{}
-	proto.Unmarshal(response, r)
+	proto.Unmarshal(response[0], r)
 	assert.Equal(t, "test", r.Catalogue[0].Key)
 
 }

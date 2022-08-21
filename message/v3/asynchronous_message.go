@@ -75,7 +75,7 @@ type AsynchronousMessageBuilderWithContents struct {
 
 // WithBinaryContent accepts a binary payload
 func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithContents(contentType, body)
+	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,
@@ -84,7 +84,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType s
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithContents(contentType, body)
+	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,
@@ -94,7 +94,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string,
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
 func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interface{}) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithJSONContents(content)
+	m.rootBuilder.messageHandle.WithRequestJSONContents(content)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,

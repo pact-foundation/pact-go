@@ -108,11 +108,11 @@ void pactffi_with_request(InteractionHandle interaction, const char *method, con
 
 /// Sets header expectations
 /// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_header.html
-void pactffi_with_header(InteractionHandle interaction, int interaction_part, const char *name, int index, const char *value);
+void pactffi_with_header_v2(InteractionHandle interaction, int interaction_part, const char *name, int index, const char *value);
 
 /// Sets query string expectation
 /// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_query_parameter.html
-void pactffi_with_query_parameter(InteractionHandle interaction, const char *name, int index, const char *value);
+void pactffi_with_query_parameter_v2(InteractionHandle interaction, const char *name, int index, const char *value);
 
 /// Sets the description for the Interaction
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_body.html
@@ -696,7 +696,7 @@ func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[strin
 			cValue := C.CString(value)
 			defer free(cValue)
 
-			C.pactffi_with_header(i.handle, C.int(part), cName, C.int(0), cValue)
+			C.pactffi_with_header_v2(i.handle, C.int(part), cName, C.int(0), cValue)
 		}
 
 	}
@@ -715,7 +715,7 @@ func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Intera
 			cValue := C.CString(value)
 			defer free(cValue)
 
-			C.pactffi_with_query_parameter(i.handle, cName, C.int(idx), cValue)
+			C.pactffi_with_query_parameter_v2(i.handle, cName, C.int(idx), cValue)
 		}
 	}
 

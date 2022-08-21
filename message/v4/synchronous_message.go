@@ -336,19 +336,22 @@ func getSynchronousMessageWithContents(message *native.Message) (SynchronousMess
 		return m, err
 	}
 
-	response, err := message.GetMessageResponseContents(0)
+	responses, err := message.GetMessageResponseContents()
 	if err != nil {
 		return m, err
+	}
+
+	response := make([]MessageContents, len(responses))
+	for i, r := range responses {
+		response[i] = MessageContents{
+			Contents: r,
+		}
 	}
 
 	return SynchronousMessage{
 		Request: MessageContents{
 			Contents: contents,
 		},
-		Response: []MessageContents{
-			{
-				Contents: response,
-			},
-		},
+		Response: response,
 	}, nil
 }
