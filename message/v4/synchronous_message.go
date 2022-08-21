@@ -127,9 +127,6 @@ func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content interface
 	return m
 }
 
-/////////// TODO: curretnly, bodies on synchronous messages are using the wrong FFI (the async one)
-// need to use -> pactffi_with_body which accepts an interaction part
-
 // AddMessage creates a new asynchronous consumer expectation
 func (m *SynchronousMessageWithRequest) WithResponse(builder ResponseBuilderFunc) *SynchronousMessageWithResponse {
 	builder(&SynchronousMessageWithResponseBuilder{
@@ -165,6 +162,7 @@ func (m *SynchronousMessageWithResponseBuilder) WithMetadata(metadata map[string
 }
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
+// May be called multiple times, with each call appeding a new response to the interaction
 func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, body []byte) *SynchronousMessageWithResponseBuilder {
 	m.messageHandle.WithContents(native.INTERACTION_PART_RESPONSE, contentType, body)
 

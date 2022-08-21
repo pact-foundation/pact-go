@@ -257,7 +257,9 @@ func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 	defer free(cHeader)
 
 	// TODO: handle response
-	C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+
+	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", res)
 
 	return m
 }
@@ -294,7 +296,6 @@ func (m *Message) WithContents(part interactionPart, contentType string, body []
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	// C.pactffi_message_with_contents(m.handle, cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
 	res := C.pactffi_with_body(m.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])))
 	log.Println("[DEBUG] response from pactffi_interaction_contents", res)
 
