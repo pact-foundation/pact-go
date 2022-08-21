@@ -77,7 +77,7 @@ test: deps install
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -v -race -coverprofile=profile.out -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \
