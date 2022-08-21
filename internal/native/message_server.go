@@ -387,26 +387,40 @@ func (m *Message) WithPluginInteractionContents(part interactionPart, contentTyp
 // if the contents is from a plugin, the byte[] representation of the parsed
 // plugin data is returned, again, with any matchers etc. removed
 func (m *Message) GetMessageRequestContents() ([]byte, error) {
+	log.Println("[DEBUG] GetMessageRequestContents")
 	if m.messageType == MESSAGE_TYPE_ASYNC {
 		iter := C.pactffi_pact_handle_get_message_iter(m.pact.handle)
+		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter")
 		if iter == nil {
 			return nil, errors.New("unable to get a message iterator")
 		}
+		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - OK")
+
+		///////
+		// TODO: some debugging in here to see what's exploding.......
+		///////
+
+		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - len", len(m.server.messages))
 
 		for i := 0; i < len(m.server.messages); i++ {
+			log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - index", i)
 			message := C.pactffi_pact_message_iter_next(iter)
+			log.Println("[DEBUG] pactffi_pact_message_iter_next - message", message)
 
 			if i == m.index {
+				log.Println("[DEBUG] pactffi_pact_message_iter_next - index match", message)
 
 				if message == nil {
 					return nil, errors.New("retreived a null message pointer")
 				}
 
 				len := C.pactffi_message_get_contents_length(message)
+				log.Println("[DEBUG] pactffi_message_get_contents_length - len", len)
 				if len == 0 {
 					return nil, errors.New("retreived an empty message")
 				}
 				data := C.pactffi_message_get_contents_bin(message)
+				log.Println("[DEBUG] pactffi_message_get_contents_bin - data", data)
 				if data == nil {
 					return nil, errors.New("retreived an empty pointer to the message contents")
 				}
