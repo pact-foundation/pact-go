@@ -11,6 +11,7 @@ typedef int bool;
 /// Wraps a Pact model struct
 typedef struct InteractionHandle InteractionHandle;
 typedef struct PactMessageIterator PactMessageIterator;
+typedef struct SynchronousMessage SynchronousMessage;
 
 struct InteractionHandle {
 	unsigned int interaction_ref;
@@ -48,10 +49,7 @@ char* pactffi_mock_server_mismatches(int mock_server_port);
 
 // Functions to get message contents
 
-// Sync
-// Get the request contents of a `SynchronousMessage` as a pointer to an array of bytes.
-// The number of bytes in the buffer will be returned by `pactffi_sync_message_get_request_contents_length`.
-const unsigned char *pactffi_sync_message_get_request_contents_bin(InteractionHandle *message);
+
 
 // Get the length of the request contents of a `SynchronousMessage`.
 size_t pactffi_sync_message_get_request_contents_length(InteractionHandle *message);
@@ -71,7 +69,10 @@ struct InteractionHandle *pactffi_pact_message_iter_next(struct PactMessageItera
 const unsigned char *pactffi_sync_message_get_response_contents_bin(const struct InteractionHandle *message, size_t index);
 size_t pactffi_sync_message_get_response_contents_length(const struct InteractionHandle *message, size_t index);
 
-
+// Sync
+// Get the request contents of a `SynchronousMessage` as a pointer to an array of bytes.
+// The number of bytes in the buffer will be returned by `pactffi_sync_message_get_request_contents_length`.
+const unsigned char *pactffi_sync_message_get_request_contents_bin(InteractionHandle *message);
 // Set Sync message request body - non binary
 void pactffi_sync_message_set_request_contents(InteractionHandle *message, const char *contents, const char *content_type);
 
@@ -88,7 +89,8 @@ void pactffi_sync_message_set_response_contents_bin(InteractionHandle *message, 
 bool pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
 
 // Can be used instead of the above as a general abstraction for binary bodies
-int pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const uint8_t *body, size_t size);
+// bool pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const uint8_t *body, size_t size);
+bool pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
 */
 import "C"
 

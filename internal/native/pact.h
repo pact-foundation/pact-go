@@ -1249,9 +1249,7 @@ const char *pactffi_sync_message_get_request_contents(const struct SynchronousMe
  * If the contents is a NULL pointer, it will set the message contents as null. If the content
  * type is a null pointer, or can't be parsed, it will set the content type as unknown.
  */
-void pactffi_sync_message_set_request_contents(struct SynchronousMessage *message,
-                                               const char *contents,
-                                               const char *content_type);
+void pactffi_sync_message_set_request_contents(struct SynchronousMessage *message, const char *contents, const char *content_type);
 
 /**
  * Get the length of the request contents of a `SynchronousMessage`.
@@ -1301,10 +1299,7 @@ const unsigned char *pactffi_sync_message_get_request_contents_bin(const struct 
  * If the contents is a NULL pointer, it will set the message contents as null. If the content
  * type is a null pointer, or can't be parsed, it will set the content type as unknown.
  */
-void pactffi_sync_message_set_request_contents_bin(struct SynchronousMessage *message,
-                                                   const unsigned char *contents,
-                                                   size_t len,
-                                                   const char *content_type);
+void pactffi_sync_message_set_request_contents_bin(struct SynchronousMessage *message, const unsigned char *contents, size_t len, const char *content_type);
 
 /**
  * Get the number of response messages in the `SynchronousMessage`.
@@ -1336,8 +1331,7 @@ size_t pactffi_sync_message_get_number_responses(const struct SynchronousMessage
  * This means there's no mechanism to differentiate with this function call alone between
  * a NULL message and a missing message body.
  */
-const char *pactffi_sync_message_get_response_contents(const struct SynchronousMessage *message,
-                                                       size_t index);
+const char *pactffi_sync_message_get_response_contents(const struct SynchronousMessage *message, size_t index);
 
 /**
  * Sets the response contents of the message. If index is greater than the number of responses
@@ -1358,10 +1352,7 @@ const char *pactffi_sync_message_get_response_contents(const struct SynchronousM
  * If the contents is a NULL pointer, it will set the response contents as null. If the content
  * type is a null pointer, or can't be parsed, it will set the content type as unknown.
  */
-void pactffi_sync_message_set_response_contents(struct SynchronousMessage *message,
-                                                size_t index,
-                                                const char *contents,
-                                                const char *content_type);
+void pactffi_sync_message_set_response_contents(struct SynchronousMessage *message, size_t index, const char *contents, const char *content_type);
 
 /**
  * Get the length of the response contents of a `SynchronousMessage`.
@@ -1375,8 +1366,7 @@ void pactffi_sync_message_set_response_contents(struct SynchronousMessage *messa
  * If the message is NULL or the index is not valid, returns 0. If the body of the request
  * is missing, then this function also returns 0.
  */
-size_t pactffi_sync_message_get_response_contents_length(const struct SynchronousMessage *message,
-                                                         size_t index);
+size_t pactffi_sync_message_get_response_contents_length(const struct SynchronousMessage *message, size_t index);
 
 /**
  * Get the response contents of a `SynchronousMessage` as a pointer to an array of bytes.
@@ -1416,11 +1406,7 @@ const unsigned char *pactffi_sync_message_get_response_contents_bin(const struct
  * If the contents is a NULL pointer, it will set the message contents as null. If the content
  * type is a null pointer, or can't be parsed, it will set the content type as unknown.
  */
-void pactffi_sync_message_set_response_contents_bin(struct SynchronousMessage *message,
-                                                    size_t index,
-                                                    const unsigned char *contents,
-                                                    size_t len,
-                                                    const char *content_type);
+void pactffi_sync_message_set_response_contents_bin(struct SynchronousMessage *message, size_t index, const unsigned char *contents, size_t len, const char *content_type);
 
 /**
  * Get a copy of the description.
@@ -1456,8 +1442,7 @@ const char *pactffi_sync_message_get_description(const struct SynchronousMessage
  *
  * Errors will be reported with a non-zero return value.
  */
-int pactffi_sync_message_set_description(struct SynchronousMessage *message,
-                                         const char *description);
+int pactffi_sync_message_set_description(struct SynchronousMessage *message, const char *description);
 
 /**
  * Get a copy of the provider state at the given index from this message.
@@ -1476,8 +1461,7 @@ int pactffi_sync_message_set_description(struct SynchronousMessage *message,
  * This function may fail if the index requested is out of bounds,
  * or if any of the Rust strings contain embedded null ('\0') bytes.
  */
-const struct ProviderState *pactffi_sync_message_get_provider_state(const struct SynchronousMessage *message,
-                                                                    unsigned int index);
+const struct ProviderState *pactffi_sync_message_get_provider_state(const struct SynchronousMessage *message, unsigned int index);
 
 /**
  * Get an iterator over provider states.

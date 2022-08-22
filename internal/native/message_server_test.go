@@ -202,7 +202,7 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 			"pact:content-type": "application/protobuf",
 			"request": {
 				"implementation": "notEmpty('pact-go-driver')",
-				"version": "matching(semver, '0.0.0')"	
+				"version": "matching(semver, '0.0.0')"
 			},
 			"response": {
 				"catalogue": [
@@ -308,7 +308,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 			"pact:content-type": "application/protobuf",
 			"request": {
 				"implementation": "notEmpty('pact-go-driver')",
-				"version": "matching(semver, '0.0.0')"	
+				"version": "matching(semver, '0.0.0')"
 			},
 			"response": {
 				"catalogue": [
