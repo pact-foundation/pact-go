@@ -82,10 +82,19 @@ Learn everything in Pact Go in 60 minutes: https://github.com/pact-foundation/pa
 # install pact-go as a dev dependency
 go get github.com/pact-foundation/pact-go/v2@2.x.x
 
-# download and install the required libraries
-pact-go -l DEBUG install
+# NOTE: If using Go 1.19 or later, you need to run go install instead 
+# go install github.com/pact-foundation/pact-go/v2@2.x.x
+
+# download and install the required libraries. The pact-go will be installed into $GOPATH/bin, which is $HOME/go/bin by default. 
+pact-go -l DEBUG install 
 
 # 🚀 now write some tests!
+```
+
+If the `pact-go` command above is not found, make sure that `$GOPATH/bin` is in your path. I.e.,
+```shell
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
 ```
 
 You can also keep the library versions up to date by running the `version.CheckVersion()` function.
