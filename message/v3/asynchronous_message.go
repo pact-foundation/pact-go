@@ -207,22 +207,22 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 	log.Println("[DEBUG] reified message raw", body)
 
 	var m MessageContents
-	err = json.Unmarshal(body, &m)
-	if err != nil {
-		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
-	}
-	log.Println("[DEBUG] unmarshalled into an AsynchronousMessage", m)
+	// err = json.Unmarshal(body, &m)
+	// if err != nil {
+	// 	return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
+	// }
+	// log.Println("[DEBUG] unmarshalled into an AsynchronousMessage", m)
 
 	// 2. Convert to an actual type (to avoid wrapping if needed/requested)
 	// 3. Invoke the message handler
 	// 4. write the pact file
 	t := reflect.TypeOf(messageToVerify.Type)
 	if t != nil && t.Name() != "interface" {
-		s, err := json.Marshal(m.Content)
-		if err != nil {
-			return fmt.Errorf("unable to generate message for type: %+v", messageToVerify.Type)
-		}
-		err = json.Unmarshal(s, &messageToVerify.Type)
+		// s, err := json.Marshal()
+		// if err != nil {
+		// 	return fmt.Errorf("unable to generate message for type: %+v", messageToVerify.Type)
+		// }
+		err = json.Unmarshal(body, &messageToVerify.Type)
 
 		if err != nil {
 			return fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
@@ -230,6 +230,9 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 
 		m.Content = messageToVerify.Type
 	}
+
+	// TODO: extract metadata from FFI
+	// m.Metadata =
 
 	// Yield message, and send through handler function
 	err = handler(m)

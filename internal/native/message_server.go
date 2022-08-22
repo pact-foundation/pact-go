@@ -85,7 +85,7 @@ void pactffi_sync_message_set_response_contents(InteractionHandle *message, size
 void pactffi_sync_message_set_response_contents_bin(InteractionHandle *message, size_t index, const unsigned char *contents, size_t len, const char *content_type);
 
 // Can be used instead of the above as a general abstraction for non-binary bodies
-int pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
+bool pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
 
 // Can be used instead of the above as a general abstraction for binary bodies
 int pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const uint8_t *body, size_t size);
@@ -308,7 +308,7 @@ func (m *Message) WithContents(part interactionPart, contentType string, body []
 	defer free(cHeader)
 
 	res := C.pactffi_with_body(m.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])))
-	log.Println("[DEBUG] response from pactffi_interaction_contents", res)
+	log.Println("[DEBUG] response from pactffi_interaction_contents", (int(res) == 1))
 
 	return m
 }
