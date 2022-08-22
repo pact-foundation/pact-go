@@ -11,6 +11,7 @@ import (
 )
 
 func TestSyncTypeSystem(t *testing.T) {
+	t.Skip()
 	p, _ := NewSynchronousPact(Config{
 		Consumer: "consumer",
 		Provider: "provider",
