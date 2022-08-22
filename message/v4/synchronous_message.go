@@ -250,14 +250,14 @@ func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationT
 
 	err = integrationTest(s.transport, message)
 
-	if err != nil {
-		return err
-	}
-
 	mismatches := s.pact.mockserver.MockServerMismatchedRequests(s.transport.Port)
 
 	if len(mismatches) > 0 {
 		return fmt.Errorf("pact validation failed: %+v", mismatches)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return s.pact.mockserver.WritePactFileForServer(s.transport.Port, s.pact.config.PactDir, false)
