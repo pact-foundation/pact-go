@@ -82,6 +82,7 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 }
 
 func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
+	t.Skip()
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
 
