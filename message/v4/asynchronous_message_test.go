@@ -9,7 +9,6 @@ import (
 )
 
 func TestAsyncTypeSystem(t *testing.T) {
-	t.Skip()
 	p, _ := NewAsynchronousPact(Config{
 		Consumer: "asyncconsumer",
 		Provider: "asyncprovider",
@@ -17,27 +16,27 @@ func TestAsyncTypeSystem(t *testing.T) {
 	})
 	log.SetLogLevel("TRACE")
 
-	// type foo struct {
-	// 	Foo string `json:"foo"`
-	// }
+	type foo struct {
+		Foo string `json:"foo"`
+	}
 
-	// // Sync - no plugin
-	// err := p.AddAsynchronousMessage().
-	// 	Given("some state").
-	// 	Given("another state").
-	// 	ExpectsToReceive("an important json message").
-	// 	WithJSONContent(map[string]string{
-	// 		"foo": "bar",
-	// 	}).
-	// 	AsType(&foo{}).
-	// 	ConsumedBy(func(mc AsynchronousMessage) error {
-	// 		fooMessage := mc.Body.(*foo)
-	// 		assert.Equal(t, "bar", fooMessage.Foo)
-	// 		return nil
-	// 	}).
-	// 	Verify(t)
+	// Sync - no plugin
+	err := p.AddAsynchronousMessage().
+		Given("some state").
+		Given("another state").
+		ExpectsToReceive("an important json message").
+		WithJSONContent(map[string]string{
+			"foo": "bar",
+		}).
+		AsType(&foo{}).
+		ConsumedBy(func(mc AsynchronousMessage) error {
+			fooMessage := mc.Body.(*foo)
+			assert.Equal(t, "bar", fooMessage.Foo)
+			return nil
+		}).
+		Verify(t)
 
-	// assert.NoError(t, err)
+	assert.NoError(t, err)
 
 	// Sync - with plugin, but no transport
 	// TODO: ExecuteTest has been disabled for now, because it's not very useful
@@ -53,8 +52,14 @@ func TestAsyncTypeSystem(t *testing.T) {
 		}
 	}`
 
+	p, _ = NewAsynchronousPact(Config{
+		Consumer: "asyncconsumer",
+		Provider: "asyncprovider",
+		PactDir:  "/tmp/",
+	})
+
 	// TODO: enable when there is a transport for async to test!
-	err := p.AddAsynchronousMessage().
+	err = p.AddAsynchronousMessage().
 		Given("some state").
 		ExpectsToReceive("some csv content").
 		UsingPlugin(PluginConfig{

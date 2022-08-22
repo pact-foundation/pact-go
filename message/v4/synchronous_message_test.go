@@ -11,7 +11,6 @@ import (
 )
 
 func TestSyncTypeSystem(t *testing.T) {
-	t.Skip()
 	p, _ := NewSynchronousPact(Config{
 		Consumer: "consumer",
 		Provider: "provider",
@@ -78,6 +77,12 @@ func TestSyncTypeSystem(t *testing.T) {
 			"column:Date": "matching(datetime, 'yyyy-MM-dd','2000-01-01')"
 		}
 	}`
+
+	p, _ = NewSynchronousPact(Config{
+		Consumer: "consumer",
+		Provider: "provider",
+		PactDir:  "/tmp/",
+	})
 	p.AddSynchronousMessage("some description").
 		Given("some state").
 		UsingPlugin(PluginConfig{
@@ -90,6 +95,11 @@ func TestSyncTypeSystem(t *testing.T) {
 			return nil
 		})
 
+	p, _ = NewSynchronousPact(Config{
+		Consumer: "consumer",
+		Provider: "provider",
+		PactDir:  "/tmp/",
+	})
 	// Sync - with plugin + transport (pass)
 	err := p.AddSynchronousMessage("some description").
 		Given("some state").
@@ -106,6 +116,12 @@ func TestSyncTypeSystem(t *testing.T) {
 		})
 
 	assert.NoError(t, err)
+
+	p, _ = NewSynchronousPact(Config{
+		Consumer: "consumer",
+		Provider: "provider",
+		PactDir:  "/tmp/",
+	})
 
 	// Sync - with plugin + transport (fail)
 	err = p.AddSynchronousMessage("some description").

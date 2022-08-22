@@ -317,29 +317,19 @@ func getAsynchronousMessageWithReifiedContents(message *mockserver.Message, reif
 	}
 	log.Println("[DEBUG] reified body raw", string(m.Contents))
 
-	// 1. Strip out the matchers
-	// Reify the message back to its "example/generated" form
-	body, err := message.GetMessageRequestContents()
-	if err != nil {
-		return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %v", err)
-	}
+	// // 1. Strip out the matchers
+	// // Reify the message back to its "example/generated" form
+	// body, err := message.GetMessageRequestContents()
+	// if err != nil {
+	// 	return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %v", err)
+	// }
 
-	log.Println("[DEBUG] reified message raw", body)
-
-	err = json.Unmarshal([]byte(body), &m)
-	if err != nil {
-		return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %v", err)
-	}
 	log.Println("[DEBUG] unmarshalled into an AsynchronousMessage", m)
 
 	// 2. Convert to an actual type (to avoid wrapping if needed/requested)
 	t := reflect.TypeOf(reifiedType)
 	if t != nil && t.Name() != "interface" {
-		s, err := json.Marshal(m.Body)
-		if err != nil {
-			return m, fmt.Errorf("unable to generate message for type: %+v", reifiedType)
-		}
-		err = json.Unmarshal(s, &reifiedType)
+		err = json.Unmarshal(m.Contents, &reifiedType)
 
 		if err != nil {
 			return m, fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
