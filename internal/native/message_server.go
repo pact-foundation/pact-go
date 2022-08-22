@@ -12,6 +12,7 @@ typedef int bool;
 typedef struct InteractionHandle InteractionHandle;
 typedef struct PactMessageIterator PactMessageIterator;
 typedef struct SynchronousMessage SynchronousMessage;
+typedef struct Message Message;
 
 struct InteractionHandle {
 	unsigned int interaction_ref;
@@ -49,30 +50,28 @@ char* pactffi_mock_server_mismatches(int mock_server_port);
 
 // Functions to get message contents
 
-
-
 // Get the length of the request contents of a `SynchronousMessage`.
-size_t pactffi_sync_message_get_request_contents_length(InteractionHandle *message);
+size_t pactffi_sync_message_get_request_contents_length(SynchronousMessage *message);
 struct PactSyncMessageIterator *pactffi_pact_handle_get_sync_message_iter(PactHandle pact);
-struct InteractionHandle *pactffi_pact_sync_message_iter_next(struct PactSyncMessageIterator *iter);
+struct SynchronousMessage *pactffi_pact_sync_message_iter_next(struct PactSyncMessageIterator *iter);
 
 // Async
 // Get the length of the contents of a `Message`.
-size_t pactffi_message_get_contents_length(InteractionHandle *message);
+size_t pactffi_message_get_contents_length(Message *message);
 
 //  Get the contents of a `Message` as a pointer to an array of bytes.
-const unsigned char *pactffi_message_get_contents_bin(const InteractionHandle *message);
+const unsigned char *pactffi_message_get_contents_bin(const Message *message);
 struct PactMessageIterator *pactffi_pact_handle_get_message_iter(PactHandle pact);
-struct InteractionHandle *pactffi_pact_message_iter_next(struct PactMessageIterator *iter);
+struct Message *pactffi_pact_message_iter_next(struct PactMessageIterator *iter);
 
 // Need the index of the body to get
-const unsigned char *pactffi_sync_message_get_response_contents_bin(const struct InteractionHandle *message, size_t index);
-size_t pactffi_sync_message_get_response_contents_length(const struct InteractionHandle *message, size_t index);
+const unsigned char *pactffi_sync_message_get_response_contents_bin(const struct SynchronousMessage *message, size_t index);
+size_t pactffi_sync_message_get_response_contents_length(const struct SynchronousMessage *message, size_t index);
 
 // Sync
 // Get the request contents of a `SynchronousMessage` as a pointer to an array of bytes.
 // The number of bytes in the buffer will be returned by `pactffi_sync_message_get_request_contents_length`.
-const unsigned char *pactffi_sync_message_get_request_contents_bin(InteractionHandle *message);
+const unsigned char *pactffi_sync_message_get_request_contents_bin(SynchronousMessage *message);
 // Set Sync message request body - non binary
 void pactffi_sync_message_set_request_contents(InteractionHandle *message, const char *contents, const char *content_type);
 
