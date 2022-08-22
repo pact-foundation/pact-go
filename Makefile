@@ -71,9 +71,10 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
-test:
+test: deps install
 	@echo "--- ✅ Running tests"
 	go test -v -run TestHandleBasedMessageTestsWithBinary ./internal/native
+
 
 testrace:
 	go test -race $(TEST) $(TESTARGS)
