@@ -71,23 +71,9 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
-test: deps install
+test:
 	@echo "--- ✅ Running tests"
-	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
-	@echo "mode: count" > coverage.txt
-	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
-		do \
-			go test -v -race -coverprofile=profile.out -covermode=atomic $$d; \
-			if [ $$? != 0 ]; then \
-				exit 1; \
-			fi; \
-			if [ -f profile.out ]; then \
-					cat profile.out | tail -n +2 >> coverage.txt; \
-					rm profile.out; \
-			fi; \
-	done; \
-	go tool cover -func coverage.txt
-
+	go test -v -run TestHandleBasedMessageTestsWithBinary ./internal/native
 
 testrace:
 	go test -race $(TEST) $(TESTARGS)
