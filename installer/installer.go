@@ -420,7 +420,7 @@ func (configuration) writeConfig(c pactConfig) error {
 	log.Println("[DEBUG] writing config", c)
 	pactConfigPath := getConfigPath()
 
-	err := os.MkdirAll(filepath.Dir(pactConfigPath), 0644)
+	err := os.MkdirAll(filepath.Dir(pactConfigPath), 0755)
 	if err != nil {
 		log.Println("[DEBUG] error creating pact config directory")
 		return err
