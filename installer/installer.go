@@ -198,6 +198,11 @@ func (i *Installer) downloadDependencies() error {
 			return err
 		}
 
+		err = os.Chmod(dst, 0755)
+		if err != nil {
+			log.Println("[WARN] unable to set permissions on file", dst, "due to error:", err)
+		}
+
 		err = i.updateConfiguration(dst, pkg, pkgInfo)
 
 		if err != nil {
