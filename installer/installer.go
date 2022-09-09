@@ -237,16 +237,16 @@ func (i *Installer) getDownloadURLForPackage(pkg string) (string, error) {
 		return "", fmt.Errorf("unable to find package details for package: %s", pkg)
 	}
 
-	return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, pkgInfo.libName, i.os, i.arch, osToExtension[i.os]), nil
+	return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch, osToExtension[i.os]), nil
 }
 
 func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
-	pkgInfo, ok := packages[pkg]
+	_, ok := packages[pkg]
 	if !ok {
 		return "", fmt.Errorf("unable to find package details for package: %s", pkg)
 	}
 
-	return path.Join(i.getLibDir(), pkgInfo.libName) + "." + osToExtension[i.os], nil
+	return path.Join(i.getLibDir(), osToLibName[i.os]) + "." + osToExtension[i.os], nil
 }
 
 // Write the metadata to reduce drift
@@ -319,6 +319,12 @@ var osToExtension = map[string]string{
 	windows: "dll",
 	linux:   "so",
 	osx:     "dylib",
+}
+
+var osToLibName = map[string]string{
+	windows: "pact_ffi",
+	linux:   "libpact_ffi",
+	osx:     "libpact_ffi",
 }
 
 type packageInfo struct {

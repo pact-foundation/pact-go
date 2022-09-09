@@ -51,9 +51,9 @@ func TestInstallerDownloader(t *testing.T) {
 				},
 			},
 			{
-				name: "ffi lib - linux x86",
+				name: "ffi lib - windows x86",
 				pkg:  FFIPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-windows-x86_64.dll.gz", packages[FFIPackage].version),
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/pact_ffi-windows-x86_64.dll.gz", packages[FFIPackage].version),
 				test: Installer{
 					os:   windows,
 					arch: x86_64,
