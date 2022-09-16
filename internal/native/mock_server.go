@@ -170,6 +170,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"unsafe"
 )
 
@@ -238,31 +239,35 @@ func Version() string {
 	return C.GoString(v)
 }
 
+var once = sync.Once{}
+
 // Init initialises the library
 func Init() {
 	log.Println("[DEBUG] initialising rust mock server interface")
 
-	// Log to file if specified
-	pactLogLevel := os.Getenv("PACT_LOG_LEVEL")
-	logLevel := os.Getenv("LOG_LEVEL")
+	once.Do(func() {
+		// Log to file if specified
+		pactLogLevel := os.Getenv("PACT_LOG_LEVEL")
+		logLevel := os.Getenv("LOG_LEVEL")
 
-	level := "INFO"
-	if pactLogLevel != "" {
-		level = pactLogLevel
-	} else if logLevel != "" {
-		level = logLevel
-	}
+		level := "INFO"
+		if pactLogLevel != "" {
+			level = pactLogLevel
+		} else if logLevel != "" {
+			level = logLevel
+		}
 
-	l, ok := logLevelStringToInt[level]
-	if !ok {
-		l = LOG_LEVEL_INFO
-	}
+		l, ok := logLevelStringToInt[level]
+		if !ok {
+			l = LOG_LEVEL_INFO
+		}
 
-	if os.Getenv("PACT_LOG_PATH") != "" {
-		logToFile(os.Getenv("PACT_LOG_PATH"), l)
-	} else {
-		logToStdout(l)
-	}
+		if os.Getenv("PACT_LOG_PATH") != "" {
+			logToFile(os.Getenv("PACT_LOG_PATH"), l)
+		} else {
+			logToStdout(l)
+		}
+	})
 }
 
 // MockServer is the public interface for managing the HTTP mock server

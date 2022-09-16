@@ -108,7 +108,7 @@ func (v *Verifier) SetProviderInfo(name string, scheme string, host string, port
 	cPath := C.CString(path)
 	defer free(cPath)
 
-	C.pactffi_verifier_set_provider_info(nil, cName, cScheme, cHost, cPort, cPath)
+	C.pactffi_verifier_set_provider_info(v.handle, cName, cScheme, cHost, cPort, cPath)
 }
 
 func (v *Verifier) SetFilterInfo(description string, state string, noState bool) {
@@ -137,7 +137,7 @@ func (v *Verifier) SetConsumerFilters(consumers []string) {
 	C.pactffi_verifier_set_consumer_filters(v.handle, stringArrayToCStringArray(consumers), C.uint(len(consumers)))
 }
 
-func (v *Verifier) Add_CustomHeader(name string, value string) {
+func (v *Verifier) AddCustomHeader(name string, value string) {
 	cHeaderName := C.CString(name)
 	defer free(cHeaderName)
 	cHeaderValue := C.CString(value)
@@ -160,7 +160,7 @@ func (v *Verifier) AddDirectorySource(directory string) {
 	C.pactffi_verifier_add_directory_source(v.handle, cDirectory)
 }
 
-func (v *Verifier) URLSource(url string, username string, password string, token string) {
+func (v *Verifier) AddURLSource(url string, username string, password string, token string) {
 	cUrl := C.CString(url)
 	defer free(cUrl)
 	cUsername := C.CString(username)
@@ -202,6 +202,10 @@ func (v *Verifier) SetPublishOptions(providerVersion string, buildUrl string, pr
 }
 
 func (v *Verifier) Execute() error {
+	// TODO: Validate
+
+	// TODO: Execute calls in sequence
+
 	result := C.pactffi_verifier_execute(v.handle)
 
 	/// | Error | Description |
@@ -218,6 +222,10 @@ func (v *Verifier) Execute() error {
 }
 
 func stringArrayToCStringArray(inputs []string) **C.char {
+	if len(inputs) == 0 {
+		return nil
+	}
+
 	output := make([]*C.char, len(inputs))
 
 	for i, consumer := range inputs {

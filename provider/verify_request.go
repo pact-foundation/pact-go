@@ -6,12 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	native "github.com/pact-foundation/pact-go/v2/internal/native"
-	logging "github.com/pact-foundation/pact-go/v2/log"
+	"github.com/pact-foundation/pact-go/v2/command"
+	"github.com/pact-foundation/pact-go/v2/internal/native"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
 )
@@ -24,6 +25,7 @@ type VerifyRequest struct {
 	// URL to hit during provider verification.
 	// NOTE: if specified alongside PactURLs, PactFiles or PactDirs it will run the verification once for
 	// each dynamic pact (Broker) discovered and user specified (URL) pact.
+	// It may also be specified by the PACT_BROKER_BASE_URL environment variable
 	ProviderBaseURL string
 
 	// URL of the build to associate with the published verification results.
@@ -33,12 +35,15 @@ type VerifyRequest struct {
 	FilterConsumers []string
 
 	// Only validate interactions whose descriptions match this filter
-	FilterDescriptions []string
+	// It may also be specified by the PACT_DESCRIPTION environment variable
+	FilterDescription string
 
 	// Only validate interactions whose provider states match this filter
-	FilterStates []string
+	// It may also be specified by the PACT_PROVIDER_STATE environment variable
+	FilterState string
 
 	// Only validate interactions that do not havve a provider state
+	// It may also be specified by setting the environment variable PACT_PROVIDER_NO_STATE to "true"
 	FilterNoState bool
 
 	// HTTP paths to Pact files.
@@ -83,12 +88,15 @@ type VerifyRequest struct {
 	Provider string
 
 	// Username when authenticating to a Pact Broker.
+	// It may also be specified by the PACT_BROKER_USERNAME environment variable
 	BrokerUsername string
 
 	// Password when authenticating to a Pact Broker.
+	// It may also be specified by the PACT_BROKER_PASSWORD environment variable
 	BrokerPassword string
 
 	// BrokerToken is required when authenticating using the Bearer token mechanism
+	// It may also be specified by the PACT_BROKER_TOKEN environment variable
 	BrokerToken string
 
 	// FailIfNoPactsFound configures the framework to return an error
@@ -142,145 +150,120 @@ type VerifyRequest struct {
 	// Pull in new WIP pacts from _any_ tag (see pact.io/wip)
 	IncludeWIPPactsSince *time.Time
 
-	args []string
+	handle *native.Verifier
 }
 
 // Validate checks that the minimum fields are provided.
 func (v *VerifyRequest) validate() error {
-	v.args = []string{}
 
-	for _, url := range v.PactURLs {
-		v.args = append(v.args, "--url", url)
-	}
-
-	for _, url := range v.PactFiles {
-		v.args = append(v.args, "--file", url)
-	}
-
-	for _, dir := range v.PactDirs {
-		v.args = append(v.args, "--dir", dir)
-	}
-
-	if len(v.PactURLs) == 0 && len(v.PactFiles) == 0 && len(v.PactDirs) == 0 && v.BrokerURL == "" {
-		return fmt.Errorf("one of 'PactURLs', 'PactFiles', 'PactDIRs' or 'BrokerURL' must be specified")
-	}
-
-	if len(v.ConsumerVersionSelectors) != 0 {
-		for _, selector := range v.ConsumerVersionSelectors {
-			body, err := json.Marshal(selector)
-			if err != nil {
-				return fmt.Errorf("invalid consumer version selector specified: %v", err)
-			}
-
-			v.args = append(v.args, "--consumer-version-selectors", string(body))
-		}
-	}
+	var scheme, hostname, path string
+	var port int
 
 	if v.ProviderBaseURL != "" {
 		url, err := url.Parse(v.ProviderBaseURL)
 		if err != nil {
 			return err
 		}
-		v.args = append(v.args, "--hostname", url.Hostname())
+		hostname = url.Hostname()
 
 		if url.Port() != "" {
-			v.args = append(v.args, "--port", url.Port())
+			port, _ = strconv.Atoi(url.Port())
 		} else if url.Scheme == "http" {
-			v.args = append(v.args, "--port", "80")
+			port = 80
 		} else if url.Scheme == "https" {
-			v.args = append(v.args, "--port", "443")
+			port = 443
 		}
 
 		if url.Path != "" {
-			v.args = append(v.args, "--base-path", url.Path)
+			path = url.Path
 		}
 	} else {
 		return fmt.Errorf("ProviderBaseURL is mandatory")
 	}
 
-	if v.BuildURL != "" {
-		v.args = append(v.args, "--build-url", v.BuildURL)
+	v.handle.SetProviderInfo(v.Provider, scheme, hostname, uint16(port), path)
+
+	filterDescription := valueOrFromEnvironment(v.FilterDescription, "PACT_DESCRIPTION")
+	filterState := valueOrFromEnvironment(v.FilterState, "PACT_PROVIDER_STATE")
+	filterNoState := valueOrFromEnvironment(fmt.Sprintf("%t", v.FilterNoState), "PACT_PROVIDER_NO_STATE") == "true"
+
+	if filterDescription != "" || filterState != "" || os.Getenv("PACT_PROVIDER_NO_STATE") != "" {
+		v.handle.SetFilterInfo(filterDescription, filterState, filterNoState)
 	}
 
 	if v.ProviderStatesSetupURL != "" {
-		v.args = append(v.args, "--state-change-url", v.ProviderStatesSetupURL)
+		v.handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
 	}
 
-	if v.BrokerUsername != "" {
-		v.args = append(v.args, "--user", v.BrokerUsername)
+	// TODO: support these
+	// SetVerificationOptions: 4,
+
+	if v.PublishVerificationResults && v.ProviderVersion != "" {
+		v.handle.SetPublishOptions(v.ProviderVersion, v.BuildURL, v.ProviderTags, v.ProviderBranch)
 	}
 
-	if v.BrokerPassword != "" {
-		v.args = append(v.args, "--password", v.BrokerPassword)
+	if len(v.FilterConsumers) > 0 {
+		v.handle.SetConsumerFilters(v.FilterConsumers)
 	}
 
-	if v.BrokerURL != "" && ((v.BrokerUsername == "" && v.BrokerPassword != "") || (v.BrokerUsername != "" && v.BrokerPassword == "")) {
+	// TODO:
+	// AddCustomHeader: 7,
+
+	for _, url := range v.PactURLs {
+		v.handle.AddURLSource(url, valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"))
+	}
+
+	for _, file := range v.PactFiles {
+		v.handle.AddFileSource(file)
+	}
+
+	for _, dir := range v.PactDirs {
+		v.handle.AddDirectorySource(dir)
+	}
+
+	if len(v.PactURLs) == 0 && len(v.PactFiles) == 0 && len(v.PactDirs) == 0 && v.BrokerURL == "" {
+		return fmt.Errorf("one of 'PactURLs', 'PactFiles', 'PactDIRs' or 'BrokerURL' must be specified")
+	}
+
+	selectors := make([]string, len(v.ConsumerVersionSelectors))
+
+	if len(v.ConsumerVersionSelectors) != 0 {
+		for i, selector := range v.ConsumerVersionSelectors {
+			body, err := json.Marshal(selector)
+			if err != nil {
+				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+			}
+
+			selectors[i] = string(body)
+		}
+	}
+
+	if v.BrokerURL != "" && (v.ProviderVersion == "" || v.Provider == "") {
+		return errors.New("'ProviderVersion', and 'Provider' must be supplied if 'BrokerURL' given")
+	}
+
+	if v.BrokerURL != "" && ((valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME") == "" && valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD") != "") || (valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME") != "" && valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD") == "")) {
 		return errors.New("both 'BrokerUsername' and 'BrokerPassword' must be supplied if one given")
 	}
 
-	if v.BrokerURL != "" {
-		v.args = append(v.args, "--broker-url", v.BrokerURL)
-	}
-
-	if v.BrokerToken != "" {
-		v.args = append(v.args, "--token", v.BrokerToken)
-	}
-
-	if v.BrokerURL != "" && v.ProviderVersion == "" {
-		return errors.New("both 'ProviderVersion' must be supplied if 'BrokerURL' given")
-	}
-
-	if v.ProviderVersion != "" {
-		v.args = append(v.args, "--provider-version", v.ProviderVersion)
-	}
-
-	if v.Provider != "" {
-		v.args = append(v.args, "--provider-name", v.Provider)
-	}
-
-	if v.PublishVerificationResults {
-		v.args = append(v.args, "--publish")
-	}
-
-	if v.FilterNoState {
-		v.args = append(v.args, "--filter-no-state")
-	}
-
-	for _, state := range v.FilterStates {
-		v.args = append(v.args, "--filter-state", state)
-	}
-
-	for _, state := range v.FilterDescriptions {
-		v.args = append(v.args, "--filter-description", state)
-	}
-
-	for _, state := range v.FilterConsumers {
-		v.args = append(v.args, "--filter-consumer", state)
-	}
-
-	if len(v.ProviderTags) > 0 {
-		v.args = append(v.args, "--provider-tags", strings.Join(v.ProviderTags, ","))
-	}
-
-	if v.ProviderBranch != "" {
-		v.args = append(v.args, "--provider-branch", v.ProviderBranch)
-	}
-
-	v.args = append(v.args, "--loglevel", strings.ToLower(string(logging.LogLevel())))
-
-	if len(v.Tags) > 0 {
-		v.args = append(v.args, "--consumer-version-tags", strings.Join(v.Tags, ","))
-	}
-
-	if v.EnablePending {
-		v.args = append(v.args, "--enable-pending")
-	}
-
+	includeWIPPactsSince := ""
 	if v.IncludeWIPPactsSince != nil {
-		v.args = append(v.args, "--include-wip-pacts-since", v.IncludeWIPPactsSince.Format(time.RFC3339))
+		includeWIPPactsSince = v.IncludeWIPPactsSince.Format(time.RFC3339)
+	}
+
+	if v.BrokerURL != "" && v.Provider != "" {
+		v.handle.BrokerSourceWithSelectors(v.BrokerURL, valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"), v.EnablePending, includeWIPPactsSince, v.ProviderTags, v.ProviderBranch, selectors, v.Tags)
 	}
 
 	return nil
+}
+
+func valueOrFromEnvironment(value string, envKey string) string {
+	if value != "" {
+		return value
+	}
+
+	return os.Getenv(envKey)
 }
 
 type outputWriter interface {
@@ -288,6 +271,8 @@ type outputWriter interface {
 }
 
 func (v *VerifyRequest) Verify(writer outputWriter) error {
+	v.handle = native.NewVerifier("pact-go", command.Version)
+
 	err := v.validate()
 	if err != nil {
 		return err
@@ -300,8 +285,8 @@ func (v *VerifyRequest) Verify(writer outputWriter) error {
 	WaitForPort(port, "tcp", address, 10*time.Second,
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
-	service := native.Verifier{}
-	res := service.Verify(v.args)
+	res := v.handle.Execute()
+	defer v.handle.Shutdown()
 
 	return res
 }

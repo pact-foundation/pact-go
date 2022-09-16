@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	native "github.com/pact-foundation/pact-go/v2/internal/native"
+	"github.com/pact-foundation/pact-go/v2/internal/native"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
 )
