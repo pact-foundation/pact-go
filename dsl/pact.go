@@ -687,7 +687,6 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 		BrokerToken:                request.BrokerToken,
 		PublishVerificationResults: request.PublishVerificationResults,
 		ProviderVersion:            request.ProviderVersion,
-		TagWithGitBranch:           request.TagWithGitBranch,
 		ProviderTags:               request.ProviderTags,
 		Provider:                   p.Provider,
 		PactLogDir:                 p.LogDir,

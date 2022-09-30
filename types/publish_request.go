@@ -25,6 +25,9 @@ type PublishRequest struct {
 	// ConsumerVersion is the semantical version of the consumer API.
 	ConsumerVersion string
 
+	// The name of the branch currently used
+	Branch string
+
 	// Tags help you organise your Pacts for different testing purposes.
 	// e.g. "production", "master" and "development" are some common examples.
 	Tags []string
@@ -75,6 +78,10 @@ func (p *PublishRequest) Validate() error {
 		return fmt.Errorf("'ConsumerVersion' is mandatory")
 	}
 	p.Args = append(p.Args, "--consumer-app-version", p.ConsumerVersion)
+
+	if p.Branch != "" {
+		p.Args = append(p.Args, "--branch", p.Branch)
+	}
 
 	if len(p.Tags) > 0 {
 		for _, t := range p.Tags {
