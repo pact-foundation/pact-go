@@ -47,6 +47,7 @@ int pactffi_interaction_contents(InteractionHandle interaction, int interaction_
 int pactffi_create_mock_server_for_transport(PactHandle pact, const char *addr, int port, const char *transport, const char *transport_config);
 bool pactffi_cleanup_mock_server(int mock_server_port);
 char* pactffi_mock_server_mismatches(int mock_server_port);
+bool pactffi_mock_server_matched(int mock_server_port);
 
 // Functions to get message contents
 
@@ -587,6 +588,20 @@ func (m *MessageServer) MockServerMismatchedRequests(port int) []MismatchedReque
 	json.Unmarshal([]byte(C.GoString(mismatches)), &res)
 
 	return res
+}
+
+// MockServerMismatchedRequests returns a JSON object containing any mismatches from
+// the last set of interactions.
+func (m *MessageServer) MockServerMatched(port int) bool {
+	log.Println("[DEBUG] mock server determining mismatches:", port)
+
+	res := C.pactffi_mock_server_matched(C.int(port))
+
+	// TODO: why this number is so big and not a bool? Type def wrong? Port value wrong?
+	// log.Println("MATCHED RES?")
+	// log.Println(int(res))
+
+	return int(res) == 1
 }
 
 // WritePactFile writes the Pact to file.

@@ -243,7 +243,8 @@ var once = sync.Once{}
 
 // Init initialises the library
 func Init() {
-	log.Println("[DEBUG] initialising rust mock server interface")
+	log.Println("************** initialising native interface")
+	log.Println("[DEBUG] initialising native interface")
 
 	once.Do(func() {
 		// Log to file if specified

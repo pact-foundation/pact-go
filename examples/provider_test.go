@@ -30,7 +30,7 @@ func TestV3HTTPProvider(t *testing.T) {
 	// Start provider API in the background
 	go startServer()
 
-	verifier := provider.HTTPVerifier{}
+	verifier := provider.Verifier{}
 
 	// Authorization middleware
 	// This is your chance to modify the request before it hits your provider
@@ -96,7 +96,7 @@ func TestV3MessageProvider(t *testing.T) {
 	log.SetLogLevel("TRACE")
 	var user *User
 
-	verifier := message.Verifier{}
+	verifier := provider.Verifier{}
 
 	// Map test descriptions to message producer (handlers)
 	functionMappings := message.Handlers{
@@ -130,14 +130,12 @@ func TestV3MessageProvider(t *testing.T) {
 	}
 
 	// Verify the Provider with local Pact Files
-	verifier.Verify(t, message.VerifyMessageRequest{
-		VerifyRequest: provider.VerifyRequest{
-			PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
-			StateHandlers:   stateMappings,
-			Provider:        "V3MessageProvider",
-			ProviderVersion: os.Getenv("APP_SHA"),
-			BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
-		},
+	verifier.VerifyProvider(t, provider.VerifyRequest{
+		PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
+		StateHandlers:   stateMappings,
+		Provider:        "V3MessageProvider",
+		ProviderVersion: os.Getenv("APP_SHA"),
+		BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
 		MessageHandlers: functionMappings,
 	})
 }

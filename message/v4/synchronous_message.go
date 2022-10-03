@@ -250,6 +250,8 @@ func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationT
 
 	err = integrationTest(s.transport, message)
 
+	// matched := s.pact.mockserver.MockServerMatched(s.transport.Port)
+	// log.Println("MATHED??????????", matched)
 	mismatches := s.pact.mockserver.MockServerMismatchedRequests(s.transport.Port)
 
 	if len(mismatches) > 0 {

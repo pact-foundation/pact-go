@@ -13,6 +13,9 @@ void pactffi_free_string(char* s);
 int pactffi_verify(char* s);
 
 typedef struct VerifierHandle VerifierHandle;
+struct VerifierHandle {
+
+};
 VerifierHandle *pactffi_verifier_new_for_application(const char *name, const char *version);
 void pactffi_verifier_shutdown(struct VerifierHandle *handle);
 void pactffi_verifier_set_provider_info(VerifierHandle *handle, const char *name, const char *scheme, const char *host, uint32_t port, const char *path);
@@ -27,7 +30,7 @@ void pactffi_verifier_add_directory_source(VerifierHandle *handle, const char *d
 void pactffi_verifier_url_source(VerifierHandle *handle, const char *url, const char *username, const char *password, const char *token);
 void pactffi_verifier_broker_source_with_selectors(VerifierHandle *handle, const char *url, const char *username, const char *password, const char *token, bool enable_pending, const char *include_wip_pacts_since, const char *const *provider_tags, uint32_t provider_tags_len, const char *provider_branch, const char *const *consumer_version_selectors, uint32_t consumer_version_selectors_len, const char *const *consumer_version_tags, uint32_t consumer_version_tags_len);
 int pactffi_verifier_execute(VerifierHandle *handle);
-
+void pactffi_verifier_add_provider_transport(VerifierHandle *handle, const char *protocol, uint32_t port, const char *path, const char *scheme);
 */
 import "C"
 
@@ -89,8 +92,12 @@ func NewVerifier(name string, version string) *Verifier {
 	defer free(cName)
 	defer free(cVersion)
 
+	h := C.pactffi_verifier_new_for_application(cName, cVersion)
+	log.Println("h")
+	log.Printf("%+v", h)
+	log.Println("--------")
 	return &Verifier{
-		handle: C.pactffi_verifier_new_for_application(cName, cVersion),
+		handle: h,
 	}
 }
 
@@ -110,6 +117,20 @@ func (v *Verifier) SetProviderInfo(name string, scheme string, host string, port
 	defer free(cPath)
 
 	C.pactffi_verifier_set_provider_info(v.handle, cName, cScheme, cHost, cPort, cPath)
+}
+
+func (v *Verifier) AddTransport(protocol string, port uint16, path string, scheme string) {
+	cProtocol := C.CString(protocol)
+	defer free(cProtocol)
+	cPort := C.uint(port)
+	cPath := C.CString(path)
+	defer free(cPath)
+	cScheme := C.CString(scheme)
+	defer free(cScheme)
+
+	log.Println(v.handle)
+
+	C.pactffi_verifier_add_provider_transport(v.handle, cProtocol, cPort, cPath, cScheme)
 }
 
 func (v *Verifier) SetFilterInfo(description string, state string, noState bool) {

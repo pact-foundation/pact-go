@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
+	"github.com/pact-foundation/pact-go/v2/message"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
 )
@@ -22,11 +23,12 @@ type Hook func() error
 
 // VerifyRequest contains the verification params.
 type VerifyRequest struct {
-	// URL to hit during provider verification.
-	// NOTE: if specified alongside PactURLs, PactFiles or PactDirs it will run the verification once for
-	// each dynamic pact (Broker) discovered and user specified (URL) pact.
-	// It may also be specified by the PACT_BROKER_BASE_URL environment variable
+	// Default URL to hit during provider verification.
 	ProviderBaseURL string
+
+	// Specify one or more additional transports to communicate to the given provider
+	// Providers may support multiple modes - e.g. HTTP, gRPC etc.
+	Transports []Transport
 
 	// URL of the build to associate with the published verification results.
 	BuildURL string
@@ -124,6 +126,11 @@ type VerifyRequest struct {
 	// verification step.
 	StateHandlers models.StateHandlers
 
+	// MessageHandlers contains a mapped list of message handlers for a provider
+	// that will be rable to produce the correct message format for a given
+	// consumer interaction
+	MessageHandlers message.Handlers
+
 	// BeforeEach allows you to configure your provider prior to the individual test execution
 	// e.g. setup temporary tokens, prepare data
 	BeforeEach Hook
@@ -149,76 +156,57 @@ type VerifyRequest struct {
 
 	// Pull in new WIP pacts from _any_ tag (see pact.io/wip)
 	IncludeWIPPactsSince *time.Time
-
-	handle *native.Verifier
 }
 
 // Validate checks that the minimum fields are provided.
-func (v *VerifyRequest) validate() error {
+func (v *VerifyRequest) validate(handle *native.Verifier) error {
 
-	var scheme, hostname, path string
-	var port int
-
-	if v.ProviderBaseURL != "" {
-		url, err := url.Parse(v.ProviderBaseURL)
-		if err != nil {
-			return err
-		}
-		hostname = url.Hostname()
-
-		if url.Port() != "" {
-			port, _ = strconv.Atoi(url.Port())
-		} else if url.Scheme == "http" {
-			port = 80
-		} else if url.Scheme == "https" {
-			port = 443
-		}
-
-		if url.Path != "" {
-			path = url.Path
-		}
-	} else {
-		return fmt.Errorf("ProviderBaseURL is mandatory")
+	if v.ProviderBaseURL == "" {
+		return fmt.Errorf("'ProviderBaseURL' must be provided")
 	}
 
-	v.handle.SetProviderInfo(v.Provider, scheme, hostname, uint16(port), path)
+	// TODO: review this
+	// We spin up our own transport for messages, but we need them defined for all others
+	// if len(v.Transports) == 0 && len(v.MessageHandlers) == 0 {
+	// 	return fmt.Errorf("one of 'Transports' or 'ProviderBaseURL' must be provided")
+	// }
 
 	filterDescription := valueOrFromEnvironment(v.FilterDescription, "PACT_DESCRIPTION")
 	filterState := valueOrFromEnvironment(v.FilterState, "PACT_PROVIDER_STATE")
 	filterNoState := valueOrFromEnvironment(fmt.Sprintf("%t", v.FilterNoState), "PACT_PROVIDER_NO_STATE") == "true"
 
 	if filterDescription != "" || filterState != "" || os.Getenv("PACT_PROVIDER_NO_STATE") != "" {
-		v.handle.SetFilterInfo(filterDescription, filterState, filterNoState)
+		handle.SetFilterInfo(filterDescription, filterState, filterNoState)
 	}
 
 	if v.ProviderStatesSetupURL != "" {
-		v.handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
+		handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
 	}
 
 	// TODO: support these
 	// SetVerificationOptions: 4,
 
 	if v.PublishVerificationResults && v.ProviderVersion != "" {
-		v.handle.SetPublishOptions(v.ProviderVersion, v.BuildURL, v.ProviderTags, v.ProviderBranch)
+		handle.SetPublishOptions(v.ProviderVersion, v.BuildURL, v.ProviderTags, v.ProviderBranch)
 	}
 
 	if len(v.FilterConsumers) > 0 {
-		v.handle.SetConsumerFilters(v.FilterConsumers)
+		handle.SetConsumerFilters(v.FilterConsumers)
 	}
 
 	// TODO:
 	// AddCustomHeader: 7,
 
 	for _, url := range v.PactURLs {
-		v.handle.AddURLSource(url, valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"))
+		handle.AddURLSource(url, valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"))
 	}
 
 	for _, file := range v.PactFiles {
-		v.handle.AddFileSource(file)
+		handle.AddFileSource(file)
 	}
 
 	for _, dir := range v.PactDirs {
-		v.handle.AddDirectorySource(dir)
+		handle.AddDirectorySource(dir)
 	}
 
 	if len(v.PactURLs) == 0 && len(v.PactFiles) == 0 && len(v.PactDirs) == 0 && v.BrokerURL == "" {
@@ -252,8 +240,27 @@ func (v *VerifyRequest) validate() error {
 	}
 
 	if v.BrokerURL != "" && v.Provider != "" {
-		v.handle.BrokerSourceWithSelectors(v.BrokerURL, valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"), v.EnablePending, includeWIPPactsSince, v.ProviderTags, v.ProviderBranch, selectors, v.Tags)
+		handle.BrokerSourceWithSelectors(v.BrokerURL, valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"), v.EnablePending, includeWIPPactsSince, v.ProviderTags, v.ProviderBranch, selectors, v.Tags)
 	}
+
+	if v.ProviderBaseURL != "" {
+		url, err := url.Parse(v.ProviderBaseURL)
+		if err != nil {
+			return err
+		}
+
+		port := getPort(v.ProviderBaseURL)
+		if port == -1 {
+			return fmt.Errorf("unknown scheme '%s' given to 'ProviderBaseURL', unable to determine default port. Use 'Transports' for non-HTTP providers instead", url.Scheme)
+		}
+
+		handle.SetProviderInfo(v.Provider, url.Scheme, url.Host, uint16(port), url.Hostname())
+
+		log.Println("[DEBUG] v.Transports", v.Transports)
+
+	}
+
+	// normalise ProviderBaseURL to just another transport
 
 	return nil
 }
@@ -270,25 +277,35 @@ type outputWriter interface {
 	Log(args ...interface{})
 }
 
-func (v *VerifyRequest) Verify(writer outputWriter) error {
-	v.handle = native.NewVerifier("pact-go", command.Version)
-
-	err := v.validate()
-	if err != nil {
-		return err
+func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) error {
+	for _, transport := range v.Transports {
+		log.Println("[DEBUG] adding transport to verification", transport)
+		log.Println("Verify()")
+		log.Println(handle)
+		log.Println("*****")
+		handle.AddTransport(transport.Protocol, transport.Port, transport.Path, transport.Scheme)
 	}
 
-	address := getAddress(v.ProviderBaseURL)
+	address := getHost(v.ProviderBaseURL)
 	port := getPort(v.ProviderBaseURL)
 
-	// TODO: parameterise client stuff here
 	WaitForPort(port, "tcp", address, 10*time.Second,
 		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
-	res := v.handle.Execute()
-	defer v.handle.Shutdown()
+	res := handle.Execute()
+	defer handle.Shutdown()
 
 	return res
+}
+
+func (v *VerifyRequest) findTransportByScheme(scheme string) (*Transport, error) {
+	for _, transport := range v.Transports {
+		if strings.Index(strings.ToLower(transport.Scheme), scheme) == 0 {
+			return &transport, nil
+		}
+	}
+
+	return nil, nil
 }
 
 // Get a port given a URL
@@ -312,12 +329,13 @@ func getPort(rawURL string) int {
 }
 
 // Get the address given a URL
-func getAddress(rawURL string) string {
+func getHost(rawURL string) string {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return ""
 	}
 
+	// TODO: use parseURL.Hostname() instead ?
 	splitHost := strings.Split(parsedURL.Host, ":")
 	return splitHost[0]
 }
