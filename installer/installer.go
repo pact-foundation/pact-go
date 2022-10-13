@@ -70,6 +70,14 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 		log.Println("[WARN] amd64 architecture not detected, defaulting to x86_64. Behaviour may be undefined")
 	}
 
+	// Only perform a check if current OS is linux
+	if runtime.GOOS == "linux" {
+		err := i.checkMusl()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return i, nil
 }
 
@@ -309,6 +317,23 @@ func checkVersion(lib, version, versionRange string) error {
 	}
 
 	return fmt.Errorf("version %s of %s does not match constraint %s", version, lib, versionRange)
+}
+
+// checkMusl checks if the OS uses musl library instead of glibc
+func (i *Installer) checkMusl() error {
+	lddPath, err := exec.LookPath("ldd")
+	if err != nil {
+		return fmt.Errorf("could not find ldd in environment path")
+	}
+
+	cmd := exec.Command(lddPath, "/bin/echo")
+	out, err := cmd.CombinedOutput()
+
+	if strings.Contains(string(out), "musl") {
+		log.Println("[WARN] Usage of musl library is known to cause problems, prefer using glibc instead.")
+	}
+
+	return err
 }
 
 // download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/PACKAGE-vVERSION/LIBNAME-OS-ARCH.EXTENSION.gz"
