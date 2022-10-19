@@ -149,7 +149,7 @@ _NOTE_: the above script installs the latest standalone tools at the time it was
 
 ## Using Pact
 
-Pact supports [synchronous request-response style HTTP interactions](#http-api-testing) and has experimental support for [asynchronous interactions](#asynchronous-api-testing) with JSON-formatted payloads.
+Pact supports [synchronous request-response style HTTP interactions](#http-api-testing) and has support for [asynchronous interactions](#asynchronous-api-testing) with JSON-formatted payloads.
 
 Pact Go runs as part of your regular Go tests.
 
