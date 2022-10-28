@@ -1,0 +1,52 @@
+{
+  "consumer": {
+    "name": "matttcpconsumer"
+  },
+  "interactions": [
+    {
+      "description": "Matt message",
+      "key": "f27f2917655cb542",
+      "pending": false,
+      "request": {
+        "contents": {
+          "content": "MATThellotcpMATT",
+          "contentType": "application/matt",
+          "contentTypeHint": "DEFAULT",
+          "encoded": false
+        }
+      },
+      "response": [
+        {
+          "contents": {
+            "content": "MATTtcpworldMATT",
+            "contentType": "application/matt",
+            "contentTypeHint": "DEFAULT",
+            "encoded": false
+          }
+        }
+      ],
+      "transport": "matt",
+      "type": "Synchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.3.13",
+      "mockserver": "0.9.4",
+      "models": "0.4.5"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    },
+    "plugins": [
+      {
+        "configuration": {},
+        "name": "matt",
+        "version": "0.0.1"
+      }
+    ]
+  },
+  "provider": {
+    "name": "matttcpprovider"
+  }
+}
