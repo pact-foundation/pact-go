@@ -4,6 +4,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/pact-foundation/pact-go/v2/internal/native"
 	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/utils"
@@ -457,6 +458,7 @@ func (i *V4InteractionWithPluginRequestBuilder) Headers(headers matchers.Headers
 
 // PluginContents configures a plugin. This may be called once per plugin registered.
 func (i *V4InteractionWithPluginRequestBuilder) PluginContents(contentType string, contents string) *V4InteractionWithPluginRequestBuilder {
+	i.interaction.interaction.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
 
 	return i
 }
@@ -537,6 +539,7 @@ func (i *V4InteractionWithPluginResponseBuilder) Headers(headers matchers.Header
 
 // PluginContents configures a plugin. This may be called once per plugin registered.
 func (i *V4InteractionWithPluginResponseBuilder) PluginContents(contentType string, contents string) *V4InteractionWithPluginResponseBuilder {
+	i.interaction.interaction.WithPluginInteractionContents(native.INTERACTION_PART_RESPONSE, contentType, contents)
 
 	return i
 }

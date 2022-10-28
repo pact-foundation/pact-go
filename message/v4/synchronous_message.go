@@ -199,9 +199,6 @@ type SynchronousMessageWithPluginContents struct {
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
-// NOTE: currently, this function is not very useful because without a transport,
-//       there is no useful way to test your actual code (because the message isn't passed back in)
-//       Use at your own risk ;)
 func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m SynchronousMessage) error) error {
 	message, err := getSynchronousMessageWithContents(m.messageHandle)
 	if err != nil {
@@ -261,6 +258,8 @@ func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationT
 	if err != nil {
 		return err
 	}
+
+	s.pact.mockserver.CleanupPlugins()
 
 	return s.pact.mockserver.WritePactFileForServer(s.transport.Port, s.pact.config.PactDir, false)
 }

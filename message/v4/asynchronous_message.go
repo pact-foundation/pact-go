@@ -97,6 +97,8 @@ func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integr
 		return err
 	}
 
+	s.rootBuilder.pact.messageserver.CleanupPlugins()
+
 	return s.rootBuilder.pact.messageserver.WritePactFile(s.rootBuilder.pact.config.PactDir, false)
 }
 
@@ -259,7 +261,6 @@ func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder 
 
 // VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable
 // interaction.
-//
 //
 // A Message Consumer is analagous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever

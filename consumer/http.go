@@ -174,6 +174,8 @@ func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockSe
 		return fmt.Errorf("pact validation failed: %+v", mismatches)
 	}
 
+	p.mockserver.CleanupPlugins()
+
 	return p.writePact()
 }
 

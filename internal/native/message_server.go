@@ -196,6 +196,7 @@ func (m *Message) Given(state string) *Message {
 	cState := C.CString(state)
 	defer free(cState)
 
+	// TODO: should this be pactffi_given?
 	C.pactffi_message_given(m.handle, cState)
 
 	return m
@@ -209,6 +210,7 @@ func (m *Message) GivenWithParameter(state string, params map[string]interface{}
 		cState := C.CString(state)
 		defer free(cState)
 
+		// TODO: should this be pactffi_given?
 		C.pactffi_message_given(m.handle, cState)
 	} else {
 		for k, v := range params {
@@ -218,6 +220,7 @@ func (m *Message) GivenWithParameter(state string, params map[string]interface{}
 			cValue := C.CString(param)
 			defer free(cValue)
 
+			// TODO: should this be pactffi_given_with_param?
 			C.pactffi_message_given_with_param(m.handle, cState, cKey, cValue)
 
 		}
@@ -555,7 +558,7 @@ func (m *MessageServer) StartTransport(transport string, address string, port in
 }
 
 // NewInteraction initialises a new interaction for the current contract
-func (m *MessageServer) CleanupPlugins(pluginName string, pluginVersion string) {
+func (m *MessageServer) CleanupPlugins() {
 	C.pactffi_cleanup_plugins(m.messagePact.handle)
 }
 

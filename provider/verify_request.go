@@ -179,6 +179,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 		handle.SetFilterInfo(filterDescription, filterState, filterNoState)
 	}
 
+	// TODO: this also needs to take the proxyp address
 	if v.ProviderStatesSetupURL != "" {
 		handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
 	}
@@ -254,11 +255,14 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 			return fmt.Errorf("unknown scheme '%s' given to 'ProviderBaseURL', unable to determine default port. Use 'Transports' for non-HTTP providers instead", url.Scheme)
 		}
 
-		handle.SetProviderInfo(v.Provider, url.Scheme, url.Host, uint16(port), url.Hostname())
+		// TODO: this actually needs to take the proxy address
+		handle.SetProviderInfo(v.Provider, url.Scheme, url.Hostname(), uint16(port), url.Path)
 
 		log.Println("[DEBUG] v.Transports", v.Transports)
 
 	}
+
+	handle.SetNoPactsIsError(v.FailIfNoPactsFound)
 
 	// normalise ProviderBaseURL to just another transport
 
@@ -280,17 +284,15 @@ type outputWriter interface {
 func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) error {
 	for _, transport := range v.Transports {
 		log.Println("[DEBUG] adding transport to verification", transport)
-		log.Println("Verify()")
-		log.Println(handle)
-		log.Println("*****")
 		handle.AddTransport(transport.Protocol, transport.Port, transport.Path, transport.Scheme)
+		// handle.AddTransport(transport.Protocol, transport.Port, "/", "http")
 	}
 
-	address := getHost(v.ProviderBaseURL)
-	port := getPort(v.ProviderBaseURL)
+	// address := getHost(v.ProviderBaseURL)
+	// port := getPort(v.ProviderBaseURL)
 
-	WaitForPort(port, "tcp", address, 10*time.Second,
-		fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
+	// WaitForPort(port, "tcp", address, 10*time.Second,
+	// 	fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
 
 	res := handle.Execute()
 	defer handle.Shutdown()

@@ -580,7 +580,7 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 }
 
 // NewInteraction initialises a new interaction for the current contract
-func (m *MockServer) CleanupPlugins(pluginName string, pluginVersion string) {
+func (m *MockServer) CleanupPlugins() {
 	C.pactffi_cleanup_plugins(m.pact.handle)
 }
 
