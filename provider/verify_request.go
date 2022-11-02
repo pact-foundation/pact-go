@@ -167,9 +167,9 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 
 	// TODO: review this
 	// We spin up our own transport for messages, but we need them defined for all others
-	// if len(v.Transports) == 0 && len(v.MessageHandlers) == 0 {
-	// 	return fmt.Errorf("one of 'Transports' or 'ProviderBaseURL' must be provided")
-	// }
+	if len(v.Transports) == 0 && len(v.MessageHandlers) == 0 && v.ProviderBaseURL == "" {
+		return fmt.Errorf("one of 'Transports' or 'ProviderBaseURL' must be provided")
+	}
 
 	filterDescription := valueOrFromEnvironment(v.FilterDescription, "PACT_DESCRIPTION")
 	filterState := valueOrFromEnvironment(v.FilterState, "PACT_PROVIDER_STATE")
@@ -177,11 +177,6 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 
 	if filterDescription != "" || filterState != "" || os.Getenv("PACT_PROVIDER_NO_STATE") != "" {
 		handle.SetFilterInfo(filterDescription, filterState, filterNoState)
-	}
-
-	// TODO: this also needs to take the proxyp address
-	if v.ProviderStatesSetupURL != "" {
-		handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
 	}
 
 	// TODO: support these
@@ -285,29 +280,16 @@ func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) err
 	for _, transport := range v.Transports {
 		log.Println("[DEBUG] adding transport to verification", transport)
 		handle.AddTransport(transport.Protocol, transport.Port, transport.Path, transport.Scheme)
-		// handle.AddTransport(transport.Protocol, transport.Port, "/", "http")
 	}
 
-	// address := getHost(v.ProviderBaseURL)
-	// port := getPort(v.ProviderBaseURL)
-
-	// WaitForPort(port, "tcp", address, 10*time.Second,
-	// 	fmt.Sprintf(`Timed out waiting for Provider API to start on port %d - are you sure it's running?`, port))
+	if v.ProviderStatesSetupURL != "" {
+		handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
+	}
 
 	res := handle.Execute()
 	defer handle.Shutdown()
 
 	return res
-}
-
-func (v *VerifyRequest) findTransportByScheme(scheme string) (*Transport, error) {
-	for _, transport := range v.Transports {
-		if strings.Index(strings.ToLower(transport.Scheme), scheme) == 0 {
-			return &transport, nil
-		}
-	}
-
-	return nil, nil
 }
 
 // Get a port given a URL

@@ -214,6 +214,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				log.Printf("[TRACE] message verification handler received request: %+s, %s", body, r.URL.Path)
 
 				if err != nil {
+					log.Printf("[ERROR] unable to parse message verification request: %s", err)
 					w.WriteHeader(http.StatusBadRequest)
 					return
 				}
@@ -221,6 +222,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				err = json.Unmarshal(body, &message)
 
 				if err != nil {
+					log.Printf("[ERROR] unable to parse message verification request: %s", err)
 					w.WriteHeader(http.StatusBadRequest)
 					return
 				}
@@ -238,6 +240,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				res, metadata, handlerErr := f(message.States)
 
 				if handlerErr != nil {
+					log.Printf("[ERROR] error executive message handler %s", err)
 					w.WriteHeader(http.StatusServiceUnavailable)
 					return
 				}

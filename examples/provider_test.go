@@ -30,7 +30,7 @@ func TestV3HTTPProvider(t *testing.T) {
 	// Start provider API in the background
 	go startServer()
 
-	verifier := provider.Verifier{}
+	verifier := provider.NewVerifier()
 
 	// Authorization middleware
 	// This is your chance to modify the request before it hits your provider
@@ -96,7 +96,7 @@ func TestV3MessageProvider(t *testing.T) {
 	log.SetLogLevel("TRACE")
 	var user *User
 
-	verifier := provider.Verifier{}
+	verifier := provider.NewVerifier()
 
 	// Map test descriptions to message producer (handlers)
 	functionMappings := message.Handlers{
