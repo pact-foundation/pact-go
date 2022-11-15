@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.0-beta.15 (16 November 2022)
+
+
 ### v2.0.0-beta.14 (28 June 2022)
 
 * [53fb79f](https://github.com/pact-foundation/pact-go/commit/53fb79f) Matt Fellows: refactor: more type name improvements/consistency/cleanup
