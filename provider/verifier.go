@@ -17,6 +17,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/message"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
+	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
 // Verifier is used to verify the provider side of an HTTP API contract
@@ -74,43 +75,26 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 		return err
 	}
 
+	// Check if a provider has been given. If none, start a dummy service to attach the proxy to
+	if request.ProviderBaseURL == "" {
+		log.Println("[DEBUG] setting up a dummy server for verification, as none was provided")
+		port, err := utils.GetFreePort()
+		if err != nil {
+			log.Panic("unable to allocate a port for verification:", err)
+		}
+		go v.startDefaultHTTPServer(port)
+
+		request.ProviderBaseURL = fmt.Sprintf("http://localhost:%d", port)
+	}
+
 	err = request.validate(v.handle)
 	if err != nil {
 		return err
 	}
 
-	// Get provider address
-
-	// t, err := request.findTransportByScheme("http")
-	// log.Println("[DEBUG] findTransportByScheme", t)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if t != nil {
 	u, err = url.Parse(request.ProviderBaseURL)
 	if err != nil {
 		log.Panic("unable to parse the provider URL", err)
-	}
-	// } else {
-	// TODO: don't actually need to do this? I think we can just attach to the proxy itself
-	// port, err := utils.GetFreePort()
-	// log.Println("[DEBUG] free port", port)
-	// if err != nil {
-	// 	log.Panic("unable to allocate a port for verification:", err)
-	// }
-
-	// u = url.URL{
-	// 	Host:   fmt.Sprintf("%s:%d", v.Hostname, port),
-	// 	Scheme: "http",
-	// }
-
-	// log.Println("[DEBUG] starting local http server on url", u)
-	// go v.startDefaultHTTPServer(port)
-	// }
-
-	if err != nil {
-		return err
 	}
 
 	m := []proxy.Middleware{}
