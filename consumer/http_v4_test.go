@@ -53,7 +53,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 		UponReceiving("some scenario").
 		UsingPlugin(PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.1.7",
+			Version: "0.1.14",
 		}).
 		WithRequest("GET", "/").
 		// WithRequest("GET", "/", func(b *V4InteractionWithPluginRequestBuilder) {

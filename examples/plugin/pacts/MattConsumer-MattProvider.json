@@ -1,0 +1,63 @@
+{
+  "consumer": {
+    "name": "MattConsumer"
+  },
+  "interactions": [
+    {
+      "description": "A request to do a matt",
+      "key": "c544877c9301bb17",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": "MATThelloMATT",
+          "contentType": "application/matt",
+          "contentTypeHint": "DEFAULT",
+          "encoded": false
+        },
+        "headers": {
+          "content-type": [
+            "application/matt"
+          ]
+        },
+        "method": "POST",
+        "path": "/matt"
+      },
+      "response": {
+        "body": {
+          "content": "MATTworldMATT",
+          "contentType": "application/matt",
+          "contentTypeHint": "DEFAULT",
+          "encoded": false
+        },
+        "headers": {
+          "content-type": [
+            "application/matt"
+          ]
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.3.13",
+      "mockserver": "0.9.4",
+      "models": "0.4.5"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    },
+    "plugins": [
+      {
+        "configuration": {},
+        "name": "matt",
+        "version": "0.0.1"
+      }
+    ]
+  },
+  "provider": {
+    "name": "MattProvider"
+  }
+}

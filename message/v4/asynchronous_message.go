@@ -14,12 +14,6 @@ import (
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
-// AsynchronousMessage is a representation of a single, unidirectional message
-// e.g. MQ, pub/sub, Websocket, Lambda
-// AsynchronousMessage is the main implementation of the Pact AsynchronousMessage interface.
-type AsynchronousMessage struct {
-}
-
 // Builder 1: Async with no plugin/transport
 // Builder 2: Async with plugin content no transport
 // Builder 3: Async with plugin content + transport
@@ -90,6 +84,24 @@ type AsynchronousMessageWithPluginContents struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
+func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m AsynchronousMessage) error) error {
+	message, err := getAsynchronousMessageWithReifiedContents(s.rootBuilder.messageHandle, s.rootBuilder.Type)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println()
+	err = integrationTest(message)
+
+	if err != nil {
+		return err
+	}
+
+	s.rootBuilder.pact.messageserver.CleanupPlugins()
+
+	return s.rootBuilder.pact.messageserver.WritePactFile(s.rootBuilder.pact.config.PactDir, false)
+}
+
 func (s *AsynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]interface{}) *AsynchronousMessageWithTransport {
 	port, err := s.rootBuilder.pact.messageserver.StartTransport(transport, address, 0, make(map[string][]interface{}))
 
@@ -111,12 +123,15 @@ type AsynchronousMessageWithTransport struct {
 	transport   TransportConfig
 }
 
-func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m SynchronousMessage) error) error {
-	message := SynchronousMessage{}
+func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m AsynchronousMessage) error) error {
+	message, err := getAsynchronousMessageWithReifiedContents(s.rootBuilder.messageHandle, s.rootBuilder.Type)
+	if err != nil {
+		return err
+	}
 
 	defer s.rootBuilder.pact.messageserver.CleanupMockServer(s.transport.Port)
 
-	err := integrationTest(s.transport, message)
+	err = integrationTest(s.transport, message)
 
 	if err != nil {
 		return err
@@ -144,18 +159,9 @@ type AsynchronousMessageWithContents struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// WithBinaryContent accepts a binary payload
-func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType string, body []byte) *AsynchronousMessageWithContents {
-	m.rootBuilder.messageHandle.WithContents(contentType, body)
-
-	return &AsynchronousMessageWithContents{
-		rootBuilder: m.rootBuilder,
-	}
-}
-
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string, body []byte) *AsynchronousMessageWithContents {
-	m.rootBuilder.messageHandle.WithContents(contentType, body)
+	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageWithContents{
 		rootBuilder: m.rootBuilder,
@@ -165,7 +171,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string,
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
 func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interface{}) *AsynchronousMessageWithContents {
-	m.rootBuilder.messageHandle.WithJSONContents(content)
+	m.rootBuilder.messageHandle.WithRequestJSONContents(content)
 
 	return &AsynchronousMessageWithContents{
 		rootBuilder: m.rootBuilder,
@@ -256,42 +262,15 @@ func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder 
 // VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable
 // interaction.
 //
-//
 // A Message Consumer is analagous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
 func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
 	log.Printf("[DEBUG] verify message")
 
-	// 1. Strip out the matchers
-	// Reify the message back to its "example/generated" form
-	body := messageToVerify.messageHandle.ReifyMessage()
-
-	log.Println("[DEBUG] reified message raw", body)
-
-	var m MessageContents
-	err := json.Unmarshal([]byte(body), &m)
+	m, err := getAsynchronousMessageWithReifiedContents(messageToVerify.messageHandle, messageToVerify.Type)
 	if err != nil {
-		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
-	}
-	log.Println("[DEBUG] unmarshalled into an AsynchronousMessage", m)
-
-	// 2. Convert to an actual type (to avoid wrapping if needed/requested)
-	// 3. Invoke the message handler
-	// 4. write the pact file
-	t := reflect.TypeOf(messageToVerify.Type)
-	if t != nil && t.Name() != "interface" {
-		s, err := json.Marshal(m.Content)
-		if err != nil {
-			return fmt.Errorf("unable to generate message for type: %+v", messageToVerify.Type)
-		}
-		err = json.Unmarshal(s, &messageToVerify.Type)
-
-		if err != nil {
-			return fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
-		}
-
-		m.Content = messageToVerify.Type
+		return err
 	}
 
 	// Yield message, and send through handler function
@@ -314,4 +293,51 @@ func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuil
 	}
 
 	return err
+}
+
+func getAsynchronousMessageWithContents(message *native.Message) (AsynchronousMessage, error) {
+	var m AsynchronousMessage
+
+	contents, err := message.GetMessageRequestContents()
+	if err != nil {
+		return m, err
+	}
+
+	return AsynchronousMessage{
+		Contents: contents,
+	}, nil
+}
+
+func getAsynchronousMessageWithReifiedContents(message *mockserver.Message, reifiedType interface{}) (AsynchronousMessage, error) {
+	var m AsynchronousMessage
+	var err error
+
+	m, err = getAsynchronousMessageWithContents(message)
+	if err != nil {
+		return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %v", err)
+	}
+	log.Println("[DEBUG] reified body raw", string(m.Contents))
+
+	// // 1. Strip out the matchers
+	// // Reify the message back to its "example/generated" form
+	// body, err := message.GetMessageRequestContents()
+	// if err != nil {
+	// 	return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %v", err)
+	// }
+
+	log.Println("[DEBUG] unmarshalled into an AsynchronousMessage", m)
+
+	// 2. Convert to an actual type (to avoid wrapping if needed/requested)
+	t := reflect.TypeOf(reifiedType)
+	if t != nil && t.Name() != "interface" {
+		err = json.Unmarshal(m.Contents, &reifiedType)
+
+		if err != nil {
+			return m, fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
+		}
+
+		m.Body = reifiedType
+	}
+
+	return m, err
 }

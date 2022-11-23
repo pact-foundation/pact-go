@@ -2090,7 +2090,8 @@ bool pactffi_given_with_param(InteractionHandle interaction,
  * ```c
  * const char* value = "{\"value\":\"/path/to/100\", \"pact:matcher:type\":\"regex\", \"regex\":\"\\/path\\/to\\/\\\\d+\"}";
  * pactffi_with_request(handle, "GET", value);
- *
+ * ```
+ * See [IntegrationJson.md](https://github.com/pact-foundation/pact-reference/blob/master/rust/pact_ffi/IntegrationJson.md)
  */
 bool pactffi_with_request(InteractionHandle interaction,
                           const char *method,
@@ -2141,6 +2142,7 @@ bool pactffi_with_query_parameter(InteractionHandle interaction,
  * const char* value = "{\"value\":\"2\", \"pact:matcher:type\":\"regex\", \"regex\":\"\\\\d+\"}";
  * pactffi_with_query_parameter_v2(handle, "id", 0, value);
  * ```
+ * See [IntegrationJson.md](https://github.com/pact-foundation/pact-reference/blob/master/rust/pact_ffi/IntegrationJson.md)
  *
  * # Safety
  * The name and value parameters must be valid pointers to NULL terminated strings.
@@ -2223,6 +2225,7 @@ bool pactffi_with_header(InteractionHandle interaction,
  * const char* value = "{\"value\":\"2\", \"pact:matcher:type\":\"regex\", \"regex\":\"\\\\d+\"}";
  * pactffi_with_header_v2(handle, InteractionPart::Request, "id", 0, value);
  * ```
+ * See [IntegrationJson.md](https://github.com/pact-foundation/pact-reference/blob/master/rust/pact_ffi/IntegrationJson.md)
  *
  * # Safety
  * The name and value parameters must be valid pointers to NULL terminated strings.
@@ -2248,7 +2251,8 @@ bool pactffi_response_status(InteractionHandle interaction, unsigned short statu
  * * `part` - The part of the interaction to add the body to (Request or Response).
  * * `content_type` - The content type of the body. Defaults to `text/plain`. Will be ignored if a content type
  *   header is already set.
- * * `body` - The body contents. For JSON payloads, matching rules can be embedded in the body.
+ * * `body` - The body contents. For JSON payloads, matching rules can be embedded in the body. See
+ * [IntegrationJson.md](https://github.com/pact-foundation/pact-reference/blob/master/rust/pact_ffi/IntegrationJson.md)
  *
  * For HTTP and async message interactions, this will overwrite the body. With asynchronous messages, the
  * part parameter will be ignored. With synchronous messages, the request contents will be overwritten,
@@ -2643,6 +2647,26 @@ void pactffi_verifier_set_provider_info(struct VerifierHandle *handle,
                                         const char *path);
 
 /**
+ * Adds a new transport for the given provider. Passing a NULL for any field will
+ * use the default value for that field.
+ *
+ * For non-plugin based message interactions, set protocol to "message" and set scheme
+ * to an empty string or "https" if secure HTTP is required. Communication to the calling
+ * application will be over HTTP to the default provider hostname.
+ *
+ * # Safety
+ *
+ * All string fields must contain valid UTF-8. Invalid UTF-8
+ * will be replaced with U+FFFD REPLACEMENT CHARACTER.
+ *
+ */
+void pactffi_verifier_add_provider_transport(struct VerifierHandle *handle,
+                                             const char *protocol,
+                                             unsigned short port,
+                                             const char *path,
+                                             const char *scheme);
+
+/**
  * Set the filters for the Pact verifier.
  *
  * If `filter_description` is not empty, it needs to be as a regular expression.
@@ -2661,10 +2685,14 @@ void pactffi_verifier_set_filter_info(struct VerifierHandle *handle,
                                       unsigned char filter_no_state);
 
 /**
- * Set the provider state for the Pact verifier.
+ * Set the provider state URL for the Pact verifier.
  *
- * `teardown` is a boolean value. Set it to greater than zero to turn the option on.
- * `body` is a boolean value. Set it to greater than zero to turn the option on.
+ * `teardown` is a boolean value. If teardown state change requests should be made after an
+ * interaction is validated (default is false). Set it to greater than zero to turn the
+ * option on.
+ * `body` is a boolean value. Sets if state change request data should be sent in the body
+ * (> 0, true) or as query parameters (== 0, false). Set it to greater than zero to turn the
+ * option on.
  *
  * # Safety
  *
@@ -2705,6 +2733,19 @@ int pactffi_verifier_set_verification_options(struct VerifierHandle *handle,
  */
 int pactffi_verifier_set_coloured_output(struct VerifierHandle *handle,
                                          unsigned char coloured_output);
+
+/**
+ * Enables or disables if no pacts are found to verify results in an error.
+ *
+ * `is_error` is a boolean value. Set it to greater than zero to enable an error when no pacts
+ * are found to verify, and set it to zero to disable this.
+ *
+ * # Safety
+ *
+ * This function is safe as long as the handle pointer points to a valid handle.
+ *
+ */
+int pactffi_verifier_set_no_pacts_is_error(struct VerifierHandle *handle, unsigned char is_error);
 
 /**
  * Set the options used when publishing verification results to the Pact Broker

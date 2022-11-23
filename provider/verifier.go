@@ -12,42 +12,89 @@ import (
 	"testing"
 	"time"
 
-	native "github.com/pact-foundation/pact-go/v2/internal/native"
+	"github.com/pact-foundation/pact-go/v2/command"
+	"github.com/pact-foundation/pact-go/v2/internal/native"
+	"github.com/pact-foundation/pact-go/v2/message"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
+	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
-// HTTPVerifier is used to verify the provider side of an HTTP API contract
-type HTTPVerifier struct {
+// Verifier is used to verify the provider side of an HTTP API contract
+type Verifier struct {
 	// ClientTimeout specifies how long to wait for Pact CLI to start
 	// Can be increased to reduce likelihood of intermittent failure
 	// Defaults to 10s
 	ClientTimeout time.Duration
+
+	// Hostname to run any
+	Hostname string
+
+	handle *native.Verifier
 }
 
-func (v *HTTPVerifier) validateConfig() error {
+func NewVerifier() *Verifier {
+	native.Init()
+
+	return &Verifier{
+		handle: native.NewVerifier("pact-go", command.Version),
+	}
+
+}
+
+func (v *Verifier) validateConfig() error {
 	if v.ClientTimeout == 0 {
 		v.ClientTimeout = 10 * time.Second
 	}
+	if v.Hostname == "" {
+		v.Hostname = "localhost"
+	}
 
 	return nil
+}
+
+// If no HTTP server is given, we must start one up in order
+// to provide a target for state changes etc.
+func (v *Verifier) startDefaultHTTPServer(port int) {
+	mux := http.NewServeMux()
+
+	http.ListenAndServe(fmt.Sprintf("%s:%d", v.Hostname, port), mux)
 }
 
 // VerifyProviderRaw reads the provided pact files and runs verification against
 // a running Provider API, providing raw response from the Verification process.
 //
 // Order of events: BeforeEach, stateHandlers, requestFilter(pre <execute provider> post), AfterEach
-func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWriter) error {
-	err := v.validateConfig()
+func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter) error {
 
+	// proxy target
+	var u *url.URL
+
+	err := v.validateConfig()
 	if err != nil {
 		return err
 	}
 
-	u, err := url.Parse(request.ProviderBaseURL)
+	// Check if a provider has been given. If none, start a dummy service to attach the proxy to
+	if request.ProviderBaseURL == "" {
+		log.Println("[DEBUG] setting up a dummy server for verification, as none was provided")
+		port, err := utils.GetFreePort()
+		if err != nil {
+			log.Panic("unable to allocate a port for verification:", err)
+		}
+		go v.startDefaultHTTPServer(port)
 
+		request.ProviderBaseURL = fmt.Sprintf("http://localhost:%d", port)
+	}
+
+	err = request.validate(v.handle)
 	if err != nil {
 		return err
+	}
+
+	u, err = url.Parse(request.ProviderBaseURL)
+	if err != nil {
+		log.Panic("unable to parse the provider URL", err)
 	}
 
 	m := []proxy.Middleware{}
@@ -62,6 +109,10 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 
 	if len(request.StateHandlers) > 0 {
 		m = append(m, stateHandlerMiddleware(request.StateHandlers))
+	}
+
+	if len(request.MessageHandlers) > 0 {
+		m = append(m, message.CreateMessageHandler(request.MessageHandlers))
 	}
 
 	if request.RequestFilter != nil {
@@ -84,35 +135,25 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 	// and error. The object will be marshalled to JSON for comparison.
 	port, err := proxy.HTTPReverseProxy(opts)
 
-	// Backwards compatibility, setup old provider states URL if given
-	// Otherwise point to proxy
-	setupURL := request.ProviderStatesSetupURL
-	if request.ProviderStatesSetupURL == "" && len(request.StateHandlers) > 0 {
-		setupURL = fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath)
+	// Modify any existing HTTP target to the proxy instead
+	// if t != nil {
+	// 	t.Port = uint16(getPort(u.Port()))
+	// }
+
+	// Add any message targets
+	// TODO: properly parameterise these magic strings
+	if len(request.MessageHandlers) > 0 {
+		request.Transports = append(request.Transports, Transport{
+			Path:     "/__messages",
+			Protocol: "message",
+			Port:     uint16(port),
+		})
 	}
 
-	// Construct verifier request
-	verificationRequest := VerifyRequest{
-		ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", port),
-		PactURLs:                   request.PactURLs,
-		PactFiles:                  request.PactFiles,
-		PactDirs:                   request.PactDirs,
-		BrokerURL:                  request.BrokerURL,
-		Tags:                       request.Tags,
-		BrokerUsername:             request.BrokerUsername,
-		BrokerPassword:             request.BrokerPassword,
-		BrokerToken:                request.BrokerToken,
-		PublishVerificationResults: request.PublishVerificationResults,
-		ProviderVersion:            request.ProviderVersion,
-		Provider:                   request.Provider,
-		ProviderStatesSetupURL:     setupURL,
-		ProviderTags:               request.ProviderTags,
-		ProviderBranch:             request.ProviderBranch,
-		// CustomProviderHeaders:      request.CustomProviderHeaders,
-		ConsumerVersionSelectors: request.ConsumerVersionSelectors,
-		EnablePending:            request.EnablePending,
-		FailIfNoPactsFound:       request.FailIfNoPactsFound,
-		IncludeWIPPactsSince:     request.IncludeWIPPactsSince,
+	// Backwards compatibility, setup old provider states URL if given
+	// Otherwise point to proxy
+	if request.ProviderStatesSetupURL == "" && len(request.StateHandlers) > 0 {
+		request.ProviderStatesSetupURL = fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath)
 	}
 
 	portErr := WaitForPort(port, "tcp", "localhost", v.ClientTimeout,
@@ -124,15 +165,14 @@ func (v *HTTPVerifier) verifyProviderRaw(request VerifyRequest, writer outputWri
 	}
 
 	log.Println("[DEBUG] pact provider verification")
-	native.Init()
 
-	return verificationRequest.Verify(writer)
+	return request.Verify(v.handle, writer)
 }
 
 // VerifyProvider accepts an instance of `*testing.T`
 // running the provider verification with granular test reporting and
 // automatic failure reporting for nice, simple tests.
-func (v *HTTPVerifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
+func (v *Verifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
 	err := v.verifyProviderRaw(request, t)
 
 	// TODO: granular test reporting

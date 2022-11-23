@@ -75,7 +75,7 @@ type AsynchronousMessageBuilderWithContents struct {
 
 // WithBinaryContent accepts a binary payload
 func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithContents(contentType, body)
+	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,
@@ -84,7 +84,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType s
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithContents(contentType, body)
+	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,
@@ -94,7 +94,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string,
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
 func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interface{}) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithJSONContents(content)
+	m.rootBuilder.messageHandle.WithRequestJSONContents(content)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,
@@ -199,27 +199,31 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 
 	// 1. Strip out the matchers
 	// Reify the message back to its "example/generated" form
-	body := messageToVerify.messageHandle.ReifyMessage()
+	body, err := messageToVerify.messageHandle.GetMessageRequestContents()
+	log.Println("[DEBUG] reified message raw", body)
+	if err != nil {
+		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
+	}
 
 	log.Println("[DEBUG] reified message raw", body)
 
 	var m MessageContents
-	err := json.Unmarshal([]byte(body), &m)
-	if err != nil {
-		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
-	}
-	log.Println("[DEBUG] unmarshalled into an AsynchronousMessage", m)
+	// err = json.Unmarshal(body, &m)
+	// if err != nil {
+	// 	return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
+	// }
+	// log.Println("[DEBUG] unmarshalled into an AsynchronousMessage", m)
 
 	// 2. Convert to an actual type (to avoid wrapping if needed/requested)
 	// 3. Invoke the message handler
 	// 4. write the pact file
 	t := reflect.TypeOf(messageToVerify.Type)
 	if t != nil && t.Name() != "interface" {
-		s, err := json.Marshal(m.Content)
-		if err != nil {
-			return fmt.Errorf("unable to generate message for type: %+v", messageToVerify.Type)
-		}
-		err = json.Unmarshal(s, &messageToVerify.Type)
+		// s, err := json.Marshal()
+		// if err != nil {
+		// 	return fmt.Errorf("unable to generate message for type: %+v", messageToVerify.Type)
+		// }
+		err = json.Unmarshal(body, &messageToVerify.Type)
 
 		if err != nil {
 			return fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
@@ -227,6 +231,9 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 
 		m.Content = messageToVerify.Type
 	}
+
+	// TODO: extract metadata from FFI
+	// m.Metadata =
 
 	// Yield message, and send through handler function
 	err = handler(m)

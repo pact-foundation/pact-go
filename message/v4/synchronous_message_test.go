@@ -67,16 +67,22 @@ func TestSyncTypeSystem(t *testing.T) {
 
 	// Sync - with plugin, but no transport
 	csvInteraction := `{
-		"request.path", "/reports/report002.csv",
-		"response.status", "200",
+		"request.path": "/reports/report002.csv",
+		"response.status": "200",
 		"response.contents": {
-			"pact:content-type": "text/csv",                               // Set the content type to CSV
-			"csvHeaders": true,                                            // We have a header row
-			"column:Name": "matching(type,'Name')",                        // Column with header Name must match by type (which is actually useless with CSV)
-			"column:Number", "matching(number,100)",                       // Column with header Number must match a number format
-			"column:Date", "matching(datetime, 'yyyy-MM-dd','2000-01-01')" // Column with header Date must match an ISO format yyyy-MM-dd
+			"pact:content-type": "text/csv",
+			"csvHeaders": true,
+			"column:Name": "matching(type,'Name')",
+			"column:Number": "matching(number,100)",
+			"column:Date": "matching(datetime, 'yyyy-MM-dd','2000-01-01')"
 		}
 	}`
+
+	p, _ = NewSynchronousPact(Config{
+		Consumer: "consumer",
+		Provider: "provider",
+		PactDir:  "/tmp/",
+	})
 	p.AddSynchronousMessage("some description").
 		Given("some state").
 		UsingPlugin(PluginConfig{
@@ -89,12 +95,17 @@ func TestSyncTypeSystem(t *testing.T) {
 			return nil
 		})
 
+	p, _ = NewSynchronousPact(Config{
+		Consumer: "consumer",
+		Provider: "provider",
+		PactDir:  "/tmp/",
+	})
 	// Sync - with plugin + transport (pass)
 	err := p.AddSynchronousMessage("some description").
 		Given("some state").
 		UsingPlugin(PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.1.7",
+			Version: "0.1.14",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
@@ -106,12 +117,18 @@ func TestSyncTypeSystem(t *testing.T) {
 
 	assert.NoError(t, err)
 
+	p, _ = NewSynchronousPact(Config{
+		Consumer: "consumer",
+		Provider: "provider",
+		PactDir:  "/tmp/",
+	})
+
 	// Sync - with plugin + transport (fail)
 	err = p.AddSynchronousMessage("some description").
 		Given("some state").
 		UsingPlugin(PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.1.7",
+			Version: "0.1.14",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional

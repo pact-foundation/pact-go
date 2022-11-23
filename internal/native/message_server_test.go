@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	context "context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/v2/log"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/assert"
 	grpc "google.golang.org/grpc"
@@ -34,17 +34,12 @@ func TestHandleBasedMessageTestsWithString(t *testing.T) {
 		WithMetadata(map[string]string{
 			"meta": "data",
 		}).
-		WithContents("text/plain", []byte("some string"))
+		WithContents(INTERACTION_PART_REQUEST, "text/plain", []byte("some string"))
 
-	body := m.ReifyMessage()
+	body, err := m.GetMessageRequestContents()
 
-	var res jsonMessage
-	err = json.Unmarshal([]byte(body), &res)
 	assert.NoError(t, err)
-
-	assert.Equal(t, res.Description, "some message")
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
+	assert.Equal(t, "some string", string(body))
 
 	// This is where you would invoke the real function with the message
 
@@ -66,20 +61,19 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 		WithMetadata(map[string]string{
 			"meta": "data",
 		}).
-		WithJSONContents(map[string]string{
+		WithRequestJSONContents(map[string]string{
 			"some": "json",
 		})
 
-	body := m.ReifyMessage()
-	l.Println(body) // TODO: JSON is not stringified - probably should be?
-
-	var res jsonMessage
-	err = json.Unmarshal([]byte(body), &res)
+	body, err := m.GetMessageRequestContents()
 	assert.NoError(t, err)
 
-	assert.Equal(t, res.Description, "some message")
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
+	var res struct {
+		Some string `json:"some"`
+	}
+	err = json.Unmarshal(body, &res)
+	assert.NoError(t, err)
+	assert.Equal(t, "json", res.Some)
 
 	// This is where you would invoke the real function with the message
 
@@ -114,32 +108,168 @@ func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
 		WithMetadata(map[string]string{
 			"meta": "data",
 		}).
-		WithBinaryContents(buf.Bytes())
+		WithRequestBinaryContentType("application/gzip", buf.Bytes())
 
-	body := m.ReifyMessage()
-
-	// Check the reified message is good
-
-	var res binaryMessage
-	err = json.Unmarshal([]byte(body), &res)
+	body, err := m.GetMessageRequestContents()
 	assert.NoError(t, err)
 
 	// Extract binary payload, base 64 decode it, unzip it
-	data, err := base64.RawStdEncoding.DecodeString(res.Contents)
-	assert.NoError(t, err)
-	r, err := gzip.NewReader(bytes.NewReader(data))
+	r, err := gzip.NewReader(bytes.NewReader(body))
 	assert.NoError(t, err)
 	result, _ := ioutil.ReadAll(r)
 
 	assert.Equal(t, encodedMessage, string(result))
-	assert.Equal(t, "some binary message", res.Description)
-	assert.Len(t, res.ProviderStates, 2)
-	assert.NotEmpty(t, res.Contents)
 
 	// This is where you would invoke the real function with the message...
 
 	err = s.WritePactFile(tmpPactFolder, false)
 	assert.NoError(t, err)
+}
+
+func TestGetAsyncMessageContentsAsBytes(t *testing.T) {
+	s := NewMessageServer("test-message-consumer", "test-message-provider")
+
+	m := s.NewMessage().
+		Given("some state").
+		GivenWithParameter("param", map[string]interface{}{
+			"foo": "bar",
+		}).
+		ExpectsToReceive("some message").
+		WithMetadata(map[string]string{
+			"meta": "data",
+		}).
+		WithRequestJSONContents(map[string]string{
+			"some": "json",
+		})
+
+	bytes, err := m.GetMessageRequestContents()
+	assert.NoError(t, err)
+	assert.NotNil(t, bytes)
+
+	// Should be able to convert back into the JSON structure
+	var v struct {
+		Some string `json:"some"`
+	}
+	json.Unmarshal(bytes, &v)
+	assert.Equal(t, "json", v.Some)
+}
+
+func TestGetSyncMessageContentsAsBytes(t *testing.T) {
+	s := NewMessageServer("test-message-consumer", "test-message-provider")
+
+	m := s.NewSyncMessageInteraction("").
+		Given("some state").
+		GivenWithParameter("param", map[string]interface{}{
+			"foo": "bar",
+		}).
+		ExpectsToReceive("some message").
+		WithMetadata(map[string]string{
+			"meta": "data",
+		}).
+		// WithResponseJSONContents(map[string]string{
+		// 	"some": "request",
+		// }).
+		WithResponseJSONContents(map[string]string{
+			"some": "response",
+		})
+
+	bytes, err := m.GetMessageResponseContents()
+	assert.NoError(t, err)
+	assert.NotNil(t, bytes)
+
+	// Should be able to convert back into the JSON structure
+	var v struct {
+		Some string `json:"some"`
+	}
+	json.Unmarshal(bytes[0], &v)
+	assert.Equal(t, "response", v.Some)
+}
+
+func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
+	m := NewMessageServer("test-message-consumer", "test-message-provider")
+
+	// Protobuf plugin test
+	m.UsingPlugin("protobuf", "0.1.14")
+
+	i := m.NewSyncMessageInteraction("grpc interaction")
+
+	dir, _ := os.Getwd()
+	path := fmt.Sprintf("%s/pact_plugin.proto", dir)
+
+	grpcInteraction := `{
+			"pact:proto": "` + path + `",
+			"pact:proto-service": "PactPlugin/InitPlugin",
+			"pact:content-type": "application/protobuf",
+			"request": {
+				"implementation": "notEmpty('pact-go-driver')",
+				"version": "matching(semver, '0.0.0')"
+			},
+			"response": {
+				"catalogue": [
+					{
+						"type": "INTERACTION",
+						"key": "test"
+					}
+				]
+			}
+		}`
+
+	i.
+		Given("plugin state").
+		// For gRPC interactions we prpvide the config once for both the request and response parts
+		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
+
+	bytes, err := i.GetMessageRequestContents()
+	assert.NoError(t, err)
+	assert.NotNil(t, bytes)
+
+	// Should be able to convert request body back into a protobuf
+	p := &InitPluginRequest{}
+	proto.Unmarshal(bytes, p)
+	assert.Equal(t, "0.0.0", p.Version)
+
+	// Should be able to convert response into a protobuf
+	response, err := i.GetMessageResponseContents()
+	assert.NoError(t, err)
+	assert.NotNil(t, bytes)
+	r := &InitPluginResponse{}
+	proto.Unmarshal(response[0], r)
+	assert.Equal(t, "test", r.Catalogue[0].Key)
+
+}
+
+func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
+	m := NewMessageServer("test-message-consumer", "test-message-provider")
+
+	// Protobuf plugin test
+	m.UsingPlugin("protobuf", "0.1.14")
+
+	i := m.NewAsyncMessageInteraction("grpc interaction")
+
+	dir, _ := os.Getwd()
+	path := fmt.Sprintf("%s/pact_plugin.proto", dir)
+
+	protobufInteraction := `{
+			"pact:proto": "` + path + `",
+			"pact:message-type": "InitPluginRequest",
+			"pact:content-type": "application/protobuf",
+			"implementation": "notEmpty('pact-go-driver')",
+			"version": "matching(semver, '0.0.0')"
+		}`
+
+	i.
+		Given("plugin state").
+		// For gRPC interactions we prpvide the config once for both the request and response parts
+		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", protobufInteraction)
+
+	bytes, err := i.GetMessageRequestContents()
+	assert.NoError(t, err)
+	assert.NotNil(t, bytes)
+
+	// Should be able to convert body back into a protobuf
+	p := &InitPluginRequest{}
+	proto.Unmarshal(bytes, p)
+	assert.Equal(t, "0.0.0", p.Version)
 }
 
 type binaryMessage struct {
@@ -163,11 +293,9 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	log.SetLogLevel("TRACE")
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
-	// m := NewPact("test-grpc-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test
-	m.UsingPlugin("protobuf", "0.1.7")
-	// m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
+	m.UsingPlugin("protobuf", "0.1.14")
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
@@ -180,7 +308,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 			"pact:content-type": "application/protobuf",
 			"request": {
 				"implementation": "notEmpty('pact-go-driver')",
-				"version": "matching(semver, '0.0.0')"	
+				"version": "matching(semver, '0.0.0')"
 			},
 			"response": {
 				"catalogue": [

@@ -23,8 +23,11 @@ type SynchronousPact struct {
 type SynchronousMessage struct {
 	// TODO: should we pass this in? Probably need to be able to reify the message
 	//       in these cases
-	// Request  MessageContents
-	// Response []MessageContents
+	Request MessageContents
+
+	// Currently only support a single response, but support may be added for multiple
+	// responses to be given in the future
+	Response []MessageContents
 }
 
 // SynchronousMessageBuilder is a representation of a single, bidirectional message
@@ -109,16 +112,9 @@ func (m *SynchronousMessageWithRequestBuilder) WithMetadata(metadata map[string]
 	return m
 }
 
-// WithBinaryContent accepts a binary payload
-func (m *SynchronousMessageWithRequestBuilder) WithBinaryContent(contentType string, body []byte) *SynchronousMessageWithRequestBuilder {
-	m.messageHandle.WithContents(contentType, body)
-
-	return m
-}
-
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *SynchronousMessageWithRequestBuilder) WithContent(contentType string, body []byte) *SynchronousMessageWithRequestBuilder {
-	m.messageHandle.WithContents(contentType, body)
+	m.messageHandle.WithContents(native.INTERACTION_PART_REQUEST, contentType, body)
 
 	return m
 }
@@ -126,7 +122,7 @@ func (m *SynchronousMessageWithRequestBuilder) WithContent(contentType string, b
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
 func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithRequestBuilder {
-	m.messageHandle.WithJSONContents(content)
+	m.messageHandle.WithRequestJSONContents(content)
 
 	return m
 }
@@ -165,16 +161,10 @@ func (m *SynchronousMessageWithResponseBuilder) WithMetadata(metadata map[string
 	return m
 }
 
-// WithBinaryContent accepts a binary payload
-func (m *SynchronousMessageWithResponseBuilder) WithBinaryContent(contentType string, body []byte) *SynchronousMessageWithResponseBuilder {
-	m.messageHandle.WithContents(contentType, body)
-
-	return m
-}
-
 // WithContent specifies the payload in bytes that the consumer expects to receive
+// May be called multiple times, with each call appeding a new response to the interaction
 func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, body []byte) *SynchronousMessageWithResponseBuilder {
-	m.messageHandle.WithContents(contentType, body)
+	m.messageHandle.WithContents(native.INTERACTION_PART_RESPONSE, contentType, body)
 
 	return m
 }
@@ -182,7 +172,7 @@ func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed
 func (m *SynchronousMessageWithResponseBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithResponseBuilder {
-	m.messageHandle.WithJSONContents(content)
+	m.messageHandle.WithResponseJSONContents(content)
 
 	return m
 }
@@ -209,13 +199,13 @@ type SynchronousMessageWithPluginContents struct {
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
-// NOTE: currently, this function is not very useful because without a transport,
-//       there is no useful way to test your actual code (because the message isn't passed back in)
-//       Use at your own risk ;)
 func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m SynchronousMessage) error) error {
-	message := SynchronousMessage{}
+	message, err := getSynchronousMessageWithContents(m.messageHandle)
+	if err != nil {
+		return err
+	}
 
-	err := integrationTest(message)
+	err = integrationTest(message)
 
 	if err != nil {
 		return err
@@ -248,21 +238,28 @@ type SynchronousMessageWithTransport struct {
 }
 
 func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m SynchronousMessage) error) error {
-	message := SynchronousMessage{}
-
-	defer s.pact.mockserver.CleanupMockServer(s.transport.Port)
-
-	err := integrationTest(s.transport, message)
-
+	message, err := getSynchronousMessageWithContents(s.messageHandle)
 	if err != nil {
 		return err
 	}
 
+	defer s.pact.mockserver.CleanupMockServer(s.transport.Port)
+
+	err = integrationTest(s.transport, message)
+
+	// matched := s.pact.mockserver.MockServerMatched(s.transport.Port)
+	// log.Println("MATHED??????????", matched)
 	mismatches := s.pact.mockserver.MockServerMismatchedRequests(s.transport.Port)
 
 	if len(mismatches) > 0 {
 		return fmt.Errorf("pact validation failed: %+v", mismatches)
 	}
+
+	if err != nil {
+		return err
+	}
+
+	s.pact.mockserver.CleanupPlugins()
 
 	return s.pact.mockserver.WritePactFileForServer(s.transport.Port, s.pact.config.PactDir, false)
 }
@@ -316,13 +313,44 @@ func (m *SynchronousPact) AddSynchronousMessage(description string) *Unconfigure
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful
 func (m *SynchronousMessageWithResponse) ExecuteTest(t *testing.T, integrationTest func(md SynchronousMessage) error) error {
-	message := SynchronousMessage{}
+	message, err := getSynchronousMessageWithContents(m.messageHandle)
+	if err != nil {
+		return err
+	}
 
-	err := integrationTest(message)
+	err = integrationTest(message)
 
 	if err != nil {
 		return err
 	}
 
 	return m.pact.mockserver.WritePactFile(m.pact.config.PactDir, false)
+}
+
+func getSynchronousMessageWithContents(message *native.Message) (SynchronousMessage, error) {
+	var m SynchronousMessage
+
+	contents, err := message.GetMessageRequestContents()
+	if err != nil {
+		return m, err
+	}
+
+	responses, err := message.GetMessageResponseContents()
+	if err != nil {
+		return m, err
+	}
+
+	response := make([]MessageContents, len(responses))
+	for i, r := range responses {
+		response[i] = MessageContents{
+			Contents: r,
+		}
+	}
+
+	return SynchronousMessage{
+		Request: MessageContents{
+			Contents: contents,
+		},
+		Response: response,
+	}, nil
 }
