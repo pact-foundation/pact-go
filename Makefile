@@ -44,9 +44,9 @@ deps: download_plugins
 download_plugins:
 	@echo "--- 🐿  Installing plugins"; \
 	./scripts/install-cli.sh
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.1.14
+	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.2.0
 	~/.pact/bin/pact-plugin-cli -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-0.0.1
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.1
+	~/.pact/bin/pact-plugin-cli -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.3
 
 cli:
 	@if [ ! -d pact/bin ]; then\

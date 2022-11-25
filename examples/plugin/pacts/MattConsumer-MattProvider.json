@@ -42,14 +42,19 @@
   ],
   "metadata": {
     "pactRust": {
-      "ffi": "0.3.13",
-      "mockserver": "0.9.4",
-      "models": "0.4.5"
+      "ffi": "0.3.14",
+      "mockserver": "0.9.5",
+      "models": "1.0.0"
     },
     "pactSpecification": {
       "version": "4.0"
     },
     "plugins": [
+      {
+        "configuration": {},
+        "name": "matt",
+        "version": "0.0.2"
+      },
       {
         "configuration": {},
         "name": "matt",

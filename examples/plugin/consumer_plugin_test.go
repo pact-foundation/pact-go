@@ -22,8 +22,6 @@ import (
 )
 
 func TestHTTPPlugin(t *testing.T) {
-	log.SetLogLevel("TRACE")
-
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "MattConsumer",
 		Provider: "MattProvider",
