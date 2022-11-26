@@ -63,7 +63,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 		WillRespondWith(200, func(b *V4InteractionWithPluginResponseBuilder) {
 			b.
 				Header("Content-Type", S("application/protobufs")).
-				PluginContents("application/protobufs", "")
+				PluginContents("application/protobufs", "{}")
 		}).
 		ExecuteTest(t, func(msc MockServerConfig) error {
 			// <- normally run the actually test here.
