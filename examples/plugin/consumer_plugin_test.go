@@ -14,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
-	"github.com/pact-foundation/pact-go/v2/log"
 
 	// "github.com/pact-foundation/pact-go/v2/matchers"
 	message "github.com/pact-foundation/pact-go/v2/message/v4"

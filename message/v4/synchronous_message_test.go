@@ -115,7 +115,7 @@ func TestSyncTypeSystem(t *testing.T) {
 			return nil
 		})
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 
 	p, _ = NewSynchronousPact(Config{
 		Consumer: "consumer",
