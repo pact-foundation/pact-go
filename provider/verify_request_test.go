@@ -16,6 +16,7 @@ func TestVerifyRequestValidate(t *testing.T) {
 			name    string
 			request *VerifyRequest
 			err     bool
+			panic   bool
 		}{
 			{name: "valid parameters", request: &VerifyRequest{
 				PactURLs:               []string{"http://localhost:1234/path/to/pact"},
@@ -25,15 +26,21 @@ func TestVerifyRequestValidate(t *testing.T) {
 			}, err: false},
 			{name: "no base URL provided", request: &VerifyRequest{
 				PactURLs: []string{"http://localhost:1234/path/to/pact"},
-			}, err: true},
+			}, err: true, panic: true},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				err := tt.request.validate(handle)
-				if tt.err {
-					assert.Error(t, err)
+				if tt.panic {
+					assert.Panics(t, (func() {
+						tt.request.validate(handle)
+					}))
 				} else {
-					assert.NoError(t, err)
+					err := tt.request.validate(handle)
+					if tt.err {
+						assert.Error(t, err)
+					} else {
+						assert.NoError(t, err)
+					}
 				}
 			})
 		}
@@ -55,6 +62,7 @@ func TestVerifyRequestValidate(t *testing.T) {
 			}, err: true},
 			{name: "broker url without name/version", request: &VerifyRequest{
 				BrokerURL:       "http://localhost:1234",
+				ProviderBaseURL: "http://localhost:8080",
 				ProviderVersion: "1.0.0",
 				BrokerPassword:  "1234",
 			}, err: true},

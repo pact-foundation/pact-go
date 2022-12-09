@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/internal/native"
+	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
