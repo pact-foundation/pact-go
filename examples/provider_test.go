@@ -23,6 +23,9 @@ import (
 var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/pacts", dir)
 
+var requestFilterCalled = false
+var stateHandlerCalled = false
+
 func TestV3HTTPProvider(t *testing.T) {
 	log.SetLogLevel("TRACE")
 	version.CheckVersion()
@@ -39,6 +42,7 @@ func TestV3HTTPProvider(t *testing.T) {
 	f := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			l.Println("[DEBUG] HOOK request filter")
+			requestFilterCalled = true
 			r.Header.Add("Authorization", "Bearer 1234-dynamic-value")
 			next.ServeHTTP(w, r)
 		})
@@ -46,7 +50,7 @@ func TestV3HTTPProvider(t *testing.T) {
 
 	// Verify the Provider with local Pact Files
 	err := verifier.VerifyProvider(t, provider.VerifyRequest{
-		ProviderBaseURL: "http://localhost:8111",
+		ProviderBaseURL: "http://127.0.0.1:8111",
 		Provider:        "V3Provider",
 		ProviderVersion: os.Getenv("APP_SHA"),
 		BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
@@ -74,6 +78,7 @@ func TestV3HTTPProvider(t *testing.T) {
 		},
 		StateHandlers: models.StateHandlers{
 			"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+				stateHandlerCalled = true
 
 				if setup {
 					l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
@@ -90,6 +95,8 @@ func TestV3HTTPProvider(t *testing.T) {
 	})
 
 	assert.NoError(t, err)
+	assert.True(t, requestFilterCalled)
+	assert.True(t, stateHandlerCalled)
 }
 
 func TestV3MessageProvider(t *testing.T) {
@@ -177,7 +184,7 @@ func startServer() {
 		)
 	})
 
-	l.Fatal(http.ListenAndServe("localhost:8111", mux))
+	l.Fatal(http.ListenAndServe("127.0.0.1:8111", mux))
 }
 
 type User struct {
