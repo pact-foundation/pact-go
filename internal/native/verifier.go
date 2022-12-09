@@ -224,8 +224,6 @@ func (v *Verifier) SetPublishOptions(providerVersion string, buildUrl string, pr
 func (v *Verifier) Execute() error {
 	// TODO: Validate
 
-	// TODO: Execute calls in sequence
-
 	result := C.pactffi_verifier_execute(v.handle)
 
 	/// | Error | Description |

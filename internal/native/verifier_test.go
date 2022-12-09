@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	Init()
+	Init("INFO")
 }
 
 func TestVerifier_Version(t *testing.T) {
