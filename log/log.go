@@ -13,10 +13,10 @@ var defaultLogLevel = "INFO"
 
 const (
 	logLevelTrace logutils.LogLevel = "TRACE"
-	logLevelDebug                   = "DEBUG"
-	logLevelInfo                    = "INFO"
-	logLevelWarn                    = "WARN"
-	logLevelError                   = "ERROR"
+	logLevelDebug logutils.LogLevel = "DEBUG"
+	logLevelInfo  logutils.LogLevel = "INFO"
+	logLevelWarn  logutils.LogLevel = "WARN"
+	logLevelError logutils.LogLevel = "ERROR"
 )
 
 func InitLogging() {
@@ -28,22 +28,27 @@ func InitLogging() {
 		}
 		log.SetOutput(logFilter)
 		log.Println("[DEBUG] initialised logging")
+	} else {
+		log.Println("[WARN] log level cannot be set after initialising, changing will have no effect")
 	}
 }
 
-// TODO: fail/warn if this is changed at runtime
 // TODO: use the unified logging method to the FFI
 
 // SetLogLevel sets the default log level for the Pact framework
 func SetLogLevel(level logutils.LogLevel) error {
 	InitLogging()
-	switch level {
-	case logLevelTrace, logLevelDebug, logLevelError, logLevelInfo, logLevelWarn:
-		logFilter.SetMinLevel(level)
-		return nil
-	default:
-		return fmt.Errorf(`invalid logLevel '%s'. Please specify one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR"`, level)
+
+	if logFilter == nil {
+		switch level {
+		case logLevelTrace, logLevelDebug, logLevelError, logLevelInfo, logLevelWarn:
+			logFilter.SetMinLevel(level)
+			return nil
+		default:
+			return fmt.Errorf(`invalid logLevel '%s'. Please specify one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR"`, level)
+		}
 	}
+	return fmt.Errorf("log level ('%s') cannot be set to '%s' after initialisation", LogLevel(), level)
 }
 
 // LogLevel gets the current log level for the Pact framework
