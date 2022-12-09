@@ -38,6 +38,8 @@ void pactffi_message_with_metadata(InteractionHandle message, const char *key, c
 int pactffi_write_message_pact_file(PactHandle pact, const char *directory, bool overwrite);
 void pactffi_with_message_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
 int pactffi_write_pact_file(int mock_server_port, const char *directory, bool overwrite);
+bool pactffi_given(InteractionHandle interaction, const char *description);
+bool pactffi_given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
 
 int pactffi_using_plugin(PactHandle pact, const char *plugin_name, const char *plugin_version);
 void pactffi_cleanup_plugins(PactHandle pact);
@@ -196,8 +198,7 @@ func (m *Message) Given(state string) *Message {
 	cState := C.CString(state)
 	defer free(cState)
 
-	// TODO: should this be pactffi_given?
-	C.pactffi_message_given(m.handle, cState)
+	C.pactffi_given(m.handle, cState)
 
 	return m
 }
@@ -210,8 +211,7 @@ func (m *Message) GivenWithParameter(state string, params map[string]interface{}
 		cState := C.CString(state)
 		defer free(cState)
 
-		// TODO: should this be pactffi_given?
-		C.pactffi_message_given(m.handle, cState)
+		C.pactffi_given(m.handle, cState)
 	} else {
 		for k, v := range params {
 			cKey := C.CString(k)
@@ -220,8 +220,7 @@ func (m *Message) GivenWithParameter(state string, params map[string]interface{}
 			cValue := C.CString(param)
 			defer free(cValue)
 
-			// TODO: should this be pactffi_given_with_param?
-			C.pactffi_message_given_with_param(m.handle, cState, cKey, cValue)
+			C.pactffi_given_with_param(m.handle, cState, cKey, cValue)
 
 		}
 	}
