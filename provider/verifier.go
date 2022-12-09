@@ -14,6 +14,7 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
+	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/message"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
@@ -36,7 +37,7 @@ type Verifier struct {
 }
 
 func NewVerifier() *Verifier {
-	native.Init()
+	native.Init(string(logging.LogLevel()))
 
 	return &Verifier{
 		handle: native.NewVerifier("pact-go", command.Version),

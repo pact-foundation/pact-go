@@ -28,10 +28,6 @@ import (
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
-func init() {
-	logging.InitLogging()
-}
-
 // MockHTTPProviderConfig provides the configuration options for an HTTP mock server
 // consumer test.
 type MockHTTPProviderConfig struct {
@@ -124,7 +120,7 @@ func (p *httpMockProvider) configure() error {
 	case models.V4:
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	}
-	native.Init()
+	native.Init(string(logging.LogLevel()))
 
 	return nil
 }

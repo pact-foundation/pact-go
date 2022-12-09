@@ -170,7 +170,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
+	"strings"
 	"unsafe"
 )
 
@@ -210,11 +210,6 @@ const (
 
 var logLevelStringToInt = map[string]logLevel{
 	"OFF":   LOG_LEVEL_OFF,
-	"error": LOG_LEVEL_ERROR,
-	"warn":  LOG_LEVEL_WARN,
-	"info":  LOG_LEVEL_INFO,
-	"debug": LOG_LEVEL_DEBUG,
-	"trace": LOG_LEVEL_TRACE,
 	"ERROR": LOG_LEVEL_ERROR,
 	"WARN":  LOG_LEVEL_WARN,
 	"INFO":  LOG_LEVEL_INFO,
@@ -239,35 +234,30 @@ func Version() string {
 	return C.GoString(v)
 }
 
-var once = sync.Once{}
+var loggingInitialised string
 
 // Init initialises the library
-func Init() {
+func Init(logLevel string) {
 	log.Println("[DEBUG] initialising native interface")
+	logLevel = strings.ToUpper(logLevel)
 
-	once.Do(func() {
-		// Log to file if specified
-		pactLogLevel := os.Getenv("PACT_LOG_LEVEL")
-		logLevel := os.Getenv("LOG_LEVEL")
-
-		level := "INFO"
-		if pactLogLevel != "" {
-			level = pactLogLevel
-		} else if logLevel != "" {
-			level = logLevel
-		}
-
-		l, ok := logLevelStringToInt[level]
+	if loggingInitialised != "" {
+		log.Printf("log level ('%s') cannot be set to '%s' after initialisation\n", loggingInitialised, logLevel)
+	} else {
+		l, ok := logLevelStringToInt[logLevel]
 		if !ok {
 			l = LOG_LEVEL_INFO
 		}
+		log.Printf("[DEBUG] initialised native log level to %s (%d)", logLevel, l)
 
 		if os.Getenv("PACT_LOG_PATH") != "" {
+			log.Println("[DEBUG] initialised native log to log to file:", os.Getenv("PACT_LOG_PATH"))
 			logToFile(os.Getenv("PACT_LOG_PATH"), l)
 		} else {
+			log.Println("[DEBUG] initialised native log to log to stdout")
 			logToStdout(l)
 		}
-	})
+	}
 }
 
 // MockServer is the public interface for managing the HTTP mock server

@@ -279,7 +279,7 @@ func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 		return nil, err
 	}
 
-	native.Init()
+	native.Init(string(logging.LogLevel()))
 
 	return provider, err
 }
