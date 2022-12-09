@@ -75,7 +75,7 @@ func TestTCPInteraction(t *testing.T) {
 		ExecuteTest(t, func(transport message.TransportConfig, m message.SynchronousMessage) error {
 			fmt.Println("matt TCP transport running on", transport)
 
-			str, err := callMattServiceTCP(transport, "hellotcp!")
+			str, err := callMattServiceTCP(transport, "hellotcp")
 
 			assert.Equal(t, "tcpworld", str)
 			return err
