@@ -19,17 +19,25 @@ const (
 	logLevelError logutils.LogLevel = "ERROR"
 )
 
-func InitLogging() {
+func init() {
+	pactLogLevel := os.Getenv("PACT_LOG_LEVEL")
+	logLevel := os.Getenv("LOG_LEVEL")
+
+	level := defaultLogLevel
+	if pactLogLevel != "" {
+		level = pactLogLevel
+	} else if logLevel != "" {
+		level = logLevel
+	}
+
 	if logFilter == nil {
 		logFilter = &logutils.LevelFilter{
 			Levels:   []logutils.LogLevel{logLevelTrace, logLevelDebug, logLevelInfo, logLevelWarn, logLevelError},
-			MinLevel: logutils.LogLevel(defaultLogLevel),
+			MinLevel: logutils.LogLevel(level),
 			Writer:   os.Stderr,
 		}
 		log.SetOutput(logFilter)
 		log.Println("[DEBUG] initialised logging")
-	} else {
-		log.Println("[WARN] log level cannot be set after initialising, changing will have no effect")
 	}
 }
 
@@ -37,18 +45,13 @@ func InitLogging() {
 
 // SetLogLevel sets the default log level for the Pact framework
 func SetLogLevel(level logutils.LogLevel) error {
-	InitLogging()
-
-	if logFilter == nil {
-		switch level {
-		case logLevelTrace, logLevelDebug, logLevelError, logLevelInfo, logLevelWarn:
-			logFilter.SetMinLevel(level)
-			return nil
-		default:
-			return fmt.Errorf(`invalid logLevel '%s'. Please specify one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR"`, level)
-		}
+	switch level {
+	case logLevelTrace, logLevelDebug, logLevelError, logLevelInfo, logLevelWarn:
+		logFilter.SetMinLevel(level)
+		return nil
+	default:
+		return fmt.Errorf(`invalid logLevel '%s'. Please specify one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR"`, level)
 	}
-	return fmt.Errorf("log level ('%s') cannot be set to '%s' after initialisation", LogLevel(), level)
 }
 
 // LogLevel gets the current log level for the Pact framework
@@ -59,3 +62,26 @@ func LogLevel() logutils.LogLevel {
 
 	return logutils.LogLevel(defaultLogLevel)
 }
+
+func PactCrash(err error) {
+	log.Panicf(crashMessage, err.Error())
+}
+
+var crashMessage = `!!!!!!!!! PACT CRASHED !!!!!!!!!
+
+%s
+
+This is almost certainly a bug in Pact Go. It would be great if you could
+open a bug report at: https://github.com/pact-foundation/pact-go/issues
+so that we can fix it.
+
+There is additional debugging information above. If you open a bug report, 
+please rerun with SetLogLevel('trace') and include the
+full output.
+
+SECURITY WARNING: Before including your log in the issue tracker, make sure you
+have removed sensitive info such as login credentials and urls that you don't want
+to share with the world.
+
+We're sorry about this!
+`

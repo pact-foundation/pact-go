@@ -11,6 +11,7 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/internal/native"
 	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
+	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
@@ -148,7 +149,7 @@ func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
 		return nil, err
 	}
 
-	native.Init()
+	native.Init(string(logging.LogLevel()))
 
 	return provider, err
 }

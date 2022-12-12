@@ -289,7 +289,6 @@ type jsonMessage struct {
 func TestGrpcPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
-	log.InitLogging()
 	log.SetLogLevel("TRACE")
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")

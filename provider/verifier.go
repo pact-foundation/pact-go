@@ -14,11 +14,14 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
+	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/message"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
+
+const MESSAGE_PATH = "/__messages"
 
 // Verifier is used to verify the provider side of an HTTP API contract
 type Verifier struct {
@@ -34,7 +37,7 @@ type Verifier struct {
 }
 
 func NewVerifier() *Verifier {
-	native.Init()
+	native.Init(string(logging.LogLevel()))
 
 	return &Verifier{
 		handle: native.NewVerifier("pact-go", command.Version),
@@ -87,11 +90,6 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 		request.ProviderBaseURL = fmt.Sprintf("http://localhost:%d", port)
 	}
 
-	err = request.validate(v.handle)
-	if err != nil {
-		return err
-	}
-
 	u, err = url.Parse(request.ProviderBaseURL)
 	if err != nil {
 		log.Panic("unable to parse the provider URL", err)
@@ -135,16 +133,14 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 	// and error. The object will be marshalled to JSON for comparison.
 	port, err := proxy.HTTPReverseProxy(opts)
 
-	// Modify any existing HTTP target to the proxy instead
-	// if t != nil {
-	// 	t.Port = uint16(getPort(u.Port()))
-	// }
+	if err != nil {
+		return err
+	}
 
 	// Add any message targets
-	// TODO: properly parameterise these magic strings
 	if len(request.MessageHandlers) > 0 {
 		request.Transports = append(request.Transports, Transport{
-			Path:     "/__messages",
+			Path:     MESSAGE_PATH,
 			Protocol: "message",
 			Port:     uint16(port),
 		})
@@ -154,6 +150,14 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 	// Otherwise point to proxy
 	if request.ProviderStatesSetupURL == "" && len(request.StateHandlers) > 0 {
 		request.ProviderStatesSetupURL = fmt.Sprintf("http://localhost:%d%s", port, providerStatesSetupPath)
+	}
+
+	// Provider target should be the proxy
+	request.ProviderBaseURL = fmt.Sprintf("http://localhost:%d", port)
+
+	err = request.validate(v.handle)
+	if err != nil {
+		return err
 	}
 
 	portErr := WaitForPort(port, "tcp", "localhost", v.ClientTimeout,

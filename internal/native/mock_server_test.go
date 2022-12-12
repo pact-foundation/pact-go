@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	Init()
+	Init("")
 }
 
 func TestMockServer_CreateAndCleanupMockServer(t *testing.T) {

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pact-foundation/pact-go/v2/internal/native"
+	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/message"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
@@ -162,13 +163,21 @@ type VerifyRequest struct {
 func (v *VerifyRequest) validate(handle *native.Verifier) error {
 
 	if v.ProviderBaseURL == "" {
-		return fmt.Errorf("'ProviderBaseURL' must be provided")
-	}
+		logging.PactCrash(fmt.Errorf("ProviderBaseURL is a required field"))
+	} else {
+		url, err := url.Parse(v.ProviderBaseURL)
+		if err != nil {
+			return err
+		}
 
-	// TODO: review this
-	// We spin up our own transport for messages, but we need them defined for all others
-	if len(v.Transports) == 0 && len(v.MessageHandlers) == 0 && v.ProviderBaseURL == "" {
-		return fmt.Errorf("one of 'Transports' or 'ProviderBaseURL' must be provided")
+		port := getPort(v.ProviderBaseURL)
+		if port == -1 {
+			return fmt.Errorf("unknown scheme '%s' given to 'ProviderBaseURL', unable to determine default port. Use 'Transports' for non-HTTP providers instead", url.Scheme)
+		}
+
+		handle.SetProviderInfo(v.Provider, url.Scheme, url.Hostname(), uint16(port), url.Path)
+
+		log.Println("[DEBUG] v.Transports", v.Transports)
 	}
 
 	filterDescription := valueOrFromEnvironment(v.FilterDescription, "PACT_DESCRIPTION")
@@ -222,7 +231,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 		}
 	}
 
-	if v.BrokerURL != "" && (v.ProviderVersion == "" || v.Provider == "") {
+	if valueOrFromEnvironment(v.BrokerURL, "PACT_BROKER_URL") != "" && (v.ProviderVersion == "" || v.Provider == "") {
 		return errors.New("'ProviderVersion', and 'Provider' must be supplied if 'BrokerURL' given")
 	}
 
@@ -236,30 +245,10 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	}
 
 	if v.BrokerURL != "" && v.Provider != "" {
-		handle.BrokerSourceWithSelectors(v.BrokerURL, valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"), v.EnablePending, includeWIPPactsSince, v.ProviderTags, v.ProviderBranch, selectors, v.Tags)
-	}
-
-	if v.ProviderBaseURL != "" {
-		url, err := url.Parse(v.ProviderBaseURL)
-		if err != nil {
-			return err
-		}
-
-		port := getPort(v.ProviderBaseURL)
-		if port == -1 {
-			return fmt.Errorf("unknown scheme '%s' given to 'ProviderBaseURL', unable to determine default port. Use 'Transports' for non-HTTP providers instead", url.Scheme)
-		}
-
-		// TODO: this actually needs to take the proxy address
-		handle.SetProviderInfo(v.Provider, url.Scheme, url.Hostname(), uint16(port), url.Path)
-
-		log.Println("[DEBUG] v.Transports", v.Transports)
-
+		handle.BrokerSourceWithSelectors(valueOrFromEnvironment(v.BrokerURL, "PACT_BROKER_URL"), valueOrFromEnvironment(v.BrokerUsername, "PACT_BROKER_USERNAME"), valueOrFromEnvironment(v.BrokerPassword, "PACT_BROKER_PASSWORD"), valueOrFromEnvironment(v.BrokerToken, "PACT_BROKER_TOKEN"), v.EnablePending, includeWIPPactsSince, v.ProviderTags, v.ProviderBranch, selectors, v.Tags)
 	}
 
 	handle.SetNoPactsIsError(v.FailIfNoPactsFound)
-
-	// normalise ProviderBaseURL to just another transport
 
 	return nil
 }
