@@ -829,8 +829,18 @@ func stringFromInterface(obj interface{}) string {
 		if err != nil {
 			panic(fmt.Sprintln("unable to marshal body to JSON:", err))
 		}
-		return string(bytes)
+		return quotedString(string(bytes))
 	}
+}
+
+// This fixes a quirk where certain "matchers" (e.g. matchers.S/String) are
+// really just strings. However, whene we JSON encode them they get wrapped in quotes
+// and the rust core sees them as plain strings, requiring then the quotes to be matched
+func quotedString(s string) string {
+	if s[0] == '"' && s[len(s)-1] == '"' {
+		return s[1 : len(s)-1]
+	}
+	return s
 }
 
 // Experimental logging options

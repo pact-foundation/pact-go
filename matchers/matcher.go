@@ -209,13 +209,7 @@ func (s S) string() string {
 }
 
 func (s S) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Value string `json:"value"`
-		Type  string `json:"pact:matcher:type"`
-	}{
-		Value: s.string(),
-		Type:  "dummy",
-	})
+	return json.Marshal(s.string())
 }
 
 // String is the longer named form of the string primitive wrapper,
@@ -235,13 +229,7 @@ func (s String) string() string {
 }
 
 func (s String) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Value string `json:"value"`
-		Type  string `json:"pact:matcher:type"`
-	}{
-		Value: s.string(),
-		Type:  "dummy",
-	})
+	return json.Marshal(s.string())
 }
 
 // StructMatcher matches a complex object structure, which may itself
