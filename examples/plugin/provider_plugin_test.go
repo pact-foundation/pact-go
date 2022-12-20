@@ -18,6 +18,7 @@ import (
 	"log"
 
 	"github.com/pact-foundation/pact-go/v2/provider"
+	"github.com/pact-foundation/pact-go/v2/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,15 +26,18 @@ var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/pacts", dir)
 
 func TestPluginProvider(t *testing.T) {
+	httpPort, _ := utils.GetFreePort()
+	tcpPort, _ := utils.GetFreePort()
+
 	// Start provider API in the background
-	go startHTTPProvider()
-	go startTCPServer(8444)
+	go startHTTPProvider(httpPort)
+	go startTCPServer(tcpPort)
 
 	verifier := provider.NewVerifier()
 
 	// Verify the Provider with local Pact Files
 	err := verifier.VerifyProvider(t, provider.VerifyRequest{
-		ProviderBaseURL: "http://localhost:8333",
+		ProviderBaseURL: fmt.Sprintf("http://127.0.0.1:%d", httpPort),
 		Provider:        "provider",
 		PactFiles: []string{
 			filepath.ToSlash(fmt.Sprintf("%s/MattConsumer-MattProvider.json", pactDir)),
@@ -42,7 +46,7 @@ func TestPluginProvider(t *testing.T) {
 		Transports: []provider.Transport{
 			provider.Transport{
 				Protocol: "matt",
-				Port:     8444,
+				Port:     uint16(tcpPort),
 				Scheme:   "tcp",
 			},
 		},
@@ -51,7 +55,7 @@ func TestPluginProvider(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func startHTTPProvider() {
+func startHTTPProvider(port int) {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/matt", func(w http.ResponseWriter, req *http.Request) {
@@ -60,7 +64,8 @@ func startHTTPProvider() {
 		w.WriteHeader(200)
 	})
 
-	log.Fatal(http.ListenAndServe("localhost:8333", mux))
+	log.Printf("started HTTP server on port:", port, "\n")
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), mux))
 }
 
 func startTCPServer(port int) {
