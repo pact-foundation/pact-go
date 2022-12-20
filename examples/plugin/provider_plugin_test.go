@@ -64,7 +64,7 @@ func startHTTPProvider(port int) {
 		w.WriteHeader(200)
 	})
 
-	log.Printf("started HTTP server on port:", port, "\n")
+	log.Printf("started HTTP server on port: %d\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), mux))
 }
 
