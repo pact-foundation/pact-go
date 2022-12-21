@@ -9,7 +9,7 @@ env:
   APP_REF: ${{ github.ref }}
   LD_LIBRARY_PATH: /tmp
   PACT_GO_LIB_DOWNLOAD_PATH: /tmp
-  LOG_LEVEL: error
+  LOG_LEVEL: trace
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
