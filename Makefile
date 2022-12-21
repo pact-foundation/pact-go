@@ -5,7 +5,7 @@ TEST?=./...
 DOCKER_HOST_HTTP?="http://host.docker.internal"
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
 
-ci:: docker deps clean bin test pact
+ci:: deps clean bin test pact
 
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
@@ -58,7 +58,7 @@ install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
 	./build/pact-go	 -l DEBUG install --libDir /tmp
 
-pact: clean install docker
+pact: clean install
 	@echo "--- 🔨 Running Pact examples"
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/... -run TestHTTPPlugin
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/... -run TestTCPInteraction
