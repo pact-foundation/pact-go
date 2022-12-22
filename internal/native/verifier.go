@@ -67,7 +67,7 @@ func (v *Verifier) Verify(args []string) error {
 	case 3:
 		return ErrVerifierPanic
 	default:
-		return fmt.Errorf("an unknown error ocurred when verifying the provider (this indicates a defect in the framework")
+		return fmt.Errorf("an unknown error (%d) ocurred when verifying the provider (this indicates a defect in the framework)", int(result))
 	}
 }
 
@@ -235,7 +235,7 @@ func (v *Verifier) Execute() error {
 	case 1:
 		return ErrVerifierFailed
 	default:
-		return fmt.Errorf("an unknown error ocurred when verifying the provider (this indicates a defect in the framework")
+		return fmt.Errorf("an unknown error (%d) ocurred when verifying the provider (this indicates a defect in the framework)", int(result))
 	}
 }
 
