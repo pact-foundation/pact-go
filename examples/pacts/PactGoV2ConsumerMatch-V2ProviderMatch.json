@@ -1,0 +1,98 @@
+{
+  "consumer": {
+    "name": "PactGoV2ConsumerMatch"
+  },
+  "interactions": [
+    {
+      "description": "A request to do a foo",
+      "providerState": "User foo exists",
+      "request": {
+        "body": {
+          "datetime": "2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime",
+          "id": 27,
+          "lastName": "Sampson",
+          "name": "Billy"
+        },
+        "headers": {
+          "Authorization": "Bearer 1234",
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.datetime": {
+            "match": "type"
+          },
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          },
+          "$.header.$.Authorization[0]": {
+            "match": "type"
+          },
+          "$.query.$.baz[0]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.query.$.baz[1]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.query.$.baz[2]": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          }
+        },
+        "method": "POST",
+        "path": "/foobar",
+        "query": "baz=bar&baz=bat&baz=baz"
+      },
+      "response": {
+        "body": {
+          "datetime": "2020-01-01'T'08:00:45,format=yyyy-MM-dd'T'HH:mm:ss,generator=datetime",
+          "id": 27,
+          "lastName": "Sampson",
+          "name": "Billy"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.datetime": {
+            "match": "type"
+          },
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          },
+          "$.header.$['Content-Type'][0]": {
+            "match": "regex",
+            "regex": "application\\/json"
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.3.18",
+      "mockserver": "0.9.8",
+      "models": "1.0.2"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "V2ProviderMatch"
+  }
+}

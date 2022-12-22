@@ -1,0 +1,50 @@
+{
+  "consumer": {
+    "name": "PactGoProductAPIConsumer"
+  },
+  "interactions": [
+    {
+      "description": "A request for Product 10",
+      "providerState": "A product with ID 10 exists",
+      "request": {
+        "method": "GET",
+        "path": "/products/10"
+      },
+      "response": {
+        "body": {
+          "id": 10,
+          "name": "Billy",
+          "price": "23.33"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          },
+          "$.body.price": {
+            "match": "type"
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.3.18",
+      "mockserver": "0.9.8",
+      "models": "1.0.2"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "PactGoProductAPI"
+  }
+}

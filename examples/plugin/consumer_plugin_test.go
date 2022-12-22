@@ -60,7 +60,7 @@ func TestHTTPPlugin(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestTCPInteraction(t *testing.T) {
+func TestTCPPlugin(t *testing.T) {
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "matttcpconsumer",
 		Provider: "matttcpprovider",

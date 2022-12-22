@@ -23,7 +23,7 @@ import (
 )
 
 var dir, _ = os.Getwd()
-var pactDir = fmt.Sprintf("%s/pacts", dir)
+var pactDir = fmt.Sprintf("%s/../pacts", dir)
 
 func TestPluginProvider(t *testing.T) {
 	httpPort, _ := utils.GetFreePort()
@@ -41,7 +41,7 @@ func TestPluginProvider(t *testing.T) {
 		Provider:        "provider",
 		PactFiles: []string{
 			filepath.ToSlash(fmt.Sprintf("%s/MattConsumer-MattProvider.json", pactDir)),
-			// filepath.ToSlash(fmt.Sprintf("%s/matttcpconsumer-matttcpprovider.json", pactDir)),
+			filepath.ToSlash(fmt.Sprintf("%s/matttcpconsumer-matttcpprovider.json", pactDir)),
 		},
 		Transports: []provider.Transport{
 			provider.Transport{

@@ -1,0 +1,61 @@
+{
+  "consumer": {
+    "name": "PactGoV3MessageConsumer"
+  },
+  "messages": [
+    {
+      "contents": {
+        "datetime": "2020-01-01",
+        "id": 12,
+        "lastName": "Sampson",
+        "name": "Billy"
+      },
+      "description": "a user event",
+      "matchingRules": {
+        "body": {
+          "$.datetime": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "[0-9\\-]+"
+              }
+            ]
+          },
+          "$.id": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "integer"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "Content-Type": "application/json",
+        "contentType": "application/json"
+      },
+      "providerStates": [
+        {
+          "name": "User with id 127 exists",
+          "params": {
+            "id": 127
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.3.18",
+      "models": "1.0.2"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "V3MessageProvider"
+  }
+}

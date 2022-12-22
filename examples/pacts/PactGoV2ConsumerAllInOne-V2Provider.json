@@ -1,0 +1,86 @@
+{
+  "consumer": {
+    "name": "PactGoV2ConsumerAllInOne"
+  },
+  "interactions": [
+    {
+      "description": "A request to do a foo",
+      "providerState": "User foo exists",
+      "request": {
+        "body": {
+          "datetime": "2020-01-01'T'08:00:45",
+          "id": 27,
+          "lastName": "billy",
+          "name": "billy"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.datetime": {
+            "match": "type"
+          },
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.lastName": {
+            "match": "type"
+          },
+          "$.body.name": {
+            "match": "type"
+          },
+          "$.path": {
+            "match": "regex",
+            "regex": "\\/foo.*"
+          },
+          "$.query.$.baz[0]": {
+            "match": "regex",
+            "regex": "[a-zA-Z]+"
+          }
+        },
+        "method": "POST",
+        "path": "/foobar",
+        "query": "baz=bat"
+      },
+      "response": {
+        "body": {
+          "datetime": "2020-01-01",
+          "itemsMin": [
+            "thereshouldbe3ofthese",
+            "thereshouldbe3ofthese",
+            "thereshouldbe3ofthese"
+          ],
+          "lastName": "Sampson",
+          "name": "Billy"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.datetime": {
+            "match": "regex",
+            "regex": "[0-9\\-]+"
+          },
+          "$.body.itemsMin": {
+            "match": "type",
+            "min": 3
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.3.18",
+      "mockserver": "0.9.8",
+      "models": "1.0.2"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "V2Provider"
+  }
+}
