@@ -60,9 +60,6 @@ install: bin
 
 pact: clean install
 	@echo "--- 🔨 Running Pact examples"
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/... -run TestHTTPPlugin
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/... -run TestTCPInteraction
-	# make publish
 	go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/... -run TestPluginProvider
 
 publish:
