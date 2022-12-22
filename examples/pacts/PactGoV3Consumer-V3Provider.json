@@ -45,8 +45,8 @@
               "combine": "AND",
               "matchers": [
                 {
-                  "match": "timestamp",
-                  "timestamp": "yyyy-MM-dd'T'HH:mm:ss"
+                  "format": "yyyy-MM-dd'T'HH:mm:ss",
+                  "match": "datetime"
                 }
               ]
             },
@@ -76,7 +76,7 @@
             }
           },
           "header": {
-            "$.Authorization": {
+            "$.Authorization[0]": {
               "combine": "AND",
               "matchers": [
                 {
@@ -278,9 +278,9 @@
   ],
   "metadata": {
     "pactRust": {
-      "ffi": "0.3.2",
-      "mockserver": "0.9.2",
-      "models": "0.4.1"
+      "ffi": "0.3.18",
+      "mockserver": "0.9.8",
+      "models": "1.0.2"
     },
     "pactSpecification": {
       "version": "3.0.0"

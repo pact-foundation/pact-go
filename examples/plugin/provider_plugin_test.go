@@ -23,7 +23,7 @@ import (
 )
 
 var dir, _ = os.Getwd()
-var pactDir = fmt.Sprintf("%s/pacts", dir)
+var pactDir = fmt.Sprintf("%s/../pacts", dir)
 
 func TestPluginProvider(t *testing.T) {
 	httpPort, _ := utils.GetFreePort()

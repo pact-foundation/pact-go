@@ -5,8 +5,13 @@
   "interactions": [
     {
       "description": "Matt message",
-      "key": "f27f2917655cb542",
+      "key": "1d2254a9979327d8",
       "pending": false,
+      "providerStates": [
+        {
+          "name": "the world exists"
+        }
+      ],
       "request": {
         "contents": {
           "content": "MATThellotcpMATT",
@@ -31,9 +36,9 @@
   ],
   "metadata": {
     "pactRust": {
-      "ffi": "0.3.14",
-      "mockserver": "0.9.5",
-      "models": "1.0.0"
+      "ffi": "0.3.18",
+      "mockserver": "0.9.8",
+      "models": "1.0.2"
     },
     "pactSpecification": {
       "version": "4.0"
@@ -42,17 +47,7 @@
       {
         "configuration": {},
         "name": "matt",
-        "version": "0.0.3"
-      },
-      {
-        "configuration": {},
-        "name": "matt",
-        "version": "0.0.2"
-      },
-      {
-        "configuration": {},
-        "name": "matt",
-        "version": "0.0.1"
+        "version": "0.0.7"
       }
     ]
   },

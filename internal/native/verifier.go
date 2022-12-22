@@ -67,7 +67,7 @@ func (v *Verifier) Verify(args []string) error {
 	case 3:
 		return ErrVerifierPanic
 	default:
-		return fmt.Errorf("an unknown error ocurred when verifying the provider (this indicates a defect in the framework")
+		return fmt.Errorf("an unknown error (%d) ocurred when verifying the provider (this indicates a defect in the framework)", int(result))
 	}
 }
 
@@ -85,6 +85,8 @@ var (
 
 	//ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful)
 	ErrVerifierFailed = fmt.Errorf("the verifier failed to successfully verify the pacts, this indicates an issue with the provider API")
+	//ErrVerifierFailedToRun indicates the verification process was unable to run
+	ErrVerifierFailedToRun = fmt.Errorf("the verifier failed to execute (this is most likely a defect in the framework)")
 )
 
 func NewVerifier(name string, version string) *Verifier {
@@ -234,8 +236,10 @@ func (v *Verifier) Execute() error {
 		return nil
 	case 1:
 		return ErrVerifierFailed
+	case 2:
+		return ErrVerifierFailedToRun
 	default:
-		return fmt.Errorf("an unknown error ocurred when verifying the provider (this indicates a defect in the framework")
+		return fmt.Errorf("an unknown error (%d) ocurred when verifying the provider (this indicates a defect in the framework)", int(result))
 	}
 }
 
