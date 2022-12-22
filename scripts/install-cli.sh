@@ -6,6 +6,8 @@
 #   $ wget -q https://raw.githubusercontent.com/pact-foundation/pact-plugins/master/install-cli.sh -O- | bash
 #
 
+set -x
+
 function detect_osarch() {
     case $(uname -sm) in
         'Linux x86_64')
@@ -20,6 +22,11 @@ function detect_osarch() {
             os='osx'
             arch='aarch64'
             ;;
+        CYGWIN*|MINGW32*|MSYS*|MINGW*)
+            os="windows"
+            arch='x86_64'
+            ext='.exe'
+            ;;
         *)
         echo "Sorry, you'll need to install the plugin CLI manually."
         exit 1
@@ -27,13 +34,17 @@ function detect_osarch() {
     esac
 }
 
-package=$(curl https://api.github.com/repos/pact-foundation/pact-plugins/releases | grep pact-plugin-cli | grep tag_name | head -n1 | egrep -o "pact-plugin-cli-v.[0-9\.]+")
+TAG=$(curl -s https://api.github.com/repos/pact-foundation/pact-plugins/releases | jq '.[0].tag_name')
+VERSION=$(echo "$TAG" | tr -d '[:alpha:]-"')
 detect_osarch
 
 if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then
-    echo "--- 🐿  Installing plugins CLI tool"
+    echo "--- 🐿  Installing plugins CLI version '${VERSION}' (from tag ${TAG})"
     mkdir -p ~/.pact/bin
-    wget https://github.com/pact-foundation/pact-plugins/releases/download/${package}/pact-plugin-cli-${os}-${arch}.gz -O ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz
-    gunzip -N ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz
+    DOWNLOAD_LOCATION=https://github.com/pact-foundation/pact-plugins/releases/download/pact-plugin-cli-v${VERSION}/pact-plugin-cli-${os}-${arch}${ext}.gz
+    echo "        Downloading from: ${DOWNLOAD_LOCATION}"
+    curl -L -o ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz "${DOWNLOAD_LOCATION}"
+    echo "        Downloaded $(file ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz)"
+    gunzip -N -f ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz
     chmod +x ~/.pact/bin/pact-plugin-cli
 fi
