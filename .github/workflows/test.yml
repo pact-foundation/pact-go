@@ -37,7 +37,7 @@ jobs:
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
       - uses: actions/upload-artifact@v3
         with:
-          name: Upload plugin logs
+          name: logs-${{ github.GITHUB_JOB }}-${{ github.GITHUB_RUN_ID }}-${{ github.GITHUB_RUN_ATTEMPT }}.zip
           path: ~/.pact/plugins/**/plugin.log
         if: ${{ always() }}
 
