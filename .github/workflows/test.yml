@@ -27,17 +27,15 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Deps
-        run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make deps
       - name: Test
-        run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make pact
+        run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
       - name: Install goveralls
         run: go install github.com/mattn/goveralls@latest
       - name: Send coverage
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
       - uses: actions/upload-artifact@v3
         with:
-          name: logs-${{ github.GITHUB_JOB }}-${{ github.GITHUB_RUN_ID }}-${{ github.GITHUB_RUN_ATTEMPT }}.zip
+          name: logs-${{ env.GITHUB_JOB }}-${{ env.GITHUB_RUN_ID }}-${{ env.GITHUB_RUN_ATTEMPT }}.zip
           path: ~/.pact/plugins/**/plugin.log
         if: ${{ always() }}
 

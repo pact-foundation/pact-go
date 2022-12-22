@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -20,10 +22,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var dir, _ = os.Getwd()
+
 func TestHTTPPlugin(t *testing.T) {
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "MattConsumer",
 		Provider: "MattProvider",
+		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
 	assert.NoError(t, err)
 
@@ -59,6 +64,7 @@ func TestTCPInteraction(t *testing.T) {
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "matttcpconsumer",
 		Provider: "matttcpprovider",
+		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
 
 	// MATT is a protocol, where all message start and end with a MATT

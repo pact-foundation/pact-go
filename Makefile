@@ -5,7 +5,7 @@ TEST?=./...
 DOCKER_HOST_HTTP?="http://host.docker.internal"
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
 
-ci:: deps download_plugins clean bin test pact
+ci:: docker deps clean bin test pact
 
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
@@ -40,7 +40,6 @@ deps: download_plugins
 	go install github.com/mitchellh/gox@latest; \
 	cd -
 
-
 download_plugins:
 	@echo "--- 🐿  Installing plugins"; \
 	./scripts/install-cli.sh
@@ -58,9 +57,11 @@ install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
 	./build/pact-go	 -l DEBUG install --libDir /tmp
 
-pact: clean install
+pact: clean install docker
 	@echo "--- 🔨 Running Pact examples"
-	go test -v -timeout=130s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/... -run TestPluginProvider
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	make publish
+	go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 
 publish:
 	@echo "-- 📃 Publishing pacts"
