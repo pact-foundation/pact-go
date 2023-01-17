@@ -180,6 +180,8 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 		log.Println("[DEBUG] v.Transports", v.Transports)
 	}
 
+	addPactUrlsFromEnvironment(v)
+
 	filterDescription := valueOrFromEnvironment(v.FilterDescription, "PACT_DESCRIPTION")
 	filterState := valueOrFromEnvironment(v.FilterState, "PACT_PROVIDER_STATE")
 	filterNoState := valueOrFromEnvironment(fmt.Sprintf("%t", v.FilterNoState), "PACT_PROVIDER_NO_STATE") == "true"
@@ -251,6 +253,15 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	handle.SetNoPactsIsError(v.FailIfNoPactsFound)
 
 	return nil
+}
+
+// add in the PACT_URL env variable to support suggested webhook provider verification
+// see https://docs.pact.io/pact_broker/webhooks/template_library#bitbucket---trigger-pipeline-run
+// a generalized feature request added here https://github.com/pact-foundation/pact-reference/issues/250
+func addPactUrlsFromEnvironment(v *VerifyRequest) {
+	if pactUrl := os.Getenv("PACT_URL"); pactUrl != "" {
+		v.PactURLs = append(v.PactURLs, pactUrl)
+	}
 }
 
 func valueOrFromEnvironment(value string, envKey string) string {
