@@ -289,6 +289,26 @@ func objectToString(obj interface{}) string {
 	}
 }
 
+type FieldMatchArgs struct {
+	Name      string
+	MatchType reflect.Type
+	PactTag   string
+}
+type FieldStrategyFunc func(field reflect.StructField) FieldMatchArgs
+
+var DefaultFieldStrategyFunc = func(field reflect.StructField) FieldMatchArgs {
+	var v, fieldName string
+	var ok bool
+	if v, ok = field.Tag.Lookup("json"); ok {
+		fieldName = strings.Split(v, ",")[0]
+	}
+	return FieldMatchArgs{fieldName, field.Type, field.Tag.Get("pact")}
+}
+
+type matchStructV2 struct {
+	FieldStrategyFunc FieldStrategyFunc
+}
+
 // Match recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
 // By default, it requires slices to have a minimum of 1 element.
@@ -300,23 +320,28 @@ func objectToString(obj interface{}) string {
 // Minimum Slice Size: `pact:"min=2"`
 // String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
 func MatchV2(src interface{}) Matcher {
-	return match(reflect.TypeOf(src), getDefaults())
+	m := &matchStructV2{FieldStrategyFunc: DefaultFieldStrategyFunc}
+	return m.match(reflect.TypeOf(src), getDefaults())
 }
 
 // match recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
-func match(srcType reflect.Type, params params) Matcher {
+func (m *matchStructV2) match(srcType reflect.Type, params params) Matcher {
 	switch kind := srcType.Kind(); kind {
 	case reflect.Ptr:
-		return match(srcType.Elem(), params)
+		return m.match(srcType.Elem(), params)
 	case reflect.Slice, reflect.Array:
-		return EachLike(match(srcType.Elem(), getDefaults()), params.slice.min)
+		return EachLike(m.match(srcType.Elem(), getDefaults()), params.slice.min)
 	case reflect.Struct:
 		result := StructMatcher{}
 
 		for i := 0; i < srcType.NumField(); i++ {
 			field := srcType.Field(i)
-			result[strings.Split(field.Tag.Get("json"), ",")[0]] = match(field.Type, pluckParams(field.Type, field.Tag.Get("pact")))
+			args := m.FieldStrategyFunc(field)
+			if args.Name == "" {
+				continue
+			}
+			result[args.Name] = m.match(args.MatchType, pluckParams(args.MatchType, args.PactTag))
 		}
 		return result
 	case reflect.String:
