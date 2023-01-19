@@ -5,8 +5,7 @@
 # or
 #   $ wget -q https://raw.githubusercontent.com/pact-foundation/pact-plugins/master/install-cli.sh -O- | bash
 #
-
-set -x
+set -e # Needed for Windows bash, which doesn't read the shebang
 
 function detect_osarch() {
     case $(uname -sm) in
@@ -34,8 +33,8 @@ function detect_osarch() {
     esac
 }
 
-TAG=$(curl -s https://api.github.com/repos/pact-foundation/pact-plugins/releases | jq '.[0].tag_name')
-VERSION=$(echo "$TAG" | tr -d '[:alpha:]-"')
+
+VERSION="0.0.4"
 detect_osarch
 
 if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then
