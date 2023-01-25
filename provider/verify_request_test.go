@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"os"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/command"
@@ -104,6 +105,50 @@ func TestVerifyRequestValidate(t *testing.T) {
 				} else {
 					assert.NoError(t, err)
 				}
+			})
+		}
+	})
+}
+
+func TestVerifyRequest(t *testing.T) {
+	t.Run("#addPactUrlsFromEnvironment", func(t *testing.T) {
+		const webhookURL, verificationUrl = "pact_changed_webhook_url", "http://localhost:1234/path/to/pact"
+		enablePactUrlFunc := func() func() {
+			const pactUrl = "PACT_URL"
+			os.Setenv(pactUrl, webhookURL)
+			return func() {
+				defer os.Unsetenv(pactUrl)
+			}
+		}
+		tests := []struct {
+			name         string
+			setup        func() (teardown func())
+			request      *VerifyRequest
+			expectedSize int
+			expectedUrls []string
+		}{
+			{name: "with env var and undefined request.PactURLs",
+				setup:        enablePactUrlFunc,
+				request:      &VerifyRequest{},
+				expectedUrls: []string{webhookURL},
+			},
+			{name: "with env var and configured PactURLS",
+				setup:        enablePactUrlFunc,
+				request:      &VerifyRequest{PactURLs: []string{verificationUrl}},
+				expectedUrls: []string{verificationUrl, webhookURL},
+			},
+			{name: "without env var and configured PactURLS",
+				setup:        func() func() { return func() {} },
+				request:      &VerifyRequest{PactURLs: []string{verificationUrl}},
+				expectedUrls: []string{verificationUrl},
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				teardown := tt.setup()
+				defer teardown()
+				addPactUrlsFromEnvironment(tt.request)
+				assert.ElementsMatch(t, tt.request.PactURLs, tt.expectedUrls)
 			})
 		}
 	})
