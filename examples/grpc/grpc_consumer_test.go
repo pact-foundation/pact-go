@@ -37,8 +37,6 @@ func TestGrpcInteraction(t *testing.T) {
 		"pact:proto-service": "RouteGuide/GetFeature",
 		"pact:content-type": "application/protobuf",
 		"request": {
-			"latitude": "matching(number, 180)",
-			"longitude": "matching(number, 200)"
 		},
 		"response": {
 			"name": "matching(type, 'Big Tree')",
@@ -53,7 +51,7 @@ func TestGrpcInteraction(t *testing.T) {
 		Given("feature 'Big Tree' exists").
 		UsingPlugin(message.PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.2.4",
+			Version: "0.2.5",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
