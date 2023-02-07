@@ -415,18 +415,22 @@ func (m *Message) GetMessageRequestContents() ([]byte, error) {
 				log.Println("[DEBUG] pactffi_pact_message_iter_next - index match", message)
 
 				if message == nil {
-					return nil, errors.New("retreived a null message pointer")
+					return nil, errors.New("retrieved a null message pointer")
 				}
 
 				len := C.pactffi_message_get_contents_length(message)
 				log.Println("[DEBUG] pactffi_message_get_contents_length - len", len)
 				if len == 0 {
-					return nil, errors.New("retreived an empty message")
+					// You can have empty bodies
+					log.Println("[DEBUG] message body is empty")
+					return nil, nil
 				}
 				data := C.pactffi_message_get_contents_bin(message)
 				log.Println("[DEBUG] pactffi_message_get_contents_bin - data", data)
 				if data == nil {
-					return nil, errors.New("retreived an empty pointer to the message contents")
+					// You can have empty bodies
+					log.Println("[DEBUG] message binary contents are empty")
+					return nil, nil
 				}
 				ptr := unsafe.Pointer(data)
 				bytes := C.GoBytes(ptr, C.int(len))
@@ -446,16 +450,18 @@ func (m *Message) GetMessageRequestContents() ([]byte, error) {
 
 			if i == m.index {
 				if message == nil {
-					return nil, errors.New("retreived a null message pointer")
+					return nil, errors.New("retrieved a null message pointer")
 				}
 
 				len := C.pactffi_sync_message_get_request_contents_length(message)
 				if len == 0 {
-					return nil, errors.New("retreived an empty message")
+					log.Println("[DEBUG] message body is empty")
+					return nil, nil
 				}
 				data := C.pactffi_sync_message_get_request_contents_bin(message)
 				if data == nil {
-					return nil, errors.New("retreived an empty pointer to the message contents")
+					log.Println("[DEBUG] message binary contents are empty")
+					return nil, nil
 				}
 				ptr := unsafe.Pointer(data)
 				bytes := C.GoBytes(ptr, C.int(len))
@@ -487,17 +493,17 @@ func (m *Message) GetMessageResponseContents() ([][]byte, error) {
 		message := C.pactffi_pact_sync_message_iter_next(iter)
 
 		if message == nil {
-			return nil, errors.New("retreived a null message pointer")
+			return nil, errors.New("retrieved a null message pointer")
 		}
 
 		// Get Response body
 		len := C.pactffi_sync_message_get_response_contents_length(message, C.ulong(i))
 		if len == 0 {
-			return nil, errors.New("retreived an empty message")
+			return nil, errors.New("retrieved an empty message")
 		}
 		data := C.pactffi_sync_message_get_response_contents_bin(message, C.ulong(i))
 		if data == nil {
-			return nil, errors.New("retreived an empty pointer to the message contents")
+			return nil, errors.New("retrieved an empty pointer to the message contents")
 		}
 		ptr := unsafe.Pointer(data)
 		bytes := C.GoBytes(ptr, C.int(len))
