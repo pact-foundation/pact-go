@@ -8,3 +8,5 @@ require (
 	github.com/graph-gophers/graphql-transport-ws v0.0.2
 	nhooyr.io/websocket v1.8.7
 )
+
+replace github.com/gin-gonic/gin v1.6.3 => github.com/gin-gonic/gin v1.7.7

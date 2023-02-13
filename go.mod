@@ -9,7 +9,7 @@ require (
 	github.com/graph-gophers/graphql-go v1.4.0
 	github.com/hashicorp/go-version v1.5.0
 	github.com/hashicorp/logutils v1.0.0
-	github.com/hasura/go-graphql-client v0.8.1
+	github.com/hasura/go-graphql-client v0.9.0
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
