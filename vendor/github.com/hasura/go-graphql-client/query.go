@@ -123,7 +123,7 @@ func queryArguments(variables map[string]interface{}) string {
 		io.WriteString(&buf, "$")
 		io.WriteString(&buf, k)
 		io.WriteString(&buf, ":")
-		writeArgumentType(&buf, reflect.TypeOf(variables[k]), true)
+		writeArgumentType(&buf, reflect.TypeOf(variables[k]), variables[k], true)
 		// Don't insert a comma here.
 		// Commas in GraphQL are insignificant, and we want minified output.
 		// See https://facebook.github.io/graphql/October2016/#sec-Insignificant-Commas.
@@ -134,15 +134,19 @@ func queryArguments(variables map[string]interface{}) string {
 // writeArgumentType writes a minified GraphQL type for t to w.
 // value indicates whether t is a value (required) type or pointer (optional) type.
 // If value is true, then "!" is written at the end of t.
-func writeArgumentType(w io.Writer, t reflect.Type, value bool) {
-	if t.Kind() == reflect.Ptr {
-		// Pointer is an optional type, so no "!" at the end of the pointer's underlying type.
-		writeArgumentType(w, t.Elem(), false)
-		return
-	}
+func writeArgumentType(w io.Writer, t reflect.Type, v interface{}, value bool) {
 
 	if t.Implements(graphqlTypeInterface) {
-		graphqlType, ok := reflect.Zero(t).Interface().(GraphQLType)
+		var graphqlType GraphQLType
+		var ok bool
+		value = t.Kind() != reflect.Ptr
+		if v != nil {
+			graphqlType, ok = v.(GraphQLType)
+		} else if t.Kind() == reflect.Ptr {
+			graphqlType, ok = reflect.New(t.Elem()).Interface().(GraphQLType)
+		} else {
+			graphqlType, ok = reflect.Zero(t).Interface().(GraphQLType)
+		}
 		if ok {
 			io.WriteString(w, graphqlType.GetGraphQLType())
 			if value {
@@ -153,11 +157,17 @@ func writeArgumentType(w io.Writer, t reflect.Type, value bool) {
 		}
 	}
 
+	if t.Kind() == reflect.Ptr {
+		// Pointer is an optional type, so no "!" at the end of the pointer's underlying type.
+		writeArgumentType(w, t.Elem(), v, false)
+		return
+	}
+
 	switch t.Kind() {
 	case reflect.Slice, reflect.Array:
 		// List. E.g., "[Int]".
 		io.WriteString(w, "[")
-		writeArgumentType(w, t.Elem(), true)
+		writeArgumentType(w, t.Elem(), nil, true)
 		io.WriteString(w, "]")
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
