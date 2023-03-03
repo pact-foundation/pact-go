@@ -41,7 +41,7 @@ func TestGrpcInteraction(t *testing.T) {
 			"longitude": "matching(number, 200)"
 		},
 		"response": {
-			"name": "matching(type, 'Big Tree')",
+			"name": "notEmpty(type, 'Big Tree')",
 			"location": {
 				"latitude": "matching(number, 180)",
 				"longitude": "matching(number, 200)"
