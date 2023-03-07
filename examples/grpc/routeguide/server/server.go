@@ -844,4 +844,10 @@ var exampleData = []byte(`[{
         "longitude": -747127767
     },
     "name": "3 Hasta Way, Newton, NJ 07860, USA"
+}, {
+    "location": {
+        "latitude": 180,
+        "longitude": 200
+    },
+    "name": "Really big tree"
 }]`)

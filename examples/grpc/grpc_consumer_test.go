@@ -41,7 +41,7 @@ func TestGrpcInteraction(t *testing.T) {
 			"longitude": "matching(number, 200)"
 		},
 		"response": {
-			"name": "notEmpty(type, 'Big Tree')",
+			"name": "notEmpty('Big Tree')",
 			"location": {
 				"latitude": "matching(number, 180)",
 				"longitude": "matching(number, 200)"
@@ -53,7 +53,7 @@ func TestGrpcInteraction(t *testing.T) {
 		Given("feature 'Big Tree' exists").
 		UsingPlugin(message.PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.2.4",
+			Version: "0.3.0",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
