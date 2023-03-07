@@ -25,7 +25,7 @@ const MESSAGE_PATH = "/__messages"
 
 // Verifier is used to verify the provider side of an HTTP API contract
 type Verifier struct {
-	// ClientTimeout specifies how long to wait for Pact CLI to start
+	// ClientTimeout specifies how long to wait for the provider to start
 	// Can be increased to reduce likelihood of intermittent failure
 	// Defaults to 10s
 	ClientTimeout time.Duration
