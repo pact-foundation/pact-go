@@ -157,6 +157,13 @@ type VerifyRequest struct {
 
 	// Pull in new WIP pacts from _any_ tag (see pact.io/wip)
 	IncludeWIPPactsSince *time.Time
+
+	// Sets the max time the framework will wait to issue requests to your provider API
+	// as well as timeout for provider state actions
+	RequestTimeout time.Duration
+
+	// Disable SSL verification for HTTP requests
+	DisableSSLVerification bool
 }
 
 // Validate checks that the minimum fields are provided.
@@ -190,8 +197,11 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 		handle.SetFilterInfo(filterDescription, filterState, filterNoState)
 	}
 
-	// TODO: support these
-	// SetVerificationOptions: 4,
+	if v.RequestTimeout == 0 {
+		v.RequestTimeout = time.Second * 10
+	}
+
+	handle.SetVerificationOptions(v.DisableSSLVerification, v.RequestTimeout.Milliseconds())
 
 	if v.PublishVerificationResults && v.ProviderVersion != "" {
 		handle.SetPublishOptions(v.ProviderVersion, v.BuildURL, v.ProviderTags, v.ProviderBranch)
