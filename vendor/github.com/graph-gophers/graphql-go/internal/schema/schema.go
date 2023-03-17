@@ -268,8 +268,18 @@ func resolveNamedType(s *types.Schema, t types.NamedType) error {
 				return err
 			}
 		}
+		if err := resolveDirectives(s, t.Directives, "INTERFACE"); err != nil {
+			return err
+		}
 	case *types.InputObject:
 		if err := resolveInputObject(s, t.Values); err != nil {
+			return err
+		}
+		if err := resolveDirectives(s, t.Directives, "INPUT_OBJECT"); err != nil {
+			return err
+		}
+	case *types.ScalarTypeDefinition:
+		if err := resolveDirectives(s, t.Directives, "SCALAR"); err != nil {
 			return err
 		}
 	}
@@ -289,6 +299,7 @@ func resolveField(s *types.Schema, f *types.FieldDefinition) error {
 }
 
 func resolveDirectives(s *types.Schema, directives types.DirectiveList, loc string) error {
+	alreadySeenNonRepeatable := make(map[string]struct{})
 	for _, d := range directives {
 		dirName := d.Name.Name
 		dd, ok := s.Directives[dirName]
@@ -315,6 +326,14 @@ func resolveDirectives(s *types.Schema, directives types.DirectiveList, loc stri
 				d.Arguments = append(d.Arguments, &types.Argument{Name: arg.Name, Value: arg.Default})
 			}
 		}
+
+		if dd.Repeatable {
+			continue
+		}
+		if _, seen := alreadySeenNonRepeatable[dirName]; seen {
+			return errors.Errorf(`non repeatable directive %q can not be repeated. Consider adding "repeatable".`, dirName)
+		}
+		alreadySeenNonRepeatable[dirName] = struct{}{}
 	}
 	return nil
 }
@@ -326,6 +345,11 @@ func resolveInputObject(s *types.Schema, values types.ArgumentsDefinition) error
 			return err
 		}
 		v.Type = t
+
+		if err := resolveDirectives(s, v.Directives, "ARGUMENT_DEFINITION"); err != nil {
+			return err
+		}
+
 	}
 	return nil
 }
