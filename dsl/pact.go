@@ -281,9 +281,8 @@ func (p *Pact) Verify(integrationTest func() error) error {
 	return err
 }
 
-// WritePact should be called writes when all tests have been performed for a
-// given Consumer <-> Provider pair. It will write out the Pact to the
-// configured file.
+// WritePact writes out the Pact to the configured file when all tests have been performed for a given
+// Consumer <-> Provider pair.
 func (p *Pact) WritePact() error {
 	p.Setup(true)
 	log.Println("[DEBUG] pact write Pact file")
