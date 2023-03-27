@@ -705,7 +705,7 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 	go func() {
 		if err := http.Serve(ln, mux); err != nil {
 			// NOTE: calling Fatalf causing test failures due to "accept tcp [::]:<port>: use of closed network connection"
-			log.Printf("[ERROR] API handler start failed: %v", err)
+			log.Printf("[DEBUG] API handler start failed: %v", err)
 		}
 	}()
 
