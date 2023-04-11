@@ -1,10 +1,13 @@
 package native
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/log"
@@ -126,42 +129,63 @@ func TestVersion(t *testing.T) {
 }
 
 func TestHandleBasedHTTPTests(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := "/tmp/"
 
-	m := NewHTTPPact("test-http-consumer", "test-http-provider")
+	for attempt := 0; attempt < 10; attempt++ {
+		t.Log("Running attempt", attempt, "============> \n\n")
+		for idx := 0; idx < 2; idx++ {
+			m := NewHTTPPact(fmt.Sprintf("test-http-consumer%d", idx), "test-http-provider")
+			m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
 
-	i := m.NewInteraction("some interaction")
+			i := m.NewInteraction("some interaction")
 
-	i.UponReceiving("some interaction").
-		Given("some state").
-		WithRequest("GET", "/products").
-		WithJSONResponseBody(`{
-	  	"name": {
-      	"pact:matcher:type": "type",
-      	"value": "some name"
-    	},
-	  	"age": 23,
-	  	"alive": true
-		}`).
-		WithStatus(200)
+			i.UponReceiving("some interaction").
+				WithRequest("POST", "/products").
+				WithRequestHeaders(map[string][]interface{}{
+					"content-type": {
+						"application/json",
+					},
+				}).
+				WithStatus(200)
 
-	// // Start the mock service
-	// const host = "127.0.0.1"
-	port, err := m.Start("0.0.0.0:0", false)
-	assert.NoError(t, err)
-	defer m.CleanupMockServer(port)
+			// // Start the mock service
+			port, err := m.Start("0.0.0.0:0", false)
+			assert.NoError(t, err)
+			defer m.CleanupMockServer(port)
 
-	_, err = http.Get(fmt.Sprintf("http://0.0.0.0:%d/products", port))
-	assert.NoError(t, err)
+			_, err = http.Post(fmt.Sprintf("http://0.0.0.0:%d/products", port), "application/json", nil)
+			assert.NoError(t, err)
 
-	mismatches := m.MockServerMismatchedRequests(port)
-	if len(mismatches) != 0 {
-		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
+			mismatches := m.MockServerMismatchedRequests(port)
+			if len(mismatches) != 0 {
+				t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
+			}
+
+			err = m.WritePactFile(port, tmpPactFolder)
+			assert.NoError(t, err)
+		}
+		cmd := exec.Command("diff", "/tmp/test-http-consumer0-test-http-provider.json", "/tmp/test-http-consumer1-test-http-provider.json")
+
+		var stdout bytes.Buffer
+		cmd.Stdout = &stdout
+
+		cmd.Run()
+
+		if strings.Contains(string(stdout.String()), "key") {
+			t.Log("Interaction keys changed: ")
+			t.Log(string(stdout.String()))
+		}
+
+		err := os.Remove("/tmp/test-http-consumer0-test-http-provider.json")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		err = os.Remove("/tmp/test-http-consumer1-test-http-provider.json")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 	}
 
-	err = m.WritePactFile(port, tmpPactFolder)
-	assert.NoError(t, err)
 }
 
 func TestPluginInteraction(t *testing.T) {
