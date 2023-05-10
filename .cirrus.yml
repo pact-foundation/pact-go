@@ -1,0 +1,26 @@
+
+
+test_task:
+  env:
+    matrix:
+      VERSION: 1.17
+      VERSION: 1.18
+  name: Tests (Go $VERSION)
+  container:
+    image: golang:$VERSION
+  modules_cache:
+    fingerprint_script: cat go.sum
+    folder: $GOPATH/pkg/mod
+  test_script: DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
+
+
+lint_task:
+  name: GolangCI Lint
+  container:
+    image: golangci/golangci-lint:latest
+  run_script: golangci-lint run -v --out-format json > lint-report.json
+  always:
+    golangci_artifacts:
+      path: lint-report.json
+      type: text/json
+      format: golangci
