@@ -14,9 +14,10 @@ docker:
 bin:
 	gox -os="darwin" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="darwin" -arch="arm64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
+	gox -os="windows" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="windows" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
-	gox -os="linux" -arch="386" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	gox -os="linux" -arch="amd64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
+	gox -os="linux" -arch="arm64" -output="build/pact-go_{{.OS}}_{{.Arch}}"
 	@echo "==> Results:"
 	ls -hl build/
 

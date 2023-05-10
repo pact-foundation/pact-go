@@ -1,18 +1,37 @@
-
-
-test_task:
-  env:
-    matrix:
-      VERSION: 1.17
-      VERSION: 1.18
-  name: Tests (Go $VERSION)
-  container:
-    image: golang:$VERSION
+test_task_template: &TEST_TASK_TEMPLATE
   modules_cache:
     fingerprint_script: cat go.sum
     folder: $GOPATH/pkg/mod
-  test_script: DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
+  deps_script: make deps
+  clean_script: make clean
+  bin_script: make bin
+  test_script: make test
 
+linux_test_task:
+  env:
+    matrix:
+      - VERSION: 1.17
+      - VERSION: 1.18
+  name: Tests (Go $VERSION)
+  container:
+    image: golang:$VERSION
+  <<: *TEST_TASK_TEMPLATE
+
+linux_arm64_test_task:
+  env:
+    matrix:
+      - VERSION: 1.17
+      - VERSION: 1.18
+  name: Tests (Go $VERSION)
+  arm_container:
+    image: golang:$VERSION
+  <<: *TEST_TASK_TEMPLATE
+
+macos_arm64_test_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-ventura-base:latest
+  pre_req_script: brew install gox
+  <<: *TEST_TASK_TEMPLATE
 
 lint_task:
   name: GolangCI Lint
