@@ -33,7 +33,7 @@ deps:
 install:
 	@if [ ! -d pact/bin ]; then\
 		echo "--- 🐿 Installing Pact CLI dependencies"; \
-		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | v2.0.1 bash -x; \
+		curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | tag=v2.0.1 bash -x; \
   	fi
 
 publish_pacts: 
