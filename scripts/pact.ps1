@@ -25,7 +25,7 @@ $json = $latestRelease.Content | ConvertFrom-Json
 # $tag = $json.tag_name
 $tag = "v2.0.1" # TODO: Remove this when the 2.x is set to a non-prerelease version
 $latestVersion = $tag.Substring(1)
-$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/$tag/pact-$latestVersion-windows-x86_64.zip"
+$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/$tag/pact-$latestVersion-windows-x86.zip"
 
 Write-Host "Downloading $url"
 $zip = "$downloadDir\pact.zip"
