@@ -8,6 +8,7 @@ if (!($env:GOPATH)) {
 $env:PACT_BROKER_BASE_URL = "http://localhost"
 $env:PACT_BROKER_USERNAME = "pact_workshop"
 $env:PACT_BROKER_PASSWORD = "pact_workshop"
+$env:tag = "v2.0.1"
 
 if (Test-Path "$pactDir") {
   Write-Host "-> Deleting old pact directory"
@@ -20,11 +21,11 @@ New-Item -Force -ItemType Directory $pactDir
 
 Write-Host "--> Downloading Latest Ruby binaries)"
 $downloadDir = $env:TEMP
-$latestRelease = Invoke-WebRequest https://github.com/you54f/pact-ruby-standalone/releases/latest -Headers @{"Accept"="application/json"}
+$latestRelease = Invoke-WebRequest https://github.com/pact-foundation/pact-ruby-standalone/releases/latest -Headers @{"Accept"="application/json"}
 $json = $latestRelease.Content | ConvertFrom-Json
 $tag = $json.tag_name
 $latestVersion = $tag.Substring(1)
-$url = "https://github.com/you54f/pact-ruby-standalone/releases/download/$tag/pact-$latestVersion-windows-x86_64.zip"
+$url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/$tag/pact-$latestVersion-windows-x86_64.zip"
 
 Write-Host "Downloading $url"
 $zip = "$downloadDir\pact.zip"
