@@ -238,6 +238,7 @@ func (p *AsynchronousPact) validateConfig() error {
 	}
 
 	p.messageserver = mockserver.NewMessageServer(p.config.Consumer, p.config.Provider)
+	p.messageserver.WithSpecificationVersion(mockserver.SPECIFICATION_VERSION_V4)
 
 	return nil
 }

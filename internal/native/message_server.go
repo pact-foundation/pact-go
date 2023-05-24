@@ -40,6 +40,7 @@ void pactffi_with_message_pact_metadata(PactHandle pact, const char *namespace, 
 int pactffi_write_pact_file(int mock_server_port, const char *directory, bool overwrite);
 bool pactffi_given(InteractionHandle interaction, const char *description);
 bool pactffi_given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
+void pactffi_with_specification(PactHandle pact, int specification_version);
 
 int pactffi_using_plugin(PactHandle pact, const char *plugin_name, const char *plugin_version);
 void pactffi_cleanup_plugins(PactHandle pact);
@@ -192,6 +193,10 @@ func (m *MessageServer) NewAsyncMessageInteraction(description string) *Message 
 	m.messages = append(m.messages, i)
 
 	return i
+}
+
+func (m *MessageServer) WithSpecificationVersion(version specificationVersion) {
+	C.pactffi_with_specification(m.messagePact.handle, C.int(version))
 }
 
 func (m *Message) Given(state string) *Message {
