@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/internal/native"
+	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
@@ -295,6 +296,7 @@ func (m *SynchronousPact) validateConfig() error {
 	}
 
 	m.mockserver = native.NewMessageServer(m.config.Consumer, m.config.Provider)
+	m.mockserver.WithSpecificationVersion(mockserver.SPECIFICATION_VERSION_V4)
 
 	return nil
 }
