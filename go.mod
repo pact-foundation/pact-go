@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/logutils v1.0.0
 	github.com/klauspost/compress v1.15.4 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
