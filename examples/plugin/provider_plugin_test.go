@@ -38,7 +38,7 @@ func TestPluginProvider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 	err := verifier.VerifyProvider(t, provider.VerifyRequest{
 		ProviderBaseURL: fmt.Sprintf("http://127.0.0.1:%d", httpPort),
-		Provider:        "provider",
+		// Provider:        "provider",
 		PactFiles: []string{
 			filepath.ToSlash(fmt.Sprintf("%s/MattConsumer-MattProvider.json", pactDir)),
 			filepath.ToSlash(fmt.Sprintf("%s/matttcpconsumer-matttcpprovider.json", pactDir)),
