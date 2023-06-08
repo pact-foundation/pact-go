@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.0-beta.22 (08 June 2023)
+
+
 ### v2.0.0-beta.21 (06 June 2023)
 
 
