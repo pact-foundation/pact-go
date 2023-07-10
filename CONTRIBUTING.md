@@ -14,7 +14,6 @@ Please provide the following information with your issue to enable us to respond
 You can run the E2E tests by:
 
 ```sh
-make tools   # Assemble the latest Pact Go from Ruby and compile Go
 make pact    # Run the Pact tests - consumer + provider
 ```
 
@@ -39,28 +38,3 @@ npm i -g cz-conventional-changelog
 ```
 
 `git cz` to commit and commitizen will guide you.
-
-### Developing
-
-For full integration testing locally, Ruby 2.2.0 must be installed. Under the
-hood, Pact Go bundles the
-[Pact Mock Service](https://github.com/bethesque/pact-mock_service) and
-[Pact Provider Verifier](https://github.com/pact-foundation/pact-provider-verifier)
-projects to implement up to v2.0 of the Pact Specification. This is only
-temporary, until [Pact Reference](https://github.com/pact-foundation/pact-reference/)
-work is completed.
-
-* Git clone https://github.com/pact-foundation/pact-go.git
-* Run `make dev` to build the package and setup the Ruby 'binaries' locally
-
-#### Vendoring
-
-We use [dep](https://github.com/golang/dep) to vendor packages. Please ensure
-any new packages that need to have a specific version locked are added to `Gopkg.toml`.
-
-## Integration Tests
-
-Before releasing a new version, in addition to the standard (isolated) tests
-we smoke test the key features against the latest code and Broker.
-
-Run `make pact` to run the integration tests.

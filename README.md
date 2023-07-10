@@ -223,7 +223,7 @@ func TestV3HTTPProvider(t *testing.T) {
 
 | Version | Stable | [Spec] Compatibility | Install            |
 | ------- | ------ | -------------------- | ------------------ |
-| 2.0.x   | Beta   | 2, 3                 | See [installation] |
+| 2.0.x   | Yes    | 2, 3, 4              | See [installation] |
 | 1.0.x   | Yes    | 2, 3\*               | 1.x.x [1xx]        |
 | 0.x.x   | Yes    | Up to v2             | 0.x.x [stable]     |
 
