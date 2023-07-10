@@ -53,7 +53,7 @@ Watch our [series](https://www.youtube.com/playlist?list=PLwy9Bnco-IpfZ72VQ7hce8
 </tr>
 </table>
 
-![----------](https://raw.githubusercontent.com/pactumjs/pactum/master/assets/rainbow.png)
+![----------](https://user-images.githubusercontent.com/53900/182992715-aa63e421-170b-41cf-8f95-82fe4b0846c2.png)
 
 ## Documentation
 
@@ -125,7 +125,7 @@ pact-go help
 
 </details>
 
-![----------](https://raw.githubusercontent.com/pactumjs/pactum/master/assets/rainbow.png)
+![----------](https://user-images.githubusercontent.com/53900/182992715-aa63e421-170b-41cf-8f95-82fe4b0846c2.png)
 
 ## Usage
 
@@ -183,7 +183,7 @@ You can see (and run) the full version of this in `./examples/basic_test.go`.
 
 For a full example, see the Pactflow terraform provider [pact tests](https://github.com/pactflow/terraform-provider-pact/blob/master/client/client_pact_test.go).
 
-![----------](https://raw.githubusercontent.com/pactumjs/pactum/master/assets/rainbow.png)
+![----------](https://user-images.githubusercontent.com/53900/182992715-aa63e421-170b-41cf-8f95-82fe4b0846c2.png)
 
 ### Provider package
 
@@ -215,7 +215,7 @@ func TestV3HTTPProvider(t *testing.T) {
 }
 ```
 
-![----------](https://raw.githubusercontent.com/pactumjs/pactum/master/assets/rainbow.png)
+![----------](https://user-images.githubusercontent.com/53900/182992715-aa63e421-170b-41cf-8f95-82fe4b0846c2.png)
 
 ## Compatibility
 
