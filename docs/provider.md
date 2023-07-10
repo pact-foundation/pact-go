@@ -205,6 +205,8 @@ For each _interaction_ in a pact file, the order of execution is as follows:
 
 If any of the middleware or hooks fail, the tests will also fail.
 
+_NOTE: The `BeforeEach` and `AfterEach` hooks are actually tied to the lifecycle of state handlers. If there are multiple state handlers, these handlers will be repeated for each state handler. i.e. `BeforeEach` -> `StateHandler 1 (pre)` -> `BeforeEach` -> `StateHandler n (pre)` -> `RequestFilter (pre)` -> `Execute Provider Test` -> `RequestFilter (post)` -> `StateHandler 1 (post)` -> `AfterEach` -> `StateHandler n (post)` -> `AfterEach` _
+
 ## Non-HTTP providers
 
 Non-HTTP based providers are supported through the plugin framework.
