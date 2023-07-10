@@ -194,6 +194,19 @@ func appendMetadataToResponseHeaders(metadata Metadata, w http.ResponseWriter) {
 
 		w.Header().Add(PACT_MESSAGE_METADATA_HEADER, encoded)
 		w.Header().Add(PACT_MESSAGE_METADATA_HEADER2, encoded)
+
+		// Content-Type must match the body content type in the pact.
+		if metadata["contentType"] != nil {
+			w.Header().Set("Content-Type", metadata["contentType"].(string))
+		} else if metadata["content-type"] != nil {
+			w.Header().Set("Content-Type", metadata["content-type"].(string))
+		} else if metadata["Content-Type"] != nil {
+			w.Header().Set("Content-Type", metadata["Content-Type"].(string))
+		} else {
+			defaultContentType := "application/json; charset=utf-8"
+			log.Println("[WARN] no content type (key 'contentType') found in message metadata. Defaulting to", defaultContentType)
+			w.Header().Set("Content-Type", defaultContentType)
+		}
 	}
 }
 
@@ -202,9 +215,6 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/__messages" {
-				// TODO: should this be set by the provider itself? How does the metadata go back?
-				w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 				log.Printf("[TRACE] message verification handler")
 
 				// Extract message
@@ -248,11 +258,17 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				// Write the body back
 				appendMetadataToResponseHeaders(metadata, w)
 
-				body, errM := json.Marshal(res)
-				if errM != nil {
-					w.WriteHeader(http.StatusServiceUnavailable)
-					log.Println("[ERROR] error marshalling objcet:", errM)
-					return
+				if bytes, ok := res.([]byte); ok {
+					log.Println("[DEBUG] checking type of message is []byte")
+					body = bytes
+				} else {
+					log.Println("[DEBUG] message body is not []byte, serialising as JSON")
+					body, err = json.Marshal(res)
+					if err != nil {
+						w.WriteHeader(http.StatusServiceUnavailable)
+						log.Println("[ERROR] error marshalling object:", err)
+						return
+					}
 				}
 
 				w.WriteHeader(http.StatusOK)
