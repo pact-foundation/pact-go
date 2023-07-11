@@ -23,7 +23,7 @@ $downloadDir = $env:TEMP
 $latestRelease = Invoke-WebRequest https://github.com/pact-foundation/pact-ruby-standalone/releases/latest -Headers @{"Accept"="application/json"}
 $json = $latestRelease.Content | ConvertFrom-Json
 # $tag = $json.tag_name
-$tag = "v2.0.1" # TODO: Remove this when the 2.x is set to a non-prerelease version
+$tag = "v2.0.3" # NOTE: pins pact-ruby-standalone to a fixed version 
 $latestVersion = $tag.Substring(1)
 $url = "https://github.com/pact-foundation/pact-ruby-standalone/releases/download/$tag/pact-$latestVersion-windows-x86.zip"
 
