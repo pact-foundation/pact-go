@@ -3,6 +3,7 @@
 package installer
 
 import (
+	"crypto/md5"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,9 +18,8 @@ import (
 
 	getter "github.com/hashicorp/go-getter"
 	goversion "github.com/hashicorp/go-version"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
-
-	"crypto/md5"
 
 	"github.com/spf13/afero"
 )
@@ -329,11 +329,16 @@ func (i *Installer) checkMusl() error {
 	cmd := exec.Command(lddPath, "/bin/echo")
 	out, err := cmd.CombinedOutput()
 
+	if err != nil {
+		log.Println("[ERROR] error command: ", cmd.String(), "error: ", errors.Wrap(err, "something failed here?"))
+		return err
+	}
+
 	if strings.Contains(string(out), "musl") {
 		log.Println("[WARN] Usage of musl library is known to cause problems, prefer using glibc instead.")
 	}
 
-	return err
+	return nil
 }
 
 // download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/PACKAGE-vVERSION/LIBNAME-OS-ARCH.EXTENSION.gz"

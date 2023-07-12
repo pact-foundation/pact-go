@@ -24,6 +24,8 @@ var installCmd = &cobra.Command{
 		if err != nil {
 			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
 			os.Exit(1)
+		} else {
+			log.Println("[INFO] Pact library installation")
 		}
 
 		if libDir != "" {
@@ -34,7 +36,7 @@ var installCmd = &cobra.Command{
 		i.Force(force)
 
 		if err = i.CheckInstallation(); err != nil {
-			log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
+			log.Println("[ERROR] 2 Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
 			os.Exit(1)
 		}
 	},
