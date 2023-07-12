@@ -18,7 +18,7 @@ services:
       POSTGRES_DB: postgres
 
   broker_app:
-    image: pactfoundation/pact-broker
+    image: pactfoundation/pact-broker:latest-multi
     links:
       - postgres
     ports:
@@ -30,3 +30,13 @@ services:
       PACT_BROKER_DATABASE_PASSWORD: password
       PACT_BROKER_DATABASE_HOST: postgres
       PACT_BROKER_DATABASE_NAME: postgres
+    # The Pact Broker provides a healthcheck endpoint which we will use to wait
+    # for it to become available before starting up
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--tries=1", "--spider", "http://pactbroker:pactbroker@localhost:9292/diagnostic/status/heartbeat" ]
+      interval: 1s
+      timeout: 2s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
