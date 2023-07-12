@@ -46,7 +46,6 @@ Read [Getting started with Pact] for more information for beginners.
 
 - [Pact Go](#pact-go)
 	- [Introduction](#introduction)
-	- [Announcement 📣](#announcement-)
 	- [Table of Contents](#table-of-contents)
 	- [Versions](#versions)
 	- [Installation](#installation)
@@ -145,7 +144,11 @@ Test the installation:
 pact help
 ```
 
-_NOTE_: the above script installs the latest standalone tools at the time it was ran. It is recommended you pin the installation to a [specific version](https://github.com/pact-foundation/pact-ruby-standalone/releases) of a release so that you may control the upgrade cycle.
+_NOTE_: the above script installs the latest standalone tools at the time it was ran. It is recommended you pin the installation to a [specific version](https://github.com/pact-foundation/pact-ruby-standalone/releases) of a release so that you may control the upgrade cycle, as shown below with `tag=v1.92.0`
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | tag=v1.92.0 bash
+```
 
 ## Using Pact
 
