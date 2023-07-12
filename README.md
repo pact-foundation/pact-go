@@ -2,8 +2,7 @@
 
 | :zap: New beta for the 2.x.x release |
 |-----------------------------------------|
-| If you are interested in testing out the new new beta package that supports all of the V3 and V4 [spec], synchronous messages, plugins and more, please head to [v2.x.x] and also let us know on [slack].|
-
+| If you are interested in testing out the new new beta package that supports all of the V3 and V4 [spec](https://github.com/pact-foundation/pact-specification), synchronous messages, plugins and more, please head to [v2.x.x](https://github.com/pact-foundation/pact-go/tree/2.x.x) and also let us know on [slack](https://slack.pact.io).|
 
 # Pact Go
 
@@ -18,10 +17,9 @@ DSL for the consumer project, and interaction playback and verification for the 
 [![GoDoc](https://godoc.org/github.com/pact-foundation/pact-go?status.svg)](https://godoc.org/github.com/pact-foundation/pact-go)
 [![slack](https://slack.pact.io/badge.svg)](https://slack.pact.io)
 
-
 ## Introduction
 
-From the [Pact website]:
+From the [Pact website](https://docs.pact.io/):
 
 > The Pact family of frameworks provide support for [Consumer Driven Contracts](http://martinfowler.com/articles/consumerDrivenContracts.html) testing.
 
@@ -31,7 +29,7 @@ From the [Pact website]:
 
 > Pact is a testing tool that guarantees those Contracts are satisfied.
 
-Read [Getting started with Pact] for more information for beginners.
+Read [Getting started with Pact](http://dius.com.au/2016/02/03/microservices-pact/) for more information for beginners.
 
 <p align="center">
   <a href="https://asciinema.org/a/180671">
@@ -39,63 +37,70 @@ Read [Getting started with Pact] for more information for beginners.
   </a>
 </p>
 
-
 ## Table of Contents
 
 <!-- TOC -->
 
 - [Pact Go](#pact-go)
-	- [Introduction](#introduction)
-	- [Table of Contents](#table-of-contents)
-	- [Versions](#versions)
-	- [Installation](#installation)
-		- [Go get](#go-get)
-		- [Installation on \*nix](#installation-on-nix)
-	- [Using Pact](#using-pact)
-	- [HTTP API Testing](#http-api-testing)
-		- [Consumer Side Testing](#consumer-side-testing)
-		- [Provider API Testing](#provider-api-testing)
-			- [Provider Verification](#provider-verification)
-			- [Provider States](#provider-states)
-			- [Before and After Hooks](#before-and-after-hooks)
-			- [Request Filtering](#request-filtering)
-				- [Example: API with Authorization](#example-api-with-authorization)
-			- [Pending Pacts](#pending-pacts)
-			- [WIP Pacts](#wip-pacts)
-			- [Lifecycle of a provider verification](#lifecycle-of-a-provider-verification)
-		- [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
-			- [Publishing from Go code](#publishing-from-go-code)
-			- [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
-			- [Publishing from the CLI](#publishing-from-the-cli)
-			- [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
-			- [Using the Pact Broker with Bearer Token authentication](#using-the-pact-broker-with-bearer-token-authentication)
-	- [Asynchronous API Testing](#asynchronous-api-testing)
-		- [Consumer](#consumer)
-		- [Provider (Producer)](#provider-producer)
-		- [Pact Broker Integration](#pact-broker-integration)
-	- [Matching](#matching)
-		- [Matching on types](#matching-on-types)
-		- [Matching on arrays](#matching-on-arrays)
-		- [Matching by regular expression](#matching-by-regular-expression)
-		- [Match common formats](#match-common-formats)
-			- [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
-	- [Tutorial (60 minutes)](#tutorial-60-minutes)
-	- [Examples](#examples)
-		- [HTTP APIs](#http-apis)
-		- [Asynchronous APIs](#asynchronous-apis)
-		- [Integrated examples](#integrated-examples)
-	- [Troubleshooting](#troubleshooting)
-			- [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
-			- [Output Logging](#output-logging)
-			- [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
-			- [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
-			- [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
-		- [Verifying APIs with a self-signed certificate](#verifying-apis-with-a-self-signed-certificate)
-		- [Testing AWS API Gateway APIs](#testing-aws-api-gateway-apis)
-	- [Contact](#contact)
-	- [Documentation](#documentation)
-	- [Roadmap](#roadmap)
-	- [Contributing](#contributing)
+   - [Introduction](#introduction)
+   - [Table of Contents](#table-of-contents)
+   - [Versions](#versions)
+   - [Installation](#installation)
+      - [Go get](#go-get)
+      - [Installation on \*nix](#installation-on-nix)
+
+   - [Using Pact](#using-pact)
+   - [HTTP API Testing](#http-api-testing)
+      - [Consumer Side Testing](#consumer-side-testing)
+      - [Provider API Testing](#provider-api-testing)
+         - [Provider Verification](#provider-verification)
+         - [Provider States](#provider-states)
+         - [Before and After Hooks](#before-and-after-hooks)
+         - [Request Filtering](#request-filtering)
+            - [Example: API with Authorization](#example-api-with-authorization)
+
+         - [Pending Pacts](#pending-pacts)
+         - [WIP Pacts](#wip-pacts)
+         - [Lifecycle of a provider verification](#lifecycle-of-a-provider-verification)
+
+      - [Publishing pacts to a Pact Broker and Tagging Pacts](#publishing-pacts-to-a-pact-broker-and-tagging-pacts)
+         - [Publishing from Go code](#publishing-from-go-code)
+         - [Publishing Provider Verification Results to a Pact Broker](#publishing-provider-verification-results-to-a-pact-broker)
+         - [Publishing from the CLI](#publishing-from-the-cli)
+         - [Using the Pact Broker with Basic authentication](#using-the-pact-broker-with-basic-authentication)
+         - [Using the Pact Broker with Bearer Token authentication](#using-the-pact-broker-with-bearer-token-authentication)
+
+   - [Asynchronous API Testing](#asynchronous-api-testing)
+      - [Consumer](#consumer)
+      - [Provider (Producer)](#provider-producer)
+      - [Pact Broker Integration](#pact-broker-integration)
+
+   - [Matching](#matching)
+      - [Matching on types](#matching-on-types)
+      - [Matching on arrays](#matching-on-arrays)
+      - [Matching by regular expression](#matching-by-regular-expression)
+      - [Match common formats](#match-common-formats)
+         - [Auto-generate matchers from struct tags](#auto-generate-matchers-from-struct-tags)
+
+   - [Tutorial (60 minutes)](#tutorial-60-minutes)
+   - [Examples](#examples)
+      - [HTTP APIs](#http-apis)
+      - [Asynchronous APIs](#asynchronous-apis)
+      - [Integrated examples](#integrated-examples)
+
+   - [Troubleshooting](#troubleshooting)
+      - [Splitting tests across multiple files](#splitting-tests-across-multiple-files)
+      - [Output Logging](#output-logging)
+      - [Check if the CLI tools are up to date](#check-if-the-cli-tools-are-up-to-date)
+      - [Disable CLI checks to speed up tests](#disable-cli-checks-to-speed-up-tests)
+      - [Re-run a specific provider verification test](#re-run-a-specific-provider-verification-test)
+      - [Verifying APIs with a self-signed certificate](#verifying-apis-with-a-self-signed-certificate)
+      - [Testing AWS API Gateway APIs](#testing-aws-api-gateway-apis)
+
+   - [Contact](#contact)
+   - [Documentation](#documentation)
+   - [Roadmap](#roadmap)
+   - [Contributing](#contributing)
 
 <!-- /TOC -->
 
@@ -103,21 +108,21 @@ Read [Getting started with Pact] for more information for beginners.
 
 <details><summary>Specification Compatibility</summary>
 
-| Version | Stable | [Spec] Compatibility | Install            |
+| Version | Stable | [Spec](https://github.com/pact-foundation/pact-specification) Compatibility | Install            |
 | ------- | ------ | -------------------- | ------------------ |
-| 2.x.x   | Beta   | 2, 3                 | See [v2.x.x]       |
-| 1.0.x   | Yes    | 2, 3\*               | See [installation] |
-| 0.x.x   | Yes    | Up to v2             | 0.x.x [stable]     |
+| 2.x.x   | Beta   | 2, 3                 | See [v2.x.x](https://github.com/pact-foundation/pact-go/tree/2.x.x)       |
+| 1.0.x   | Yes    | 2, 3\*               | See [installation](#installation) |
+| 0.x.x   | Yes    | Up to v2             | 0.x.x [stable](https://github.com/pact-foundation/pact-go/tree/release/0.x.x)     |
 
-_\*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support].
+_\*_ v3 support is limited to the subset of functionality required to enable language inter-operable [Message support](https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues).
 
 </details>
 
 ## Installation
 
-1.  Download the latest [CLI tools] of the standalone tools and ensure the binaries are on your `PATH`:
-1.  Unzip the package into a known location, and ensuring the `pact` and other binaries in the `bin` directory are on the `PATH`.
-1.  Run `go get github.com/pact-foundation/pact-go@v1` to install the source packages
+1. Download the latest [CLI tools](https://github.com/pact-foundation/pact-ruby-standalone/releases) of the standalone tools and ensure the binaries are on your `PATH`:
+2. Unzip the package into a known location, and ensuring the `pact` and other binaries in the `bin` directory are on the `PATH`.
+3. Run `go get github.com/pact-foundation/pact-go@v1` to install the source packages
 
 See below for how to automate this:
 
@@ -125,7 +130,7 @@ See below for how to automate this:
 
 Since `1.x.x` Pact is go-gettable, and uses tags for versioning, so `dep ensure --add github.com/pact-foundation/pact-go@1.0.0` or `go get gopkg.in/pact-foundation/pact-go.v1` is now possible.
 
-See the [Changelog] for versions to pin to and their history.
+See the [Changelog](https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md) for versions to pin to and their history.
 
 ### Installation on \*nix
 
@@ -147,7 +152,7 @@ pact help
 _NOTE_: the above script installs the latest standalone tools at the time it was ran. It is recommended you pin the installation to a [specific version](https://github.com/pact-foundation/pact-ruby-standalone/releases) of a release so that you may control the upgrade cycle, as shown below with `tag=v1.92.0`
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | tag=v1.92.0 bash
+curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | tag=v2.0.3 bash
 ```
 
 ## Using Pact
@@ -162,9 +167,9 @@ Pact Go runs as part of your regular Go tests.
 
 We'll run through a simple example to get an understanding the concepts:
 
-1.  `go get github.com/pact-foundation/pact-go`
-1.  `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
-1.  `go test -v -run TestConsumer`.
+1. `go get github.com/pact-foundation/pact-go`
+2. `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
+3. `go test -v -run TestConsumer`.
 
 The simple example looks like this:
 
@@ -232,62 +237,62 @@ func TestConsumer(t *testing.T) {
 
 ### Provider API Testing
 
-1.  `go get github.com/pact-foundation/pact-go`
-1.  `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
-1.  `go test -v -run TestProvider`.
+1. `go get github.com/pact-foundation/pact-go`
+2. `cd $GOPATH/src/github.com/pact-foundation/pact-go/examples/`
+3. `go test -v -run TestProvider`.
 
 Here is the Provider test process broker down:
 
-1.  Start your Provider API:
+1. Start your Provider API:
 
-    You need to be able to first start your API in the background as part of your tests
-    before you can run the verification process. Here we create `startServer` which can be
-    started in its own goroutine:
+You need to be able to first start your API in the background as part of your tests
+before you can run the verification process. Here we create `startServer` which can be
+started in its own goroutine:
 
-    ```go
-    var lastName = "" // User doesn't exist
-    func startServer() {
-      mux := http.NewServeMux()
+```go
+var lastName = "" // User doesn't exist
+func startServer() {
+  mux := http.NewServeMux()
 
-      mux.HandleFunc("/users", func(w http.ResponseWriter, req *http.Request) {
-        w.Header().Add("Content-Type", "application/json")
-        fmt.Fprintf(w, fmt.Sprintf(`{"lastName":"%s"}`, lastName))
-      })
-      log.Fatal(http.ListenAndServe(":8000", mux))
-    }
-    ```
+  mux.HandleFunc("/users", func(w http.ResponseWriter, req *http.Request) {
+    w.Header().Add("Content-Type", "application/json")
+    fmt.Fprintf(w, fmt.Sprintf(`{"lastName":"%s"}`, lastName))
+  })
+  log.Fatal(http.ListenAndServe(":8000", mux))
+}
+```
 
-2.  Verify provider API
+2. Verify provider API
 
-    You can now tell Pact to read in your Pact files and verify that your API will
-    satisfy the requirements of each of your known consumers:
+You can now tell Pact to read in your Pact files and verify that your API will
+satisfy the requirements of each of your known consumers:
 
-    ```go
-    func TestProvider(t *testing.T) {
+```go
+func TestProvider(t *testing.T) {
 
-      // Create Pact connecting to local Daemon
-      pact := &dsl.Pact{
-        Provider: "MyProvider",
-      }
+  // Create Pact connecting to local Daemon
+  pact := &dsl.Pact{
+    Provider: "MyProvider",
+  }
 
-      // Start provider API in the background
-      go startServer()
+  // Start provider API in the background
+  go startServer()
 
-      // Verify the Provider using the locally saved Pact Files
-      pact.VerifyProvider(t, types.VerifyRequest{
-        ProviderBaseURL:        "http://localhost:8000",
-        PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
-        StateHandlers: types.StateHandlers{
-          // Setup any state required by the test
-          // in this case, we ensure there is a "user" in the system
-          "User foo exists": func() error {
-            lastName = "crickets"
-            return nil
-          },
-        },
-      })
-    }
-    ```
+  // Verify the Provider using the locally saved Pact Files
+  pact.VerifyProvider(t, types.VerifyRequest{
+    ProviderBaseURL:        "http://localhost:8000",
+    PactURLs:               []string{filepath.ToSlash(fmt.Sprintf("%s/myconsumer-myprovider.json", pactDir))},
+    StateHandlers: types.StateHandlers{
+      // Setup any state required by the test
+      // in this case, we ensure there is a "user" in the system
+      "User foo exists": func() error {
+        lastName = "crickets"
+        return nil
+      },
+    },
+  })
+}
+```
 
 The `VerifyProvider` will handle all verifications, treating them as subtests
 and giving you granular test reporting. If you don't like this behaviour, you may call `VerifyProviderRaw` directly and handle the errors manually.
@@ -300,42 +305,42 @@ urls (e.g. from a
 
 When validating a Provider, you have 3 options to provide the Pact files:
 
-1.  Use `PactURLs` to specify the exact set of pacts to be replayed:
+1. Use `PactURLs` to specify the exact set of pacts to be replayed:
 
-    ```go
-    pact.VerifyProvider(t, types.VerifyRequest{
-    	ProviderBaseURL:        "http://myproviderhost",
-    	PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
-    	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
-    	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
-    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
-    })
-    ```
+```go
+pact.VerifyProvider(t, types.VerifyRequest{
+	ProviderBaseURL:        "http://myproviderhost",
+	PactURLs:               []string{"http://broker/pacts/provider/them/consumer/me/latest/dev"},
+	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
+})
+```
 
-1.  Use `BrokerURL` to automatically find all of the latest consumers:
+2. Use `BrokerURL` to automatically find all of the latest consumers:
 
-    ```go
-    pact.VerifyProvider(t, types.VerifyRequest{
-    	ProviderBaseURL:        "http://myproviderhost",
-    	BrokerURL:              "http://brokerHost",
-    	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
-    	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
-    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
-    })
-    ```
+```go
+pact.VerifyProvider(t, types.VerifyRequest{
+	ProviderBaseURL:        "http://myproviderhost",
+	BrokerURL:              "http://brokerHost",
+	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
+})
+```
 
-1.  Use `BrokerURL` and `Tags` to automatically find all of the latest consumers given one or more tags:
+3. Use `BrokerURL` and `Tags` to automatically find all of the latest consumers given one or more tags:
 
-    ```go
-    pact.VerifyProvider(t, types.VerifyRequest{
-    	ProviderBaseURL:        "http://myproviderhost",
-    	BrokerURL:              "http://brokerHost",
-    	Tags:                   []string{"master", "prod"},
-    	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
-    	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
-    	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
-    })
-    ```
+```go
+pact.VerifyProvider(t, types.VerifyRequest{
+	ProviderBaseURL:        "http://myproviderhost",
+	BrokerURL:              "http://brokerHost",
+	Tags:                   []string{"master", "prod"},
+	BrokerUsername:         os.Getenv("PACT_BROKER_USERNAME"),
+	BrokerPassword:         os.Getenv("PACT_BROKER_PASSWORD"),
+	BrokerToken:            os.Getenv("PACT_BROKER_TOKEN"),
+})
+```
 
 Options 2 and 3 are particularly useful when you want to validate that your
 Provider is able to meet the contracts of what's in Production and also the latest
@@ -406,7 +411,7 @@ Sometimes you may need to add things to the requests that can't be persisted in 
 For these cases, we have two facilities that should be carefully used during verification:
 
 1. the ability to specify custom headers to be sent during provider verification. The flag to achieve this is `CustomProviderHeaders`.
-1. the ability to modify a request/response and change the payload. The parameter to achieve this is `RequestFilter`.
+2. the ability to modify a request/response and change the payload. The parameter to achieve this is `RequestFilter`.
 
 Read on for more.
 
@@ -448,7 +453,7 @@ _Important Note_: You should only use this feature for things that can not be pe
 
 #### Pending Pacts
 
-_NOTE_: This feature is currently only available on [PactFlow]
+_NOTE_: This feature is currently only available on [PactFlow](https://pactflow.io)
 
 Pending pacts is a feature that allows consumers to publish new contracts or changes to existing contracts without breaking Provider's builds. It does so by flagging the contract as "unverified" in the Pact Broker the first time a contract is published. A Provider can then enable a behaviour (via `EnablePending: true`) that will still perform a verification (and thus share the results back to the broker) but _not_ fail the verification step itself.
 
@@ -458,7 +463,7 @@ See the [docs](https://docs.pact.io/pending) and this [article](https://docs.pac
 
 #### WIP Pacts
 
-_NOTE_: This feature is currently only available on [PactFlow]
+_NOTE_: This feature is currently only available on [PactFlow](https://pactflow.io)
 
 WIP Pacts builds upon pending pacts, enabling provider tests to pull in _any_ contracts applicable to the provider regardless of the `tag` it was given. This is useful, because often times consumers won't follow the exact same tagging convention and so their workflow would be interrupted. This feature enables any pacts determined to be "work in progress" to be verified by the Provider, without causing a build failure. You can enable this behaviour by specifying a valid `time.Time` field for `IncludeWIPPactsSince`. This sets the start window for which new WIP pacts will be pulled down for verification, regardless of the tag.
 
@@ -474,9 +479,9 @@ If any of the middleware or hooks fail, the tests will also fail.
 
 ### Publishing pacts to a Pact Broker and Tagging Pacts
 
-Using a [Pact Broker] is recommended for any serious workloads, you can run your own one or use a [hosted broker].
+Using a [Pact Broker](https://github.com/pact-foundation/pact_broker) is recommended for any serious workloads, you can run your own one or use a [hosted broker](https://pactflow.io).
 
-By integrating with a Broker, you get much more advanced collaboration features and can take advantage of automation tools, such as the [can-i-deploy tool], which can tell you at any point in time, which component is safe to release.
+By integrating with a Broker, you get much more advanced collaboration features and can take advantage of automation tools, such as the [can-i-deploy tool](https://docs.pact.io/can_i_deploy), which can tell you at any point in time, which component is safe to release.
 
 See the [Pact Broker](https://docs.pact.io/getting_started/sharing_pacts)
 documentation for more details on the Broker.
@@ -517,7 +522,7 @@ _NOTE_: You need to be already pulling pacts from the broker for this feature to
 Use a cURL request like the following to PUT the pact to the right location,
 specifying your consumer name, provider name and consumer version.
 
-```
+```yaml
 curl -v \
   -X PUT \
   -H "Content-Type: application/json" \
@@ -607,15 +612,16 @@ func TestMessageConsumer_Success(t *testing.T) {
 
 **Explanation**:
 
-1.  The API - a contrived API handler example. Expects a User object and throws an `Error` if it can't handle it.
-    - In most applications, some form of transactionality exists and communication with a MQ/broker happens.
-    - It's important we separate out the protocol bits from the message handling bits, so that we can test that in isolation.
-1.  Creates the MessageConsumer class
-1.  Setup the expectations for the consumer - here we expect a `User` object with three fields
-1.  Pact will send the message to your message handler. If the handler does not error, the message is saved, otherwise the test fails. There are a few key things to consider:
-    - The actual request body that Pact will invoke on your handler will be contained within a `dsl.Message` object along with other context, so the body must be retrieved via `Content` attribute. If you set `Message.AsType(T)` this object will be mapped for you. If you don't want Pact to perform the conversion, you may do so on the object (`dsl.Message.Content`) or on the raw JSON (`dsl.Message.ContentRaw`).
-    - All handlers to be tested must be of the shape `func(dsl.Message) error` - that is, they must accept a `Message` and return an `error`. This is how we get around all of the various protocols, and will often require a lightweight adapter function to convert it.
-    - In this case, we wrap the actual `userHandler` with `userHandlerWrapper` provided by Pact.
+1. The API - a contrived API handler example. Expects a User object and throws an `Error` if it can't handle it.
+   - In most applications, some form of transactionality exists and communication with a MQ/broker happens.
+   - It's important we separate out the protocol bits from the message handling bits, so that we can test that in isolation.
+
+2. Creates the MessageConsumer class
+3. Setup the expectations for the consumer - here we expect a `User` object with three fields
+4. Pact will send the message to your message handler. If the handler does not error, the message is saved, otherwise the test fails. There are a few key things to consider:
+   - The actual request body that Pact will invoke on your handler will be contained within a `dsl.Message` object along with other context, so the body must be retrieved via `Content` attribute. If you set `Message.AsType(T)` this object will be mapped for you. If you don't want Pact to perform the conversion, you may do so on the object (`dsl.Message.Content`) or on the raw JSON (`dsl.Message.ContentRaw`).
+   - All handlers to be tested must be of the shape `func(dsl.Message) error` - that is, they must accept a `Message` and return an `error`. This is how we get around all of the various protocols, and will often require a lightweight adapter function to convert it.
+   - In this case, we wrap the actual `userHandler` with `userHandlerWrapper` provided by Pact.
 
 ### Provider (Producer)
 
@@ -648,10 +654,11 @@ As per the Consumer case, Pact takes the position of the intermediary (MQ/broker
 
 **Explanation**:
 
-1.  Our API client contains a single function `createDog` which is responsible for generating the message that will be sent to the consumer via some message queue
-1.  We configure Pact to stand-in for the queue. The most important bit here is the `handlers` block
-    - Similar to the Consumer tests, we map the various interactions that are going to be verified as denoted by their `description` field. In this case, `a request for a dog`, maps to the `createDog` handler. Notice how this matches the original Consumer test.
-1.  We can now run the verification process. Pact will read all of the interactions specified by its consumer, and invoke each function that is responsible for generating that message.
+1. Our API client contains a single function `createDog` which is responsible for generating the message that will be sent to the consumer via some message queue
+2. We configure Pact to stand-in for the queue. The most important bit here is the `handlers` block
+   - Similar to the Consumer tests, we map the various interactions that are going to be verified as denoted by their `description` field. In this case, `a request for a dog`, maps to the `createDog` handler. Notice how this matches the original Consumer test.
+
+3. We can now run the verification process. Pact will read all of the interactions specified by its consumer, and invoke each function that is responsible for generating that message.
 
 ### Pact Broker Integration
 
@@ -813,19 +820,19 @@ Pact tests tend to be quite long, due to the need to be specific about request/r
 
 You have two options to achieve this feat:
 
-1.  Set `PactFileWriteMode` to `"merge"` when creating a `Pact` struct:
+1. Set `PactFileWriteMode` to `"merge"` when creating a `Pact` struct:
 
-    This will allow you to have multiple independent tests for a given Consumer-Provider pair, without it clobbering previous interactions.
+   This will allow you to have multiple independent tests for a given Consumer-Provider pair, without it clobbering previous interactions.
 
-    See this [PR](https://github.com/pact-foundation/pact-js/pull/48) for background.
+   See this [PR](https://github.com/pact-foundation/pact-js/pull/48) for background.
 
-    _NOTE_: If using this approach, you _must_ be careful to clear out existing pact files (e.g. `rm ./pacts/*.json`) before you run tests to ensure you don't have left over requests that are no longer relevent.
+   _NOTE_: If using this approach, you _must_ be careful to clear out existing pact files (e.g. `rm ./pacts/*.json`) before you run tests to ensure you don't have left over requests that are no longer relevent.
 
-1.  Create a Pact test helper to orchestrate the setup and teardown of the mock service for multiple tests.
+2. Create a Pact test helper to orchestrate the setup and teardown of the mock service for multiple tests.
 
-    In larger test bases, this can reduce test suite time and the amount of code you have to manage.
+   In larger test bases, this can reduce test suite time and the amount of code you have to manage.
 
-    See the JS [example](https://github.com/tarciosaraiva/pact-melbjs/blob/master/helper.js) and related [issue](https://github.com/pact-foundation/pact-js/issues/11) for more.
+   See the JS [example](https://github.com/tarciosaraiva/pact-melbjs/blob/master/helper.js) and related [issue](https://github.com/pact-foundation/pact-js/issues/11) for more.
 
 #### Output Logging
 
@@ -888,7 +895,7 @@ But there is a way! Given an interaction that looks as follows (taken from the m
 
 and the function used to run provider verification is `go test -run TestMessageProvider`, you can test the verification of this specific interaction by setting two environment variables `PACT_DESCRIPTION` and `PACT_PROVIDER_STATE` and re-running the command. For example:
 
-```
+```sh
 cd examples/message/provider
 PACT_DESCRIPTION="a user" PACT_PROVIDER_STATE="user with id 127 exists" go test -v .
 ```
@@ -936,24 +943,3 @@ The general [roadmap](https://docs.pact.io/roadmap/) for Pact is available on th
 ## Contributing
 
 See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/edit/master/CONTRIBUTING.md).
-
-[spec]: https://github.com/pact-foundation/pact-specification
-[stable]: https://github.com/pact-foundation/pact-go/tree/release/0.x.x
-[alpha]: https://github.com/pact-foundation/pact-go/tree/release/1.1.x
-[troubleshooting]: https://github.com/pact-foundation/pact-go/wiki/Troubleshooting
-[getting started with pact]: http://dius.com.au/2016/02/03/microservices-pact/
-[pact website]: https://docs.pact.io/
-[slack channel]: https://pact-foundation.slack.com
-[@pact_up]: https://twitter.com/pact_up
-[pact specification v2]: https://github.com/pact-foundation/pact-specification/tree/version-2
-[pact specification v3]: https://github.com/pact-foundation/pact-specification/tree/version-3
-[cli tools]: https://github.com/pact-foundation/pact-ruby-standalone/releases
-[installation]: #installation
-[message support]: https://github.com/pact-foundation/pact-specification/tree/version-3#introduces-messages-for-services-that-communicate-via-event-streams-and-message-queues
-[changelog]: https://github.com/pact-foundation/pact-go/blob/master/CHANGELOG.md
-[pact broker]: https://github.com/pact-foundation/pact_broker
-[hosted broker]: https://pactflow.io
-[can-i-deploy tool]: https://docs.pact.io/can_i_deploy
-[pactflow]: https://pactflow.io
-[v2.x.x]: https://github.com/pact-foundation/pact-go/tree/2.x.x
-[slack]: https://slack.pact.io
