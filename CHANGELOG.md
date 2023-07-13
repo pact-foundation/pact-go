@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.1 (13 July 2023)
+  * [646c3eb](https://github.com/pact-foundation/pact-go/commit/646c3eb) - fix: don't fail install if musl check fails (Matt Fellows, Thu Jul 13 10:26:53 2023 +1000)
+
 ### v2.0.0 (10 July 2023)
 
 
