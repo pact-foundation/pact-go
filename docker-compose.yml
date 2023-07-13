@@ -33,7 +33,7 @@ services:
     # The Pact Broker provides a healthcheck endpoint which we will use to wait
     # for it to become available before starting up
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--tries=1", "--spider", "http://pactbroker:pactbroker@localhost:9292/diagnostic/status/heartbeat" ]
+      test: [ "CMD", "wget", "-q", "--tries=1", "--spider", "http://pact_workshop:pact_workshop@localhost:9292/diagnostic/status/heartbeat" ]
       interval: 1s
       timeout: 2s
       retries: 5
