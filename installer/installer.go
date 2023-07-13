@@ -74,7 +74,7 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 	if runtime.GOOS == "linux" {
 		err := i.checkMusl()
 		if err != nil {
-			return nil, err
+			log.Println("[DEBUG] unable to check for presence musl library due to error:", err)
 		}
 	}
 
