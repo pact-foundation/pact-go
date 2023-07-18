@@ -24,6 +24,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
+      - uses: actions/setup-java@v3 # Needed for the Avro example
+        with:
+          distribution: 'zulu'
+          java-version: '17'
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Test
