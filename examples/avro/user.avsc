@@ -1,0 +1,9 @@
+{
+    "type": "record",
+    "name": "User",
+    "namespace": "io.pact",
+    "fields" : [
+        {"name": "id", "type": "long"},
+        {"name": "username", "type": "string"}
+    ]
+}

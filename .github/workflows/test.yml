@@ -31,6 +31,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
+      - uses: actions/setup-java@v3 # Needed for the Avro example
+        with:
+          distribution: 'zulu'
+          java-version: '17'
       - name: Test
         run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
       - name: Install goveralls
