@@ -598,7 +598,8 @@ func (m *MessageServer) MockServerMismatchedRequests(port int) []MismatchedReque
 		return []MismatchedRequest{}
 	}
 
-	json.Unmarshal([]byte(C.GoString(mismatches)), &res)
+	// TODO: return no requests if error on unmarshal ?
+	_ = json.Unmarshal([]byte(C.GoString(mismatches)), &res)
 
 	return res
 }

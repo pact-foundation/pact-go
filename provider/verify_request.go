@@ -321,15 +321,3 @@ func getPort(rawURL string) int {
 
 	return -1
 }
-
-// Get the address given a URL
-func getHost(rawURL string) string {
-	parsedURL, err := url.Parse(rawURL)
-	if err != nil {
-		return ""
-	}
-
-	// TODO: use parseURL.Hostname() instead ?
-	splitHost := strings.Split(parsedURL.Host, ":")
-	return splitHost[0]
-}

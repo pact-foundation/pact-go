@@ -8,8 +8,8 @@ import (
 // Format a JSON document to make comparison easier.
 func FormatJSONString(object string) string {
 	var out bytes.Buffer
-	json.Indent(&out, []byte(object), "", "\t")
-	return string(out.Bytes())
+	_ = json.Indent(&out, []byte(object), "", "\t")
+	return out.String()
 }
 
 // Format a JSON document for creating Pact files.

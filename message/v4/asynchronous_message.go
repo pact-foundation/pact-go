@@ -62,7 +62,7 @@ type UnconfiguredAsynchronousMessageBuilder struct {
 
 // AddMessage creates a new asynchronous consumer expectation
 func (m *UnconfiguredAsynchronousMessageBuilder) UsingPlugin(config PluginConfig) *AsynchronousMessageWithPlugin {
-	m.rootBuilder.pact.messageserver.UsingPlugin(config.Plugin, config.Version)
+	_ = m.rootBuilder.pact.messageserver.UsingPlugin(config.Plugin, config.Version)
 
 	return &AsynchronousMessageWithPlugin{
 		rootBuilder: m.rootBuilder,
@@ -74,7 +74,7 @@ type AsynchronousMessageWithPlugin struct {
 }
 
 func (s *AsynchronousMessageWithPlugin) WithContents(contents string, contentType string) *AsynchronousMessageWithPluginContents {
-	s.rootBuilder.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
+	_ = s.rootBuilder.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
 
 	return &AsynchronousMessageWithPluginContents{
 		rootBuilder: s.rootBuilder,

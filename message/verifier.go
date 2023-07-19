@@ -111,7 +111,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				}
 
 				w.WriteHeader(http.StatusOK)
-				w.Write(body)
+				_, _ = w.Write(body)
 
 				return
 			}

@@ -167,12 +167,12 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 func TestPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
-	log.SetLogLevel("trace")
+	_ = log.SetLogLevel("trace")
 
 	m := NewHTTPPact("test-plugin-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test
-	m.UsingPlugin("protobuf", "0.0.3")
+	_ = m.UsingPlugin("protobuf", "0.0.3")
 	m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
 
 	i := m.NewInteraction("some plugin interaction")
@@ -188,11 +188,12 @@ func TestPluginInteraction(t *testing.T) {
 			"version": "matching(semver, '0.0.0')"
 		}`
 
-	i.UponReceiving("some interaction").
+	err = i.UponReceiving("some interaction").
 		Given("plugin state").
 		WithRequest("GET", "/protobuf").
 		WithStatus(200).
 		WithPluginInteractionContents(INTERACTION_PART_RESPONSE, "application/protobuf", protobufInteraction)
+	assert.NoError(t, err)
 
 	port, err := m.Start("0.0.0.0:0", false)
 	assert.NoError(t, err)
@@ -205,7 +206,7 @@ func TestPluginInteraction(t *testing.T) {
 	assert.NoError(t, err)
 
 	initPluginRequest := &InitPluginRequest{}
-	proto.Unmarshal(bytes, initPluginRequest)
+	err = proto.Unmarshal(bytes, initPluginRequest)
 	assert.NoError(t, err)
 
 	assert.Equal(t, "pact-go-driver", initPluginRequest.Implementation)

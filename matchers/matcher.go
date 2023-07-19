@@ -59,10 +59,6 @@ func (m like) GetValue() interface{} {
 func (m like) isMatcher() {
 }
 
-func (m like) string() string {
-	return fmt.Sprintf("%s", m.Value)
-}
-
 type term struct {
 	Value string `json:"value"`
 	Type  string `json:"pact:matcher:type"`
@@ -74,10 +70,6 @@ func (m term) GetValue() interface{} {
 }
 
 func (m term) isMatcher() {
-}
-
-func (m term) string() string {
-	return string(m.Value)
 }
 
 func (m term) MarshalJSON() ([]byte, error) {

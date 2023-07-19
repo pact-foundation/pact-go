@@ -33,7 +33,7 @@ func TestVerifyRequestValidate(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				if tt.panic {
 					assert.Panics(t, (func() {
-						tt.request.validate(handle)
+						_ = tt.request.validate(handle)
 					}))
 				} else {
 					err := tt.request.validate(handle)

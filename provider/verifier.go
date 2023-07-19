@@ -62,7 +62,7 @@ func (v *Verifier) validateConfig() error {
 func (v *Verifier) startDefaultHTTPServer(port int) {
 	mux := http.NewServeMux()
 
-	http.ListenAndServe(fmt.Sprintf("%s:%d", v.Hostname, port), mux)
+	_ = http.ListenAndServe(fmt.Sprintf("%s:%d", v.Hostname, port), mux)
 }
 
 // VerifyProviderRaw reads the provided pact files and runs verification against
@@ -223,7 +223,8 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 	var state stateHandlerAction
 	buf := new(strings.Builder)
 	tr := io.TeeReader(r.Body, buf)
-	io.ReadAll(tr)
+	// TODO: return err if unable to read ?
+	_, _ = io.ReadAll(tr)
 
 	// Body is consumed above, need to put it back after ;P
 	r.Body = ioutil.NopCloser(strings.NewReader(buf.String()))
@@ -254,7 +255,8 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 				var state stateHandlerAction
 				buf := new(strings.Builder)
 				tr := io.TeeReader(r.Body, buf)
-				io.ReadAll(tr)
+				// TODO: should return an error if unable to read ?
+				_, _ = io.ReadAll(tr)
 
 				// Body is consumed above, need to put it back after ;P
 				r.Body = ioutil.NopCloser(strings.NewReader(buf.String()))
@@ -325,7 +327,8 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 
 						w.Header().Add("content-type", "application/json")
 						w.WriteHeader(http.StatusOK)
-						w.Write(resBody)
+						// TODO: return interal server error if unable to write ?
+						_, _ = w.Write(resBody)
 						return
 					}
 				}

@@ -252,10 +252,10 @@ func Init(logLevel string) {
 
 		if os.Getenv("PACT_LOG_PATH") != "" {
 			log.Println("[DEBUG] initialised native log to log to file:", os.Getenv("PACT_LOG_PATH"))
-			logToFile(os.Getenv("PACT_LOG_PATH"), l)
+			_ = logToFile(os.Getenv("PACT_LOG_PATH"), l)
 		} else {
 			log.Println("[DEBUG] initialised native log to log to stdout")
-			logToStdout(l)
+			_ = logToStdout(l)
 		}
 	}
 }
@@ -356,7 +356,7 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 		return []MismatchedRequest{}
 	}
 
-	json.Unmarshal([]byte(C.GoString(mismatches)), &res)
+	_ = json.Unmarshal([]byte(C.GoString(mismatches)), &res)
 
 	return res
 }

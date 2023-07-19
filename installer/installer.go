@@ -44,7 +44,7 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 	i := &Installer{downloader: &defaultDownloader{}, fs: afero.NewOsFs(), hasher: &defaultHasher{}, config: &configuration{}}
 
 	for _, opt := range opts {
-		opt(i)
+		_ = opt(i)
 	}
 
 	if _, ok := supportedOSes[runtime.GOOS]; !ok {

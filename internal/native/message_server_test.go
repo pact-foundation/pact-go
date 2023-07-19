@@ -150,7 +150,8 @@ func TestGetAsyncMessageContentsAsBytes(t *testing.T) {
 	var v struct {
 		Some string `json:"some"`
 	}
-	json.Unmarshal(bytes, &v)
+	err = json.Unmarshal(bytes, &v)
+	assert.NoError(t, err)
 	assert.Equal(t, "json", v.Some)
 }
 
@@ -181,7 +182,8 @@ func TestGetSyncMessageContentsAsBytes(t *testing.T) {
 	var v struct {
 		Some string `json:"some"`
 	}
-	json.Unmarshal(bytes[0], &v)
+	err = json.Unmarshal(bytes[0], &v)
+	assert.NoError(t, err)
 	assert.Equal(t, "response", v.Some)
 }
 
@@ -189,7 +191,8 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	// Protobuf plugin test
-	m.UsingPlugin("protobuf", "0.3.0")
+	err := m.UsingPlugin("protobuf", "0.3.0")
+	assert.NoError(t, err)
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
@@ -214,10 +217,11 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 			}
 		}`
 
-	i.
+	err = i.
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
+	assert.NoError(t, err)
 
 	bytes, err := i.GetMessageRequestContents()
 	assert.NoError(t, err)
@@ -225,7 +229,8 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 
 	// Should be able to convert request body back into a protobuf
 	p := &InitPluginRequest{}
-	proto.Unmarshal(bytes, p)
+	err = proto.Unmarshal(bytes, p)
+	assert.NoError(t, err)
 	assert.Equal(t, "0.0.0", p.Version)
 
 	// Should be able to convert response into a protobuf
@@ -233,7 +238,8 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, bytes)
 	r := &InitPluginResponse{}
-	proto.Unmarshal(response[0], r)
+	err = proto.Unmarshal(response[0], r)
+	assert.NoError(t, err)
 	assert.Equal(t, "test", r.Catalogue[0].Key)
 
 }
@@ -242,7 +248,7 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	// Protobuf plugin test
-	m.UsingPlugin("protobuf", "0.3.0")
+	_ = m.UsingPlugin("protobuf", "0.3.0")
 
 	i := m.NewAsyncMessageInteraction("grpc interaction")
 
@@ -257,10 +263,11 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 			"version": "matching(semver, '0.0.0')"
 		}`
 
-	i.
+	err := i.
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", protobufInteraction)
+	assert.NoError(t, err)
 
 	bytes, err := i.GetMessageRequestContents()
 	assert.NoError(t, err)
@@ -268,33 +275,20 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 
 	// Should be able to convert body back into a protobuf
 	p := &InitPluginRequest{}
-	proto.Unmarshal(bytes, p)
+	err = proto.Unmarshal(bytes, p)
+	assert.NoError(t, err)
 	assert.Equal(t, "0.0.0", p.Version)
-}
-
-type binaryMessage struct {
-	ProviderStates []map[string]interface{} `json:"providerStates"`
-	Description    string                   `json:"description"`
-	Metadata       map[string]string        `json:"metadata"`
-	Contents       string                   `json:"contents"` // base 64 encoded
-	// Contents       []byte                   `json:"contents"`
-}
-type jsonMessage struct {
-	ProviderStates []map[string]interface{} `json:"providerStates"`
-	Description    string                   `json:"description"`
-	Metadata       map[string]string        `json:"metadata"`
-	Contents       interface{}              `json:"contents"`
 }
 
 func TestGrpcPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
 	assert.NoError(t, err)
-	log.SetLogLevel("TRACE")
+	_ = log.SetLogLevel("TRACE")
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	// Protobuf plugin test
-	m.UsingPlugin("protobuf", "0.3.0")
+	_ = m.UsingPlugin("protobuf", "0.3.0")
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
@@ -319,10 +313,11 @@ func TestGrpcPluginInteraction(t *testing.T) {
 			}
 		}`
 
-	i.
+	err = i.
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
+	assert.NoError(t, err)
 
 	// Start the gRPC mock server
 	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]interface{}))

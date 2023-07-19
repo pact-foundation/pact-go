@@ -16,7 +16,7 @@ func TestSyncTypeSystem(t *testing.T) {
 		Provider: "provider",
 		PactDir:  "/tmp/",
 	})
-	log.SetLogLevel("TRACE")
+	_ = log.SetLogLevel("TRACE")
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/../../internal/native/pact_plugin.proto", dir)
@@ -40,7 +40,7 @@ func TestSyncTypeSystem(t *testing.T) {
 	}`
 
 	// Sync - no plugin
-	p.AddSynchronousMessage("some description").
+	_ = p.AddSynchronousMessage("some description").
 		Given("some state").
 		WithRequest(func(r *SynchronousMessageWithRequestBuilder) {
 			r.WithJSONContent(map[string]string{"foo": "bar"})
@@ -83,7 +83,7 @@ func TestSyncTypeSystem(t *testing.T) {
 		Provider: "provider",
 		PactDir:  "/tmp/",
 	})
-	p.AddSynchronousMessage("some description").
+	_ = p.AddSynchronousMessage("some description").
 		Given("some state").
 		UsingPlugin(PluginConfig{
 			Plugin:  "csv",
