@@ -179,7 +179,10 @@ func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockSe
 func (p *httpMockProvider) reset() {
 	p.mockserver.CleanupMockServer(p.config.Port)
 	p.config.Port = 0
-	_ = p.configure()
+	err := p.configure()
+	if err != nil {
+		log.Println("[ERROR] failed to configure the mock server")
+	}
 }
 
 // TODO: improve / pretty print this to make it really easy to understand the problems

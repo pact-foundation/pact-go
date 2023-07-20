@@ -63,7 +63,11 @@ type UnconfiguredSynchronousMessageBuilder struct {
 
 // UsingPlugin enables a plugin for use in the current test case
 func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
-	_ = m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	err := m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	if err != nil {
+		log.Println("[ERROR] failed to add plugin:", err)
+		panic(err)
+	}
 
 	return &SynchronousMessageWithPlugin{
 		pact:          m.pact,
@@ -73,7 +77,11 @@ func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig)
 
 // UsingPlugin enables a plugin for use in the current test case
 func (m *SynchronousMessageWithPlugin) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
-	_ = m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	err := m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	if err != nil {
+		log.Println("[ERROR] failed to add plugin:", err)
+		panic(err)
+	}
 
 	return m
 }

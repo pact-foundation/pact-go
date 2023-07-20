@@ -223,14 +223,18 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 	var state stateHandlerAction
 	buf := new(strings.Builder)
 	tr := io.TeeReader(r.Body, buf)
-	// TODO: return err if unable to read ?
-	_, _ = io.ReadAll(tr)
+
+	_, err := io.ReadAll(tr)
+	if err != nil {
+		log.Println("[ERROR] getStateFromRequest unable to read request body:", err)
+		return stateHandlerAction{}, err
+	}
 
 	// Body is consumed above, need to put it back after ;P
 	r.Body = ioutil.NopCloser(strings.NewReader(buf.String()))
 	log.Println("[TRACE] getStateFromRequest received raw input", buf.String())
 
-	err := json.Unmarshal([]byte(buf.String()), &state)
+	err = json.Unmarshal([]byte(buf.String()), &state)
 	log.Println("[TRACE] getStateFromRequest parsed input (without params)", state)
 
 	if err != nil {

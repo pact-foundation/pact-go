@@ -60,9 +60,13 @@ type UnconfiguredAsynchronousMessageBuilder struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// AddMessage creates a new asynchronous consumer expectation
+// UsingPlugin enables a plugin for use in the current test case
 func (m *UnconfiguredAsynchronousMessageBuilder) UsingPlugin(config PluginConfig) *AsynchronousMessageWithPlugin {
-	_ = m.rootBuilder.pact.messageserver.UsingPlugin(config.Plugin, config.Version)
+	err := m.rootBuilder.pact.messageserver.UsingPlugin(config.Plugin, config.Version)
+	if err != nil {
+		log.Println("[ERROR] failed to add plugin:", err)
+		panic(err)
+	}
 
 	return &AsynchronousMessageWithPlugin{
 		rootBuilder: m.rootBuilder,
@@ -74,7 +78,11 @@ type AsynchronousMessageWithPlugin struct {
 }
 
 func (s *AsynchronousMessageWithPlugin) WithContents(contents string, contentType string) *AsynchronousMessageWithPluginContents {
-	_ = s.rootBuilder.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
+	err := s.rootBuilder.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
+	if err != nil {
+		log.Println("[ERROR] failed to get plugin content from message handle:", err)
+		panic(err)
+	}
 
 	return &AsynchronousMessageWithPluginContents{
 		rootBuilder: s.rootBuilder,

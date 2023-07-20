@@ -3,18 +3,27 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 )
 
 // Format a JSON document to make comparison easier.
 func FormatJSONString(object string) string {
 	var out bytes.Buffer
-	_ = json.Indent(&out, []byte(object), "", "\t")
+	err := json.Indent(&out, []byte(object), "", "\t")
+	if err != nil {
+		log.Println("[ERROR] failed to format string:", err)
+		return ""
+	}
 	return out.String()
 }
 
 // Format a JSON document for creating Pact files.
 func FormatJSONObject(object interface{}) string {
-	out, _ := json.Marshal(object)
+	out, err := json.Marshal(object)
+	if err != nil {
+		log.Println("[ERROR] failed to encode string to json:", err)
+		return ""
+	}
 	return FormatJSONString(string(out))
 }
 

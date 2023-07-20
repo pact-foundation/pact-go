@@ -111,7 +111,10 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				}
 
 				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write(body)
+				_, err = w.Write(body)
+				if err != nil {
+					log.Println("[ERROR] failed to write body response:", err)
+				}
 
 				return
 			}

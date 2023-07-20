@@ -598,8 +598,11 @@ func (m *MessageServer) MockServerMismatchedRequests(port int) []MismatchedReque
 		return []MismatchedRequest{}
 	}
 
-	// TODO: return no requests if error on unmarshal ?
-	_ = json.Unmarshal([]byte(C.GoString(mismatches)), &res)
+	err := json.Unmarshal([]byte(C.GoString(mismatches)), &res)
+	if err != nil {
+		log.Println("[ERROR] failed to unmarshal mismatches response, returning empty list of mismatches")
+		return []MismatchedRequest{}
+	}
 
 	return res
 }

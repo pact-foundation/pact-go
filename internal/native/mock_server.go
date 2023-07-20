@@ -252,10 +252,16 @@ func Init(logLevel string) {
 
 		if os.Getenv("PACT_LOG_PATH") != "" {
 			log.Println("[DEBUG] initialised native log to log to file:", os.Getenv("PACT_LOG_PATH"))
-			_ = logToFile(os.Getenv("PACT_LOG_PATH"), l)
+			err := logToFile(os.Getenv("PACT_LOG_PATH"), l)
+			if err != nil {
+				log.Println("[ERROR] failed to log to file:", err)
+			}
 		} else {
 			log.Println("[DEBUG] initialised native log to log to stdout")
-			_ = logToStdout(l)
+			err := logToStdout(l)
+			if err != nil {
+				log.Println("[ERROR] failed to log to stdout:", err)
+			}
 		}
 	}
 }
@@ -356,8 +362,11 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 		return []MismatchedRequest{}
 	}
 
-	_ = json.Unmarshal([]byte(C.GoString(mismatches)), &res)
-
+	err := json.Unmarshal([]byte(C.GoString(mismatches)), &res)
+	if err != nil {
+		log.Println("[ERROR] failed to unmarshal mismatches response, returning empty list of mismatches")
+		return []MismatchedRequest{}
+	}
 	return res
 }
 
