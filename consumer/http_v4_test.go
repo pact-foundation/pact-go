@@ -1,6 +1,8 @@
 package consumer
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/matchers"
@@ -48,6 +50,9 @@ func TestHttpV4TypeSystem(t *testing.T) {
 		})
 	assert.Error(t, err)
 
+	dir, _ := os.Getwd()
+	path := fmt.Sprintf("%s/pact_plugin.proto", dir)
+
 	err = p.AddInteraction().
 		Given("some state").
 		UponReceiving("some scenario").
@@ -63,7 +68,12 @@ func TestHttpV4TypeSystem(t *testing.T) {
 		WillRespondWith(200, func(b *V4InteractionWithPluginResponseBuilder) {
 			b.
 				Header("Content-Type", S("application/protobufs")).
-				PluginContents("application/protobufs", "{}")
+				PluginContents("application/protobufs", `
+					{
+						"pact:proto": "`+path+`",
+						"pact:message-type": "InitPluginRequest"
+					}
+				`)
 		}).
 		ExecuteTest(t, func(msc MockServerConfig) error {
 			// <- normally run the actually test here.

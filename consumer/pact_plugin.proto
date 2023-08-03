@@ -1,0 +1,229 @@
+// Proto file for Pact plugin interface V1
+
+syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+package io.pact.plugin;
+option go_package = "io.pact.plugin";
+
+// Request to verify the plugin has loaded OK
+message InitPluginRequest {
+  // Implementation calling the plugin
+  string implementation = 1;
+  // Version of the implementation
+  string version = 2;
+}
+
+// Entry to be added to the core catalogue. Each entry describes one of the features the plugin provides.
+// Entries will be stored in the catalogue under the key "plugin/$name/$type/$key".
+message CatalogueEntry {
+  enum EntryType {
+    // Matcher for contents of messages, requests or response bodies
+    CONTENT_MATCHER = 0;
+    // Generator for contents of messages, requests or response bodies
+    CONTENT_GENERATOR = 1;
+    // Mock server for a network protocol
+    MOCK_SERVER = 2;
+    // Matching rule for content field/values
+    MATCHER = 3;
+    // Type of interaction
+    INTERACTION = 4;
+  }
+  // Entry type
+  EntryType type = 1;
+  // Entry key
+  string key = 2;
+  // Associated data required for the entry. For CONTENT_MATCHER and CONTENT_GENERATOR types, a "content-types"
+  // value (separated by semi-colons) is required for all the content types the plugin supports.
+  map<string, string> values = 3;
+}
+
+// Response to init plugin, providing the catalogue entries the plugin provides
+message InitPluginResponse {
+  // List of entries the plugin supports
+  repeated CatalogueEntry catalogue = 1;
+}
+
+// Catalogue of Core Pact + Plugin features
+message Catalogue {
+  // List of entries from the core catalogue
+  repeated CatalogueEntry catalogue = 1;
+}
+
+// Message representing a request, response or message body
+message Body {
+  // The content type of the body in MIME format (i.e. application/json)
+  string contentType = 1;
+  // Bytes of the actual content
+  google.protobuf.BytesValue content = 2;
+  // Enum of content type override. This is a hint on how the content type should be treated.
+  enum ContentTypeHint {
+    // Determine the form of the content using the default rules of the Pact implementation
+    DEFAULT = 0;
+    // Contents must always be treated as a text form
+    TEXT = 1;
+    // Contents must always be treated as a binary form
+    BINARY = 2;
+  }
+  // Content type override to apply (if required). If omitted, the default rules of the Pact implementation
+  // will be used
+  ContentTypeHint contentTypeHint = 3;
+}
+
+// Request to preform a comparison on an actual body given the expected one
+message CompareContentsRequest {
+  // Expected body from the Pact interaction
+  Body expected = 1;
+  // Actual received body
+  Body actual = 2;
+  // If unexpected keys or attributes should be allowed. Setting this to false results in additional keys or fields
+  // will cause a mismatch
+  bool allow_unexpected_keys = 3;
+  // Map of expressions to matching rules. The expressions follow the documented Pact matching rule expressions
+  map<string, MatchingRules> rules = 4;
+  // Additional data added to the Pact/Interaction by the plugin
+  PluginConfiguration pluginConfiguration = 5;
+}
+
+// Indicates that there was a mismatch with the content type
+message ContentTypeMismatch {
+  // Expected content type (MIME format)
+  string expected = 1;
+  // Actual content type received (MIME format)
+  string actual = 2;
+}
+
+// A mismatch for an particular item of content
+message ContentMismatch {
+  // Expected data bytes
+  google.protobuf.BytesValue expected = 1;
+  // Actual data bytes
+  google.protobuf.BytesValue actual = 2;
+  // Description of the mismatch
+  string mismatch = 3;
+  // Path to the item that was matched. This is the value as per the documented Pact matching rule expressions.
+  string path = 4;
+  // Optional diff of the contents
+  string diff = 5;
+}
+
+// List of content mismatches
+message ContentMismatches {
+  repeated ContentMismatch mismatches = 1;
+}
+
+// Response to the CompareContentsRequest with the results of the comparison
+message CompareContentsResponse {
+  // Error message if an error occurred. If this field is set, the remaining fields will be ignored and the
+  // verification marked as failed
+  string error = 1;
+  // There was a mismatch with the types of content. If this is set, the results may not be set.
+  ContentTypeMismatch typeMismatch = 2;
+  // Results of the match, keyed by matching rule expression
+  map<string, ContentMismatches> results = 3;
+}
+
+// Request to configure/setup an interaction so that it can be verified later
+message ConfigureInteractionRequest {
+  // Content type of the interaction (MIME format)
+  string contentType = 1;
+  // This is data specified by the user in the consumer test
+  google.protobuf.Struct contentsConfig = 2;
+}
+
+// Represents a matching rule
+message MatchingRule {
+  // Type of the matching rule
+  string type = 1;
+  // Associated data for the matching rule
+  google.protobuf.Struct values = 2;
+}
+
+// List of matching rules
+message MatchingRules {
+  repeated MatchingRule rule = 1;
+}
+
+// Example generator
+message Generator {
+  // Type of generator
+  string type = 1;
+  // Associated data for the generator
+  google.protobuf.Struct values = 2;
+}
+
+// Plugin configuration added to the pact file by the ConfigureInteraction step
+message PluginConfiguration {
+  // Data to be persisted against the interaction
+  google.protobuf.Struct interactionConfiguration = 1;
+  // Data to be persisted in the Pact file metadata (Global data)
+  google.protobuf.Struct pactConfiguration = 2;
+}
+
+// Response to the configure/setup an interaction request
+message InteractionResponse {
+  // Contents for the interaction
+  Body contents = 1;
+  // All matching rules to apply
+  map<string, MatchingRules> rules = 2;
+  // Generators to apply
+  map<string, Generator> generators = 3;
+  // For message interactions, any metadata to be applied
+  google.protobuf.Struct messageMetadata = 4;
+  // Plugin specific data to be persisted in the pact file
+  PluginConfiguration pluginConfiguration = 5;
+  // Markdown/HTML formatted text representation of the interaction
+  string interactionMarkup = 6;
+  // Type of markup used
+  enum MarkupType {
+    // CommonMark format
+    COMMON_MARK = 0;
+    // HTML format
+    HTML = 1;
+  }
+  MarkupType interactionMarkupType = 7;
+  // Description of what part this interaction belongs to (in the case of there being more than one, for instance,
+  // request/response messages)
+  string partName = 8;
+}
+
+// Response to the configure/setup an interaction request
+message ConfigureInteractionResponse {
+  // If an error occurred. In this case, the other fields will be ignored/not set
+  string error = 1;
+  // The actual response if no error occurred.
+  repeated InteractionResponse interaction = 2;
+  // Plugin specific data to be persisted in the pact file
+  PluginConfiguration pluginConfiguration = 3;
+}
+
+// Request to generate the contents using any defined generators
+message GenerateContentRequest {
+  // Original contents
+  Body contents = 1;
+  // Generators to apply
+  map<string, Generator> generators = 2;
+  // Additional data added to the Pact/Interaction by the plugin
+  PluginConfiguration pluginConfiguration = 3;
+}
+
+// Generated body/message response
+message GenerateContentResponse {
+  Body contents = 1;
+}
+
+service PactPlugin {
+  // Check that the plugin loaded OK. Returns the catalogue entries describing what the plugin provides
+  rpc InitPlugin(InitPluginRequest) returns (InitPluginResponse);
+  // Updated catalogue. This will be sent when the core catalogue has been updated (probably by a plugin loading).
+  rpc UpdateCatalogue(Catalogue) returns (google.protobuf.Empty);
+  // Request to perform a comparison of some contents (matching request)
+  rpc CompareContents(CompareContentsRequest) returns (CompareContentsResponse);
+  // Request to configure/setup the interaction for later verification. Data returned will be persisted in the pact file.
+  rpc ConfigureInteraction(ConfigureInteractionRequest) returns (ConfigureInteractionResponse);
+  // Request to generate the content using any defined generators
+  rpc GenerateContent(GenerateContentRequest) returns (GenerateContentResponse);
+}
