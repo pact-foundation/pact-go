@@ -34,8 +34,6 @@ type SynchronousMessage struct {
 
 // SynchronousMessageBuilder is a representation of a single, bidirectional message
 type SynchronousMessageBuilder struct {
-	messageHandle *native.Message
-	pact          *SynchronousPact
 }
 
 // Given specifies a provider state
@@ -65,7 +63,11 @@ type UnconfiguredSynchronousMessageBuilder struct {
 
 // UsingPlugin enables a plugin for use in the current test case
 func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
-	m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	err := m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	if err != nil {
+		log.Println("[ERROR] failed to add plugin:", err)
+		panic(err)
+	}
 
 	return &SynchronousMessageWithPlugin{
 		pact:          m.pact,
@@ -75,7 +77,11 @@ func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig)
 
 // UsingPlugin enables a plugin for use in the current test case
 func (m *SynchronousMessageWithPlugin) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
-	m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	err := m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
+	if err != nil {
+		log.Println("[ERROR] failed to add plugin:", err)
+		panic(err)
+	}
 
 	return m
 }
@@ -185,7 +191,7 @@ type SynchronousMessageWithPlugin struct {
 }
 
 func (s *SynchronousMessageWithPlugin) WithContents(contents string, contentType string) *SynchronousMessageWithPluginContents {
-	s.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
+	_ = s.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
 
 	return &SynchronousMessageWithPluginContents{
 		pact:          s.pact,

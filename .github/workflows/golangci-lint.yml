@@ -38,7 +38,8 @@ jobs:
           # working-directory: somedir
 
           # Optional: golangci-lint command line arguments.
-          # args: --issues-exit-code=0
+          # ignore the lib.go file as it only contains cgo annotations
+          args: --skip-files internal/native/lib.go
 
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           # only-new-issues: true

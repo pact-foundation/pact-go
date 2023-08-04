@@ -136,7 +136,7 @@ func TestInstallerCheckInstallation(t *testing.T) {
 
 		for pkg := range packages {
 			dst, _ := i.getLibDstForPackage(pkg)
-			mockFs.Create(dst)
+			_, _ = mockFs.Create(dst)
 		}
 
 		err := i.CheckInstallation()
@@ -158,7 +158,7 @@ func TestInstallerCheckPackageInstall(t *testing.T) {
 				callFunc: func() {
 					for pkg := range packages {
 						dst, _ := i.getLibDstForPackage(pkg)
-						mockFs.Create(dst)
+						_, _ = mockFs.Create(dst)
 					}
 				},
 			},
