@@ -82,7 +82,7 @@ pact.VerifyProvider(t, types.VerifyRequest{
 
 As you can see, for each state (`"User 1234 exists"` etc.) we configure the local datastore differently. If this option is not configured, the `Verifier` will ignore the provider states defined in the pact and log a warning.
 
-Each handler takes a `setup` property indicating if the state is being setup (before the test) or torn dowmn (post request). This is useful if you want to cleanup after the test.
+Each handler takes a `setup` property indicating if the state is being setup (before the test) or torn down (after the test request). This is useful if you want to cleanup after the test.
 
 You may also optionally return a key/value map for provider state value generators to substitute values in the incoming test request.
 
