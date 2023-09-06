@@ -1,6 +1,3 @@
-//go:build consumer
-// +build consumer
-
 package grpc
 
 import (
@@ -36,16 +33,16 @@ func TestGrpcInteraction(t *testing.T) {
 		"pact:proto": "` + path + `",
 		"pact:proto-service": "RouteGuide/GetFeature",
 		"pact:content-type": "application/protobuf",
+		"pact:protobuf-config": {
+			"additionalIncludes": ["` + dir + `/routeguide"]
+		},
 		"request": {
-			"latitude": "matching(number, 180)",
-			"longitude": "matching(number, 200)"
+			"stuff": {
+				"id": "foo"
+			}
 		},
 		"response": {
-			"name": "notEmpty('Big Tree')",
-			"location": {
-				"latitude": "matching(number, 180)",
-				"longitude": "matching(number, 200)"
-			}
+			"result_code": "RESULT_CODE_OK"
 		}
 	}`
 
@@ -68,11 +65,16 @@ func TestGrpcInteraction(t *testing.T) {
 			defer conn.Close()
 
 			// Create the gRPC client
-			c := routeguide.NewRouteGuideClient(conn)
+			c := routeguide_v2.NewRouteGuideClient(conn)
 
-			point := &routeguide.Point{
-				Latitude:  180,
-				Longitude: 200,
+			feature_id := &routeguide_v2.IdentitySpec_Id{
+				Id: "foo",
+			}
+			feature_spec := &routeguide_v2.IdentitySpec{
+				Identity: feature_id,
+			}
+			point := &routeguide_v2.FeatureRequest{
+				Stuff: feature_spec,
 			}
 
 			// Now we can make a normal gRPC request
@@ -84,9 +86,7 @@ func TestGrpcInteraction(t *testing.T) {
 				t.Fatal(err.Error())
 			}
 
-			feature.GetLocation()
-			assert.Equal(t, "Big Tree", feature.GetName())
-			assert.Equal(t, int32(180), feature.GetLocation().GetLatitude())
+			assert.Equal(t, routeguide_v2.ResultCode(1), feature.GetResultCode())
 
 			return nil
 		})

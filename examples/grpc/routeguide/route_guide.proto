@@ -14,12 +14,20 @@
 
 syntax = "proto3";
 
-option go_package = "google.golang.org/grpc/examples/route_guide/routeguide";
+import "getmore.proto";
+
+option go_package = "routeguide/v2;routeguide_v2";
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
-package routeguide;
+package routeguide.v2;
+
+enum ResultCode {
+  RESULT_CODE_UNSPECIFIED = 0;
+  RESULT_CODE_OK = 1;
+  RESULT_CODE_UNKNOWN = 2;
+}
 
 // Interface exported by the server.
 service RouteGuide {
@@ -29,7 +37,7 @@ service RouteGuide {
   //
   // A feature with an empty name is returned if there's no feature at the given
   // position.
-  rpc GetFeature(Point) returns (Feature) {}
+  rpc GetFeature(FeatureRequest) returns (FeatureResponse) {}
 
   // A server-to-client streaming RPC.
   //
@@ -50,6 +58,15 @@ service RouteGuide {
   // Accepts a stream of RouteNotes sent while a route is being traversed,
   // while receiving other RouteNotes (e.g. from other users).
   rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
+}
+
+message FeatureRequest {
+  IdentitySpec stuff = 1;
+}
+
+message FeatureResponse {
+  ResultCode result_code = 1;
+  string stuff = 2;
 }
 
 // Points are represented as latitude-longitude pairs in the E7 representation

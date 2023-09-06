@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package routeguide.v2;
+
+// import "common.proto";
+// import "relators.proto";
+
+option go_package = "routeguide/v2;routeguide_v2";
+
+// identity specification
+message IdentitySpec {
+  oneof identity {
+    string id = 1;
+    string name = 2;
+  }
+}
