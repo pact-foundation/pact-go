@@ -92,6 +92,7 @@ func TestV3HTTPProvider(t *testing.T) {
 				return models.ProviderStateResponse{"uuid": "1234"}, nil
 			},
 		},
+		DisableColoredOutput: true,
 	})
 
 	assert.NoError(t, err)

@@ -32,6 +32,7 @@ void pactffi_verifier_broker_source_with_selectors(VerifierHandle *handle, const
 int pactffi_verifier_execute(VerifierHandle *handle);
 void pactffi_verifier_add_provider_transport(VerifierHandle *handle, const char *protocol, uint32_t port, const char *path, const char *scheme);
 void pactffi_verifier_set_no_pacts_is_error(VerifierHandle *handle, bool is_error);
+int pactffi_verifier_set_coloured_output(struct VerifierHandle *handle, bool coloured_output);
 */
 import "C"
 
@@ -245,6 +246,10 @@ func (v *Verifier) Execute() error {
 
 func (v *Verifier) SetNoPactsIsError(isError bool) {
 	C.pactffi_verifier_set_no_pacts_is_error(v.handle, boolToCInt(isError))
+}
+
+func (v *Verifier) SetColoredOutput(isColoredOutput bool) {
+	C.pactffi_verifier_set_coloured_output(v.handle, boolToCInt(isColoredOutput))
 }
 
 func stringArrayToCStringArray(inputs []string) **C.char {
