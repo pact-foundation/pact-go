@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -72,19 +73,20 @@ func TestChainHandlers(t *testing.T) {
 func TestHTTPReverseProxy(t *testing.T) {
 
 	// Setup target to proxy
-	port, err := HTTPReverseProxy(Options{
+	listener, err := HTTPReverseProxy(Options{
 		Middleware: []Middleware{
 			DummyMiddleware("1"),
 		},
 		TargetScheme:  "http",
 		TargetAddress: "127.0.0.1:1234",
 	})
-
 	if err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
 
-	if port == 0 {
-		t.Errorf("want non-zero port, got %v", port)
+	defer listener.Close()
+
+	if tcpAddr, ok := listener.Addr().(*net.TCPAddr); !ok || tcpAddr.Port == 0 {
+		t.Errorf("want non-zero port, got %v", listener.Addr())
 	}
 }
