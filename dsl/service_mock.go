@@ -25,7 +25,7 @@ type ServiceMock struct {
 }
 
 // Setup the Management services.
-func (s *ServiceMock) Setup() {
+func (s *ServiceMock) Setup(pactCLIDir string) {
 	s.ServicesSetupCalled = true
 }
 
