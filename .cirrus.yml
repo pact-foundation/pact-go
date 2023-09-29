@@ -1,0 +1,31 @@
+test: &TEST
+  test_script: make test
+
+linux_arm64_task:
+  env:
+    SKIP_PLUGIN_AVRO: "true"
+    matrix:
+      - VERSION: 1.19
+      - VERSION: 1.20
+      - VERSION: 1.21
+  # name: Tests (Go $VERSION)
+  arm_container:
+    image: golang:$VERSION
+  <<: *TEST
+
+macos_arm64_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-ventura-base:latest
+  golang_pre_req_script: brew install go@$VERSION
+  cirrus_cli_pre_req_script: chmod +x scripts/*.sh
+  plugin_protobuf_pre_req_script: brew install protobuf
+  # plugin_avro_pre_req_script: brew install openjdk@17 && java --version
+  env:
+    PATH: "/opt/homebrew/opt/go@$VERSION/bin:$PATH" # Needed golang
+    # PATH: "/opt/homebrew/opt/openjdk@17/bin:$PATH" # Needed for Avro Plugin
+    SKIP_PLUGIN_AVRO: "true"
+    matrix:
+      - VERSION: 1.19
+      - VERSION: 1.20
+      - VERSION: 1.21
+  <<: *TEST

@@ -7,7 +7,6 @@ PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST
 
 ifeq ($(OS),Windows_NT)
 	EXT=.exe
-	SKIP_PLUGIN_AVRO=true
 endif
 
 ci:: docker deps clean bin test pact
@@ -46,13 +45,15 @@ deps: download_plugins
 	cd -
 
 download_plugins:
-	@echo "--- 🐿  Installing plugins"; \
-	./scripts/install-cli.sh
-	$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.3.4
-	$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-0.0.1
-	$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.9
-	if [ -z "$$SKIP_PLUGIN_AVRO" ]; then\
-		$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/austek/pact-avro-plugin/releases/tag/v0.0.3; \
+	if [ -z $$SKIP_PLUGINS ]; then\
+		echo "--- 🐿  Installing plugins";\
+		./scripts/install-cli.sh;\
+		$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.3.4;\
+		$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/you54f/pact-plugins/releases/tag/csv-plugin-0.0.4;\
+		$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.9;\
+		if [ -z $$SKIP_PLUGIN_AVRO ]; then\
+			$$HOME/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/austek/pact-avro-plugin/releases/tag/v0.0.3; \
+		fi \
 	fi
 
 cli:
