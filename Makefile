@@ -5,6 +5,10 @@ TEST?=./...
 DOCKER_HOST_HTTP?="http://host.docker.internal"
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
 
+ifeq ($(OS),Windows_NT)
+	EXT=.exe
+endif
+
 ci:: docker deps clean bin test pact
 
 # Run the ci target from a developer machine with the environment variables
@@ -43,10 +47,10 @@ deps: download_plugins
 download_plugins:
 	@echo "--- 🐿  Installing plugins"; \
 	./scripts/install-cli.sh
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.3.4
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-0.0.1
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.9
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/tag/v0.0.3
+	~/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.3.4
+	~/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-0.0.1
+	~/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.9
+	~/.pact/bin/pact-plugin-cli$(EXT) -y install https://github.com/austek/pact-avro-plugin/releases/tag/v0.0.3
 
 cli:
 	@if [ ! -d pact/bin ]; then\

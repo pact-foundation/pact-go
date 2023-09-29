@@ -289,7 +289,7 @@ func (i *Installer) updateConfiguration(dst string, pkg string, info packageInfo
 }
 
 var setOSXInstallName = func(file string, lib string) error {
-	cmd := exec.Command("install_name_tool", "-id", fmt.Sprintf("%s.dylib", lib), file)
+	cmd := exec.Command("install_name_tool", "-id", file, file)
 	stdoutStderr, err := cmd.CombinedOutput()
 
 	if err != nil {

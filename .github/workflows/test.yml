@@ -76,8 +76,4 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
-      - run: make deps
-        if: runner.os != 'Windows'
-      - run: make clean
-      - run: make bin
       - run: make test
