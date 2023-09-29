@@ -1,106 +1,69 @@
 {
   "consumer": {
-    "name": "grpcconsumer"
+    "name": "protobufmessageconsumer"
   },
   "interactions": [
     {
-      "description": "Route guide - GetFeature",
+      "contents": {
+        "content": "CghCaWcgVHJlZRIGCLQBEMgB",
+        "contentType": "application/protobuf;message=Feature",
+        "contentTypeHint": "BINARY",
+        "encoded": "base64"
+      },
+      "description": "feature message",
       "interactionMarkup": {
         "markup": "```protobuf\nmessage Feature {\n    string name = 1;\n    message .routeguide.Point location = 2;\n}\n```\n",
         "markupType": "COMMON_MARK"
+      },
+      "matchingRules": {
+        "body": {
+          "$.location.latitude": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "number"
+              }
+            ]
+          },
+          "$.location.longitude": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "number"
+              }
+            ]
+          },
+          "$.name": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "notEmpty"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/protobuf;message=Feature"
       },
       "pending": false,
       "pluginConfiguration": {
         "protobuf": {
           "descriptorKey": "32f7898819c9f3ece72c5f9de784d705",
-          "service": "RouteGuide/GetFeature"
+          "message": "Feature"
         }
       },
       "providerStates": [
         {
-          "name": "feature 'Big Tree' exists"
+          "name": "the world exists"
         }
       ],
-      "request": {
-        "contents": {
-          "content": "CLQBEMgB",
-          "contentType": "application/protobuf;message=Point",
-          "contentTypeHint": "BINARY",
-          "encoded": "base64"
-        },
-        "matchingRules": {
-          "body": {
-            "$.latitude": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "number"
-                }
-              ]
-            },
-            "$.longitude": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "number"
-                }
-              ]
-            }
-          }
-        },
-        "metadata": {
-          "contentType": "application/protobuf;message=Point"
-        }
-      },
-      "response": [
-        {
-          "contents": {
-            "content": "CghCaWcgVHJlZRIGCLQBEMgB",
-            "contentType": "application/protobuf;message=Feature",
-            "contentTypeHint": "BINARY",
-            "encoded": "base64"
-          },
-          "matchingRules": {
-            "body": {
-              "$.location.latitude": {
-                "combine": "AND",
-                "matchers": [
-                  {
-                    "match": "number"
-                  }
-                ]
-              },
-              "$.location.longitude": {
-                "combine": "AND",
-                "matchers": [
-                  {
-                    "match": "number"
-                  }
-                ]
-              },
-              "$.name": {
-                "combine": "AND",
-                "matchers": [
-                  {
-                    "match": "notEmpty"
-                  }
-                ]
-              }
-            }
-          },
-          "metadata": {
-            "contentType": "application/protobuf;message=Feature"
-          }
-        }
-      ],
-      "transport": "grpc",
-      "type": "Synchronous/Messages"
+      "type": "Asynchronous/Messages"
     }
   ],
   "metadata": {
     "pactRust": {
       "ffi": "0.4.5",
-      "mockserver": "1.1.1",
       "models": "1.1.2"
     },
     "pactSpecification": {
@@ -120,6 +83,6 @@
     ]
   },
   "provider": {
-    "name": "grpcprovider"
+    "name": "protobufmessageprovider"
   }
 }

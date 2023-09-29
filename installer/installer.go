@@ -5,7 +5,6 @@ package installer
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -443,7 +442,7 @@ func (configuration) readConfig() pactConfig {
 		Libraries: map[string]packageMetadata{},
 	}
 
-	bytes, err := ioutil.ReadFile(pactConfigPath)
+	bytes, err := os.ReadFile(pactConfigPath)
 	if err != nil {
 		log.Println("[DEBUG] error reading file", pactConfigPath, "error: ", err)
 		return c
@@ -473,7 +472,7 @@ func (configuration) writeConfig(c pactConfig) error {
 	}
 	log.Println("[DEBUG] writing yaml config to file", string(bytes))
 
-	return ioutil.WriteFile(pactConfigPath, bytes, 0644)
+	return os.WriteFile(pactConfigPath, bytes, 0644)
 }
 
 type hasher interface {

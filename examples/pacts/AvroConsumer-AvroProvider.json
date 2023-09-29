@@ -1,0 +1,81 @@
+{
+  "consumer": {
+    "name": "AvroConsumer"
+  },
+  "interactions": [
+    {
+      "description": "A request to do get some Avro stuff",
+      "pending": false,
+      "pluginConfiguration": {
+        "avro": {
+          "record": "User",
+          "schemaKey": "1184dbf3292cee8bc7390762dd15fc52"
+        }
+      },
+      "request": {
+        "method": "GET",
+        "path": "/avro"
+      },
+      "response": {
+        "body": {
+          "content": "AghtYXR0",
+          "contentType": "avro/binary;record=User",
+          "contentTypeHint": "BINARY",
+          "encoded": "base64"
+        },
+        "headers": {
+          "content-type": [
+            "avro/binary"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.username": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "notEmpty"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.5",
+      "mockserver": "1.1.1",
+      "models": "1.1.2"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    },
+    "plugins": [
+      {
+        "configuration": {
+          "1184dbf3292cee8bc7390762dd15fc52": {
+            "avroSchema": "{\"type\":\"record\",\"name\":\"User\",\"namespace\":\"io.pact\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"username\",\"type\":\"string\"}]}"
+          }
+        },
+        "name": "avro",
+        "version": "0.0.4"
+      }
+    ]
+  },
+  "provider": {
+    "name": "AvroProvider"
+  }
+}
