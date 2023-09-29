@@ -1,6 +1,6 @@
 module github.com/pact-foundation/pact-go/v2
 
-go 1.17
+go 1.19
 
 require (
 	github.com/golang/protobuf v1.5.3
