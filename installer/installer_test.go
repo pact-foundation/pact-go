@@ -212,7 +212,7 @@ func (m *mockConfiguration) writeConfig(pactConfig) error {
 
 func restoreOSXInstallName() func() {
 	old := setOSXInstallName
-	setOSXInstallName = func(string, string) error {
+	setOSXInstallName = func(string) error {
 		return nil
 	}
 
