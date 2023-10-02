@@ -53,6 +53,9 @@ pact: install docker
 	make publish_pacts
 	go test -tags=provider -count=1 github.com/pact-foundation/pact-go/examples/... -run TestExample
 
+fake_pact:
+	GIT_COMMIT=1234 GIT_BRANCH=master make pact
+
 release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
