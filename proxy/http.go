@@ -10,8 +10,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/pact-foundation/pact-go/utils"
 )
 
 // Middleware is a way to use composition to add functionality
@@ -72,7 +70,7 @@ func chainHandlers(mw ...Middleware) Middleware {
 
 // HTTPReverseProxy provides a default setup for proxying
 // internal components within the framework
-func HTTPReverseProxy(options Options) (int, error) {
+func HTTPReverseProxy(options Options) (net.Listener, error) {
 	log.Println("[DEBUG] starting new proxy with opts", options)
 	port := options.ProxyPort
 	var err error
@@ -86,20 +84,22 @@ func HTTPReverseProxy(options Options) (int, error) {
 	proxy := createProxy(url, options.InternalRequestPathPrefix)
 	proxy.Transport = customTransport{tlsConfig: options.CustomTLSConfig}
 
-	if port == 0 {
-		port, err = utils.GetFreePort()
-		if err != nil {
-			log.Println("[ERROR] unable to start reverse proxy server:", err)
-			return 0, err
-		}
+	ln, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+	if err != nil {
+		return nil, err
 	}
 
 	wrapper := chainHandlers(append(options.Middleware, loggingMiddleware)...)
 
-	log.Println("[DEBUG] starting reverse proxy on port", port)
-	go http.ListenAndServe(fmt.Sprintf(":%d", port), wrapper(proxy)) // nolint:errcheck
+	go func() {
+		if err := http.Serve(ln, wrapper(proxy)); err != nil && !strings.HasSuffix(err.Error(), "use of closed network connection") {
+			log.Printf("[ERROR] unable to start reverse proxy server: %v", err)
+		}
+	}()
 
-	return port, nil
+	log.Printf("[DEBUG] starting reverse proxy at %s", ln.Addr())
+
+	return ln, nil
 }
 
 // https://stackoverflow.com/questions/52986853/how-to-debug-httputil-newsinglehostreverseproxy

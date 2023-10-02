@@ -347,7 +347,14 @@ func (p *Pact) VerifyProviderRaw(request types.VerifyRequest) ([]types.ProviderV
 	// This maps the 'description' field of a message pact, to a function handler
 	// that will implement the message producer. This function must return an object and optionally
 	// and error. The object will be marshalled to JSON for comparison.
-	port, err := proxy.HTTPReverseProxy(opts)
+	listener, err := proxy.HTTPReverseProxy(opts)
+	if err != nil {
+		log.Printf("[ERROR] unable to start http verification proxy: %v", err)
+		return nil, err
+	}
+	defer listener.Close()
+
+	port := listener.Addr().(*net.TCPAddr).Port
 
 	// Backwards compatibility, setup old provider states URL if given
 	// Otherwise point to proxy
@@ -669,14 +676,18 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 	// and error. The object will be marshalled to JSON for comparison.
 	mux := http.NewServeMux()
 
-	port, err := utils.GetFreePort()
+	listener, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
-		return response, fmt.Errorf("unable to allocate a port for verification: %v", err)
+		log.Printf("[ERROR] unable to allocate a port for verification: %v", err)
+		return nil, err
 	}
+	defer listener.Close()
+
+	log.Printf("[DEBUG] API handler starting at %s", listener.Addr())
 
 	// Construct verifier request
 	verificationRequest := types.VerifyRequest{
-		ProviderBaseURL:            fmt.Sprintf("http://localhost:%d", port),
+		ProviderBaseURL:            fmt.Sprintf("http://%s", listener.Addr()),
 		PactURLs:                   request.PactURLs,
 		BrokerURL:                  request.BrokerURL,
 		Tags:                       request.Tags,
@@ -695,25 +706,18 @@ func (p *Pact) VerifyMessageProviderRaw(request VerifyMessageRequest) ([]types.P
 
 	mux.HandleFunc("/", messageVerificationHandler(request.MessageHandlers, request.StateHandlers))
 
-	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer ln.Close()
-
-	log.Printf("[DEBUG] API handler starting: port %d (%s)", port, ln.Addr())
 	go func() {
-		if err := http.Serve(ln, mux); err != nil {
-			// NOTE: calling Fatalf causing test failures due to "accept tcp [::]:<port>: use of closed network connection"
+		if err := http.Serve(listener, mux); err != nil && !strings.HasSuffix(err.Error(), "use of closed network connection") {
 			log.Printf("[DEBUG] API handler start failed: %v", err)
 		}
 	}()
+
+	port := listener.Addr().(*net.TCPAddr).Port
 
 	portErr := waitForPort(port, "tcp", "localhost", p.ClientTimeout,
 		fmt.Sprintf(`Timed out waiting for pact proxy on port %d - check for errors`, port))
 
 	if portErr != nil {
-		log.Fatal("Error:", err)
 		return response, portErr
 	}
 
