@@ -7,7 +7,7 @@ import (
 )
 
 var version = "v1.8.0"
-var cliToolsVersion = "1.82.3"
+var cliToolsVersion = "v2.0.7"
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of Pact Go",
