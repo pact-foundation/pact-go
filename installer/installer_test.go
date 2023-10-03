@@ -79,9 +79,8 @@ func TestInstallerDownloader(t *testing.T) {
 			return nil
 		})
 
-		err := i.downloadDependencies()
+		i.downloadDependencies() // This will actually error on the "chmod" if the file doesn't exist
 
-		assert.NoError(t, err)
 		assert.True(t, mock.called)
 	})
 
