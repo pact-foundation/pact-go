@@ -2,7 +2,7 @@ version: "3"
 
 services:
   httpbin:
-    image: kennethreitz/httpbin
+    image: kong/httpbin # https://github.com/Kong/httpbin
     ports:
       - "8000:80"
 
