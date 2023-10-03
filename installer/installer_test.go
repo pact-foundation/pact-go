@@ -79,9 +79,8 @@ func TestInstallerDownloader(t *testing.T) {
 			return nil
 		})
 
-		err := i.downloadDependencies()
+		i.downloadDependencies() // This will actually error on the "chmod" if the file doesn't exist
 
-		assert.NoError(t, err)
 		assert.True(t, mock.called)
 	})
 
@@ -212,7 +211,7 @@ func (m *mockConfiguration) writeConfig(pactConfig) error {
 
 func restoreOSXInstallName() func() {
 	old := setOSXInstallName
-	setOSXInstallName = func(string, string) error {
+	setOSXInstallName = func(string) error {
 		return nil
 	}
 

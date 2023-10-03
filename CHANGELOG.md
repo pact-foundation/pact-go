@@ -5,6 +5,28 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.2 (03 October 2023)
+  * [5cef32c](https://github.com/pact-foundation/pact-go/commit/5cef32c) - fix: set install_name to absolute path for libpact_ffi.dylib (#345) (Stanislav Vodetskyi, Mon Oct 2 15:03:18 2023 -0700)
+  * [9dad9f3](https://github.com/pact-foundation/pact-go/commit/9dad9f3) - ci: add 1.20/1.21 to test + lint (Yousaf Nabi, Fri Sep 29 22:19:33 2023 +0100)
+  * [33cfa3a](https://github.com/pact-foundation/pact-go/commit/33cfa3a) - build(deps): bump goreleaser/goreleaser-action from 4 to 5 (dependabot[bot], Mon Sep 18 17:55:29 2023 +0000)
+  * [fc58344](https://github.com/pact-foundation/pact-go/commit/fc58344) - build(deps): bump google.golang.org/grpc from 1.57.0 to 1.58.1 (dependabot[bot], Mon Sep 18 17:22:45 2023 +0000)
+  * [4cceb67](https://github.com/pact-foundation/pact-go/commit/4cceb67) - build(deps): bump actions/checkout from 3 to 4 (dependabot[bot], Mon Sep 4 17:17:20 2023 +0000)
+  * [520e776](https://github.com/pact-foundation/pact-go/commit/520e776) - fix(golangci-lint): ignore internal/native/lib.go for linting (Borey UK, Thu Aug 3 21:59:48 2023 +0200)
+  * [eb89e72](https://github.com/pact-foundation/pact-go/commit/eb89e72) - fix(golangci-lint): update TestHttpV4TypeSystem to return a valid plugin response (Borey Uk, Thu Aug 3 17:58:16 2023 +0200)
+  * [03ceb24](https://github.com/pact-foundation/pact-go/commit/03ceb24) - fix: Dockerfile to reduce vulnerabilities (snyk-bot, Thu Aug 3 05:41:57 2023 +0000)
+  * [6d7cc85](https://github.com/pact-foundation/pact-go/commit/6d7cc85) - build(deps): bump google.golang.org/grpc from 1.56.2 to 1.57.0 (dependabot[bot], Mon Jul 31 17:30:26 2023 +0000)
+  * [4683c15](https://github.com/pact-foundation/pact-go/commit/4683c15) - build(deps): bump github.com/hashicorp/go-getter from 1.7.1 to 1.7.2 (dependabot[bot], Mon Jul 31 17:30:20 2023 +0000)
+  * [9c06e39](https://github.com/pact-foundation/pact-go/commit/9c06e39) - fix(golangci-lint): log errors and panic if unrecoverable (Borey UK, Thu Jul 20 14:43:01 2023 +0200)
+  * [1c98c51](https://github.com/pact-foundation/pact-go/commit/1c98c51) - fix(golangci-lint): fix errors as raised by linter (Borey UK, Wed Jul 19 16:31:13 2023 +0200)
+  * [2638fff](https://github.com/pact-foundation/pact-go/commit/2638fff) - build(deps): bump github.com/stretchr/testify from 1.8.3 to 1.8.4 (dependabot[bot], Tue Jul 18 06:55:11 2023 +0000)
+  * [1f66368](https://github.com/pact-foundation/pact-go/commit/1f66368) - feat: add an Avro example (Matt Fellows, Wed Jul 12 09:26:31 2023 +1000)
+  * [c72287e](https://github.com/pact-foundation/pact-go/commit/c72287e) - build(deps): bump goreleaser/goreleaser-action from 2 to 4 (dependabot[bot], Fri Jul 14 13:59:57 2023 +0000)
+  * [7ef14c5](https://github.com/pact-foundation/pact-go/commit/7ef14c5) - build(deps): bump actions/checkout from 2 to 3 (dependabot[bot], Fri Jul 14 13:59:54 2023 +0000)
+  * [7982226](https://github.com/pact-foundation/pact-go/commit/7982226) - build(deps): bump actions/setup-go from 2 to 4 (dependabot[bot], Fri Jul 14 13:59:51 2023 +0000)
+  * [d6627d0](https://github.com/pact-foundation/pact-go/commit/d6627d0) - deps(ci): create dependabot config (Yousaf Nabi, Thu Jul 13 16:36:58 2023 +0100)
+  * [897ee7e](https://github.com/pact-foundation/pact-go/commit/897ee7e) - ci(deps): update golangci-lint ci build to pass on master/main/v2 branch (Yousaf Nabi, Thu Jul 13 14:22:22 2023 +0100)
+  * [66463c8](https://github.com/pact-foundation/pact-go/commit/66463c8) - fix: Dockerfile to reduce vulnerabilities (snyk-bot, Wed Jul 12 19:12:14 2023 +0000)
+
 ### v2.0.1 (13 July 2023)
   * [646c3eb](https://github.com/pact-foundation/pact-go/commit/646c3eb) - fix: don't fail install if musl check fails (Matt Fellows, Thu Jul 13 10:26:53 2023 +1000)
 

@@ -1,5 +1,10 @@
 # Developer documentation
 
+## Tooling
+
+* Docker
+* Java (>= 19) - required for the Avro plugin example
+
 ## Key Branches
 
 ### `1.x.x` 
