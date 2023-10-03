@@ -236,7 +236,7 @@ func (i *Installer) installDependencies() error {
 				return err
 			}
 
-			err = setOSXInstallName(dst, info.libName)
+			err = setOSXInstallName(dst)
 
 			if err != nil {
 				return err
@@ -289,8 +289,9 @@ func (i *Installer) updateConfiguration(dst string, pkg string, info packageInfo
 	return i.config.writeConfig(c)
 }
 
-var setOSXInstallName = func(file string, lib string) error {
-	cmd := exec.Command("install_name_tool", "-id", fmt.Sprintf("%s.dylib", lib), file)
+var setOSXInstallName = func(file string) error {
+	cmd := exec.Command("install_name_tool", "-id", file, file)
+	log.Println("[DEBUG] running command:", cmd)
 	stdoutStderr, err := cmd.CombinedOutput()
 
 	if err != nil {
