@@ -1,13 +1,13 @@
 package avro
 
 import (
-	"io/ioutil"
-
+	
+	"os"
 	"github.com/linkedin/goavro/v2"
 )
 
 func getCodec() *goavro.Codec {
-	schema, err := ioutil.ReadFile("user.avsc")
+	schema, err := os.ReadFile("user.avsc")
 	if err != nil {
 		panic(err)
 	}
