@@ -38,7 +38,7 @@ function detect_osarch() {
 }
 
 
-VERSION="0.0.4"
+VERSION="0.1.0"
 detect_osarch
 
 if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then
