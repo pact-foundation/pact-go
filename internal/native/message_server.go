@@ -310,8 +310,7 @@ func (m *Message) WithResponseJSONContents(body interface{}) *Message {
 	return m.WithContents(INTERACTION_PART_RESPONSE, "application/json", []byte(value))
 }
 
-// TODO: note that string values here must be NUL terminated.
-// Only accepts JSON
+// Note that string values here must be NUL terminated.
 func (m *Message) WithContents(part interactionPart, contentType string, body []byte) *Message {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
