@@ -164,6 +164,9 @@ type VerifyRequest struct {
 
 	// Disable SSL verification for HTTP requests
 	DisableSSLVerification bool
+
+	// If true, will disable colored output in console.
+	DisableColoredOutput bool
 }
 
 // Validate checks that the minimum fields are provided.
@@ -261,6 +264,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	}
 
 	handle.SetNoPactsIsError(v.FailIfNoPactsFound)
+	handle.SetColoredOutput(!v.DisableColoredOutput)
 
 	return nil
 }
