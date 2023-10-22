@@ -1,7 +1,7 @@
 package command
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -55,7 +55,7 @@ func captureOutput(action func()) string {
 	action()
 
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stderr = rescueStderr
 
 	return strings.TrimSpace(string(out))

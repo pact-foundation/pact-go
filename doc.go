@@ -207,7 +207,7 @@ An example route using the standard Go http package might look like this:
     // Retrieve the Provider State
     var state types.ProviderState
 
-    body, _ := ioutil.ReadAll(req.Body)
+    body, _ := io.ReadAll(req.Body)
     req.Body.Close()
     json.Unmarshal(body, &state)
 

@@ -2,7 +2,7 @@ package native
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -58,7 +58,7 @@ func TestMockServer_MismatchesFail(t *testing.T) {
 }
 
 func TestMockServer_VerifySuccess(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 
 	m := MockServer{}
@@ -81,7 +81,7 @@ func TestMockServer_VerifySuccess(t *testing.T) {
 }
 
 func TestMockServer_VerifyFail(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 	m := MockServer{}
 	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
@@ -97,7 +97,7 @@ func TestMockServer_VerifyFail(t *testing.T) {
 }
 
 func TestMockServer_WritePactfile(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 
 	m := MockServer{}
@@ -126,7 +126,7 @@ func TestVersion(t *testing.T) {
 }
 
 func TestHandleBasedHTTPTests(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 
 	m := NewHTTPPact("test-http-consumer", "test-http-provider")
@@ -165,7 +165,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 }
 
 func TestPluginInteraction(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 	_ = log.SetLogLevel("trace")
 
@@ -202,7 +202,7 @@ func TestPluginInteraction(t *testing.T) {
 	res, err := http.Get(fmt.Sprintf("http://0.0.0.0:%d/protobuf", port))
 	assert.NoError(t, err)
 
-	bytes, err := ioutil.ReadAll(res.Body)
+	bytes, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
 	initPluginRequest := &InitPluginRequest{}

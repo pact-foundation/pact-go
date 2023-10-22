@@ -5,7 +5,7 @@ package avro
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -82,7 +82,7 @@ func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 		return nil, err
 	}
 
-	bytes, err := ioutil.ReadAll(res.Body)
+	bytes, err := io.ReadAll(res.Body)
 
 	if err != nil {
 		return nil, err

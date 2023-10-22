@@ -6,7 +6,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -188,7 +188,7 @@ var rawTest = func(query string) func(config consumer.MockServerConfig) error {
 				Path:     "/foobar",
 				RawQuery: query,
 			},
-			Body:   ioutil.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2021-01-01T08:00:45"}`)),
+			Body:   io.NopCloser(strings.NewReader(`{"id": 27, "name":"billy", "lastName":"sampson", "datetime":"2021-01-01T08:00:45"}`)),
 			Header: make(http.Header),
 		}
 

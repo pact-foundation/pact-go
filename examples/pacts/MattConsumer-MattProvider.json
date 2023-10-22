@@ -5,7 +5,6 @@
   "interactions": [
     {
       "description": "A request to do a matt",
-      "key": "c544877c9301bb17",
       "pending": false,
       "request": {
         "body": {
@@ -42,9 +41,9 @@
   ],
   "metadata": {
     "pactRust": {
-      "ffi": "0.3.18",
-      "mockserver": "0.9.8",
-      "models": "1.0.2"
+      "ffi": "0.4.5",
+      "mockserver": "1.1.1",
+      "models": "1.1.2"
     },
     "pactSpecification": {
       "version": "4.0"
@@ -53,7 +52,7 @@
       {
         "configuration": {},
         "name": "matt",
-        "version": "0.0.7"
+        "version": "0.0.9"
       }
     ]
   },

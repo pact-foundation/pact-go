@@ -3,7 +3,7 @@ package message
 import (
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 
@@ -58,7 +58,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 
 				// Extract message
 				var message messageVerificationHandlerRequest
-				body, err := ioutil.ReadAll(r.Body)
+				body, err := io.ReadAll(r.Body)
 				r.Body.Close()
 				log.Printf("[TRACE] message verification handler received request: %+s, %s", body, r.URL.Path)
 

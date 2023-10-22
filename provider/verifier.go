@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -231,7 +230,7 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 	}
 
 	// Body is consumed above, need to put it back after ;P
-	r.Body = ioutil.NopCloser(strings.NewReader(buf.String()))
+	r.Body = io.NopCloser(strings.NewReader(buf.String()))
 	log.Println("[TRACE] getStateFromRequest received raw input", buf.String())
 
 	err = json.Unmarshal([]byte(buf.String()), &state)
@@ -263,7 +262,7 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 				_, _ = io.ReadAll(tr)
 
 				// Body is consumed above, need to put it back after ;P
-				r.Body = ioutil.NopCloser(strings.NewReader(buf.String()))
+				r.Body = io.NopCloser(strings.NewReader(buf.String()))
 				log.Println("[TRACE] state handler received raw input", buf.String())
 
 				err := json.Unmarshal([]byte(buf.String()), &state)

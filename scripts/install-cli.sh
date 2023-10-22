@@ -9,6 +9,10 @@ set -e # Needed for Windows bash, which doesn't read the shebang
 
 function detect_osarch() {
     case $(uname -sm) in
+        'Linux aarch64')
+            os='linux'
+            arch='aarch64'
+            ;;
         'Linux x86_64')
             os='linux'
             arch='x86_64'

@@ -64,7 +64,7 @@ func TestAsyncTypeSystem(t *testing.T) {
 		ExpectsToReceive("some csv content").
 		UsingPlugin(PluginConfig{
 			Plugin:  "csv",
-			Version: "0.0.1",
+			Version: "0.0.3",
 		}).
 		WithContents(csvInteraction, "text/csv").
 		// StartTransport("notarealtransport", "127.0.0.1", nil).
