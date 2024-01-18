@@ -6,7 +6,7 @@ package plugin
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -99,7 +99,7 @@ func callMattServiceHTTP(msc consumer.MockServerConfig, message string) (string,
 			Scheme: "http",
 			Path:   "/matt",
 		},
-		Body:   ioutil.NopCloser(strings.NewReader(generateMattMessage(message))),
+		Body:   io.NopCloser(strings.NewReader(generateMattMessage(message))),
 		Header: make(http.Header),
 	}
 
@@ -111,7 +111,7 @@ func callMattServiceHTTP(msc consumer.MockServerConfig, message string) (string,
 		return "", err
 	}
 
-	bytes, err := ioutil.ReadAll(res.Body)
+	bytes, err := io.ReadAll(res.Body)
 
 	if err != nil {
 		return "", err

@@ -6,9 +6,9 @@ import (
 	context "context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	l "log"
+	"io"
 	"os"
+	l"log"
 	"testing"
 	"time"
 
@@ -21,7 +21,7 @@ import (
 )
 
 func TestHandleBasedMessageTestsWithString(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 	s := NewMessageServer("test-message-consumer", "test-message-provider")
 
@@ -48,7 +48,7 @@ func TestHandleBasedMessageTestsWithString(t *testing.T) {
 }
 
 func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 	s := NewMessageServer("test-message-consumer", "test-message-provider")
 
@@ -82,7 +82,7 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 }
 
 func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 
 	s := NewMessageServer("test-binarymessage-consumer", "test-binarymessage-provider").
@@ -116,7 +116,7 @@ func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
 	// Extract binary payload, base 64 decode it, unzip it
 	r, err := gzip.NewReader(bytes.NewReader(body))
 	assert.NoError(t, err)
-	result, _ := ioutil.ReadAll(r)
+	result, _ := io.ReadAll(r)
 
 	assert.Equal(t, encodedMessage, string(result))
 
@@ -281,7 +281,7 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 }
 
 func TestGrpcPluginInteraction(t *testing.T) {
-	tmpPactFolder, err := ioutil.TempDir("", "pact-go")
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 	_ = log.SetLogLevel("TRACE")
 

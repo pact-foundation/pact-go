@@ -3,7 +3,7 @@ package command
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -50,6 +50,6 @@ func setLogLevel(verbose bool, level string) {
 	log.SetOutput(filter)
 
 	if !verbose {
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	}
 }
