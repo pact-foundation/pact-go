@@ -29,6 +29,11 @@ type PublishRequest struct {
 	// e.g. "production", "master" and "development" are some common examples.
 	Tags []string
 
+	// Branches are used to identify which pacts a provider should verify using 
+	// consumer version selectors, associating the consumer API version with 
+	// a branch. This supersedes tags. https://docs.pact.io/pact_broker/branches 
+	Branch string
+
 	// Verbose increases verbosity of output
 	// Deprecated
 	Verbose bool
@@ -69,6 +74,10 @@ func (p *PublishRequest) Validate() error {
 
 	if p.BrokerToken != "" {
 		p.Args = append(p.Args, "--broker-token", p.BrokerToken)
+	}
+
+	if p.Branch != "" {
+		p.Args = append(p.Args, "--branch", p.Branch)
 	}
 
 	if p.ConsumerVersion == "" {
