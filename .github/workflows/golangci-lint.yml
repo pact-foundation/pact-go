@@ -24,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
       - name: golangci-lint
@@ -32,7 +32,7 @@ jobs:
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
           # version: v1.29
-          version: v1.53
+          version: v1.55
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir

@@ -42,7 +42,7 @@ func TestPluginMessageConsumer(t *testing.T) {
 		ExpectsToReceive("feature message").
 		UsingPlugin(message.PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.3.4",
+			Version: "0.3.8",
 		}).
 		WithContents(protoMessage, "application/protobuf").
 		ExecuteTest(t, func(m message.AsynchronousMessage) error {
