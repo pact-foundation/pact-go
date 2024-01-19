@@ -45,7 +45,7 @@ func TestAvroHTTP(t *testing.T) {
 		UponReceiving("A request to do get some Avro stuff").
 		UsingPlugin(consumer.PluginConfig{
 			Plugin:  "avro",
-			Version: "0.0.4",
+			Version: "0.0.3",
 		}).
 		WithRequest("GET", "/avro").
 		WillRespondWith(200, func(res *consumer.V4InteractionWithPluginResponseBuilder) {
