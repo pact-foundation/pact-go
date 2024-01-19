@@ -191,7 +191,7 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	// Protobuf plugin test
-	err := m.UsingPlugin("protobuf", "0.3.0")
+	err := m.UsingPlugin("protobuf", "0.3.8")
 	assert.NoError(t, err)
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
@@ -248,7 +248,7 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	// Protobuf plugin test
-	_ = m.UsingPlugin("protobuf", "0.3.0")
+	_ = m.UsingPlugin("protobuf", "0.3.8")
 
 	i := m.NewAsyncMessageInteraction("grpc interaction")
 
@@ -288,7 +288,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	// Protobuf plugin test
-	_ = m.UsingPlugin("protobuf", "0.3.0")
+	_ = m.UsingPlugin("protobuf", "0.3.8")
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
