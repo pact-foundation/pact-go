@@ -42,7 +42,7 @@ func TestHTTPPlugin(t *testing.T) {
 		UponReceiving("A request to do a matt").
 		UsingPlugin(consumer.PluginConfig{
 			Plugin:  "matt",
-			Version: "0.0.9",
+			Version: "0.1.0",
 		}).
 		WithRequest("POST", "/matt", func(req *consumer.V4InteractionWithPluginRequestBuilder) {
 			req.PluginContents("application/matt", mattRequest)
@@ -74,7 +74,7 @@ func TestTCPPlugin(t *testing.T) {
 		Given("the world exists").
 		UsingPlugin(message.PluginConfig{
 			Plugin:  "matt",
-			Version: "0.0.9",
+			Version: "0.1.0",
 		}).
 		WithContents(mattMessage, "application/matt").
 		StartTransport("matt", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
