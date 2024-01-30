@@ -105,7 +105,7 @@ func TestSyncTypeSystem(t *testing.T) {
 		Given("some state").
 		UsingPlugin(PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.3.8",
+			Version: "0.3.13",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
@@ -128,7 +128,7 @@ func TestSyncTypeSystem(t *testing.T) {
 		Given("some state").
 		UsingPlugin(PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.3.8",
+			Version: "0.3.13",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional

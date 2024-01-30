@@ -1,0 +1,21 @@
+name: Update Pact FFI Library
+
+on:
+  repository_dispatch:
+    types:
+      - pact-ffi-released
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - run: |
+        git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+        git config --global user.name "${GITHUB_ACTOR}"
+        git config pull.ff only
+
+    - run: scripts/create-pr-to-update-pact-ffi.sh ${{ github.event.client_payload.version }}
+      env:
+        GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
