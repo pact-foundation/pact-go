@@ -16,6 +16,6 @@ jobs:
         git config --global user.name "${GITHUB_ACTOR}"
         git config pull.ff only
 
-    - run: script/create-pr-to-update-pact-ffi.sh ${{ github.event.client_payload.version }}
+    - run: scripts/create-pr-to-update-pact-ffi.sh ${{ github.event.client_payload.version }}
       env:
         GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
