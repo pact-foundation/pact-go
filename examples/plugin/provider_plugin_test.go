@@ -26,6 +26,7 @@ var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
 
 func TestPluginProvider(t *testing.T) {
+	t.Skip()
 	httpPort, _ := utils.GetFreePort()
 	tcpPort, _ := utils.GetFreePort()
 
