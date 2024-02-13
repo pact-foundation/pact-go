@@ -5,6 +5,12 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.4 (13 February 2024)
+  * [f893818](https://github.com/pact-foundation/pact-go/commit/f893818) - feat: add native lib path function (#376) (Armin Becher, Tue Feb 13 05:27:44 2024 +0100)
+  * [59a586d](https://github.com/pact-foundation/pact-go/commit/59a586d) - fix: allow empty responses in sync messages (#386) (Stanislav Vodetskyi, Mon Feb 12 20:26:57 2024 -0800)
+  * [f04022c](https://github.com/pact-foundation/pact-go/commit/f04022c) - Merge pull request #384 from pact-foundation/chore/upgrade-to-pact-ffi-0-4-16 (Yousaf Nabi, Mon Feb 12 13:20:41 2024 +0000)
+  * [7129ef0](https://github.com/pact-foundation/pact-go/commit/7129ef0) - fix: update pact-ffi to 0.4.16 (YOU54F, Mon Feb 12 12:55:05 2024 +0000)
+
 ### v2.0.3 (08 February 2024)
   * [48a916c](https://github.com/pact-foundation/pact-go/commit/48a916c) - fix: upgrade to latest ffi 0.4.15 (Matt Fellows, Wed Feb 7 16:24:06 2024 +1100)
   * [b0a3f6e](https://github.com/pact-foundation/pact-go/commit/b0a3f6e) - ci(fix): update path to update-pact-ffi script (Yousaf Nabi, Thu Feb 1 11:52:23 2024 +0000)
