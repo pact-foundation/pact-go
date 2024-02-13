@@ -23,6 +23,16 @@ import (
 	"github.com/spf13/afero"
 )
 
+// NativeLibPath returns the absolute path to the go package used to link to the native rust library
+func NativeLibPath() string {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return ""
+	}
+	pactRoot := filepath.Dir(filepath.Dir(file))
+	return filepath.Join(pactRoot, "internal", "native")
+}
+
 // Installer is used to check the Pact Go installation is setup correctly, and can automatically install
 // packages if required
 type Installer struct {

@@ -4,11 +4,22 @@ package installer
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNativeLibPath(t *testing.T) {
+	lib := NativeLibPath()
+
+	libFilePath := filepath.Join(lib, "lib.go")
+	file, err := os.ReadFile(libFilePath)
+	assert.NoError(t, err)
+	assert.Contains(t, string(file), "-lpact_ffi")
+}
 
 // 1. Be able to specify the path of the binary in advance
 // 2. Check if the correct versions of the libs are present???
