@@ -354,7 +354,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	// Protobuf plugin test
-	_ = m.UsingPlugin("protobuf", "0.3.11")
+	_ = m.UsingPlugin("protobuf", "0.3.13")
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
