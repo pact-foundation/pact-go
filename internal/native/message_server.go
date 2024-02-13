@@ -502,17 +502,15 @@ func (m *Message) GetMessageResponseContents() ([][]byte, error) {
 
 		// Get Response body
 		len := C.pactffi_sync_message_get_response_contents_length(message, C.size_t(i))
-		if len == 0 {
-			return nil, errors.New("retrieved an empty message")
+		if len != 0 {
+			data := C.pactffi_sync_message_get_response_contents_bin(message, C.size_t(i))
+			if data == nil {
+				return nil, errors.New("retrieved an empty pointer to the message contents")
+			}
+			ptr := unsafe.Pointer(data)
+			bytes := C.GoBytes(ptr, C.int(len))
+			responses[i] = bytes
 		}
-		data := C.pactffi_sync_message_get_response_contents_bin(message, C.size_t(i))
-		if data == nil {
-			return nil, errors.New("retrieved an empty pointer to the message contents")
-		}
-		ptr := unsafe.Pointer(data)
-		bytes := C.GoBytes(ptr, C.int(len))
-
-		responses[i] = bytes
 	}
 
 	return responses, nil
