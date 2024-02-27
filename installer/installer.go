@@ -3,9 +3,11 @@
 package installer
 
 import (
+	"compress/gzip"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
@@ -14,7 +16,6 @@ import (
 	"runtime"
 	"strings"
 
-	getter "github.com/hashicorp/go-getter"
 	goversion "github.com/hashicorp/go-version"
 	"gopkg.in/yaml.v2"
 
@@ -411,7 +412,34 @@ type defaultDownloader struct{}
 func (d *defaultDownloader) download(src string, dst string) error {
 	log.Println("[INFO] downloading library from", src, "to", dst)
 
-	return getter.GetFile(dst, src)
+	baseDir := path.Dir(dst)
+	if err := os.MkdirAll(baseDir, 0755); err != nil {
+		return fmt.Errorf("failed to create %s; %w", baseDir, err)
+	}
+
+	f, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create output file; %w", err)
+	}
+	defer f.Close()
+
+	resp, err := http.Get(src)
+	if err != nil {
+		return fmt.Errorf("failed http call to %s; %w", src, err)
+	}
+	defer resp.Body.Close()
+
+	archive, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to create new gzip reader; %w", err)
+	}
+
+	_, err = io.Copy(f, archive)
+	if err != nil {
+		return fmt.Errorf("failed to copy archive to file; %w", err)
+	}
+
+	return nil
 }
 
 type packageMetadata struct {
