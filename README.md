@@ -72,7 +72,7 @@ Learn everything in Pact Go in 60 minutes: https://github.com/pact-foundation/pa
 
 ## Need Help
 
-- [Join](<(http://slack.pact.io)>) our community [slack workspace](http://pact-foundation.slack.com/).
+- [Join](http://slack.pact.io) our community [slack workspace](http://pact-foundation.slack.com/).
 - Stack Overflow: https://stackoverflow.com/questions/tagged/pact
 - Say 👋 on Twitter: [@pact_up]
 
