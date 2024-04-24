@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## Output Logging`
+## Output Logging
 
 Pact Go uses a simple log utility ([logutils](https://github.com/hashicorp/logutils))
 to filter log messages. The CLI already contains flags to manage this,
