@@ -42,7 +42,7 @@ jobs:
         run: go install github.com/mattn/goveralls@latest
       - name: Send coverage
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}.zip
           path: ~/.pact/plugins/**/plugin.log
