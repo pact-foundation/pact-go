@@ -24,9 +24,9 @@ jobs:
                     '1.22'
                     ]
         os: [
-          ubuntu-22.04,
+          # ubuntu-22.04,
           # ubuntu-latest,
-          # windows-latest,
+          windows-latest,
           # macos-12,
           # macos-14
           ]
