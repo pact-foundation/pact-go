@@ -24,6 +24,7 @@ jobs:
                     1.22.x
                     ]
         os: [
+          ubuntu-22.04,
           ubuntu-latest,
           # windows-latest,
           macos-12,
@@ -35,47 +36,68 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Install Go
+        if: matrix.os != 'ubuntu-22.04'
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
       - uses: actions/setup-java@v4 # Needed for the Avro example
+        if: matrix.os != 'ubuntu-22.04'
         with:
           distribution: 'zulu'
           java-version: '17'
       - run: brew install protobuf
         if: matrix.os == 'macos-14'
       - name: Unit Test 
-        run: make ci_unit
+        if: matrix.os != 'ubuntu-22.04'
+        run: make ci_unit in docker
+      - name: Set up QEMU
+        if: matrix.os == 'ubuntu-22.04'
+        uses: docker/setup-qemu-action@v3
+      - name: Build arm64 dockerfile 
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          docker build \
+            --platform linux/arm64 \
+            -f Dockerfile-deb \
+            -t pactfoundation/pact-go-test .
+      - name: Unit Test (arm64 docker)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          docker run \
+          --platform linux/arm64 \
+          --rm pactfoundation/pact-go-test
+      - name: Examples with Standalone (arm64 docker)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          docker run \
+            --platform linux/arm64
+            -e PACT_BROKER_BASE_URL \
+            -e PACT_BROKER_TOKEN \
+            -e LOG_LEVEL \
+            -e APP_SHA \
+            -e APP_BRANCH=${APP_REF:11} \
+            --rm \
+            pactfoundation/pact-go-test \
+            /bin/sh -c "make download_plugins && make install-pact-ruby-standalone && PACT_TOOL=standalone make pact"
       # - name: Examples with Docker
       #   if: runner.os == 'Linux'
       #   run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make ci_examples
       - name: Examples with Standalone
+        if: matrix.os != 'ubuntu-22.04'
         run: |
           make install-pact-ruby-standalone
           APP_BRANCH=${APP_REF:11} PACT_TOOL=standalone make ci_hosted_examples
-
-      # - name: Unit Test 
-      #   if: runner.os != 'Linux'
-      #   run: make ci_no_docker
-      #   env:
-      #     SKIP_PLUGIN_AVRO: true
-      # - name: Unit Test 
-      #   if: runner.os == 'Windows'
-      #   run: make test
-      #   env:
-      #     SKIP_PLUGIN_AVRO: true
-      #     LD_LIBRARY_PATH: /tmp
       - name: Install goveralls
         run: go install github.com/mattn/goveralls@latest
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.os != 'ubuntu-22.04'
       - name: Send coverage
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.os != 'ubuntu-22.04'
       - uses: actions/upload-artifact@v4
         with:
           name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
           path: ~/.pact/plugins/**/plugin.log
-        if: ${{ always() }}
+        if: ${{ always() }} && matrix.os != 'ubuntu-22.04'
 
   finish:
     needs: test

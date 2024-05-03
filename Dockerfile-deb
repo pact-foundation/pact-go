@@ -1,7 +1,7 @@
 FROM golang:latest
 
-RUN apt-get update && apt-get install -y openjdk-17-jre file
-
+RUN apt-get update && apt-get install -y openjdk-17-jre file protobuf-compiler
+# RUN mkdir -p /root/.pact/plugins
 COPY . /go/src/github.com/pact-foundation/pact-go
 
 WORKDIR /go/src/github.com/pact-foundation/pact-go

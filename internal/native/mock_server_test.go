@@ -172,7 +172,7 @@ func TestPluginInteraction(t *testing.T) {
 	m := NewHTTPPact("test-plugin-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test
-	_ = m.UsingPlugin("protobuf", "0.0.3")
+	_ = m.UsingPlugin("protobuf", "0.3.14")
 	m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
 
 	i := m.NewInteraction("some plugin interaction")
