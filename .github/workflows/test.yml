@@ -45,6 +45,12 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+
+      - name: Set SKIP_AVRO for Windows
+        if: matrix.os == 'windows-latest'
+        run: echo "SKIP_AVRO=true" >> $GITHUB_ENV
+        # TODO - work out why plugin wont start on windows
+
       - run: brew install protobuf
         if: matrix.os == 'macos-14'
       - name: Unit Test 
