@@ -19,9 +19,9 @@ jobs:
                     # 1.17.x, # Ended 02 Aug 2022
                     # 1.18.x, # Ended 01 Feb 2023
                     # 1.19.x, # Ended 8 Aug 2023
-                    1.20, # Ended 06 Feb 2024
-                    1.21,
-                    1.22
+                    '1.20', # Ended 06 Feb 2024
+                    '1.21',
+                    '1.22'
                     ]
         os: [
           ubuntu-22.04,
@@ -66,17 +66,19 @@ jobs:
         run: |
           docker run \
           --platform linux/arm64 \
+          -e SKIP_RACE=true \
           --rm pactfoundation/pact-go-test-${{ matrix.go-version }}
       - name: Examples with Standalone (arm64 docker)
         if: matrix.os == 'ubuntu-22.04'
         run: |
           docker run \
-            --platform linux/arm64
+            --platform linux/arm64 \
             -e PACT_BROKER_BASE_URL \
             -e PACT_BROKER_TOKEN \
             -e LOG_LEVEL \
             -e APP_SHA \
             -e APP_BRANCH=${APP_REF:11} \
+            -e SKIP_RACE=true \
             --rm \
             pactfoundation/pact-go-test-${{ matrix.go-version }} \
             /bin/sh -c "make download_plugins && make install-pact-ruby-standalone && PACT_TOOL=standalone make pact"

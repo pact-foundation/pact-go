@@ -109,13 +109,19 @@ release:
 
 # @for d in $$(go list -buildvcs=false ./... | grep -v vendor | grep -v examples);
 
+RACE?='-race'
+
+ifdef SKIP_RACE
+	RACE=
+endif
+
 test: deps install
 	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -v $(RACE) -coverprofile=profile.out -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \
@@ -132,6 +138,29 @@ testrace:
 
 updatedeps:
 	go get -d -v -p 2 ./...
+
+docker_build:
+	docker build -f Dockerfile-deb --build-arg VERSION=1.21 -t pactfoundation/pact-go-test .
+docker_run_test:
+	docker run \
+		-e PACT_BROKER_BASE_URL \
+		-e PACT_BROKER_TOKEN \
+		-e LOG_LEVEL=info \
+		-e APP_SHA=foo \
+		--rm \
+		-it \
+		pactfoundation/pact-go-test \
+		/bin/sh -c "make test"
+docker_run_examples:
+	docker run \
+		-e PACT_BROKER_BASE_URL \
+		-e PACT_BROKER_TOKEN \
+		-e LOG_LEVEL=info \
+		-e APP_SHA=foo \
+		--rm \
+		-it \
+		pactfoundation/pact-go-test \
+		/bin/sh -c "make download_plugins && make install-pact-ruby-standalone && PACT_TOOL=standalone make pact"
 
 .PHONY: install bin default dev test pact updatedeps clean release
 
