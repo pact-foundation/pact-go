@@ -58,7 +58,7 @@ jobs:
         run: |
           docker build \
             --platform linux/arm64 \
-            --build-arg ${{ matrix.go-version }} \
+            --build-arg VERSION=${{ matrix.go-version }} \
             -f Dockerfile-deb \
             -t pactfoundation/pact-go-test-${{ matrix.go-version }} .
       - name: Unit Test (arm64 docker)
