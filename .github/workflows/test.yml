@@ -81,7 +81,7 @@ jobs:
             -e SKIP_RACE=true \
             --rm \
             pactfoundation/pact-go-test-${{ matrix.go-version }} \
-            /bin/sh -c "make download_plugins && make install-pact-ruby-standalone && PACT_TOOL=standalone make pact"
+            /bin/sh -c "make download_plugins && make install-pact-ruby-cli && PACT_TOOL=ruby make pact"
       # - name: Examples with Docker
       #   if: runner.os == 'Linux'
       #   run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make ci_examples
