@@ -24,11 +24,11 @@ jobs:
                     '1.22'
                     ]
         os: [
-          # ubuntu-22.04,
-          # ubuntu-latest,
-          windows-latest,
-          # macos-12,
-          # macos-14
+          ubuntu-22.04,
+          ubuntu-latest,
+          # windows-latest,
+          macos-12,
+          macos-14
           ]
       fail-fast: false
     runs-on: ${{ matrix.os }}
@@ -46,40 +46,40 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Set SKIP_PLUGIN_AVRO for Windows
-        if: matrix.os == 'windows-latest'
-        run: echo "SKIP_PLUGIN_AVRO=true" >> $GITHUB_ENV
-        shell: bash
-        # TODO - work out why plugin wont start on windows
+      # - name: Set SKIP_PLUGIN_AVRO for Windows
+      #   if: matrix.os == 'windows-latest'
+      #   run: echo "SKIP_PLUGIN_AVRO=true" >> $GITHUB_ENV
+      #   shell: bash
+      #   # TODO - work out why plugin wont start on windows
 
       - run: brew install protobuf
         if: matrix.os == 'macos-14'
       - name: Unit Test 
         if: matrix.os != 'ubuntu-22.04'
         run: make ci_unit
-      - name: Set up QEMU
-        if: matrix.os == 'ubuntu-22.04'
-        uses: docker/setup-qemu-action@v3
-      - name: Build arm64 dockerfile 
+      # - name: Set up QEMU
+      #   if: matrix.os == 'ubuntu-22.04'
+      #   uses: docker/setup-qemu-action@v3
+      - name: Build amd64 dockerfile 
         if: matrix.os == 'ubuntu-22.04'
         run: |
           docker build \
-            --platform linux/arm64 \
+            --platform linux/amd64 \
             --build-arg VERSION=${{ matrix.go-version }} \
             -f Dockerfile-deb \
             -t pactfoundation/pact-go-test-${{ matrix.go-version }} .
-      - name: Unit Test (arm64 docker)
+      - name: Unit Test (amd64 docker)
         if: matrix.os == 'ubuntu-22.04'
         run: |
           docker run \
-          --platform linux/arm64 \
+          --platform linux/amd64 \
           -e SKIP_RACE=true \
           --rm pactfoundation/pact-go-test-${{ matrix.go-version }}
-      - name: Examples with Standalone (arm64 docker)
+      - name: Examples with Standalone (amd64 docker)
         if: matrix.os == 'ubuntu-22.04'
         run: |
           docker run \
-            --platform linux/arm64 \
+            --platform linux/amd64 \
             -e PACT_BROKER_BASE_URL \
             -e PACT_BROKER_TOKEN \
             -e LOG_LEVEL \
