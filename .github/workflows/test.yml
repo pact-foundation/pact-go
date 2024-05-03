@@ -4,12 +4,11 @@ name: Test
 env:
   PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-  REACT_APP_API_BASE_URL: http://localhost:8080
   APP_SHA: ${{ github.sha }}
   APP_REF: ${{ github.ref }}
   LD_LIBRARY_PATH: /tmp
   PACT_GO_LIB_DOWNLOAD_PATH: /tmp
-  LOG_LEVEL: debug
+  LOG_LEVEL: info
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -19,11 +18,18 @@ jobs:
         go-version: [ # https://endoflife.date/go
                     # 1.17.x, # Ended 02 Aug 2022
                     # 1.18.x, # Ended 01 Feb 2023
-                    1.19.x, 
-                    1.20.x,
+                    # 1.19.x, # Ended 8 Aug 2023
+                    1.20.x, # Ended 06 Feb 2024
                     1.21.x
+                    1.22.x
                     ]
-        os: [ubuntu-latest]
+        os: [
+          ubuntu-latest,
+          # windows-latest,
+          macos-12,
+          macos-14
+          ]
+      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -36,15 +42,38 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-      - name: Test
-        run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
+      - run: brew install protobuf
+        if: matrix.os == 'macos-14'
+      - name: Unit Test 
+        run: make ci_unit
+      # - name: Examples with Docker
+      #   if: runner.os == 'Linux'
+      #   run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make ci_examples
+      - name: Examples with Standalone
+        run: |
+          make install-pact-ruby-standalone
+          APP_BRANCH=${APP_REF:11} PACT_TOOL=standalone make ci_hosted_examples
+
+      # - name: Unit Test 
+      #   if: runner.os != 'Linux'
+      #   run: make ci_no_docker
+      #   env:
+      #     SKIP_PLUGIN_AVRO: true
+      # - name: Unit Test 
+      #   if: runner.os == 'Windows'
+      #   run: make test
+      #   env:
+      #     SKIP_PLUGIN_AVRO: true
+      #     LD_LIBRARY_PATH: /tmp
       - name: Install goveralls
         run: go install github.com/mattn/goveralls@latest
+        if: runner.os == 'Linux'
       - name: Send coverage
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
+        if: runner.os == 'Linux'
       - uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}.zip
+          name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
           path: ~/.pact/plugins/**/plugin.log
         if: ${{ always() }}
 
@@ -57,3 +86,25 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
+
+  # test-other-os:
+  #   strategy:
+  #     matrix:
+  #       go-version: [ # https://endoflife.date/go
+  #                   1.19.x, 
+  #                   1.20.x,
+  #                   1.21.x
+  #                   ]
+  #       os: [macos-latest,windows-latest]
+  #     fail-fast: false
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+  #     - name: Install Go
+  #       uses: actions/setup-go@v4
+  #       with:
+  #         go-version: ${{ matrix.go-version }}
+  #     - run: make test
+  #       env:
+  #         SKIP_PLUGIN_AVRO: true

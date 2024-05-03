@@ -3,9 +3,15 @@ include make/config.mk
 TEST?=./...
 .DEFAULT_GOAL := ci
 DOCKER_HOST_HTTP?="http://host.docker.internal"
-PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
+# PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
+ifeq ($(OS),Windows_NT)
+	EXT=.exe
+endif
 
 ci:: docker deps clean bin test pact
+ci_unit:: deps clean bin test
+ci_examples:: docker pact
+ci_hosted_examples:: pact
 
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
@@ -39,14 +45,43 @@ deps: download_plugins
 	cd /tmp; \
 	go install github.com/mitchellh/gox@latest; \
 	cd -
+PLUGIN_PACT_PROTOBUF_VERSION=0.3.13
+PLUGIN_PACT_CSV_VERSION=0.0.1
+PLUGIN_PACT_MATT_VERSION=0.0.9
+PLUGIN_PACT_AVRO_VERSION=0.0.3
 
 download_plugins:
 	@echo "--- 🐿  Installing plugins"; \
-	./scripts/install-cli.sh
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.3.13
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-0.0.1
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.9
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/tag/v0.0.3
+	if [ -z $$SKIP_PLUGINS ]; then\
+		if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then \
+			./scripts/install-cli.sh; \
+		else \
+			echo "--- 🐿  Pact CLI already installed"; \
+		fi; \
+		if [ ! -f ~/.pact/plugins/protobuf-$(PLUGIN_PACT_PROTOBUF_VERSION)/pact-protobuf-plugin ]; then \
+			~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-$(PLUGIN_PACT_PROTOBUF_VERSION); \
+		else \
+			echo "--- 🐿  Pact protobuf-$(PLUGIN_PACT_PROTOBUF_VERSION) already installed"; \
+		fi; \
+		if [ ! -f ~/.pact/plugins/csv-$(PLUGIN_PACT_CSV_VERSION)/pact-csv-plugin ]; then \
+			~/.pact/bin/pact-plugin-cli -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-$(PLUGIN_PACT_CSV_VERSION); \
+		else \
+			echo "--- 🐿  Pact csv-$(PLUGIN_PACT_CSV_VERSION) already installed"; \
+		fi; \
+		if [ ! -f ~/.pact/plugins/matt-$(PLUGIN_PACT_MATT_VERSION)/matt ]; then \
+			~/.pact/bin/pact-plugin-cli -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v$(PLUGIN_PACT_MATT_VERSION); \
+		else \
+			echo "--- 🐿  Pact matt-$(PLUGIN_PACT_MATT_VERSION) already installed"; \
+		fi; \
+		if [ -z $$SKIP_PLUGIN_AVRO ]; then\
+			if [ ! -f ~/.pact/plugins/avro-$(PLUGIN_PACT_AVRO_VERSION)/bin/pact-avro-plugin ]; then \
+				~/.pact/bin/pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/tag/v$(PLUGIN_PACT_AVRO_VERSION); \
+			else \
+				echo "--- 🐿  Pact avro-$(PLUGIN_PACT_AVRO_VERSION) already installed"; \
+			fi; \
+		fi; \
+	fi
+
 
 cli:
 	@if [ ! -d pact/bin ]; then\
@@ -56,9 +91,9 @@ cli:
 
 install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
-	./build/pact-go	 -l DEBUG install --libDir /tmp
+	./build/pact-go -l DEBUG install --libDir /tmp
 
-pact: clean install docker
+pact: clean install
 	@echo "--- 🔨 Running Pact examples"
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 	make publish
@@ -66,11 +101,13 @@ pact: clean install docker
 
 publish:
 	@echo "-- 📃 Publishing pacts"
-	@"${PACT_CLI}" publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH} --tag prod
+	@"${PACT_BROKER_COMMAND}" publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH} --tag prod --branch ${APP_BRANCH}
 
 release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
+
+# @for d in $$(go list -buildvcs=false ./... | grep -v vendor | grep -v examples);
 
 test: deps install
 	@echo "--- ✅ Running tests"
@@ -111,3 +148,77 @@ grpc-test:
 	rm -rf ./examples/pacts
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
 	go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
+
+## =====================
+## Multi-platform detection and support
+## Pact CLI install/uninstall tasks
+## =====================
+SHELL := /bin/bash
+PACT_TOOL?=docker
+PACT_CLI_DOCKER_VERSION?=latest
+PACT_CLI_VERSION?=latest
+PACT_CLI_STANDALONE_VERSION?=2.4.1
+PACT_CLI_DOCKER_RUN_COMMAND?=docker run --rm -v /${PWD}:/${PWD} -w ${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_TOKEN pactfoundation/pact-cli:${PACT_CLI_DOCKER_VERSION}
+PACT_BROKER_COMMAND=pact-broker
+PACTFLOW_CLI_COMMAND=pactflow
+
+ifeq '$(findstring ;,$(PATH))' ';'
+	detected_OS := Windows
+else
+	detected_OS := $(shell uname -sm 2>/dev/null || echo Unknown)
+	detected_OS := $(patsubst CYGWIN%,Cygwin,$(detected_OS))
+	detected_OS := $(patsubst MSYS%,MSYS,$(detected_OS))
+	detected_OS := $(patsubst MINGW%,MSYS,$(detected_OS))
+endif
+
+ifeq ($(PACT_TOOL),ruby_standalone)
+# add path to standalone, and add bat if windows
+	ifneq ($(filter $(detected_OS),Windows MSYS),)
+		PACT_BROKER_COMMAND:="./pact/bin/${PACT_BROKER_COMMAND}.bat"
+		PACTFLOW_CLI_COMMAND:="./pact/bin/${PACTFLOW_CLI_COMMAND}.bat"
+	else
+		PACT_BROKER_COMMAND:="./pact/bin/${PACT_BROKER_COMMAND}"
+		PACTFLOW_CLI_COMMAND:="./pact/bin/${PACTFLOW_CLI_COMMAND}"
+	endif
+endif
+
+ifeq ($(PACT_TOOL),docker)
+# add docker run command path
+	PACT_BROKER_COMMAND:=${PACT_CLI_DOCKER_RUN_COMMAND} ${PACT_BROKER_COMMAND}
+	PACTFLOW_CLI_COMMAND:=${PACT_CLI_DOCKER_RUN_COMMAND} ${PACTFLOW_CLI_COMMAND}
+endif
+
+
+install-pact-ruby-cli:
+	case "${PACT_CLI_VERSION}" in \
+	latest) gem install pact_broker-client;; \
+	"") gem install pact_broker-client;; \
+		*) gem install pact_broker-client -v ${PACT_CLI_VERSION} ;; \
+	esac
+
+uninstall-pact-ruby-cli:
+	gem uninstall -aIx pact_broker-client
+
+install-pact-ruby-standalone:
+	case "${detected_OS}" in \
+	Windows|MSYS) curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v${PACT_CLI_STANDALONE_VERSION}/pact-${PACT_CLI_STANDALONE_VERSION}-windows-x86_64.zip && \
+		unzip pact-${PACT_CLI_STANDALONE_VERSION}-windows-x86_64.zip && \
+		rm pact-${PACT_CLI_STANDALONE_VERSION}-windows-x86_64.zip && \
+		./pact/bin/pact-broker.bat help;; \
+	"Darwin arm64") curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v${PACT_CLI_STANDALONE_VERSION}/pact-${PACT_CLI_STANDALONE_VERSION}-osx-arm64.tar.gz && \
+		tar xzf pact-${PACT_CLI_STANDALONE_VERSION}-osx-arm64.tar.gz && \
+		rm pact-${PACT_CLI_STANDALONE_VERSION}-osx-arm64.tar.gz && \
+		./pact/bin/pact-broker help;; \
+	"Darwin x86_64") curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v${PACT_CLI_STANDALONE_VERSION}/pact-${PACT_CLI_STANDALONE_VERSION}-osx-x86_64.tar.gz && \
+		tar xzf pact-${PACT_CLI_STANDALONE_VERSION}-osx-x86_64.tar.gz && \
+		rm pact-${PACT_CLI_STANDALONE_VERSION}-osx-x86_64.tar.gz && \
+		./pact/bin/pact-broker help;; \
+	"Linux aarch64") curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v${PACT_CLI_STANDALONE_VERSION}/pact-${PACT_CLI_STANDALONE_VERSION}-linux-arm64.tar.gz && \
+		tar xzf pact-${PACT_CLI_STANDALONE_VERSION}-linux-arm64.tar.gz && \
+		rm pact-${PACT_CLI_STANDALONE_VERSION}-linux-arm64.tar.gz && \
+		./pact/bin/pact-broker help;; \
+	"Linux x86_64") curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v${PACT_CLI_STANDALONE_VERSION}/pact-${PACT_CLI_STANDALONE_VERSION}-linux-x86_64.tar.gz && \
+		tar xzf pact-${PACT_CLI_STANDALONE_VERSION}-linux-x86_64.tar.gz && \
+		rm pact-${PACT_CLI_STANDALONE_VERSION}-linux-x86_64.tar.gz && \
+		./pact/bin/pact-broker help;; \
+	esac
