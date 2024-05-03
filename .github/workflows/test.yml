@@ -20,7 +20,7 @@ jobs:
                     # 1.18.x, # Ended 01 Feb 2023
                     # 1.19.x, # Ended 8 Aug 2023
                     1.20.x, # Ended 06 Feb 2024
-                    1.21.x
+                    1.21.x,
                     1.22.x
                     ]
         os: [
