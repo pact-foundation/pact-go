@@ -24,12 +24,24 @@ jobs:
                     '1.22'
                     ]
         os: [
-          ubuntu-22.04,
+          ubuntu-22.04, # We use this OS to run a build against our docker image
           ubuntu-latest,
           # windows-latest,
           macos-12,
           macos-14
           ]
+        exclude:
+          - go-version: '1.22'
+            os: ubuntu-latest
+          - go-version: '1.22'
+            os: ubuntu-22.04
+        include:
+          - go-version: '1.22'
+            os: ubuntu-latest
+            experimental: true
+          - go-version: '1.22'
+            os: ubuntu-22.04
+            experimental: true
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -45,21 +57,11 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      # - name: Set SKIP_PLUGIN_AVRO for Windows
-      #   if: matrix.os == 'windows-latest'
-      #   run: echo "SKIP_PLUGIN_AVRO=true" >> $GITHUB_ENV
-      #   shell: bash
-      #   # TODO - work out why plugin wont start on windows
-
       - run: brew install protobuf
         if: matrix.os == 'macos-14'
       - name: Unit Test 
         if: matrix.os != 'ubuntu-22.04'
         run: make ci_unit
-      # - name: Set up QEMU
-      #   if: matrix.os == 'ubuntu-22.04'
-      #   uses: docker/setup-qemu-action@v3
       - name: Build amd64 dockerfile 
         if: matrix.os == 'ubuntu-22.04'
         run: |
@@ -73,7 +75,6 @@ jobs:
         run: |
           docker run \
           --platform linux/amd64 \
-          -e SKIP_RACE=true \
           --rm pactfoundation/pact-go-test-${{ matrix.go-version }}
       - name: Examples with Standalone (amd64 docker)
         if: matrix.os == 'ubuntu-22.04'
@@ -85,13 +86,9 @@ jobs:
             -e LOG_LEVEL \
             -e APP_SHA \
             -e APP_BRANCH=${APP_REF:11} \
-            -e SKIP_RACE=true \
             --rm \
             pactfoundation/pact-go-test-${{ matrix.go-version }} \
             /bin/sh -c "make download_plugins && make install-pact-ruby-cli && PACT_TOOL=ruby make pact"
-      # - name: Examples with Docker
-      #   if: runner.os == 'Linux'
-      #   run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make ci_examples
       - name: Examples with Standalone
         if: matrix.os != 'ubuntu-22.04'
         run: |
@@ -118,25 +115,3 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
-
-  # test-other-os:
-  #   strategy:
-  #     matrix:
-  #       go-version: [ # https://endoflife.date/go
-  #                   1.19.x, 
-  #                   1.20.x,
-  #                   1.21.x
-  #                   ]
-  #       os: [macos-latest,windows-latest]
-  #     fail-fast: false
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #     - name: Install Go
-  #       uses: actions/setup-go@v4
-  #       with:
-  #         go-version: ${{ matrix.go-version }}
-  #     - run: make test
-  #       env:
-  #         SKIP_PLUGIN_AVRO: true
