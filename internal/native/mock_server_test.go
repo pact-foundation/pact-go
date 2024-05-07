@@ -167,7 +167,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 func TestPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
-	_ = log.SetLogLevel("trace")
+	_ = log.SetLogLevel("INFO")
 
 	m := NewHTTPPact("test-plugin-consumer", "test-plugin-provider")
 

@@ -35,7 +35,7 @@ var ArrayMinLike = matchers.ArrayMinLike
 type Map = matchers.MapMatcher
 
 func TestConsumerV2(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	log.SetLogLevel("INFO")
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2Consumer",
@@ -79,7 +79,7 @@ func TestConsumerV2(t *testing.T) {
 }
 
 func TestConsumerV2_Match(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	log.SetLogLevel("INFO")
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerMatch",
@@ -111,7 +111,7 @@ func TestConsumerV2_Match(t *testing.T) {
 }
 
 func TestConsumerV2AllInOne(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	log.SetLogLevel("INFO")
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerAllInOne",

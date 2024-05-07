@@ -16,7 +16,7 @@ func TestSyncTypeSystem(t *testing.T) {
 		Provider: "provider",
 		PactDir:  "/tmp/",
 	})
-	_ = log.SetLogLevel("TRACE")
+	_ = log.SetLogLevel("INFO")
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/../../internal/native/pact_plugin.proto", dir)

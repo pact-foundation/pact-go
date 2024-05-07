@@ -29,7 +29,7 @@ func TestVerifier_Verify(t *testing.T) {
 			"--state-change-url",
 			"http://localhost:55827/__setup/",
 			"--loglevel",
-			"trace",
+			"info",
 		}
 
 		res := v.Verify(args)
