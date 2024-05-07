@@ -5,6 +5,21 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.5 (07 May 2024)
+  * [9d36011](https://github.com/pact-foundation/pact-go/commit/9d36011) - Merge pull request #411 from pact-foundation/dependabot/github_actions/golangci/golangci-lint-action-5 (Yousaf Nabi, Tue Apr 30 17:11:14 2024 +0100)
+  * [2ac35ec](https://github.com/pact-foundation/pact-go/commit/2ac35ec) - Merge pull request #410 from pact-foundation/dependabot/github_actions/actions/upload-artifact-4 (Yousaf Nabi, Tue Apr 30 17:04:03 2024 +0100)
+  * [7290563](https://github.com/pact-foundation/pact-go/commit/7290563) - build(deps): bump golangci/golangci-lint-action from 4 to 5 (dependabot[bot], Mon Apr 29 17:59:57 2024 +0000)
+  * [e584ebb](https://github.com/pact-foundation/pact-go/commit/e584ebb) - build(deps): bump actions/upload-artifact from 3 to 4 (dependabot[bot], Mon Apr 29 17:59:54 2024 +0000)
+  * [57f7753](https://github.com/pact-foundation/pact-go/commit/57f7753) - ci(fix): provide unique name for upload artifact (Yousaf Nabi, Tue Apr 23 18:38:29 2024 +0100)
+  * [13df9cd](https://github.com/pact-foundation/pact-go/commit/13df9cd) - fix(docs): restore trigger_pact_docs_updates (Yousaf Nabi, Tue Apr 23 15:33:40 2024 +0100)
+  * [604c0f5](https://github.com/pact-foundation/pact-go/commit/604c0f5) - build(deps): bump google.golang.org/grpc from 1.60.1 to 1.63.2 (#403) (dependabot[bot], Tue Apr 23 15:41:04 2024 +1000)
+  * [d0626fe](https://github.com/pact-foundation/pact-go/commit/d0626fe) - build(deps): bump actions/upload-artifact from 3 to 4 (#366) (dependabot[bot], Tue Apr 23 15:40:49 2024 +1000)
+  * [fa45fa6](https://github.com/pact-foundation/pact-go/commit/fa45fa6) - build(deps): bump actions/checkout from 2 to 4 (#382) (dependabot[bot], Tue Apr 23 15:40:20 2024 +1000)
+  * [422c2c8](https://github.com/pact-foundation/pact-go/commit/422c2c8) - build(deps): bump golangci/golangci-lint-action from 3 to 4 (#385) (dependabot[bot], Tue Apr 23 15:40:10 2024 +1000)
+  * [7b985d6](https://github.com/pact-foundation/pact-go/commit/7b985d6) - fix: Dockerfile to reduce vulnerabilities (#401) (Matt Fellows, Tue Apr 23 15:38:35 2024 +1000)
+  * [efd7031](https://github.com/pact-foundation/pact-go/commit/efd7031) - build(deps): bump golang.org/x/net from 0.19.0 to 0.23.0 (#407) (dependabot[bot], Tue Apr 23 15:37:29 2024 +1000)
+  * [b3b85cc](https://github.com/pact-foundation/pact-go/commit/b3b85cc) - feat(installer): Don't use hashicorp/go-getter (#392) (Janez Justin, Mon Apr 22 13:13:29 2024 +0200)
+
 ### v2.0.4 (13 February 2024)
   * [f893818](https://github.com/pact-foundation/pact-go/commit/f893818) - feat: add native lib path function (#376) (Armin Becher, Tue Feb 13 05:27:44 2024 +0100)
   * [59a586d](https://github.com/pact-foundation/pact-go/commit/59a586d) - fix: allow empty responses in sync messages (#386) (Stanislav Vodetskyi, Mon Feb 12 20:26:57 2024 -0800)
