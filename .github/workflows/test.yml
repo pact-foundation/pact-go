@@ -51,12 +51,7 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
-    name: >-
-      if [[ ${{ matrix.os }} == 'ubuntu-22.04' ]]; then
-        docker-${{ matrix.go-version }}
-      else
-        ${{ matrix.os }}-${{ matrix.go-version }}
-      fi
+    name: ${{ matrix.os == 'ubuntu-22.04' && 'linux-docker' || matrix.os }}-${{ matrix.go-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
