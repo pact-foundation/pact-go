@@ -35,6 +35,8 @@ jobs:
             os: ubuntu-latest
           - go-version: '1.22'
             os: ubuntu-22.04
+          - go-version: '1.22'
+            os: macos-12
         include:
           - go-version: '1.22'
             os: ubuntu-latest
@@ -42,8 +44,17 @@ jobs:
           - go-version: '1.22'
             os: ubuntu-22.04
             experimental: true
+          - go-version: '1.22'
+            os: macos-12
+            experimental: true
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    name: >-
+      if [[ ${{ matrix.os }} == 'ubuntu-22.04' ]]; then
+        docker-${{ matrix.go-version }}
+      else
+        ${{ matrix.os }}-${{ matrix.go-version }}
+      fi
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
