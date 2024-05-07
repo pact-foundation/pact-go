@@ -3,7 +3,6 @@ include make/config.mk
 TEST?=./...
 .DEFAULT_GOAL := ci
 DOCKER_HOST_HTTP?="http://host.docker.internal"
-# PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
 ifeq ($(OS),Windows_NT)
 	EXT=.exe
 endif
@@ -11,8 +10,10 @@ endif
 ci:: docker deps clean bin test pact
 ci_unit:: deps clean bin test
 ci_examples:: docker pact
-ci_hosted_examples:: pact
+ci_hosted_examples:: run_ci_hosted_examples
 
+run_ci_hosted_examples:
+	DOCKER_HOST_HTTP=$(PACT_BROKER_BASE_URL) make pact
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
 # Use this for quick feedback when playing around with your workflows.
@@ -101,13 +102,11 @@ pact: clean install
 
 publish:
 	@echo "-- 📃 Publishing pacts"
-	@"${PACT_BROKER_COMMAND}" publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH} --tag prod --branch ${APP_BRANCH}
+	@${PACT_BROKER_COMMAND} publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH} --tag prod --branch ${APP_BRANCH}
 
 release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
-
-# @for d in $$(go list -buildvcs=false ./... | grep -v vendor | grep -v examples);
 
 RACE?='-race'
 
@@ -140,11 +139,9 @@ updatedeps:
 	go get -d -v -p 2 ./...
 
 docker_build:
-	docker build -f Dockerfile-deb --build-arg VERSION=1.21 -t pactfoundation/pact-go-test .
+	docker build -f Dockerfile --build-arg VERSION=1.21 -t pactfoundation/pact-go-test .
 docker_run_test:
 	docker run \
-		-e PACT_BROKER_BASE_URL \
-		-e PACT_BROKER_TOKEN \
 		-e LOG_LEVEL=info \
 		-e APP_SHA=foo \
 		--rm \
@@ -153,8 +150,10 @@ docker_run_test:
 		/bin/sh -c "make test"
 docker_run_examples:
 	docker run \
-		-e PACT_BROKER_BASE_URL \
+		-e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) \
 		-e PACT_BROKER_TOKEN \
+		-e PACT_BROKER_USERNAME \
+		-e PACT_BROKER_PASSWORD \
 		-e LOG_LEVEL=info \
 		-e APP_SHA=foo \
 		--rm \
@@ -187,7 +186,7 @@ PACT_TOOL?=docker
 PACT_CLI_DOCKER_VERSION?=latest
 PACT_CLI_VERSION?=latest
 PACT_CLI_STANDALONE_VERSION?=2.4.1
-PACT_CLI_DOCKER_RUN_COMMAND?=docker run --rm -v /${PWD}:/${PWD} -w ${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_TOKEN pactfoundation/pact-cli:${PACT_CLI_DOCKER_VERSION}
+PACT_CLI_DOCKER_RUN_COMMAND?=docker run --rm -v /${PWD}:/${PWD} -w ${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_TOKEN -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli:${PACT_CLI_DOCKER_VERSION}
 PACT_BROKER_COMMAND=pact-broker
 PACTFLOW_CLI_COMMAND=pactflow
 

@@ -1,7 +1,7 @@
-FROM golang:alpine
+ARG VERSION=latest
+FROM golang:${VERSION}
 
-RUN apk add --no-cache curl gcc musl-dev gzip openjdk17-jre bash protoc protobuf-dev make file
-
+RUN apt-get update && apt-get install -y openjdk-17-jre file protobuf-compiler ruby ruby-dev ruby-bundler
 COPY . /go/src/github.com/pact-foundation/pact-go
 
 WORKDIR /go/src/github.com/pact-foundation/pact-go

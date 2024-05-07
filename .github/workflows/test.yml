@@ -8,7 +8,7 @@ env:
   APP_REF: ${{ github.ref }}
   LD_LIBRARY_PATH: /tmp
   PACT_GO_LIB_DOWNLOAD_PATH: /tmp
-  LOG_LEVEL: info
+  LOG_LEVEL: debug
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -76,7 +76,7 @@ jobs:
           docker build \
             --platform linux/amd64 \
             --build-arg VERSION=${{ matrix.go-version }} \
-            -f Dockerfile-deb \
+            -f Dockerfile \
             -t pactfoundation/pact-go-test-${{ matrix.go-version }} .
       - name: Unit Test (amd64 docker)
         if: matrix.os == 'ubuntu-22.04'
