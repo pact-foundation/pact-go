@@ -392,7 +392,7 @@ const (
 var packages = map[string]packageInfo{
 	FFIPackage: {
 		libName:     "libpact_ffi",
-		version:     "0.4.19",
+		version:     "0.4.20",
 		semverRange: ">= 0.4.0, < 1.0.0",
 	},
 }
