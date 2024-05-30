@@ -62,10 +62,10 @@ int pactffi_create_mock_server_for_pact(PactHandle pact, const char *addr_str, b
 void pactffi_with_specification(PactHandle pact, int specification_version);
 
 /// Adds a provider state to the Interaction
-void pactffi_given(InteractionHandle interaction, const char *description);
+bool pactffi_given(InteractionHandle interaction, const char *description);
 
 /// Adds a provider state with params to the Interaction
-void pactffi_given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
+bool pactffi_given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
 
 /// Get self signed certificate for TLS mode
 char* pactffi_get_tls_ca_certificate();
