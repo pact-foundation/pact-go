@@ -32,6 +32,9 @@ type Pact struct {
 	// Current server for the consumer.
 	Server *types.MockServer
 
+	// Directory of Pactflow standalone CLI (blank if CLI is installed on system)
+	PactCLIDir string
+
 	// Pact RPC Client.
 	pactClient Client
 
@@ -158,7 +161,7 @@ func (p *Pact) Setup(startMockServer bool) *Pact {
 	}
 
 	if p.pactClient == nil {
-		c := NewClient()
+		c := NewClient(p.PactCLIDir)
 		c.TimeoutDuration = p.ClientTimeout
 		p.pactClient = c
 	}
