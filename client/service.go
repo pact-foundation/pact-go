@@ -17,7 +17,7 @@ import (
 // Service is a process wrapper for 3rd party binaries. It will spawn an instance
 // of the binary and manage the life-cycle and IO of the process.
 type Service interface {
-	Setup()
+	Setup(pactCLIDir string)
 	Stop(pid int) (bool, error)
 	List() map[int]*exec.Cmd
 	Command() *exec.Cmd

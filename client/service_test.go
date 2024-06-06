@@ -19,7 +19,7 @@ func createServiceManager() *ServiceManager {
 		Args: cs,
 		Env:  env,
 	}
-	mgr.Setup()
+	mgr.Setup("")
 	return mgr
 }
 

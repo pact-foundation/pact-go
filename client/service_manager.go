@@ -5,12 +5,14 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"sync"
 	"time"
 )
 
 // ServiceManager is the default implementation of the Service interface.
 type ServiceManager struct {
+	PactCLIDir 			string
 	Cmd                 string
 	processMap          processMap
 	Args                []string
@@ -20,8 +22,10 @@ type ServiceManager struct {
 }
 
 // Setup the Management services.
-func (s *ServiceManager) Setup() {
+func (s *ServiceManager) Setup(pactCLIDir string) {
 	log.Println("[DEBUG] setting up a service manager")
+
+	s.PactCLIDir = pactCLIDir
 
 	s.commandCreatedChan = make(chan *exec.Cmd)
 	s.commandCompleteChan = make(chan *exec.Cmd)
@@ -97,7 +101,7 @@ func (s *ServiceManager) List() map[int]*exec.Cmd {
 
 // Command creates an os command to be run
 func (s *ServiceManager) Command() *exec.Cmd {
-	cmd := exec.Command(s.Cmd, s.Args...)
+	cmd := exec.Command(path.Join(s.PactCLIDir, s.Cmd), s.Args...)
 	env := os.Environ()
 	env = append(env, s.Env...)
 	cmd.Env = env
@@ -108,10 +112,7 @@ func (s *ServiceManager) Command() *exec.Cmd {
 // Start a Service and log its output.
 func (s *ServiceManager) Start() *exec.Cmd {
 	log.Println("[DEBUG] starting service")
-	cmd := exec.Command(s.Cmd, s.Args...)
-	env := os.Environ()
-	env = append(env, s.Env...)
-	cmd.Env = env
+	cmd := s.Command()
 
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {

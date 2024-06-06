@@ -229,7 +229,7 @@ func createMockClient(success bool) (*PactClient, *ServiceMock) {
 		}
 	}()
 
-	d := newClient(svc, svc, svc, svc)
+	d := newClient("", svc, svc, svc, svc)
 	d.TimeoutDuration = 100 * time.Millisecond
 	return d, svc
 }

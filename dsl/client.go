@@ -70,11 +70,11 @@ type PactClient struct {
 }
 
 // newClient creates a new Pact client manager with the provided services
-func newClient(mockServiceManager client.Service, verificationServiceManager client.Service, messageServiceManager client.Service, publishServiceManager client.Service) *PactClient {
-	mockServiceManager.Setup()
-	verificationServiceManager.Setup()
-	messageServiceManager.Setup()
-	publishServiceManager.Setup()
+func newClient(pactCLIDir string, mockServiceManager client.Service, verificationServiceManager client.Service, messageServiceManager client.Service, publishServiceManager client.Service) *PactClient {
+	mockServiceManager.Setup(pactCLIDir)
+	verificationServiceManager.Setup(pactCLIDir)
+	messageServiceManager.Setup(pactCLIDir)
+	publishServiceManager.Setup(pactCLIDir)
 
 	return &PactClient{
 		pactMockSvcManager:     mockServiceManager,
@@ -86,8 +86,8 @@ func newClient(mockServiceManager client.Service, verificationServiceManager cli
 }
 
 // NewClient creates a new Pact client manager with defaults
-func NewClient() *PactClient {
-	return newClient(&client.MockService{}, &client.VerificationService{}, &client.MessageService{}, &client.PublishService{})
+func NewClient(pactCLIDir string) *PactClient {
+	return newClient(pactCLIDir, &client.MockService{}, &client.VerificationService{}, &client.MessageService{}, &client.PublishService{})
 }
 
 // StartServer starts a remote Pact Mock Server.

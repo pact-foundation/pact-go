@@ -25,6 +25,9 @@ type PactName struct {
 
 // Publisher is the API to send Pact files to a Pact Broker.
 type Publisher struct {
+	// Directory of Pactflow standalone CLI (blank if CLI is installed on system)
+	PactCLIDir string
+
 	pactClient Client
 
 	// Log levels.
@@ -40,7 +43,7 @@ func (p *Publisher) Publish(request types.PublishRequest) error {
 	log.Println("[DEBUG] pact publisher: publish pact")
 
 	if p.pactClient == nil {
-		c := NewClient()
+		c := NewClient(p.PactCLIDir)
 		p.pactClient = c
 	}
 
