@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "v1.8.0"
+var version = "v1.9.0"
 var cliToolsVersion = "v2.0.7"
 var versionCmd = &cobra.Command{
 	Use:   "version",

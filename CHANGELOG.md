@@ -5,6 +5,12 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.9.0 (06 June 2024)
+  * [9c80346](https://github.com/pact-foundation/pact-go/commit/9c80346) - feat: add ability to specify standalone CLI path (#357) (Bobby "The" Best, Thu Jun 6 00:20:46 2024 -0400)
+  * [0d81b71](https://github.com/pact-foundation/pact-go/commit/0d81b71) - feat: support publish pacts with branch for v1.x (#374) (Yousaf Nabi, Tue Apr 23 06:40:39 2024 +0100)
+  * [fcfa5c5](https://github.com/pact-foundation/pact-go/commit/fcfa5c5) - chore: add a command to run the pact tests locally (Matt Fellows, Mon Oct 2 18:31:03 2023 +1100)
+  * [09d6ad5](https://github.com/pact-foundation/pact-go/commit/09d6ad5) - feat: upgrade pact-ruby-standalone to 2.0.7 (Matt Fellows, Mon Oct 2 18:28:34 2023 +1100)
+
 ### v1.8.0 (02 October 2023)
   * [f7c3d13](https://github.com/pact-foundation/pact-go/commit/f7c3d13) - fix(verifier): acquire HTTP port atomically (Alex Tsibulya, Mon Sep 25 14:03:17 2023 -0700)
   * [b99059c](https://github.com/pact-foundation/pact-go/commit/b99059c) - ci(deps): update golangci-lint ci build to pass on v1.x.x branch (Yousaf Nabi, Thu Jul 13 14:06:03 2023 +0100)
