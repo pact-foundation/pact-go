@@ -13,7 +13,7 @@ step "Releasing Pact Go"
 
 # Get current versions
 log "Finding current version"
-version=$(cat command/version.go | egrep -o "v([0-9\.]+)-?([a-zA-Z\-\+\.0-9]+)?")
+version=$(cat command/version.go | grep -v "cliToolsVersion" | egrep -o "v([0-9\.]+)-?([a-zA-Z\-\+\.0-9]+)?")
 lastVersion=$(git log  --grep='chore(release)' | grep chore | head -n1 | egrep -o "v([0-9\.]+)-?([a-zA-Z\-]+)?")
 date=$(date "+%d %B %Y")
 
