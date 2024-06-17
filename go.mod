@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/golang/protobuf v1.5.4
-	github.com/hashicorp/go-version v1.6.0
+	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/linkedin/goavro/v2 v2.13.0
 	github.com/spf13/afero v1.11.0
