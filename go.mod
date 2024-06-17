@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/logutils v1.0.0
 	github.com/linkedin/goavro/v2 v2.13.0
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/grpc v1.63.2
 	google.golang.org/protobuf v1.34.2
