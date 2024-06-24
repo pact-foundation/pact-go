@@ -102,18 +102,18 @@ You can also keep the library versions up to date by running the `version.CheckV
 
 ### Manual
 
-Downlod the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on OSX/Linux):
+Downlod the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux):
 
 Ensure you have the correct extension for your OS:
 
-- For Mac OSX: `.dylib` (For M1 users, you need the `aarch64-apple-darwin` version)
+- For Mac OS: `.dylib` (For M1 users, you need the `aarch64` version) - ( Called `aarch64-apple-darwin` in version prior to v0.4.21 )
 - For Linux: `.so`
 - For Windows: `.dll`
 
 ```sh
-wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v0.1.2/libpact_ffi-osx-x86_64.dylib.gz
-gunzip libpact_ffi-osx-x86_64.dylib.gz
-mv libpact_ffi-osx-x86_64.dylib /usr/local/lib/libpact_ffi.dylib
+wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v0.4.21/libpact_ffi-macos-x86_64.dylib.gz
+gunzip libpact_ffi-macos-x86_64.dylib.gz
+mv libpact_ffi-macos-x86_64.dylib /usr/local/lib/libpact_ffi.dylib
 ```
 
 Test the installation:
