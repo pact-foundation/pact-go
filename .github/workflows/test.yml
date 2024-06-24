@@ -15,6 +15,7 @@ env:
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         go-version: [ # https://endoflife.date/go
                     # 1.17.x, # Ended 02 Aug 2022
