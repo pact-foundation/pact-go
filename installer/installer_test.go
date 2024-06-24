@@ -44,21 +44,21 @@ func TestInstallerDownloader(t *testing.T) {
 				},
 			},
 			{
-				name: "ffi lib - osx x86",
+				name: "ffi lib - macos x86",
 				pkg:  FFIPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-osx-x86_64.dylib.gz", packages[FFIPackage].version),
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-macos-x86_64.dylib.gz", packages[FFIPackage].version),
 				test: Installer{
-					os:   osx,
+					os:   macos,
 					arch: x86_64,
 				},
 			},
 			{
-				name: "ffi lib - osx arm64",
+				name: "ffi lib - macos arm64",
 				pkg:  FFIPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-osx-aarch64-apple-darwin.dylib.gz", packages[FFIPackage].version),
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-macos-aarch64.dylib.gz", packages[FFIPackage].version),
 				test: Installer{
-					os:   osx,
-					arch: osx_aarch64,
+					os:   macos,
+					arch: aarch64,
 				},
 			},
 			{
@@ -127,7 +127,7 @@ func TestInstallerCheckInstallation(t *testing.T) {
 			downloader: &mockDownloader{},
 			hasher:     &mockHasher{},
 			config:     &mockConfiguration{},
-			os:         "osx",
+			os:         "macos",
 		}
 		err := i.CheckInstallation()
 
@@ -141,7 +141,7 @@ func TestInstallerCheckInstallation(t *testing.T) {
 			downloader: &mockDownloader{},
 			hasher:     &mockHasher{},
 			config:     &mockConfiguration{},
-			os:         "osx",
+			os:         "macos",
 		}
 
 		for pkg := range packages {
@@ -157,7 +157,7 @@ func TestInstallerCheckInstallation(t *testing.T) {
 
 func TestInstallerCheckPackageInstall(t *testing.T) {
 	t.Run("downloads and install dependencies when existing libraries aren't present", func(t *testing.T) {
-		defer restoreOSXInstallName()()
+		defer restoreMacOSInstallName()()
 		mockFs := afero.NewMemMapFs()
 
 		var i *Installer
@@ -174,7 +174,7 @@ func TestInstallerCheckPackageInstall(t *testing.T) {
 			},
 			hasher: &mockHasher{},
 			config: &mockConfiguration{},
-			os:     "osx",
+			os:     "macos",
 		}
 
 		err := i.CheckInstallation()
@@ -220,14 +220,14 @@ func (m *mockConfiguration) writeConfig(pactConfig) error {
 	return nil
 }
 
-func restoreOSXInstallName() func() {
-	old := setOSXInstallName
-	setOSXInstallName = func(string) error {
+func restoreMacOSInstallName() func() {
+	old := setMacOSInstallName
+	setMacOSInstallName = func(string) error {
 		return nil
 	}
 
 	return func() {
-		setOSXInstallName = old
+		setMacOSInstallName = old
 	}
 }
 

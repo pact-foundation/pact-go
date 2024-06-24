@@ -74,11 +74,7 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 	case "amd64":
 		i.arch = x86_64
 	case "arm64":
-		if runtime.GOOS == "darwin" {
-			i.arch = osx_aarch64
-		} else {
-			i.arch = aarch64
-		}
+		i.arch = aarch64
 	default:
 		i.arch = x86_64
 		log.Println("[WARN] amd64 architecture not detected, defaulting to x86_64. Behaviour may be undefined")
@@ -236,9 +232,9 @@ func (i *Installer) downloadDependencies() error {
 }
 
 func (i *Installer) installDependencies() error {
-	if i.os == osx {
+	if i.os == macos {
 		for pkg, info := range packages {
-			log.Println("[INFO] setting install_name on library", info.libName, "for osx")
+			log.Println("[INFO] setting install_name on library", info.libName, "for macos")
 
 			dst, err := i.getLibDstForPackage(pkg)
 
@@ -246,7 +242,7 @@ func (i *Installer) installDependencies() error {
 				return err
 			}
 
-			err = setOSXInstallName(dst)
+			err = setMacOSInstallName(dst)
 
 			if err != nil {
 				return err
@@ -299,7 +295,7 @@ func (i *Installer) updateConfiguration(dst string, pkg string, info packageInfo
 	return i.config.writeConfig(c)
 }
 
-var setOSXInstallName = func(file string) error {
+var setMacOSInstallName = func(file string) error {
 	cmd := exec.Command("install_name_tool", "-id", file, file)
 	log.Println("[DEBUG] running command:", cmd)
 	stdoutStderr, err := cmd.CombinedOutput()
@@ -355,7 +351,7 @@ func (i *Installer) checkMusl() error {
 var downloadTemplate = "https://github.com/pact-foundation/pact-reference/releases/download/%s-v%s/%s-%s-%s.%s.gz"
 
 var supportedOSes = map[string]string{
-	"darwin": osx,
+	"darwin": macos,
 	windows:  windows,
 	linux:    linux,
 }
@@ -363,13 +359,13 @@ var supportedOSes = map[string]string{
 var osToExtension = map[string]string{
 	windows: "dll",
 	linux:   "so",
-	osx:     "dylib",
+	macos:   "dylib",
 }
 
 var osToLibName = map[string]string{
 	windows: "pact_ffi",
 	linux:   "libpact_ffi",
-	osx:     "libpact_ffi",
+	macos:   "libpact_ffi",
 }
 
 type packageInfo struct {
@@ -383,9 +379,8 @@ const (
 	downloadEnvVar = "PACT_GO_LIB_DOWNLOAD_PATH"
 	linux          = "linux"
 	windows        = "windows"
-	osx            = "osx"
+	macos          = "macos"
 	x86_64         = "x86_64"
-	osx_aarch64    = "aarch64-apple-darwin"
 	aarch64        = "aarch64"
 )
 
