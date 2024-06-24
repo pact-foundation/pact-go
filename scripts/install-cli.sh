@@ -13,6 +13,10 @@ function detect_osarch() {
             os='linux'
             arch='x86_64'
             ;;
+        'Linux aarch64')
+            os='linux'
+            arch='aarch64'
+            ;;
         'Darwin x86' | 'Darwin x86_64')
             os='osx'
             arch='x86_64'
@@ -34,7 +38,7 @@ function detect_osarch() {
 }
 
 
-VERSION="0.1.0"
+VERSION="0.1.2"
 detect_osarch
 
 if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then
@@ -44,6 +48,7 @@ if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then
     echo "        Downloading from: ${DOWNLOAD_LOCATION}"
     curl -L -o ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz "${DOWNLOAD_LOCATION}"
     echo "        Downloaded $(file ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz)"
-    gunzip -N -f ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz
+    gunzip -f ~/.pact/bin/pact-plugin-cli-${os}-${arch}.gz
+    mv ~/.pact/bin/pact-plugin-cli-${os}-${arch} ~/.pact/bin/pact-plugin-cli
     chmod +x ~/.pact/bin/pact-plugin-cli
 fi

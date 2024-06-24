@@ -15,13 +15,15 @@ env:
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         go-version: [ # https://endoflife.date/go
                     # 1.17.x, # Ended 02 Aug 2022
                     # 1.18.x, # Ended 01 Feb 2023
-                    1.19.x, 
-                    1.20.x,
-                    1.21.x
+                    # 1.19.x, # Ended 06 Sep 2023
+                    1.20.x, # Ended 06 Feb 2024
+                    1.21.x,
+                    1.22.x,
                     ]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
@@ -53,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@main
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
