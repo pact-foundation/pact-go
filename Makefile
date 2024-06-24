@@ -4,6 +4,10 @@ TEST?=./...
 .DEFAULT_GOAL := ci
 DOCKER_HOST_HTTP?="http://host.docker.internal"
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
+PLUGIN_PACT_PROTOBUF_VERSION=0.3.15
+PLUGIN_PACT_CSV_VERSION=0.0.6
+PLUGIN_PACT_MATT_VERSION=0.1.1
+PLUGIN_PACT_AVRO_VERSION=0.0.5
 
 ci:: docker deps clean bin test pact
 
@@ -42,11 +46,35 @@ deps: download_plugins
 
 download_plugins:
 	@echo "--- 🐿  Installing plugins"; \
-	./scripts/install-cli.sh
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-0.3.13
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-0.0.1
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v0.0.9
-	~/.pact/bin/pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/tag/v0.0.3
+	if [ -z $$SKIP_PLUGINS ]; then\
+		if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then \
+			./scripts/install-cli.sh; \
+		else \
+			echo "--- 🐿  Pact CLI already installed"; \
+		fi; \
+		if [ ! -f ~/.pact/plugins/protobuf-$(PLUGIN_PACT_PROTOBUF_VERSION)/pact-protobuf-plugin ]; then \
+			~/.pact/bin/pact-plugin-cli -y install https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-$(PLUGIN_PACT_PROTOBUF_VERSION); \
+		else \
+			echo "--- 🐿  Pact protobuf-$(PLUGIN_PACT_PROTOBUF_VERSION) already installed"; \
+		fi; \
+		if [ ! -f ~/.pact/plugins/csv-$(PLUGIN_PACT_CSV_VERSION)/pact-csv-plugin ]; then \
+			~/.pact/bin/pact-plugin-cli -y install https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-$(PLUGIN_PACT_CSV_VERSION); \
+		else \
+			echo "--- 🐿  Pact csv-$(PLUGIN_PACT_CSV_VERSION) already installed"; \
+		fi; \
+		if [ ! -f ~/.pact/plugins/matt-$(PLUGIN_PACT_MATT_VERSION)/matt ]; then \
+			~/.pact/bin/pact-plugin-cli -y install https://github.com/mefellows/pact-matt-plugin/releases/tag/v$(PLUGIN_PACT_MATT_VERSION); \
+		else \
+			echo "--- 🐿  Pact matt-$(PLUGIN_PACT_MATT_VERSION) already installed"; \
+		fi; \
+		if [ -z $$SKIP_PLUGIN_AVRO ]; then\
+			if [ ! -f ~/.pact/plugins/avro-$(PLUGIN_PACT_AVRO_VERSION)/bin/pact-avro-plugin ]; then \
+				~/.pact/bin/pact-plugin-cli -y install https://github.com/austek/pact-avro-plugin/releases/tag/v$(PLUGIN_PACT_AVRO_VERSION); \
+			else \
+				echo "--- 🐿  Pact avro-$(PLUGIN_PACT_AVRO_VERSION) already installed"; \
+			fi; \
+		fi; \
+	fi
 
 cli:
 	@if [ ! -d pact/bin ]; then\
@@ -56,7 +84,7 @@ cli:
 
 install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
-	./build/pact-go	 -l DEBUG install --libDir /tmp
+	./build/pact-go -l DEBUG install --libDir /tmp
 
 pact: clean install docker
 	@echo "--- 🔨 Running Pact examples"
