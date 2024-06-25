@@ -60,7 +60,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 			fmt.Println("gRPC transport running on", transport)
 
 			// Establish the gRPC connection
-			conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", transport.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", transport.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
 				t.Fatal("unable to communicate to grpc server", err)
 			}
@@ -130,7 +130,7 @@ func TestGetFeatureError(t *testing.T) {
 			fmt.Println("gRPC transport running on", transport)
 
 			// Establish the gRPC connection
-			conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", transport.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", transport.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 			require.NoError(t, err)
 			defer conn.Close()
 
@@ -201,7 +201,7 @@ func TestSaveFeature(t *testing.T) {
 			fmt.Println("gRPC transport running on", transport)
 
 			// Establish the gRPC connection
-			conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", transport.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", transport.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
 				t.Fatal("unable to communicate to grpc server", err)
 			}
