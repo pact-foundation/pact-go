@@ -5,7 +5,10 @@
 package main
 
 import (
+	"os"
 	"testing"
+
+	"github.com/hashicorp/logutils"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
 	"github.com/pact-foundation/pact-go/v2/log"
@@ -14,7 +17,11 @@ import (
 )
 
 func TestConsumerV4(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV4Consumer",

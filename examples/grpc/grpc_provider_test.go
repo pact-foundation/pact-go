@@ -8,8 +8,11 @@ import (
 	"log"
 
 	"net"
+	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/hashicorp/logutils"
 
 	pb "github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide"
 	"github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide/server"
@@ -21,8 +24,11 @@ import (
 
 func TestGrpcProvider(t *testing.T) {
 	go startProvider()
-	l.SetLogLevel("TRACE")
-
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	l.SetLogLevel(logutils.LogLevel(logLevel))
 	verifier := provider.NewVerifier()
 
 	err := verifier.VerifyProvider(t, provider.VerifyRequest{

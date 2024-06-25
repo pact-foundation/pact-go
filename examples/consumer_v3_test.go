@@ -6,8 +6,10 @@ package main
 
 import (
 	"errors"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/v2/consumer"
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/matchers"
@@ -30,7 +32,11 @@ var TimeGenerated = matchers.TimeGenerated
 var DateTimeGenerated = matchers.DateTimeGenerated
 
 func TestConsumerV3(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	mockProvider, err := consumer.NewV3Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV3Consumer",
@@ -90,7 +96,11 @@ func TestConsumerV3(t *testing.T) {
 	assert.NoError(t, err)
 }
 func TestMessagePact(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	provider, err := message.NewMessagePact(message.Config{
 		Consumer: "PactGoV3MessageConsumer",

@@ -41,7 +41,7 @@ pact-provider-verifier
 _*
 *.log
 pact-go
-pacts
+examples/pacts/*
 logs
 tmp
 coverage.txt

@@ -7,10 +7,10 @@ to filter log messages. The CLI already contains flags to manage this,
 should you want to control log level in your tests, you can set it like so:
 
 ```
-SetLogLevel("trace")
+SetLogLevel("TRACE")
 ```
 
-You can also export `LOG_LEVEL=trace` before running a test to increase verbosity.
+You can also export `LOG_LEVEL=TRACE` before running a test to increase verbosity.
 
 ## Library status check
 

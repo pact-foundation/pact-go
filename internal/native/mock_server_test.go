@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
@@ -167,8 +168,11 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 func TestPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
-	_ = log.SetLogLevel("trace")
-
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	_ = log.SetLogLevel(logutils.LogLevel(logLevel))
 	m := NewHTTPPact("test-plugin-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test

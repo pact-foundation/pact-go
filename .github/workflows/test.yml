@@ -9,7 +9,7 @@ env:
   APP_REF: ${{ github.ref }}
   LD_LIBRARY_PATH: /tmp
   PACT_GO_LIB_DOWNLOAD_PATH: /tmp
-  LOG_LEVEL: debug
+  LOG_LEVEL: DEBUG
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
                     1.21.x,
                     1.22.x,
                     ]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-12, macos-14]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -38,20 +38,72 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+      - if: matrix.os == 'macos-14'
+        run: brew install protobuf
       - name: Test
+        if: matrix.os == 'ubuntu-latest'
         run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
+      - name: Test (unit)
+        if: matrix.os != 'ubuntu-latest'
+        run: make test
+      - name: Test (pact)
+        if: matrix.os != 'ubuntu-latest'
+        run: make pact_local
       - name: Install goveralls
         run: go install github.com/mattn/goveralls@latest
       - name: Send coverage
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
       - uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}.zip
+          name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
           path: ~/.pact/plugins/**/plugin.log
         if: ${{ always() }}
 
+  test-containers:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.arch }}-${{ matrix.go-version }}-test-container
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - amd64 
+          # - arm64
+        go-version: ["1.20", "1.21", "1.22"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        if: matrix.arch != 'amd64'
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: ${{ matrix.arch }}
+
+      - name: Build ${{ matrix.arch }} dockerfile 
+        run: |
+          docker build \
+            --platform ${{ matrix.arch }} \
+            --build-arg VERSION=${{ matrix.go-version }} \
+            -f Dockerfile \
+            -t pactfoundation/pact-go-test-${{ matrix.go-version }} .
+
+      - name: Test (unit) - ${{ matrix.arch }}
+        if: matrix.arch == 'amd64'
+        run: |
+          docker run \
+          --platform linux/${{ matrix.arch }} \
+          -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
+          --rm pactfoundation/pact-go-test-${{ matrix.go-version }} /bin/sh -c 'make test && make pact_local'
+
+      - name: Test (unit) - ${{ matrix.arch }}
+        if: matrix.arch == 'arm64'
+        run: |
+          docker run \
+          --platform linux/${{ matrix.arch }} \
+          -e LOG_LEVEL=${{ env.LOG_LEVEL }} \
+          -e SKIP_RACE=true \
+          --rm pactfoundation/pact-go-test-${{ matrix.go-version }} /bin/sh -c 'make test && make pact_local'
+
   finish:
-    needs: test
+    needs: [test,test-containers]
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished

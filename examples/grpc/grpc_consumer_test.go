@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/logutils"
+
 	"github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide"
 	"github.com/pact-foundation/pact-go/v2/log"
 	message "github.com/pact-foundation/pact-go/v2/message/v4"
@@ -26,7 +28,11 @@ func TestGetFeatureSuccess(t *testing.T) {
 		Provider: "grpcprovider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	log.SetLogLevel("DEBUG")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/routeguide/route_guide.proto", dir)
@@ -94,7 +100,11 @@ func TestGetFeatureSuccess(t *testing.T) {
 }
 
 func TestGetFeatureError(t *testing.T) {
-	log.SetLogLevel("DEBUG")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "grpcconsumer",
 		Provider: "grpcprovider",
@@ -164,7 +174,11 @@ func TestSaveFeature(t *testing.T) {
 		Provider: "grpcprovider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	log.SetLogLevel("INFO")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/routeguide/route_guide.proto", dir)

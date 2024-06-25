@@ -9,9 +9,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/v2/consumer"
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/matchers"
@@ -35,7 +37,12 @@ var ArrayMinLike = matchers.ArrayMinLike
 type Map = matchers.MapMatcher
 
 func TestConsumerV2(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2Consumer",
@@ -79,7 +86,11 @@ func TestConsumerV2(t *testing.T) {
 }
 
 func TestConsumerV2_Match(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerMatch",
@@ -111,7 +122,11 @@ func TestConsumerV2_Match(t *testing.T) {
 }
 
 func TestConsumerV2AllInOne(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerAllInOne",

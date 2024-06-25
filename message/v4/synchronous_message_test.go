@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,8 +17,11 @@ func TestSyncTypeSystem(t *testing.T) {
 		Provider: "provider",
 		PactDir:  "/tmp/",
 	})
-	_ = log.SetLogLevel("TRACE")
-
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	_ = log.SetLogLevel(logutils.LogLevel(logLevel))
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/../../internal/native/pact_plugin.proto", dir)
 

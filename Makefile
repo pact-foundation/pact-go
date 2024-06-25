@@ -8,7 +8,7 @@ PLUGIN_PACT_PROTOBUF_VERSION=0.3.15
 PLUGIN_PACT_CSV_VERSION=0.0.6
 PLUGIN_PACT_MATT_VERSION=0.1.1
 PLUGIN_PACT_AVRO_VERSION=0.0.5
-
+GO_VERSION?=1.22
 ci:: docker deps clean bin test pact
 
 # Run the ci target from a developer machine with the environment variables
@@ -31,6 +31,23 @@ docker:
 	@echo "--- 🛠 Starting docker"
 	docker-compose up -d
 
+docker_build:
+	docker build -f Dockerfile --build-arg GO_VERSION=${GO_VERSION} -t pactfoundation/pact-go-test .
+
+docker_test: docker_build
+	docker run \
+		-e LOG_LEVEL=INFO \
+		--rm \
+		-it \
+		pactfoundation/pact-go-test \
+		/bin/sh -c "make test"
+docker_pact: docker_build
+	docker run \
+		-e LOG_LEVEL=INFO \
+		--rm \
+		-it \
+		pactfoundation/pact-go-test \
+		/bin/sh -c "make pact_local"
 bin:
 	go build -o build/pact-go
 
@@ -91,6 +108,10 @@ pact: clean install docker
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 	make publish
 	go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+pact_local: clean download_plugins install 
+	@echo "--- 🔨 Running Pact examples"
+	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 
 publish:
 	@echo "-- 📃 Publishing pacts"
@@ -100,13 +121,19 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
+RACE?='-race'
+
+ifdef SKIP_RACE
+	RACE=
+endif
+
 test: deps install
 	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v -race -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -v $(RACE) -coverprofile=profile.out -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \

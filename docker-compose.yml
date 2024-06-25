@@ -1,8 +1,6 @@
-version: "3"
-
 services:
   httpbin:
-    image: kennethreitz/httpbin
+    image: kong/httpbin # https://github.com/Kong/httpbin
     ports:
       - "8000:80"
 
@@ -18,7 +16,7 @@ services:
       POSTGRES_DB: postgres
 
   broker_app:
-    image: pactfoundation/pact-broker:latest-multi
+    image: pactfoundation/pact-broker:latest
     links:
       - postgres
     ports:

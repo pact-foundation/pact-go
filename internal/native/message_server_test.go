@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/v2/log"
 	"google.golang.org/protobuf/proto"
 
@@ -349,7 +350,11 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 func TestGrpcPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
-	_ = log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	_ = log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
@@ -426,7 +431,11 @@ func TestGrpcPluginInteraction(t *testing.T) {
 func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
-	_ = log.SetLogLevel("TRACE")
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	_ = log.SetLogLevel(logutils.LogLevel(logLevel))
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 

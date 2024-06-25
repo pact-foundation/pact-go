@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/logutils"
 	"github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide"
 	pactlog "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/message"
@@ -22,11 +23,15 @@ import (
 func TestPluginMessageProvider(t *testing.T) {
 	var dir, _ = os.Getwd()
 	var pactDir = fmt.Sprintf("%s/../pacts", dir)
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "TRACE"
+	}
+	err := pactlog.SetLogLevel(logutils.LogLevel(logLevel))
 
-	err := pactlog.SetLogLevel("TRACE")
 	assert.NoError(t, err)
 
-	pactversion.CheckVersion()
+	pactversion.CheckVersion("/tmp")
 
 	verifier := provider.NewVerifier()
 
