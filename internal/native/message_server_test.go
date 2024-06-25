@@ -397,7 +397,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	}
 
 	// Need to make a gRPC call here
-	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		l.Fatalf("did not connect: %v", err)
 	}
@@ -470,7 +470,7 @@ func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 	}
 
 	// Need to make a gRPC call here
-	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		l.Fatalf("did not connect: %v", err)
 	}
