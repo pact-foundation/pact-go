@@ -102,7 +102,7 @@ You can also keep the library versions up to date by running the `version.CheckV
 
 ### Manual
 
-Downlod the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux):
+Download the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux):
 
 Ensure you have the correct extension for your OS:
 
