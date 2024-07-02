@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v1.10.0 (03 July 2024)
+  * [6456e82](https://github.com/pact-foundation/pact-go/commit/6456e82) - chore: update release.sh to select correct version (Matt Fellows, Thu Jun 6 14:24:30 2024 +1000)
+
 ### v1.9.0 (06 June 2024)
   * [9c80346](https://github.com/pact-foundation/pact-go/commit/9c80346) - feat: add ability to specify standalone CLI path (#357) (Bobby "The" Best, Thu Jun 6 00:20:46 2024 -0400)
   * [0d81b71](https://github.com/pact-foundation/pact-go/commit/0d81b71) - feat: support publish pacts with branch for v1.x (#374) (Yousaf Nabi, Tue Apr 23 06:40:39 2024 +0100)
