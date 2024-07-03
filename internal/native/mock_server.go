@@ -397,8 +397,8 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 	cPluginVersion := C.CString(pluginVersion)
 	defer free(cPluginVersion)
 
-	InstallSignalHandlers()
 	r := C.pactffi_using_plugin(m.pact.handle, cPluginName, cPluginVersion)
+	InstallSignalHandlers()
 
 	// 1 - A general panic was caught.
 	// 2 - Failed to load the plugin.

@@ -237,9 +237,9 @@ func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) err
 	defer free(cPluginName)
 	cPluginVersion := C.CString(pluginVersion)
 	defer free(cPluginVersion)
-
-	InstallSignalHandlers()
+	
 	r := C.pactffi_using_plugin(m.messagePact.handle, cPluginName, cPluginVersion)
+	InstallSignalHandlers()
 
 	// 1 - A general panic was caught.
 	// 2 - Failed to load the plugin.
