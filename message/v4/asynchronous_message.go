@@ -94,6 +94,7 @@ type AsynchronousMessageWithPluginContents struct {
 }
 
 func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m AsynchronousMessage) error) error {
+	defer s.rootBuilder.pact.messageserver.CleanupPlugins()
 	message, err := getAsynchronousMessageWithReifiedContents(s.rootBuilder.messageHandle, s.rootBuilder.Type)
 	if err != nil {
 		return err
@@ -105,8 +106,6 @@ func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integr
 	if err != nil {
 		return err
 	}
-
-	s.rootBuilder.pact.messageserver.CleanupPlugins()
 
 	return s.rootBuilder.pact.messageserver.WritePactFile(s.rootBuilder.pact.config.PactDir, false)
 }
@@ -133,12 +132,12 @@ type AsynchronousMessageWithTransport struct {
 }
 
 func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m AsynchronousMessage) error) error {
+	defer s.rootBuilder.pact.messageserver.CleanupMockServer(s.transport.Port)
+	defer s.rootBuilder.pact.messageserver.CleanupPlugins()
 	message, err := getAsynchronousMessageWithReifiedContents(s.rootBuilder.messageHandle, s.rootBuilder.Type)
 	if err != nil {
 		return err
 	}
-
-	defer s.rootBuilder.pact.messageserver.CleanupMockServer(s.transport.Port)
 
 	err = integrationTest(s.transport, message)
 

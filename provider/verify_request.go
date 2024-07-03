@@ -300,8 +300,8 @@ func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) err
 		handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
 	}
 
-	res := handle.Execute()
 	defer handle.Shutdown()
+	res := handle.Execute()
 
 	return res
 }
