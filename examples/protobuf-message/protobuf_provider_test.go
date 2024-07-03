@@ -26,7 +26,7 @@ func TestPluginMessageProvider(t *testing.T) {
 	err := pactlog.SetLogLevel("TRACE")
 	assert.NoError(t, err)
 
-	pactversion.CheckVersion()
+	pactversion.CheckVersion("/tmp")
 
 	verifier := provider.NewVerifier()
 

@@ -5,7 +5,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/internal/native"
 )
 
-func CheckInstall() error {
+func CheckInstall(libDir string) error {
 	// initialised the lib registry. It just needs one of the main lib interfaces Version() here
 	installer.LibRegistry[installer.FFIPackage] = &native.MockServer{}
 
@@ -13,6 +13,8 @@ func CheckInstall() error {
 	if err != nil {
 		return err
 	}
-
+	if libDir != "" {
+		i.SetLibDir(libDir)
+	}
 	return i.CheckInstallation()
 }

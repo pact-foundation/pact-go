@@ -28,7 +28,7 @@ var stateHandlerCalled = false
 
 func TestV3HTTPProvider(t *testing.T) {
 	log.SetLogLevel("TRACE")
-	version.CheckVersion()
+	version.CheckVersion("/tmp")
 
 	// Start provider API in the background
 	go startServer()
