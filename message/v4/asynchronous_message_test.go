@@ -14,7 +14,7 @@ func TestAsyncTypeSystem(t *testing.T) {
 		Provider: "asyncprovider",
 		PactDir:  "/tmp/",
 	})
-	_ = log.SetLogLevel("TRACE")
+	_ = log.SetLogLevel("INFO")
 
 	type foo struct {
 		Foo string `json:"foo"`
