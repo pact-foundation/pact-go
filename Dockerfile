@@ -1,12 +1,9 @@
-FROM golang:1.22.5
+ARG VERSION=latest
+FROM golang:${VERSION}
 
-# Install pact ruby standalone binaries
-RUN curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v2.0.3/pact-2.0.3-linux-x86_64.tar.gz; \
-    tar -C /usr/local -xzf pact-2.0.3-linux-x86_64.tar.gz; \
-    rm pact-2.0.3-linux-x86_64.tar.gz
-
-ENV PATH /usr/local/pact/bin:$PATH
-
+RUN apt-get update && apt-get install -y openjdk-17-jre file protobuf-compiler
 COPY . /go/src/github.com/pact-foundation/pact-go
 
 WORKDIR /go/src/github.com/pact-foundation/pact-go
+
+CMD ["make", "test"]
