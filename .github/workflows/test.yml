@@ -50,8 +50,21 @@ jobs:
           path: ~/.pact/plugins/**/plugin.log
         if: ${{ always() }}
 
+  test-containers:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.go-version }}-test-container
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ["1.20", "1.21", "1.22"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test dockerfile 
+        run: make docker_test_all
+
   finish:
-    needs: test
+    needs: [test,test-containers]
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished

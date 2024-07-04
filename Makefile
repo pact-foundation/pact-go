@@ -9,6 +9,7 @@ PLUGIN_PACT_CSV_VERSION=0.0.6
 PLUGIN_PACT_MATT_VERSION=0.1.1
 PLUGIN_PACT_AVRO_VERSION=0.0.5
 
+GO_VERSION?=1.22
 ci:: docker deps clean bin test pact
 
 # Run the ci target from a developer machine with the environment variables
@@ -30,6 +31,27 @@ fake_pact:
 docker:
 	@echo "--- 🛠 Starting docker"
 	docker-compose up -d
+
+docker_build:
+	docker build -f Dockerfile --build-arg GO_VERSION=${GO_VERSION} -t pactfoundation/pact-go-test .
+docker_test: docker_build
+	docker run \
+		-e LOG_LEVEL=INFO \
+		--rm \
+		pactfoundation/pact-go-test \
+		/bin/sh -c "make test"
+docker_pact: docker_build
+	docker run \
+		-e LOG_LEVEL=INFO \
+		--rm \
+		pactfoundation/pact-go-test \
+		/bin/sh -c "make pact_local"
+docker_test_all: docker_build
+	docker run \
+		-e LOG_LEVEL=INFO \
+		--rm \
+		pactfoundation/pact-go-test \
+		/bin/sh -c "make test && make pact_local"
 
 bin:
 	go build -o build/pact-go
