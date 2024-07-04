@@ -84,8 +84,10 @@ go get github.com/pact-foundation/pact-go/v2
 # install CLI tools
 go install github.com/pact-foundation/pact-go/v2
 
-# download and install the required libraries. The pact-go will be installed into $GOPATH/bin, which is $HOME/go/bin by default. 
-pact-go -l DEBUG install 
+# pact-go will be installed into $GOPATH/bin, which is $HOME/go/bin by default.
+
+# download and install the required libraries.
+pact-go -l DEBUG install
 
 # 🚀 now write some tests!
 ```
@@ -97,6 +99,51 @@ export PATH=$PATH:$GOPATH/bin
 ```
 
 You can also keep the library versions up to date by running the `version.CheckVersion()` function.
+
+Set `PACT_GO_LIB_DOWNLOAD_PATH` env var if you have installed the library in a non-standard location.
+
+<details><summary>Pre-Requisites</summary>
+
+### Pre-Requisites 
+
+- `cgo`
+  - Pact relies on C shared libraries compiled from Rust
+  - `CGO_ENABLED=1` (check with `go env`)
+
+#### Linux
+
+- Install `gcc` package
+  
+#### MacOS
+
+- Install the Xcode Command line tools
+
+By default, pact-go install will attempt to install in `/usr/local/lib`.
+
+Note this is not user-writable, so `pact-go install` must be run with `sudo`.
+
+An alternative is to install to `/tmp` via `pact-go -l DEBUG install --libDir /tmp`
+
+#### Windows
+
+- Install `gcc`
+  - `choco install mingw`
+  - `scoop install mingw`
+
+- Add location of the pact-go installed shared library to
+  - `PATH`
+  - `CGO_LDFLAGS`
+ 
+##### Powershell
+
+- `$env:Path += ';$env:TMP'`
+- `$env:CGO_LDFLAGS = '-L$env:TMP'`
+
+- Command Prompt
+- `set %PATH% = '%PATH%;%TMP%'`
+- `set %CGO_LDFLAGS% = '-L%TMP%`
+
+</details>
 
 <details><summary>Manual Installation Instructions</summary>
 
