@@ -172,6 +172,7 @@ func TestPluginInteraction(t *testing.T) {
 	m := NewHTTPPact("test-plugin-consumer", "test-plugin-provider")
 
 	// Protobuf plugin test
+	defer m.CleanupPlugins()
 	_ = m.UsingPlugin("protobuf", "0.3.15")
 	m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
 
