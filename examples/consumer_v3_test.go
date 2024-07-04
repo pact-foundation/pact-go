@@ -30,7 +30,7 @@ var TimeGenerated = matchers.TimeGenerated
 var DateTimeGenerated = matchers.DateTimeGenerated
 
 func TestConsumerV3(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	log.SetLogLevel("INFO")
 
 	mockProvider, err := consumer.NewV3Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV3Consumer",
@@ -90,7 +90,7 @@ func TestConsumerV3(t *testing.T) {
 	assert.NoError(t, err)
 }
 func TestMessagePact(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	log.SetLogLevel("INFO")
 
 	provider, err := message.NewMessagePact(message.Config{
 		Consumer: "PactGoV3MessageConsumer",

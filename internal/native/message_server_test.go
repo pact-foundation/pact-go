@@ -349,7 +349,7 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 func TestGrpcPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
-	_ = log.SetLogLevel("TRACE")
+	_ = log.SetLogLevel("INFO")
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
@@ -426,7 +426,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
-	_ = log.SetLogLevel("TRACE")
+	_ = log.SetLogLevel("INFO")
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
 
