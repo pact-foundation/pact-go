@@ -49,55 +49,92 @@ func TestV3HTTPProvider(t *testing.T) {
 	}
 
 	// Verify the Provider with local Pact Files
-	err := verifier.VerifyProvider(t, provider.VerifyRequest{
-		ProviderBaseURL: "http://127.0.0.1:8111",
-		Provider:        "V3Provider",
-		ProviderVersion: os.Getenv("APP_SHA"),
-		BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
-		PactFiles: []string{
-			filepath.ToSlash(fmt.Sprintf("%s/PactGoV3Consumer-V3Provider.json", pactDir)),
-			filepath.ToSlash(fmt.Sprintf("%s/PactGoV2ConsumerMatch-V2ProviderMatch.json", pactDir)),
-		},
-		ConsumerVersionSelectors: []provider.Selector{
-			&provider.ConsumerVersionSelector{
-				Tag: "master",
+
+	if os.Getenv("SKIP_PUBLISH") != "true" {
+		err := verifier.VerifyProvider(t, provider.VerifyRequest{
+			ProviderBaseURL: "http://127.0.0.1:8111",
+			Provider:        "V3Provider",
+			ProviderVersion: os.Getenv("APP_SHA"),
+			BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
+			ConsumerVersionSelectors: []provider.Selector{
+				&provider.ConsumerVersionSelector{
+					Tag: "master",
+				},
+				&provider.ConsumerVersionSelector{
+					Tag: "prod",
+				},
 			},
-			&provider.ConsumerVersionSelector{
-				Tag: "prod",
+			PublishVerificationResults: true,
+			RequestFilter:              f,
+			BeforeEach: func() error {
+				l.Println("[DEBUG] HOOK before each")
+				return nil
 			},
-		},
-		PublishVerificationResults: true,
-		RequestFilter:              f,
-		BeforeEach: func() error {
-			l.Println("[DEBUG] HOOK before each")
-			return nil
-		},
-		AfterEach: func() error {
-			l.Println("[DEBUG] HOOK after each")
-			return nil
-		},
-		StateHandlers: models.StateHandlers{
-			"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
-				stateHandlerCalled = true
-
-				if setup {
-					l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
-				} else {
-					l.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
-				}
-
-				// ... do something, such as create "foo" in the database
-
-				// Optionally (if there are generators in the pact) return provider state values to be used in the verification
-				return models.ProviderStateResponse{"uuid": "1234"}, nil
+			AfterEach: func() error {
+				l.Println("[DEBUG] HOOK after each")
+				return nil
 			},
-		},
-		DisableColoredOutput: true,
-	})
+			StateHandlers: models.StateHandlers{
+				"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+					stateHandlerCalled = true
 
-	assert.NoError(t, err)
-	assert.True(t, requestFilterCalled)
-	assert.True(t, stateHandlerCalled)
+					if setup {
+						l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
+					} else {
+						l.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
+					}
+
+					// ... do something, such as create "foo" in the database
+
+					// Optionally (if there are generators in the pact) return provider state values to be used in the verification
+					return models.ProviderStateResponse{"uuid": "1234"}, nil
+				},
+			},
+			DisableColoredOutput: true,
+		})
+		assert.NoError(t, err)
+		assert.True(t, requestFilterCalled)
+		assert.True(t, stateHandlerCalled)
+	} else {
+		err := verifier.VerifyProvider(t, provider.VerifyRequest{
+			ProviderBaseURL: "http://127.0.0.1:8111",
+			Provider:        "V3Provider",
+			PactFiles: []string{
+				filepath.ToSlash(fmt.Sprintf("%s/PactGoV3Consumer-V3Provider.json", pactDir)),
+				filepath.ToSlash(fmt.Sprintf("%s/PactGoV2ConsumerMatch-V2ProviderMatch.json", pactDir)),
+			},
+			RequestFilter: f,
+			BeforeEach: func() error {
+				l.Println("[DEBUG] HOOK before each")
+				return nil
+			},
+			AfterEach: func() error {
+				l.Println("[DEBUG] HOOK after each")
+				return nil
+			},
+			StateHandlers: models.StateHandlers{
+				"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+					stateHandlerCalled = true
+
+					if setup {
+						l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
+					} else {
+						l.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
+					}
+
+					// ... do something, such as create "foo" in the database
+
+					// Optionally (if there are generators in the pact) return provider state values to be used in the verification
+					return models.ProviderStateResponse{"uuid": "1234"}, nil
+				},
+			},
+			DisableColoredOutput: true,
+		})
+		assert.NoError(t, err)
+		assert.True(t, requestFilterCalled)
+		assert.True(t, stateHandlerCalled)
+	}
+
 }
 
 func TestV3MessageProvider(t *testing.T) {
@@ -138,14 +175,24 @@ func TestV3MessageProvider(t *testing.T) {
 	}
 
 	// Verify the Provider with local Pact Files
-	verifier.VerifyProvider(t, provider.VerifyRequest{
-		PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
-		StateHandlers:   stateMappings,
-		Provider:        "V3MessageProvider",
-		ProviderVersion: os.Getenv("APP_SHA"),
-		BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
-		MessageHandlers: functionMappings,
-	})
+
+	if os.Getenv("SKIP_PUBLISH") != "true" {
+		verifier.VerifyProvider(t, provider.VerifyRequest{
+			StateHandlers:   stateMappings,
+			Provider:        "V3MessageProvider",
+			ProviderVersion: os.Getenv("APP_SHA"),
+			BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
+			MessageHandlers: functionMappings,
+		})
+	} else {
+		verifier.VerifyProvider(t, provider.VerifyRequest{
+			PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
+			StateHandlers:   stateMappings,
+			Provider:        "V3MessageProvider",
+			MessageHandlers: functionMappings,
+		})
+	}
+
 }
 
 func startServer() {
