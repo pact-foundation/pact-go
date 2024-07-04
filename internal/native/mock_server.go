@@ -1,165 +1,7 @@
 package native
 
 /*
-// Library headers
-#include <stdlib.h>
-#include <stdint.h>
-typedef int bool;
-#define true 1
-#define false 0
-
-void pactffi_init(char* log);
-char* pactffi_version();
-
-/// Wraps a Pact model struct
-typedef struct InteractionHandle InteractionHandle;
-
-struct InteractionHandle {
-	unsigned int interaction_ref;
-};
-
-typedef enum InteractionPart {
-  InteractionPart_Request,
-  InteractionPart_Response,
-} InteractionPart;
-
-/// Wraps a Pact model struct
-typedef struct PactHandle PactHandle;
-struct PactHandle {
-	unsigned int pact_ref;
-};
-
-/// External interface to cleanup a mock server. This function will try terminate the mock server
-/// with the given port number and cleanup any memory allocated for it. Returns true, unless a
-/// mock server with the given port number does not exist, or the function panics.
-///
-/// **NOTE:** Although `close()` on the listener for the mock server is called, this does not
-/// currently work and the listener will continue handling requests. In this
-/// case, it will always return a 404 once the mock server has been cleaned up.
-bool pactffi_cleanup_mock_server(int mock_server_port);
-
-/// External interface to create a mock server. A pointer to the pact JSON as a C string is passed in,
-/// as well as the port for the mock server to run on. A value of 0 for the port will result in a
-/// port being allocated by the operating system. The port of the mock server is returned.
-///
-/// # Errors
-///
-/// Errors are returned as negative values.
-///
-/// | Error | Description |
-/// |-------|-------------|
-/// | -1 | A null pointer was received |
-/// | -2 | The pact JSON could not be parsed |
-/// | -3 | The mock server could not be started |
-/// | -4 | The method panicked |
-/// | -5 | The address is not valid |
-///
-int pactffi_create_mock_server(const char *pact_str, const char *addr_str, bool tls);
-
-/// As above, but creates it for a PactHandle
-int pactffi_create_mock_server_for_pact(PactHandle pact, const char *addr_str, bool tls);
-
-void pactffi_with_specification(PactHandle pact, int specification_version);
-
-/// Adds a provider state to the Interaction
-bool pactffi_given(InteractionHandle interaction, const char *description);
-
-/// Adds a provider state with params to the Interaction
-bool pactffi_given_with_param(InteractionHandle interaction, const char *description, const char *name, const char *value);
-
-/// Get self signed certificate for TLS mode
-char* pactffi_get_tls_ca_certificate();
-
-/// Free a string allocated on the Rust heap
-void pactffi_free_string(const char *s);
-
-/// External interface to check if a mock server has matched all its requests. The port number is
-/// passed in, and if all requests have been matched, true is returned. False is returned if there
-/// is no mock server on the given port, or if any request has not been successfully matched, or
-/// the method panics.
-bool pactffi_mock_server_matched(int mock_server_port);
-
-/// External interface to get all the mismatches from a mock server. The port number of the mock
-/// server is passed in, and a pointer to a C string with the mismatches in JSON format is
-/// returned.
-///
-/// **NOTE:** The JSON string for the result is allocated on the heap, and will have to be freed
-/// once the code using the mock server is complete. The [`cleanup_mock_server`](fn.cleanup_mock_server.html) function is
-/// provided for this purpose.
-///
-/// # Errors
-///
-/// If there is no mock server with the provided port number, or the function panics, a NULL
-/// pointer will be returned. Don't try to dereference it, it will not end well for you.
-///
-char* pactffi_mock_server_mismatches(int mock_server_port);
-
-/// Creates a new Interaction and returns a handle to it
-InteractionHandle pactffi_new_interaction(PactHandle pact, const char *description);
-
-/// Creates a new Pact model and returns a handle to it
-PactHandle pactffi_new_pact(const char *consumer_name, const char *provider_name);
-
-/// Sets the description for the Interaction
-void pactffi_upon_receiving(InteractionHandle interaction, const char *description);
-
-/// Sets the description for the Interaction
-void pactffi_with_request(InteractionHandle interaction, const char *method, const char *path);
-
-/// Sets header expectations
-/// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_header.html
-void pactffi_with_header_v2(InteractionHandle interaction, int interaction_part, const char *name, int index, const char *value);
-
-/// Sets query string expectation
-/// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_query_parameter.html
-void pactffi_with_query_parameter_v2(InteractionHandle interaction, const char *name, int index, const char *value);
-
-/// Sets the description for the Interaction
-// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.with_body.html
-bool pactffi_with_body(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body);
-
-// bool pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const uint8_t *body, size_t size);
-bool pactffi_with_binary_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, int size);
-
-int pactffi_with_multipart_file(InteractionHandle interaction, int interaction_part, const char *content_type, const char *body, const char *part_name);
-
-// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.response_status.html
-void pactffi_response_status(InteractionHandle interaction, int status);
-
-/// External interface to trigger a mock server to write out its pact file. This function should
-/// be called if all the consumer tests have passed. The directory to write the file to is passed
-/// as the second parameter. If a NULL pointer is passed, the current working directory is used.
-///
-/// Returns 0 if the pact file was successfully written. Returns a positive code if the file can
-/// not be written, or there is no mock server running on that port or the function panics.
-///
-/// # Errors
-///
-/// Errors are returned as positive values.
-///
-/// | Error | Description |
-/// |-------|-------------|
-/// | 1 | A general panic was caught |
-/// | 2 | The pact file was not able to be written |
-/// | 3 | A mock server with the provided port was not found |
-int pactffi_write_pact_file(int mock_server_port, const char *directory, bool overwrite);
-
-void pactffi_with_pact_metadata(PactHandle pact, const char *namespace, const char *name, const char *value);
-
-// Additional global logging functions
-//void pactffi_log_message(const char *source, const char *log_level, const char *message);
-//int pactffi_log_to_buffer(int level);
-int pactffi_log_to_stdout(int level);
-int pactffi_log_to_file(const char *file_name, int level_filter);
-//char* pactffi_fetch_log_buffer();
-
-int pactffi_using_plugin(PactHandle pact, const char *plugin_name, const char *plugin_version);
-void pactffi_cleanup_plugins(PactHandle pact);
-int pactffi_interaction_contents(InteractionHandle interaction, int interaction_part, const char *content_type, const char *contents);
-
-// Create a mock server for the provided Pact handle and transport.
-int pactffi_create_mock_server_for_transport(PactHandle pact, const char *addr, int port, const char *transport, const char *transport_config);
-
+#include "pact.h"
 */
 import "C"
 
@@ -300,12 +142,12 @@ func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (in
 	cAddress := C.CString(address)
 	defer free(cPact)
 	defer free(cAddress)
-	tlsEnabled := 0
+	tlsEnabled := false
 	if tls {
-		tlsEnabled = 1
+		tlsEnabled = true
 	}
 
-	p := C.pactffi_create_mock_server(cPact, cAddress, C.int(tlsEnabled))
+	p := C.pactffi_create_mock_server(cPact, cAddress, C.bool(tlsEnabled))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -378,7 +220,7 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 	log.Println("[DEBUG] mock server cleaning up port:", port)
 	res := C.pactffi_cleanup_mock_server(C.int(port))
 
-	return int(res) == 1
+	return bool(res)
 }
 
 // WritePactFile writes the Pact to file.
@@ -394,7 +236,7 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 	// }
 
 	// res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.int(overwritePact)))
-	res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.int(0)))
+	res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.bool(false)))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -448,12 +290,12 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	log.Println("[DEBUG] mock server starting on address:", address)
 	cAddress := C.CString(address)
 	defer free(cAddress)
-	tlsEnabled := 0
+	tlsEnabled := false
 	if tls {
-		tlsEnabled = 1
+		tlsEnabled = true
 	}
 
-	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.int(tlsEnabled))
+	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.bool(tlsEnabled))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -504,7 +346,7 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 	cConfig := C.CString(configJson)
 	defer free(cConfig)
 
-	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.int(port), cTransport, cConfig)
+	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, cConfig)
 
 	// | Error | Description
 	// |-------|-------------
@@ -555,8 +397,8 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 	cPluginVersion := C.CString(pluginVersion)
 	defer free(cPluginVersion)
 
-	InstallSignalHandlers()
 	r := C.pactffi_using_plugin(m.pact.handle, cPluginName, cPluginVersion)
+	InstallSignalHandlers()
 
 	// 1 - A general panic was caught.
 	// 2 - Failed to load the plugin.
@@ -702,7 +544,7 @@ func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[strin
 			cValue := C.CString(value)
 			defer free(cValue)
 
-			C.pactffi_with_header_v2(i.handle, C.int(part), cName, C.int(0), cValue)
+			C.pactffi_with_header_v2(i.handle, C.int(part), cName, C.ulong(0), cValue)
 		}
 
 	}
@@ -721,7 +563,7 @@ func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Intera
 			cValue := C.CString(value)
 			defer free(cValue)
 
-			C.pactffi_with_query_parameter_v2(i.handle, cName, C.int(idx), cValue)
+			C.pactffi_with_query_parameter_v2(i.handle, cName, C.ulong(idx), cValue)
 		}
 	}
 
@@ -773,7 +615,7 @@ func (i *Interaction) withBinaryBody(contentType string, body []byte, part inter
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	C.pactffi_with_binary_file(i.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])), C.int(len(body)))
+	C.pactffi_with_binary_file(i.handle, C.int(part), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), C.ulong(len(body)))
 
 	return i
 }
@@ -811,7 +653,7 @@ func (i *Interaction) withMultipartFile(contentType string, filename string, mim
 
 // Set the expected HTTTP response status
 func (i *Interaction) WithStatus(status int) *Interaction {
-	C.pactffi_response_status(i.handle, C.int(status))
+	C.pactffi_response_status(i.handle, C.ushort(status))
 
 	return i
 }

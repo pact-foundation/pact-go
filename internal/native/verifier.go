@@ -1,38 +1,7 @@
 package native
 
 /*
-// Library headers
-#include <stdlib.h>
-#include <stdint.h>
-typedef int bool;
-#define true 1
-#define false 0
-
-char* pactffi_version();
-void pactffi_free_string(char* s);
-int pactffi_verify(char* s);
-
-typedef struct VerifierHandle VerifierHandle;
-struct VerifierHandle {
-
-};
-VerifierHandle *pactffi_verifier_new_for_application(const char *name, const char *version);
-void pactffi_verifier_shutdown(struct VerifierHandle *handle);
-void pactffi_verifier_set_provider_info(VerifierHandle *handle, const char *name, const char *scheme, const char *host, uint32_t port, const char *path);
-void pactffi_verifier_set_filter_info(VerifierHandle *handle, const char *filter_description, const char *filter_state, bool filter_no_state);
-void pactffi_verifier_set_provider_state(VerifierHandle *handle, const char *url, bool teardown, bool body);
-int pactffi_verifier_set_verification_options(VerifierHandle *handle, bool disable_ssl_verification, unsigned long request_timeout);
-int pactffi_verifier_set_publish_options(VerifierHandle *handle, const char *provider_version, const char *build_url, const char *const *provider_tags, uint32_t provider_tags_len, const char *provider_branch);
-void pactffi_verifier_set_consumer_filters(VerifierHandle *handle, const char *const *consumer_filters, uint32_t consumer_filters_len);
-void pactffi_verifier_add_custom_header(VerifierHandle *handle, const char *header_name, const char *header_value);
-void pactffi_verifier_add_file_source(VerifierHandle *handle, const char *file);
-void pactffi_verifier_add_directory_source(VerifierHandle *handle, const char *directory);
-void pactffi_verifier_url_source(VerifierHandle *handle, const char *url, const char *username, const char *password, const char *token);
-void pactffi_verifier_broker_source_with_selectors(VerifierHandle *handle, const char *url, const char *username, const char *password, const char *token, bool enable_pending, const char *include_wip_pacts_since, const char *const *provider_tags, uint32_t provider_tags_len, const char *provider_branch, const char *const *consumer_version_selectors, uint32_t consumer_version_selectors_len, const char *const *consumer_version_tags, uint32_t consumer_version_tags_len);
-int pactffi_verifier_execute(VerifierHandle *handle);
-void pactffi_verifier_add_provider_transport(VerifierHandle *handle, const char *protocol, uint32_t port, const char *path, const char *scheme);
-void pactffi_verifier_set_no_pacts_is_error(VerifierHandle *handle, bool is_error);
-int pactffi_verifier_set_coloured_output(struct VerifierHandle *handle, bool coloured_output);
+#include "pact.h"
 */
 import "C"
 
@@ -114,7 +83,7 @@ func (v *Verifier) SetProviderInfo(name string, scheme string, host string, port
 	defer free(cScheme)
 	cHost := C.CString(host)
 	defer free(cHost)
-	cPort := C.uint(port)
+	cPort := C.ushort(port)
 	cPath := C.CString(path)
 	defer free(cPath)
 
@@ -125,7 +94,7 @@ func (v *Verifier) AddTransport(protocol string, port uint16, path string, schem
 	log.Println("[DEBUG] Adding transport with protocol:", protocol, "port:", port, "path:", path, "scheme:", scheme)
 	cProtocol := C.CString(protocol)
 	defer free(cProtocol)
-	cPort := C.uint(port)
+	cPort := C.ushort(port)
 	cPath := C.CString(path)
 	defer free(cPath)
 	cScheme := C.CString(scheme)
@@ -140,24 +109,24 @@ func (v *Verifier) SetFilterInfo(description string, state string, noState bool)
 	cFilterState := C.CString(state)
 	defer free(cFilterState)
 
-	C.pactffi_verifier_set_filter_info(v.handle, cFilterDescription, cFilterState, boolToCInt(noState))
+	C.pactffi_verifier_set_filter_info(v.handle, cFilterDescription, cFilterState, boolToCUchar(noState))
 }
 
 func (v *Verifier) SetProviderState(url string, teardown bool, body bool) {
 	cURL := C.CString(url)
 	defer free(cURL)
 
-	C.pactffi_verifier_set_provider_state(v.handle, cURL, boolToCInt(teardown), boolToCInt(body))
+	C.pactffi_verifier_set_provider_state(v.handle, cURL, boolToCUchar(teardown), boolToCUchar(body))
 }
 
 func (v *Verifier) SetVerificationOptions(disableSSLVerification bool, requestTimeout int64) {
 	// TODO: this returns an int and therefore can error. We should have all of these functions return values??
-	C.pactffi_verifier_set_verification_options(v.handle, boolToCInt(disableSSLVerification), C.ulong(requestTimeout))
+	C.pactffi_verifier_set_verification_options(v.handle, boolToCUchar(disableSSLVerification), C.ulong(requestTimeout))
 }
 
 func (v *Verifier) SetConsumerFilters(consumers []string) {
 	// TODO: check if this actually works!
-	C.pactffi_verifier_set_consumer_filters(v.handle, stringArrayToCStringArray(consumers), C.uint(len(consumers)))
+	C.pactffi_verifier_set_consumer_filters(v.handle, stringArrayToCStringArray(consumers), C.ushort(len(consumers)))
 }
 
 func (v *Verifier) AddCustomHeader(name string, value string) {
@@ -210,7 +179,7 @@ func (v *Verifier) BrokerSourceWithSelectors(url string, username string, passwo
 	cProviderBranch := C.CString(providerBranch)
 	defer free(cProviderBranch)
 
-	C.pactffi_verifier_broker_source_with_selectors(v.handle, cUrl, cUsername, cPassword, cToken, boolToCInt(enablePending), cIncludeWipPactsSince, stringArrayToCStringArray(providerTags), C.uint(len(providerTags)), cProviderBranch, stringArrayToCStringArray(selectors), C.uint(len(selectors)), stringArrayToCStringArray(consumerVersionTags), C.uint(len(consumerVersionTags)))
+	C.pactffi_verifier_broker_source_with_selectors(v.handle, cUrl, cUsername, cPassword, cToken, boolToCUchar(enablePending), cIncludeWipPactsSince, stringArrayToCStringArray(providerTags), C.ushort(len(providerTags)), cProviderBranch, stringArrayToCStringArray(selectors), C.ushort(len(selectors)), stringArrayToCStringArray(consumerVersionTags), C.ushort(len(consumerVersionTags)))
 }
 
 func (v *Verifier) SetPublishOptions(providerVersion string, buildUrl string, providerTags []string, providerBranch string) {
@@ -221,7 +190,7 @@ func (v *Verifier) SetPublishOptions(providerVersion string, buildUrl string, pr
 	cProviderBranch := C.CString(providerBranch)
 	defer free(cProviderBranch)
 
-	C.pactffi_verifier_set_publish_options(v.handle, cProviderVersion, cBuildUrl, stringArrayToCStringArray(providerTags), C.uint(len(providerTags)), cProviderBranch)
+	C.pactffi_verifier_set_publish_options(v.handle, cProviderVersion, cBuildUrl, stringArrayToCStringArray(providerTags), C.ushort(len(providerTags)), cProviderBranch)
 }
 
 func (v *Verifier) Execute() error {
@@ -245,11 +214,11 @@ func (v *Verifier) Execute() error {
 }
 
 func (v *Verifier) SetNoPactsIsError(isError bool) {
-	C.pactffi_verifier_set_no_pacts_is_error(v.handle, boolToCInt(isError))
+	C.pactffi_verifier_set_no_pacts_is_error(v.handle, boolToCUchar(isError))
 }
 
 func (v *Verifier) SetColoredOutput(isColoredOutput bool) {
-	C.pactffi_verifier_set_coloured_output(v.handle, boolToCInt(isColoredOutput))
+	C.pactffi_verifier_set_coloured_output(v.handle, boolToCUchar(isColoredOutput))
 }
 
 func stringArrayToCStringArray(inputs []string) **C.char {
@@ -266,9 +235,9 @@ func stringArrayToCStringArray(inputs []string) **C.char {
 	return (**C.char)(unsafe.Pointer(&output[0]))
 }
 
-func boolToCInt(val bool) C.int {
+func boolToCUchar(val bool) C.uchar {
 	if val {
-		return C.int(1)
+		return C.uchar(1)
 	}
-	return C.int(0)
+	return C.uchar(0)
 }
