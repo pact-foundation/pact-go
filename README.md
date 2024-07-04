@@ -136,12 +136,12 @@ An alternative is to install to `/tmp` via `pact-go -l DEBUG install --libDir /t
  
 ##### Powershell
 
-- `$env:Path += ';$env:TMP'`
-- `$env:CGO_LDFLAGS = '-L$env:TMP'`
+- `$env:Path += ";$env:TMP"`
+- `$env:CGO_LDFLAGS = "-L$env:TMP"`
 
 - Command Prompt
-- `set %PATH% = '%PATH%;%TMP%'`
-- `set %CGO_LDFLAGS% = '-L%TMP%`
+- `set PATH="%PATH%;%TMP%"`
+- `set CGO_LDFLAGS="-L%TMP%"`
 
 </details>
 
