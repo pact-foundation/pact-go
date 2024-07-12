@@ -121,20 +121,18 @@ func (m *Message) GivenWithParameter(state string, params map[string]interface{}
 	defer free(cState)
 
 	if len(params) == 0 {
-		cState := C.CString(state)
-		defer free(cState)
-
 		C.pactffi_given(m.handle, cState)
 	} else {
 		for k, v := range params {
 			cKey := C.CString(k)
-			defer free(cKey)
+
 			param := stringFromInterface(v)
 			cValue := C.CString(param)
-			defer free(cValue)
 
 			C.pactffi_given_with_param(m.handle, cState, cKey, cValue)
 
+			free(cValue)
+			free(cKey)
 		}
 	}
 
@@ -152,18 +150,18 @@ func (m *Message) ExpectsToReceive(description string) *Message {
 
 func (m *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 	for k, v := range valueOrMatcher {
-
 		cName := C.CString(k)
-		defer free(cName)
 
 		// TODO: check if matching rules allowed here
 		// value := stringFromInterface(v)
 		// fmt.Printf("withheaders, sending: %+v \n\n", value)
 		// cValue := C.CString(value)
 		cValue := C.CString(v)
-		defer free(cValue)
 
 		C.pactffi_message_with_metadata(m.handle, cName, cValue)
+
+		free(cValue)
+		free(cName)
 	}
 
 	return m
@@ -237,7 +235,7 @@ func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) err
 	defer free(cPluginName)
 	cPluginVersion := C.CString(pluginVersion)
 	defer free(cPluginVersion)
-	
+
 	r := C.pactffi_using_plugin(m.messagePact.handle, cPluginName, cPluginVersion)
 	InstallSignalHandlers()
 
