@@ -149,7 +149,7 @@ An alternative is to install to `/tmp` via `pact-go -l DEBUG install --libDir /t
 
 ### Manual
 
-Downlod the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux):
+Download the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux):
 
 Ensure you have the correct extension for your OS:
 
