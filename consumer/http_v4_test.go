@@ -3,6 +3,7 @@ package consumer
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/matchers"
@@ -51,7 +52,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 	assert.Error(t, err)
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", dir)
+	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
 
 	err = p.AddInteraction().
 		Given("some state").

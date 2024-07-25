@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -29,7 +30,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 	log.SetLogLevel("DEBUG")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/routeguide/route_guide.proto", dir)
+	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",
@@ -102,7 +103,7 @@ func TestGetFeatureError(t *testing.T) {
 	})
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/routeguide/route_guide.proto", dir)
+	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",
@@ -167,7 +168,7 @@ func TestSaveFeature(t *testing.T) {
 	log.SetLogLevel("INFO")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/routeguide/route_guide.proto", dir)
+	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",
