@@ -25,7 +25,7 @@ jobs:
                     1.21.x,
                     1.22.x,
                     ]
-        os: [ubuntu-latest, macos-12, macos-14]
+        os: [ubuntu-latest, macos-12, macos-14, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -43,6 +43,15 @@ jobs:
       - name: Test
         if: matrix.os == 'ubuntu-latest'
         run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
+      - name: Set CGO_LDFLAGS / pact_ffi lib on PATH
+        if: matrix.os == 'windows-latest'
+        run: |
+          "CGO_LDFLAGS=-L$env:TMP" >> $env:GITHUB_ENV
+          "$env:TMP" >> $env:GITHUB_PATH
+      - name: Skip Avro plugin  & test (windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          "SKIP_PLUGIN_AVRO=1" >> $env:GITHUB_ENV
       - name: Test (unit)
         if: matrix.os != 'ubuntu-latest'
         run: make test
@@ -50,8 +59,10 @@ jobs:
         if: matrix.os != 'ubuntu-latest'
         run: make pact_local
       - name: Install goveralls
+        if: matrix.os != 'windows-latest'
         run: go install github.com/mattn/goveralls@latest
       - name: Send coverage
+        if: matrix.os != 'windows-latest'
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
       - uses: actions/upload-artifact@v4
         with:
