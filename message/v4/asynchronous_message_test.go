@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Sync - no plugin
 func TestAsyncTypeSystem(t *testing.T) {
 	p, _ := NewAsynchronousPact(Config{
 		Consumer: "asyncconsumer",
@@ -20,7 +21,6 @@ func TestAsyncTypeSystem(t *testing.T) {
 		Foo string `json:"foo"`
 	}
 
-	// Sync - no plugin
 	err := p.AddAsynchronousMessage().
 		Given("some state").
 		Given("another state").
@@ -38,8 +38,11 @@ func TestAsyncTypeSystem(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	// Sync - with plugin, but no transport
-	// TODO: ExecuteTest has been disabled for now, because it's not very useful
+}
+
+// Sync - with plugin, but no transport
+// TODO: ExecuteTest has been disabled for now, because it's not very useful
+func TestAsyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {
 	csvInteraction := `{
 		"request.path": "/reports/report002.csv",
 		"response.status": "200",
@@ -52,14 +55,14 @@ func TestAsyncTypeSystem(t *testing.T) {
 		}
 	}`
 
-	p, _ = NewAsynchronousPact(Config{
+	p, _ := NewAsynchronousPact(Config{
 		Consumer: "asyncconsumer",
 		Provider: "asyncprovider",
 		PactDir:  "/tmp/",
 	})
 
 	// TODO: enable when there is a transport for async to test!
-	err = p.AddAsynchronousMessage().
+	err := p.AddAsynchronousMessage().
 		Given("some state").
 		ExpectsToReceive("some csv content").
 		UsingPlugin(PluginConfig{
