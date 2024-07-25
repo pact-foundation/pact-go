@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
@@ -21,17 +22,18 @@ import (
 var dir, _ = os.Getwd()
 
 func TestAvroHTTP(t *testing.T) {
-	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
-		Consumer: "AvroConsumer",
-		Provider: "AvroProvider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
-	})
-	assert.NoError(t, err)
+	if os.Getenv("SKIP_PLUGIN_AVRO") != "1" {
+		mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
+			Consumer: "AvroConsumer",
+			Provider: "AvroProvider",
+			PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		})
+		assert.NoError(t, err)
 
-	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/user.avsc", dir)
+		dir, _ := os.Getwd()
+		path := fmt.Sprintf("%s/user.avsc", strings.ReplaceAll(dir, "\\", "/"))
 
-	avroResponse := `{
+		avroResponse := `{
 		"pact:avro": "` + path + `",
 		"pact:record-name": "User",
 		"pact:content-type": "avro/binary",
@@ -39,27 +41,28 @@ func TestAvroHTTP(t *testing.T) {
 		"username": "notEmpty('matt')"
 	}`
 
-	// Set up our expected interactions.
-	err = mockProvider.
-		AddInteraction().
-		UponReceiving("A request to do get some Avro stuff").
-		UsingPlugin(consumer.PluginConfig{
-			Plugin:  "avro",
-			Version: "0.0.5",
-		}).
-		WithRequest("GET", "/avro").
-		WillRespondWith(200, func(res *consumer.V4InteractionWithPluginResponseBuilder) {
-			res.PluginContents("avro/binary", avroResponse)
-		}).
-		ExecuteTest(t, func(msc consumer.MockServerConfig) error {
-			resp, err := callServiceHTTP(msc)
+		// Set up our expected interactions.
+		err = mockProvider.
+			AddInteraction().
+			UponReceiving("A request to do get some Avro stuff").
+			UsingPlugin(consumer.PluginConfig{
+				Plugin:  "avro",
+				Version: "0.0.5",
+			}).
+			WithRequest("GET", "/avro").
+			WillRespondWith(200, func(res *consumer.V4InteractionWithPluginResponseBuilder) {
+				res.PluginContents("avro/binary", avroResponse)
+			}).
+			ExecuteTest(t, func(msc consumer.MockServerConfig) error {
+				resp, err := callServiceHTTP(msc)
 
-			assert.Equal(t, int64(1), resp.ID)
-			assert.Equal(t, "matt", resp.Username) // ??????!
+				assert.Equal(t, int64(1), resp.ID)
+				assert.Equal(t, "matt", resp.Username) // ??????!
 
-			return err
-		})
-	assert.NoError(t, err)
+				return err
+			})
+		assert.NoError(t, err)
+	}
 }
 
 func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
