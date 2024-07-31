@@ -541,7 +541,7 @@ func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[strin
 			value := stringFromInterface(header)
 			cValue := C.CString(value)
 
-			C.pactffi_with_header_v2(i.handle, C.int(part), cName, C.ulong(0), cValue)
+			C.pactffi_with_header_v2(i.handle, C.int(part), cName, CUlong(0), cValue)
 
 			free(cValue)
 		}
@@ -560,7 +560,7 @@ func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Intera
 			value := stringFromInterface(v)
 			cValue := C.CString(value)
 
-			C.pactffi_with_query_parameter_v2(i.handle, cName, C.ulong(idx), cValue)
+			C.pactffi_with_query_parameter_v2(i.handle, cName, CUlong(idx), cValue)
 
 			free(cValue)
 		}
@@ -616,7 +616,7 @@ func (i *Interaction) withBinaryBody(contentType string, body []byte, part inter
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	C.pactffi_with_binary_file(i.handle, C.int(part), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), C.ulong(len(body)))
+	C.pactffi_with_binary_file(i.handle, C.int(part), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), CUlong(len(body)))
 
 	return i
 }

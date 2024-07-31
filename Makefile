@@ -11,6 +11,10 @@ PLUGIN_PACT_AVRO_VERSION=0.0.5
 
 GO_VERSION?=1.22
 ci:: docker deps clean bin test pact
+PACT_DOWNLOAD_DIR=/tmp
+ifeq ($(OS),Windows_NT)
+	PACT_DOWNLOAD_DIR=$$TMP
+endif
 
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
@@ -61,10 +65,6 @@ clean:
 	rm -rf build output dist examples/pacts
 
 deps: download_plugins
-	@echo "--- 🐿  Fetching build dependencies "
-	cd /tmp; \
-	go install github.com/mitchellh/gox@latest; \
-	cd -
 
 download_plugins:
 	@echo "--- 🐿  Installing plugins"; \
@@ -106,7 +106,7 @@ cli:
 
 install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
-	./build/pact-go -l DEBUG install --libDir /tmp
+	./build/pact-go -l DEBUG install --libDir $(PACT_DOWNLOAD_DIR)
 
 pact: clean install docker
 	@echo "--- 🔨 Running Pact examples"

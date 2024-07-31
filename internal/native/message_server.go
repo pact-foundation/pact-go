@@ -172,7 +172,7 @@ func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 	defer free(cHeader)
 
 	// TODO: handle response
-	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), C.ulong(len(body)))
+	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), CUlong(len(body)))
 
 	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", bool(res))
 
@@ -183,7 +183,7 @@ func (m *Message) WithRequestBinaryContentType(contentType string, body []byte) 
 	defer free(cHeader)
 
 	// TODO: handle response
-	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), C.ulong(len(body)))
+	res := C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_REQUEST), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), CUlong(len(body)))
 
 	log.Println("[DEBUG] WithRequestBinaryContents - pactffi_with_binary_file returned", res)
 
@@ -203,7 +203,7 @@ func (m *Message) WithResponseBinaryContents(body []byte) *Message {
 	defer free(cHeader)
 
 	// TODO: handle response
-	C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_RESPONSE), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), C.ulong(len(body)))
+	C.pactffi_with_binary_file(m.handle, C.int(INTERACTION_PART_RESPONSE), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), CUlong(len(body)))
 
 	return m
 }
