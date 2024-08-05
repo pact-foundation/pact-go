@@ -21,7 +21,7 @@ jobs:
                     # 1.17.x, # Ended 02 Aug 2022
                     # 1.18.x, # Ended 01 Feb 2023
                     # 1.19.x, # Ended 06 Sep 2023
-                    1.20.x, # Ended 06 Feb 2024
+                    # 1.20.x, # Ended 06 Feb 2024
                     1.21.x,
                     1.22.x,
                     ]
@@ -76,12 +76,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.20", "1.21", "1.22"]
+        go-version: ["1.21", "1.22"]
     steps:
       - uses: actions/checkout@v4
 
       - name: Test dockerfile 
         run: make docker_test_all
+        env:
+          GO_VERSION: ${{ matrix.go-version }}
 
   finish:
     needs: [test,test-containers]
