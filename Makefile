@@ -34,7 +34,7 @@ fake_pact:
 
 docker:
 	@echo "--- 🛠 Starting docker"
-	docker-compose up -d
+	docker compose up -d
 
 docker_build:
 	docker build -f Dockerfile --build-arg GO_VERSION=${GO_VERSION} -t pactfoundation/pact-go-test .
