@@ -48,10 +48,6 @@ jobs:
         run: |
           "CGO_LDFLAGS=-L$env:TMP" >> $env:GITHUB_ENV
           "$env:TMP" >> $env:GITHUB_PATH
-      - name: Skip Avro plugin  & test (windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          "SKIP_PLUGIN_AVRO=1" >> $env:GITHUB_ENV
       - name: Test (unit)
         if: matrix.os != 'ubuntu-latest'
         run: make test
