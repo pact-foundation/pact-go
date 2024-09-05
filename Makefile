@@ -16,8 +16,14 @@ PACT_DOWNLOAD_DIR=/tmp
 ifeq ($(OS),Windows_NT)
 	PACT_DOWNLOAD_DIR=$$TMP
 endif
+
+CGO_ENABLED?=1
+ifeq ($(CGO_ENABLED),0)
+	SKIP_RACE=true
+endif
 SKIP_RACE?=false
 RACE?=-race
+SKIP_SIGNAL_HANDLERS?=false
 ifeq ($(SKIP_RACE),true)
 	RACE=
 endif
@@ -49,6 +55,8 @@ docker_test: docker_build
 		-e LOG_LEVEL=INFO \
 		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
+		-e CGO_ENABLED=$(CGO_ENABLED) \
+		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		-it \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
@@ -58,6 +66,8 @@ docker_pact: docker_build
 		-e LOG_LEVEL=INFO \
 		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
+		-e CGO_ENABLED=$(CGO_ENABLED) \
+		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make pact_local"
@@ -66,6 +76,8 @@ docker_test_all: docker_build
 		-e LOG_LEVEL=INFO \
 		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
+		-e CGO_ENABLED=$(CGO_ENABLED) \
+		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make test && make pact_local"
