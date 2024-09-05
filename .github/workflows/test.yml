@@ -13,7 +13,15 @@ on:
         description: 'Skip alpine provider tests'
         required: false
         default: 'false'
-
+      log_level:
+        description: 'Log level'
+        type: choice
+        required: true
+        default: 'INFO'
+        options:
+          - 'INFO'
+          - 'DEBUG'
+          - 'TRACE'
 env:
   PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
@@ -22,7 +30,7 @@ env:
   APP_REF: ${{ github.ref }}
   PACT_GO_LIB_DOWNLOAD_PATH: /tmp
   PACT_LD_LIBRARY_PATH: /tmp
-  LOG_LEVEL: INFO
+  LOG_LEVEL: ${{ github.event.inputs.log_level || 'INFO' }}
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
