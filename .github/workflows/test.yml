@@ -21,7 +21,7 @@ env:
   APP_SHA: ${{ github.sha }}
   APP_REF: ${{ github.ref }}
   PACT_LD_LIBRARY_PATH: /tmp
-  LOG_LEVEL: DEBUG
+  LOG_LEVEL: INFO
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
