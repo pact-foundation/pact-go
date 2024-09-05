@@ -35,16 +35,37 @@ func TestInstallerDownloader(t *testing.T) {
 			test Installer
 		}{
 			{
-				name: "ffi lib - linux x86",
+				name: "ffi lib - linux x86_64",
 				pkg:  FFIPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64.so.gz", packages[FFIPackage].version),
+				want: func() string {
+					if checkMusl() {
+						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64-musl.so.gz", packages[FFIPackage].version)
+					} else {
+						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64.so.gz", packages[FFIPackage].version)
+					}
+				}(),
 				test: Installer{
 					os:   linux,
 					arch: x86_64,
 				},
 			},
 			{
-				name: "ffi lib - macos x86",
+				name: "ffi lib - linux aarch64",
+				pkg:  FFIPackage,
+				want: func() string {
+					if checkMusl() {
+						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-aarch64-musl.so.gz", packages[FFIPackage].version)
+					} else {
+						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-aarch64.so.gz", packages[FFIPackage].version)
+					}
+				}(),
+				test: Installer{
+					os:   linux,
+					arch: aarch64,
+				},
+			},
+			{
+				name: "ffi lib - macos x86_64",
 				pkg:  FFIPackage,
 				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-macos-x86_64.dylib.gz", packages[FFIPackage].version),
 				test: Installer{
@@ -62,7 +83,7 @@ func TestInstallerDownloader(t *testing.T) {
 				},
 			},
 			{
-				name: "ffi lib - windows x86",
+				name: "ffi lib - windows x86_64",
 				pkg:  FFIPackage,
 				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/pact_ffi-windows-x86_64.dll.gz", packages[FFIPackage].version),
 				test: Installer{
