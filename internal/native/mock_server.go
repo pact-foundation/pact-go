@@ -106,7 +106,7 @@ func Init(logLevel string) {
 // MockServer is the public interface for managing the HTTP mock server
 type MockServer struct {
 	pact         *Pact
-	messagePact  *MessagePact
+	// messagePact  *MessagePact
 	interactions []*Interaction
 }
 
@@ -206,7 +206,7 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 	log.Println("[DEBUG] mock server cleaning up port:", port)
 	res := pactffi_cleanup_mock_server(int32(port))
 
-	return res == true
+	return res
 }
 
 // WritePactFile writes the Pact to file.
@@ -263,9 +263,9 @@ func GetTLSConfig() *tls.Config {
 // 	pactffi_free_string(str)
 // }
 
-func libRustFree(str string) {
-	pactffi_string_delete(str)
-}
+// func libRustFree(str string) {
+// 	pactffi_string_delete(str)
+// }
 
 // Start starts up the mock HTTP server on the given address:port and TLS config
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.create_mock_server_for_pact.html
@@ -565,9 +565,9 @@ func (i *Interaction) WithStatus(status int) *Interaction {
 	return i
 }
 
-type stringLike interface {
-	String() string
-}
+// type stringLike interface {
+// 	String() string
+// }
 
 func stringFromInterface(obj interface{}) string {
 	switch t := obj.(type) {

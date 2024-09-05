@@ -41,8 +41,7 @@ jobs:
           # working-directory: somedir
 
           # Optional: golangci-lint command line arguments.
-          # ignore the lib.go file as it only contains cgo annotations
-          args: --exclude-files internal/native/lib.go --timeout 2m
+          args: --timeout 2m
 
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           # only-new-issues: true

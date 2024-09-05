@@ -198,7 +198,7 @@ func (m *Message) WithResponseJSONContents(body interface{}) *Message {
 func (m *Message) WithContents(part interactionPart, contentType string, body []byte) *Message {
 
 	res := pactffi_with_body(m.handle, int32(part), contentType, string(body))
-	log.Println("[DEBUG] response from pactffi_interaction_contents", (res == true))
+	log.Println("[DEBUG] response from pactffi_interaction_contents", res)
 
 	return m
 }
@@ -457,7 +457,7 @@ func (m *MessageServer) CleanupMockServer(port int) bool {
 	log.Println("[DEBUG] mock server cleaning up port:", port)
 	res := pactffi_cleanup_mock_server(int32(port))
 
-	return res == true
+	return res
 }
 
 // MockServerMismatchedRequests returns a JSON object containing any mismatches from
@@ -496,7 +496,7 @@ func (m *MessageServer) MockServerMatched(port int) bool {
 	// log.Println("MATCHED RES?")
 	// log.Println(int(res))
 
-	return res == true
+	return res
 }
 
 // WritePactFile writes the Pact to file.
