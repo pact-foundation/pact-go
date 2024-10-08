@@ -80,14 +80,6 @@ func NewInstaller(opts ...installerConfig) (*Installer, error) {
 		log.Println("[WARN] amd64 architecture not detected, defaulting to x86_64. Behaviour may be undefined")
 	}
 
-	// Only perform a check if current OS is linux
-	if runtime.GOOS == "linux" {
-		err := i.checkMusl()
-		if err != nil {
-			log.Println("[DEBUG] unable to check for presence musl library due to error:", err)
-		}
-	}
-
 	return i, nil
 }
 
@@ -260,7 +252,13 @@ func (i *Installer) getDownloadURLForPackage(pkg string) (string, error) {
 		return "", fmt.Errorf("unable to find package details for package: %s", pkg)
 	}
 
-	return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch, osToExtension[i.os]), nil
+	if checkMusl() && i.os == linux {
+		return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch+"-musl", osToExtension[i.os]), nil
+	} else {
+		return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch, osToExtension[i.os]), nil
+
+	}
+
 }
 
 func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
@@ -331,20 +329,23 @@ func checkVersion(lib, version, versionRange string) error {
 }
 
 // checkMusl checks if the OS uses musl library instead of glibc
-func (i *Installer) checkMusl() error {
+func checkMusl() bool {
 	lddPath, err := exec.LookPath("ldd")
 	if err != nil {
-		return fmt.Errorf("could not find ldd in environment path")
+		return false
 	}
 
 	cmd := exec.Command(lddPath, "/bin/echo")
 	out, err := cmd.CombinedOutput()
 
+	if err != nil {
+		return false
+	}
 	if strings.Contains(string(out), "musl") {
-		log.Println("[WARN] Usage of musl library is known to cause problems, prefer using glibc instead.")
+		return true
 	}
 
-	return err
+	return false
 }
 
 // download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/PACKAGE-vVERSION/LIBNAME-OS-ARCH.EXTENSION.gz"
