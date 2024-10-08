@@ -16,6 +16,16 @@ ifeq ($(OS),Windows_NT)
 	PACT_DOWNLOAD_DIR=$$TMP
 endif
 
+CGO_ENABLED?=1
+ifeq ($(CGO_ENABLED),0)
+	SKIP_RACE=true
+endif
+SKIP_RACE?=false
+RACE?=-race
+SKIP_SIGNAL_HANDLERS?=false
+ifeq ($(SKIP_RACE),true)
+	RACE=
+endif
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
 # Use this for quick feedback when playing around with your workflows.
@@ -41,18 +51,24 @@ docker_build:
 docker_test: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e CGO_ENABLED=$(CGO_ENABLED) \
+		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		pactfoundation/pact-go-test \
 		/bin/sh -c "make test"
 docker_pact: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e CGO_ENABLED=$(CGO_ENABLED) \
+		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		pactfoundation/pact-go-test \
 		/bin/sh -c "make pact_local"
 docker_test_all: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e CGO_ENABLED=$(CGO_ENABLED) \
+		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		pactfoundation/pact-go-test \
 		/bin/sh -c "make test && make pact_local"
@@ -130,7 +146,7 @@ test: deps install
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v -race -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -v $(RACE) -coverprofile=profile.out -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \

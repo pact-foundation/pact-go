@@ -27,7 +27,7 @@ var requestFilterCalled = false
 var stateHandlerCalled = false
 
 func TestV3HTTPProvider(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	log.SetLogLevel("INFO")
 	version.CheckVersion()
 
 	// Start provider API in the background
@@ -138,7 +138,7 @@ func TestV3HTTPProvider(t *testing.T) {
 }
 
 func TestV3MessageProvider(t *testing.T) {
-	log.SetLogLevel("TRACE")
+	log.SetLogLevel("INFO")
 	var user *User
 
 	verifier := provider.NewVerifier()
