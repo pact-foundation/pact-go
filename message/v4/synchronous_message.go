@@ -115,7 +115,7 @@ type SynchronousMessageWithRequestBuilder struct {
 // to go with the content
 // func (m *Message) WithMetadata(metadata MapMatcher) *Message {
 func (m *SynchronousMessageWithRequestBuilder) WithMetadata(metadata map[string]string) *SynchronousMessageWithRequestBuilder {
-	m.messageHandle.WithMetadata(metadata)
+	m.messageHandle.WithRequestMetadata(metadata)
 
 	return m
 }
@@ -164,7 +164,7 @@ type SynchronousMessageWithResponseBuilder struct {
 // to go with the content
 // func (m *Message) WithMetadata(metadata MapMatcher) *Message {
 func (m *SynchronousMessageWithResponseBuilder) WithMetadata(metadata map[string]string) *SynchronousMessageWithResponseBuilder {
-	m.messageHandle.WithMetadata(metadata)
+	m.messageHandle.WithResponseMetadata(metadata)
 
 	return m
 }
