@@ -15,18 +15,17 @@ func TestSyncTypeSystem_NoPlugin(t *testing.T) {
 	p, _ := NewSynchronousPact(Config{
 		Consumer: "consumer",
 		Provider: "provider",
-		PactDir:  "/tmp/",
 	})
 	// Sync - no plugin
 	err := p.AddSynchronousMessage("some description").
 		Given("some state").
 		WithRequest(func(r *SynchronousMessageWithRequestBuilder) {
 			r.WithJSONContent(map[string]string{"foo": "bar"})
-			r.WithMetadata(map[string]string{})
+			r.WithMetadata(map[string]string{"meta_request": "meta_request_data"})
 		}).
 		WithResponse(func(r *SynchronousMessageWithResponseBuilder) {
 			r.WithJSONContent(map[string]string{"foo": "bar"})
-			r.WithMetadata(map[string]string{})
+			r.WithMetadata(map[string]string{"meta_response": "meta_response_data"})
 		}).
 		ExecuteTest(t, func(m SynchronousMessage) error {
 			// In this scenario, we have no real transport, so we need to mock/handle both directions

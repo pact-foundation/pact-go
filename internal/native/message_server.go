@@ -166,6 +166,32 @@ func (m *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 
 	return m
 }
+func (m *Message) WithRequestMetadata(valueOrMatcher map[string]string) *Message {
+	for k, v := range valueOrMatcher {
+		cName := C.CString(k)
+		cValue := C.CString(v)
+
+		C.pactffi_with_metadata(m.handle, cName, cValue, 0)
+
+		free(cValue)
+		free(cName)
+	}
+
+	return m
+}
+func (m *Message) WithResponseMetadata(valueOrMatcher map[string]string) *Message {
+	for k, v := range valueOrMatcher {
+		cName := C.CString(k)
+		cValue := C.CString(v)
+
+		C.pactffi_with_metadata(m.handle, cName, cValue, 1)
+
+		free(cValue)
+		free(cName)
+	}
+
+	return m
+}
 
 func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 	cHeader := C.CString("application/octet-stream")
