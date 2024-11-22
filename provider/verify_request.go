@@ -25,6 +25,9 @@ type Hook func() error
 // VerifyRequest contains the verification params.
 type VerifyRequest struct {
 	// Default URL to hit during provider verification.
+	//
+	// If your URL has a base path, make sure the URL includes the schema.
+	// Otherwise, the [net/url] package will consider it as opaque, and the base path will be lost when the URL is parsed.
 	ProviderBaseURL string
 
 	// Specify one or more additional transports to communicate to the given provider
