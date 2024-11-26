@@ -277,6 +277,22 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 
 </details>
 
+<details><summary>Supported Platforms</summary>
+
+| OS            | Architecture | Supported  | Pact-Go Version  |
+| ------------- | ------------ | ---------  | ---------------- |
+| MacOS         | x86_64       | ✅         | All              |
+| MacOS         | arm64        | ✅         | All              |
+| Linux (libc)  | x86_64       | ✅         | All              |
+| Linux (libc)  | arm64        | ✅         | All              |
+| Linux (musl)  | x86_64       | ❌         | -                |
+| Linux (musl)  | arm64        | ❌         | -                |
+| Windows       | x86_64       | ✅         | All              |
+| Windows       | x86          | ❌         | -                |
+| Windows       | arm64        | ❌         | -                |
+
+</details>
+
 ## Roadmap
 
 The [roadmap](https://docs.pact.io/roadmap/) for Pact and Pact Go is outlined on our main website.
