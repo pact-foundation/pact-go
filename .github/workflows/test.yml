@@ -1,5 +1,12 @@
-on: [push, pull_request, workflow_dispatch]
 name: Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 env:
   PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
@@ -76,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Test dockerfile 
+      - name: Test dockerfile
         run: make docker_test_all
         env:
           GO_VERSION: ${{ matrix.go-version }}
