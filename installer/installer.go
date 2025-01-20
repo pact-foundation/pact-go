@@ -464,7 +464,7 @@ type configuration struct{}
 func getConfigPath() string {
 	user, err := user.Current()
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatalf("%v", err)
 	}
 
 	return path.Join(user.HomeDir, ".pact", "pact-go.yml")
