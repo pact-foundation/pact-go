@@ -5,6 +5,11 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.1.0 (21 Jan 2025)
+  * [022c508](https://github.com/pact-foundation/pact-go/commit/022c508) - fix(deps): update module google.golang.org/grpc to v1.69.4 (renovate[bot], Tue Jan 21 10:56:36 2025 +0000)
+  * [2ee3af9](https://github.com/pact-foundation/pact-go/commit/2ee3af9) - chore(deps): update golangci-lint and fixup 1.23 issues (Yousaf Nabi, Mon Jan 20 20:54:26 2025 +0000)
+  * [eb1315b](https://github.com/pact-foundation/pact-go/commit/eb1315b) - chore(deps)!: require minimum go version 1.22 (Yousaf Nabi, Mon Jan 20 20:41:47 2025 +0000)
+
 ### v2.0.10 (21 Jan 2025)
   * [393ca79](https://github.com/pact-foundation/pact-go/commit/393ca79) - fix: update pact-ffi to v0.4.26 (Yousaf Nabi, Tue Jan 21 11:15:00 2025 +0000)
 
