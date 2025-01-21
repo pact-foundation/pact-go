@@ -5,6 +5,39 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.0.10 (21 Jan 2025)
+  * [393ca79](https://github.com/pact-foundation/pact-go/commit/393ca79) - fix: update pact-ffi to v0.4.26 (Yousaf Nabi, Tue Jan 21 11:15:00 2025 +0000)
+
+### v2.0.9 (21 Jan 2025)
+  * [01f52f3](https://github.com/pact-foundation/pact-go/commit/01f52f3) - fix(deps): update module gopkg.in/yaml.v2 to v3 (Yousaf Nabi, Tue Jan 21 10:43:43 2025 +0000)
+  * [7766ec2](https://github.com/pact-foundation/pact-go/commit/7766ec2) - docs: Improving documentation to ensure people don't fall into the trap of having URLs without schema and a base path. (Marcus Couto, Thu Nov 21 17:46:53 2024 -0700)
+  * [3cf9795](https://github.com/pact-foundation/pact-go/commit/3cf9795) - fix(deps): update module gopkg.in/yaml.v2 to v3 (renovate[bot], Mon Jan 20 20:42:35 2025 +0000)
+  * [807c124](https://github.com/pact-foundation/pact-go/commit/807c124) - fix(deps): update module github.com/stretchr/testify to v1.10.0 (renovate[bot], Mon Jan 20 18:35:22 2025 +0000)
+  * [7092deb](https://github.com/pact-foundation/pact-go/commit/7092deb) - fix(deps): update module google.golang.org/protobuf to v1.36.3 (renovate[bot], Mon Jan 20 18:35:18 2025 +0000)
+  * [6b6dce4](https://github.com/pact-foundation/pact-go/commit/6b6dce4) - fix(deps): update module github.com/linkedin/goavro/v2 to v2.13.1 (renovate[bot], Mon Jan 20 18:35:14 2025 +0000)
+  * [170f9d5](https://github.com/pact-foundation/pact-go/commit/170f9d5) - fix(deps): update module github.com/spf13/afero to v1.12.0 (renovate[bot], Mon Jan 20 17:43:47 2025 +0000)
+  * [3b19ecd](https://github.com/pact-foundation/pact-go/commit/3b19ecd) - Add renovate.json (renovate[bot], Sun Dec 1 23:56:56 2024 +0000)
+  * [b51c777](https://github.com/pact-foundation/pact-go/commit/b51c777) - docs: pact-go supported platforms (Yousaf Nabi, Tue Nov 26 09:33:09 2024 +0000)
+  * [0f0833c](https://github.com/pact-foundation/pact-go/commit/0f0833c) - build(deps): bump google.golang.org/protobuf from 1.35.1 to 1.35.2 (dependabot[bot], Mon Nov 18 18:09:04 2024 +0000)
+  * [a82eff8](https://github.com/pact-foundation/pact-go/commit/a82eff8) - fix: ensure sync messages write metadata to both req & res (Yousaf Nabi, Fri Oct 25 17:28:23 2024 +0100)
+  * [299fa71](https://github.com/pact-foundation/pact-go/commit/299fa71) - build(deps): bump google.golang.org/grpc from 1.66.0 to 1.67.1 (dependabot[bot], Tue Oct 8 15:02:52 2024 +0000)
+  * [f83ad22](https://github.com/pact-foundation/pact-go/commit/f83ad22) - build(deps): bump google.golang.org/protobuf from 1.34.2 to 1.35.1 (dependabot[bot], Mon Oct 7 17:18:14 2024 +0000)
+
+### v2.0.8 (04 Sept 2024)
+  * [24abbe2](https://github.com/pact-foundation/pact-go/commit/24abbe2) - build(deps): bump google.golang.org/grpc from 1.65.0 to 1.66.0 (dependabot[bot], Wed Sep 4 14:13:50 2024 +0000)
+  * [879ccda](https://github.com/pact-foundation/pact-go/commit/879ccda) - chore: remove signal handler code (Yousaf Nabi, Wed Sep 4 14:38:29 2024 +0100)
+  * [2d6b6b1](https://github.com/pact-foundation/pact-go/commit/2d6b6b1) - fix: bump libpact_ffi to 0.4.23 (Yousaf Nabi, Wed Sep 4 14:12:24 2024 +0100)
+  * [3b6ae5d](https://github.com/pact-foundation/pact-go/commit/3b6ae5d) - chore: update docker-compose to docker compose (v2 deprecation) (Yousaf Nabi, Fri Aug 30 19:44:26 2024 +0100)
+  * [a19fd06](https://github.com/pact-foundation/pact-go/commit/a19fd06) - test: renable avro windows (Yousaf Nabi, Fri Aug 30 19:43:04 2024 +0100)
+  * [c629e06](https://github.com/pact-foundation/pact-go/commit/c629e06) - build(deps): bump google.golang.org/grpc from 1.64.0 to 1.65.0 (dependabot[bot], Thu Jul 25 16:35:59 2024 +0000)
+
+### v2.0.7 (31 July 2024)
+  * [99d6f4b](https://github.com/pact-foundation/pact-go/commit/99d6f4b) - chore: update install instructions (Matt Fellows, Fri Jul 26 11:10:00 2024 +1000)
+  * [f7d3a81](https://github.com/pact-foundation/pact-go/commit/f7d3a81) - ci(win): add windows gha runner / setup download dir, CGO_FLAGS and PATH to pact_ffi.dll (Yousaf Nabi, Thu Jul 25 14:40:16 2024 +0100)
+  * [d2f38cf](https://github.com/pact-foundation/pact-go/commit/d2f38cf) - chore: split out message/v4 tests (Yousaf Nabi, Thu Jul 25 14:36:31 2024 +0100)
+  * [0f2fa06](https://github.com/pact-foundation/pact-go/commit/0f2fa06) - fix(win): provide ulonglong(win) or ulong(unix) C type alias via CUlong (Yousaf Nabi, Thu Jul 25 14:31:00 2024 +0100)
+  * [f21750c](https://github.com/pact-foundation/pact-go/commit/f21750c) - fix: update pact-ffi to 0.4.22 (Yousaf Nabi, Thu Jul 18 18:32:45 2024 +0100)
+
 ### v2.0.6 (15 July 2024)
   * [4d46c69](https://github.com/pact-foundation/pact-go/commit/4d46c69) - Merge pull request #445 from lbcjbb/fix-crash (Matt Fellows, Mon Jul 15 10:08:43 2024 +1000)
   * [778a111](https://github.com/pact-foundation/pact-go/commit/778a111) - Merge pull request #431 from yoelb/patch-1 (Matt Fellows, Mon Jul 15 09:34:57 2024 +1000)
