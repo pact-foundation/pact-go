@@ -83,7 +83,9 @@ jobs:
         go-version: ["1.22", "1.23"]
         variant:
           - debian
-          - alpine
+        include:
+          - variant: alpine
+            experimental: true
     steps:
       - uses: actions/checkout@v4
 
