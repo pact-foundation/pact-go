@@ -53,7 +53,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 		Given("feature 'Big Tree' exists").
 		UsingPlugin(message.PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.3.15",
+			Version: "0.5.4",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
@@ -123,7 +123,7 @@ func TestGetFeatureError(t *testing.T) {
 		Given("feature does not exist at -1, -1").
 		UsingPlugin(message.PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.3.15",
+			Version: "0.5.4",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
@@ -194,7 +194,7 @@ func TestSaveFeature(t *testing.T) {
 		Given("feature does not exist at -1, -1").
 		UsingPlugin(message.PluginConfig{
 			Plugin:  "protobuf",
-			Version: "0.3.15",
+			Version: "0.5.4",
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional

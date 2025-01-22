@@ -213,7 +213,7 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
-	err := m.UsingPlugin("protobuf", "0.3.15")
+	err := m.UsingPlugin("protobuf", "0.5.4")
 	assert.NoError(t, err)
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
@@ -271,7 +271,7 @@ func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
-	err := m.UsingPlugin("protobuf", "0.3.15")
+	err := m.UsingPlugin("protobuf", "0.5.4")
 	assert.NoError(t, err)
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
@@ -318,7 +318,7 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
-	_ = m.UsingPlugin("protobuf", "0.3.15")
+	_ = m.UsingPlugin("protobuf", "0.5.4")
 
 	i := m.NewAsyncMessageInteraction("grpc interaction")
 
@@ -359,7 +359,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
-	_ = m.UsingPlugin("protobuf", "0.3.15")
+	_ = m.UsingPlugin("protobuf", "0.5.4")
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
@@ -437,7 +437,7 @@ func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
-	_ = m.UsingPlugin("protobuf", "0.3.15")
+	_ = m.UsingPlugin("protobuf", "0.5.4")
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
