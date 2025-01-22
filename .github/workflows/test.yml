@@ -75,16 +75,23 @@ jobs:
         if: ${{ always() }}
 
   test-containers:
-    runs-on: ubuntu-latest
-    name: ${{ matrix.variant }}-${{ matrix.go-version }}-test-container
+    continue-on-error: ${{ matrix.experimental }}
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }}-${{ matrix.variant }}-${{ matrix.go-version }}-test-container
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
         go-version: ["1.22", "1.23"]
         variant:
           - debian
+        experimental: [false]
         include:
           - variant: alpine
+            go-version: 1.22
+            experimental: true
+          - variant: alpine
+            go-version: 1.23
             experimental: true
     steps:
       - uses: actions/checkout@v4
