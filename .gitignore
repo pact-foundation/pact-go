@@ -42,6 +42,7 @@ _*
 *.log
 pact-go
 pacts
+examples/pacts/*.json
 logs
 tmp
 coverage.txt
