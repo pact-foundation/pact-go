@@ -16,7 +16,11 @@ PACT_DOWNLOAD_DIR=/tmp
 ifeq ($(OS),Windows_NT)
 	PACT_DOWNLOAD_DIR=$$TMP
 endif
-
+SKIP_RACE?=false
+RACE?=-race
+ifeq ($(SKIP_RACE),true)
+	RACE=
+endif
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
 # Use this for quick feedback when playing around with your workflows.
@@ -43,6 +47,7 @@ docker_build:
 docker_test: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
 		-it \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
@@ -50,12 +55,14 @@ docker_test: docker_build
 docker_pact: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make pact_local"
 docker_test_all: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make test && make pact_local"
@@ -133,7 +140,7 @@ test: deps install
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v -race -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -v $(RACE) -coverprofile=profile.out -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \
@@ -146,7 +153,7 @@ test: deps install
 
 
 testrace:
-	go test -race $(TEST) $(TESTARGS)
+	go test $(RACE) $(TEST) $(TESTARGS)
 
 updatedeps:
 	go get -d -v -p 2 ./...
