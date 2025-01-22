@@ -47,6 +47,7 @@ docker_build:
 docker_test: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
 		-it \
@@ -55,6 +56,7 @@ docker_test: docker_build
 docker_pact: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
@@ -62,6 +64,7 @@ docker_pact: docker_build
 docker_test_all: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
@@ -124,7 +127,9 @@ pact: clean install docker
 pact_local: clean download_plugins install 
 	@echo "--- 🔨 Running Pact examples"
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
-	SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	if [ -z "$(SKIP_PROVIDER_TESTS)" ]; then \
+		SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...; \
+	fi
 
 publish:
 	@echo "-- 📃 Publishing pacts"
@@ -134,13 +139,19 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
+ifeq ($(SKIP_PROVIDER_TESTS),true)
+	PROVIDER_TEST_TAGS=
+else
+	PROVIDER_TEST_TAGS=-tags=provider
+endif
+
 test: deps install
 	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v $(RACE) -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -v $(RACE) -coverprofile=profile.out $(PROVIDER_TEST_TAGS) -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \

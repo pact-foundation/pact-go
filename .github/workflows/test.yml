@@ -107,8 +107,8 @@ jobs:
 
       - name: Test dockerfile
         run: |
-          if [[ "${{ matrix.os }}" == *"arm"* ]]; then
-            export SKIP_RACE=true
+          if [[ "${{ matrix.variant }}" == "alpine" ]]; then
+            export SKIP_PROVIDER_TESTS=true
           fi
           make docker_test_all
         env:
