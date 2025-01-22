@@ -89,9 +89,19 @@ jobs:
           - variant: alpine
             go-version: 1.22
             experimental: true
+            os: ubuntu-latest
           - variant: alpine
             go-version: 1.23
             experimental: true
+            os: ubuntu-latest
+          - variant: alpine
+            go-version: 1.22
+            experimental: true
+            os: ubuntu-24.04-arm
+          - variant: alpine
+            go-version: 1.23
+            experimental: true
+            os: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
 
