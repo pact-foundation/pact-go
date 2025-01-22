@@ -26,59 +26,59 @@ env:
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  # test:
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       go-version: [ # https://endoflife.date/go
-  #                   # 1.17.x, # Ended 02 Aug 2022
-  #                   # 1.18.x, # Ended 01 Feb 2023
-  #                   # 1.19.x, # Ended 06 Sep 2023
-  #                   # 1.20.x, # Ended 06 Feb 2024
-  #                   # 1.21.x, # Ended 13 Aug 2024
-  #                   1.22.x,
-  #                   1.23.x,
-  #                   ]
-  #       os: [ubuntu-latest, macos-13, macos-14, windows-latest]
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #     - name: Install Go
-  #       uses: actions/setup-go@v5
-  #       with:
-  #         go-version: ${{ matrix.go-version }}
-  #     - uses: actions/setup-java@v4 # Needed for the Avro example
-  #       with:
-  #         distribution: 'zulu'
-  #         java-version: '17'
-  #     - if: matrix.os == 'macos-14'
-  #       run: brew install protobuf
-  #     - name: Test
-  #       if: matrix.os == 'ubuntu-latest'
-  #       run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
-  #     - name: Set CGO_LDFLAGS / pact_ffi lib on PATH
-  #       if: matrix.os == 'windows-latest'
-  #       run: |
-  #         "CGO_LDFLAGS=-L$env:TMP" >> $env:GITHUB_ENV
-  #         "$env:TMP" >> $env:GITHUB_PATH
-  #     - name: Test (unit)
-  #       if: matrix.os != 'ubuntu-latest'
-  #       run: make test
-  #     - name: Test (pact)
-  #       if: matrix.os != 'ubuntu-latest'
-  #       run: make pact_local
-  #     - name: Install goveralls
-  #       if: matrix.os != 'windows-latest'
-  #       run: go install github.com/mattn/goveralls@latest
-  #     - name: Send coverage
-  #       if: matrix.os != 'windows-latest'
-  #       run: goveralls -coverprofile=coverage.txt -service=github -parallel
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
-  #         path: ~/.pact/plugins/**/plugin.log
-  #       if: ${{ always() }}
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: [ # https://endoflife.date/go
+                    # 1.17.x, # Ended 02 Aug 2022
+                    # 1.18.x, # Ended 01 Feb 2023
+                    # 1.19.x, # Ended 06 Sep 2023
+                    # 1.20.x, # Ended 06 Feb 2024
+                    # 1.21.x, # Ended 13 Aug 2024
+                    1.22.x,
+                    1.23.x,
+                    ]
+        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+      - uses: actions/setup-java@v4 # Needed for the Avro example
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - if: matrix.os == 'macos-14'
+        run: brew install protobuf
+      - name: Test
+        if: matrix.os == 'ubuntu-latest'
+        run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
+      - name: Set CGO_LDFLAGS / pact_ffi lib on PATH
+        if: matrix.os == 'windows-latest'
+        run: |
+          "CGO_LDFLAGS=-L$env:TMP" >> $env:GITHUB_ENV
+          "$env:TMP" >> $env:GITHUB_PATH
+      - name: Test (unit)
+        if: matrix.os != 'ubuntu-latest'
+        run: make test
+      - name: Test (pact)
+        if: matrix.os != 'ubuntu-latest'
+        run: make pact_local
+      - name: Install goveralls
+        if: matrix.os != 'windows-latest'
+        run: go install github.com/mattn/goveralls@latest
+      - name: Send coverage
+        if: matrix.os != 'windows-latest'
+        run: goveralls -coverprofile=coverage.txt -service=github -parallel
+      - uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
+          path: ~/.pact/plugins/**/plugin.log
+        if: ${{ always() }}
 
   test-containers:
     continue-on-error: ${{ matrix.experimental }}
@@ -125,8 +125,7 @@ jobs:
           IMAGE_VARIANT: ${{ matrix.variant }}
 
   finish:
-    needs: [test-containers]
-    # needs: [test,test-containers]
+    needs: [test,test-containers]
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
