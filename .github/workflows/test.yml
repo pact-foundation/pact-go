@@ -7,6 +7,12 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      SKIP_ALPINE_PROVIDER_TESTS:
+        description: 'Skip alpine provider tests'
+        required: false
+        default: 'false'
 
 env:
   PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
@@ -109,6 +115,9 @@ jobs:
         run: |
           if [[ "${{ matrix.variant }}" == "alpine" ]]; then
             export SKIP_PROVIDER_TESTS=true
+            if [[ "${{ github.event.inputs.SKIP_ALPINE_PROVIDER_TESTS }}" == "false" ]]; then
+              export SKIP_PROVIDER_TESTS=false
+            fi
           fi
           make docker_test_all
         env:
