@@ -5,6 +5,19 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.2.0 (23 Jan 2025)
+  * [3d48a9d](https://github.com/pact-foundation/pact-go/commit/3d48a9d) - chore: re-enable ci jobs removed for testing (Yousaf Nabi, Wed Jan 22 18:29:25 2025 +0000)
+  * [7029057](https://github.com/pact-foundation/pact-go/commit/7029057) - ci: add support to skip provider tests on alpine (Yousaf Nabi, Wed Jan 22 18:26:12 2025 +0000)
+  * [93aa88d](https://github.com/pact-foundation/pact-go/commit/93aa88d) - ci: allow skipping of provider tests (Yousaf Nabi, Wed Jan 22 17:54:01 2025 +0000)
+  * [d354654](https://github.com/pact-foundation/pact-go/commit/d354654) - ci: skip race on arm (Yousaf Nabi, Wed Jan 22 17:20:14 2025 +0000)
+  * [dd20918](https://github.com/pact-foundation/pact-go/commit/dd20918) - ci: test (Yousaf Nabi, Wed Jan 22 17:14:53 2025 +0000)
+  * [d08f78a](https://github.com/pact-foundation/pact-go/commit/d08f78a) - ci: test (Yousaf Nabi, Wed Jan 22 17:13:26 2025 +0000)
+  * [db22d37](https://github.com/pact-foundation/pact-go/commit/db22d37) - ci: multi-platform test containers (Yousaf Nabi, Wed Jan 22 17:00:55 2025 +0000)
+  * [1eee0e5](https://github.com/pact-foundation/pact-go/commit/1eee0e5) - chore: ability ability to skip setting of -race (Yousaf Nabi, Wed Jan 22 16:50:38 2025 +0000)
+  * [52bba19](https://github.com/pact-foundation/pact-go/commit/52bba19) - ci: allow alpine as experimental (Yousaf Nabi, Wed Jan 22 16:41:53 2025 +0000)
+  * [31f0569](https://github.com/pact-foundation/pact-go/commit/31f0569) - chore: ignore pact files from git (Yousaf Nabi, Wed Jan 22 16:41:38 2025 +0000)
+  * [5b9bf9c](https://github.com/pact-foundation/pact-go/commit/5b9bf9c) - feat: support linux musl (Yousaf Nabi, Thu Sep 5 22:28:31 2024 +0100)
+
 ### v2.1.0 (21 Jan 2025)
   * [022c508](https://github.com/pact-foundation/pact-go/commit/022c508) - fix(deps): update module google.golang.org/grpc to v1.69.4 (renovate[bot], Tue Jan 21 10:56:36 2025 +0000)
   * [2ee3af9](https://github.com/pact-foundation/pact-go/commit/2ee3af9) - chore(deps): update golangci-lint and fixup 1.23 issues (Yousaf Nabi, Mon Jan 20 20:54:26 2025 +0000)
