@@ -7,6 +7,12 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      SKIP_ALPINE_PROVIDER_TESTS:
+        description: 'Skip alpine provider tests'
+        required: false
+        default: 'false'
 
 env:
   PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
@@ -75,19 +81,48 @@ jobs:
         if: ${{ always() }}
 
   test-containers:
-    runs-on: ubuntu-latest
-    name: ${{ matrix.go-version }}-test-container
+    continue-on-error: ${{ matrix.experimental }}
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }}-${{ matrix.variant }}-${{ matrix.go-version }}-test-container
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
         go-version: ["1.22", "1.23"]
+        variant: [debian]
+        experimental: [false]
+        include:
+          - variant: alpine
+            go-version: 1.22
+            experimental: true
+            os: ubuntu-latest
+          - variant: alpine
+            go-version: 1.23
+            experimental: true
+            os: ubuntu-latest
+          - variant: alpine
+            go-version: 1.22
+            experimental: true
+            os: ubuntu-24.04-arm
+          - variant: alpine
+            go-version: 1.23
+            experimental: true
+            os: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
 
       - name: Test dockerfile
-        run: make docker_test_all
+        run: |
+          if [[ "${{ matrix.variant }}" == "alpine" ]]; then
+            export SKIP_PROVIDER_TESTS=true
+            if [[ "${{ github.event.inputs.SKIP_ALPINE_PROVIDER_TESTS }}" == "false" ]]; then
+              export SKIP_PROVIDER_TESTS=false
+            fi
+          fi
+          make docker_test_all
         env:
           GO_VERSION: ${{ matrix.go-version }}
+          IMAGE_VARIANT: ${{ matrix.variant }}
 
   finish:
     needs: [test,test-containers]

@@ -174,7 +174,7 @@ func TestPluginInteraction(t *testing.T) {
 
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
-	_ = m.UsingPlugin("protobuf", "0.3.15")
+	_ = m.UsingPlugin("protobuf", "0.5.4")
 	m.WithSpecificationVersion(SPECIFICATION_VERSION_V4)
 
 	i := m.NewInteraction("some plugin interaction")

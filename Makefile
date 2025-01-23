@@ -4,18 +4,23 @@ TEST?=./...
 .DEFAULT_GOAL := ci
 DOCKER_HOST_HTTP?="http://host.docker.internal"
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL=$(DOCKER_HOST_HTTP) -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli"
-PLUGIN_PACT_PROTOBUF_VERSION=0.3.15
+PLUGIN_PACT_PROTOBUF_VERSION=0.5.4
 PLUGIN_PACT_CSV_VERSION=0.0.6
 PLUGIN_PACT_MATT_VERSION=0.1.1
 PLUGIN_PACT_AVRO_VERSION=0.0.6
 
 GO_VERSION?=1.22
+IMAGE_VARIANT?=debian
 ci:: docker deps clean bin test pact
 PACT_DOWNLOAD_DIR=/tmp
 ifeq ($(OS),Windows_NT)
 	PACT_DOWNLOAD_DIR=$$TMP
 endif
-
+SKIP_RACE?=false
+RACE?=-race
+ifeq ($(SKIP_RACE),true)
+	RACE=
+endif
 # Run the ci target from a developer machine with the environment variables
 # set as if it was on Travis CI.
 # Use this for quick feedback when playing around with your workflows.
@@ -37,24 +42,32 @@ docker:
 	docker compose up -d
 
 docker_build:
-	docker build -f Dockerfile --build-arg GO_VERSION=${GO_VERSION} -t pactfoundation/pact-go-test .
+	docker build -f Dockerfile.$(IMAGE_VARIANT) --build-arg GO_VERSION=${GO_VERSION} -t pactfoundation/pact-go-test-$(IMAGE_VARIANT) .
+
 docker_test: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
+		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
-		pactfoundation/pact-go-test \
+		-it \
+		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make test"
 docker_pact: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
+		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
-		pactfoundation/pact-go-test \
+		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make pact_local"
 docker_test_all: docker_build
 	docker run \
 		-e LOG_LEVEL=INFO \
+		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
+		-e SKIP_RACE=$(SKIP_RACE) \
 		--rm \
-		pactfoundation/pact-go-test \
+		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make test && make pact_local"
 
 bin:
@@ -114,7 +127,9 @@ pact: clean install docker
 pact_local: clean download_plugins install 
 	@echo "--- 🔨 Running Pact examples"
 	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
-	SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	if [ "$(SKIP_PROVIDER_TESTS)" != "true" ]; then \
+		SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...; \
+	fi
 
 publish:
 	@echo "-- 📃 Publishing pacts"
@@ -124,13 +139,19 @@ release:
 	echo "--- 🚀 Releasing it"
 	"$(CURDIR)/scripts/release.sh"
 
+ifeq ($(SKIP_PROVIDER_TESTS),true)
+	PROVIDER_TEST_TAGS=
+else
+	PROVIDER_TEST_TAGS=-tags=provider
+endif
+
 test: deps install
 	@echo "--- ✅ Running tests"
 	@if [ -f coverage.txt ]; then rm coverage.txt; fi;
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v -race -coverprofile=profile.out -covermode=atomic $$d; \
+			go test -v $(RACE) -coverprofile=profile.out $(PROVIDER_TEST_TAGS) -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \
@@ -143,7 +164,7 @@ test: deps install
 
 
 testrace:
-	go test -race $(TEST) $(TESTARGS)
+	go test $(RACE) $(TEST) $(TESTARGS)
 
 updatedeps:
 	go get -d -v -p 2 ./...

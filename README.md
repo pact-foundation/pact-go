@@ -285,11 +285,16 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 | MacOS         | arm64        | ✅         | All              |
 | Linux (libc)  | x86_64       | ✅         | All              |
 | Linux (libc)  | arm64        | ✅         | All              |
-| Linux (musl)  | x86_64       | ❌         | -                |
-| Linux (musl)  | arm64        | ❌         | -                |
+| Linux (musl)  | x86_64       | ✅         | v2.2.0           |
+| Linux (musl)  | arm64        | ✅         | v2.2.0           |
 | Windows       | x86_64       | ✅         | All              |
 | Windows       | x86          | ❌         | -                |
 | Windows       | arm64        | ❌         | -                |
+
+⚠️ - Known issues
+
+> - Linux (musl) provider verification is known to experience segmentation faults, reproducible in our CI system.
+>   - Assistance is greatly appreciated if musl support is important to you.
 
 </details>
 

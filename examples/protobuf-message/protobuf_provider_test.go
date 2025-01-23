@@ -41,7 +41,7 @@ func TestPluginMessageProvider(t *testing.T) {
 				},
 			})
 			return feature, message.Metadata{
-				"contentType": "application/protobuf;message=Feature", // <- This is required to ensure the correct type is matched
+				"contentType": "application/protobuf;message=.routeguide.Feature", // <- This is required to ensure the correct type is matched
 			}, nil
 		},
 	}
