@@ -7,8 +7,10 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
+	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
 	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
@@ -246,6 +248,7 @@ func (p *AsynchronousPact) validateConfig() error {
 
 	p.messageserver = mockserver.NewMessageServer(p.config.Consumer, p.config.Provider)
 	p.messageserver.WithSpecificationVersion(mockserver.SPECIFICATION_VERSION_V4)
+	p.messageserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
 
 	return nil
 }
