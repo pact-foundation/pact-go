@@ -40,7 +40,7 @@ func NewVerifier() *Verifier {
 	native.Init(string(logging.LogLevel()))
 
 	return &Verifier{
-		handle: native.NewVerifier("pact-go", command.Version),
+		handle: native.NewVerifier("pact-go", strings.TrimPrefix(command.Version, "v")),
 	}
 
 }

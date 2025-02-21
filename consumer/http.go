@@ -22,6 +22,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
@@ -112,6 +113,7 @@ func (p *httpMockProvider) configure() error {
 	}
 
 	p.mockserver = native.NewHTTPPact(p.config.Consumer, p.config.Provider)
+	p.mockserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
 	switch p.specificationVersion {
 	case models.V2:
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)
