@@ -1,4 +1,4 @@
-ARG VERSION=1.22
+ARG VERSION=1.23
 FROM golang:${VERSION}-alpine
 
 RUN apk add --no-cache curl gcc musl-dev gzip openjdk17-jre bash protoc protobuf-dev make file
