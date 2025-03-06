@@ -5,6 +5,13 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.3.0 (06 March 2025)
+  * [8d700cc](https://github.com/pact-foundation/pact-go/commit/8d700cc) - fix: strip v prefix from pact-go verifier version (Yousaf Nabi, Wed Feb 12 14:19:25 2025 +0000)
+  * [e6e2c11](https://github.com/pact-foundation/pact-go/commit/e6e2c11) - feat: add metadata.pact-go.version to pact file (Yousaf Nabi, Wed Feb 12 14:18:15 2025 +0000)
+  * [e05acfd](https://github.com/pact-foundation/pact-go/commit/e05acfd) - fix(deps): update module google.golang.org/grpc to v1.70.0 (#495) (renovate[bot], Thu Feb 20 13:50:49 2025 +0000)
+  * [6c40e0b](https://github.com/pact-foundation/pact-go/commit/6c40e0b) - fix(deps): update module google.golang.org/protobuf to v1.36.5 (#496) (renovate[bot], Thu Feb 20 13:32:18 2025 +0000)
+  * [1e4ecc7](https://github.com/pact-foundation/pact-go/commit/1e4ecc7) - fix(deps): update module github.com/spf13/cobra to v1.9.1 (#502) (renovate[bot], Thu Feb 20 13:31:59 2025 +0000)
+
 ### v2.2.0 (23 Jan 2025)
   * [3d48a9d](https://github.com/pact-foundation/pact-go/commit/3d48a9d) - chore: re-enable ci jobs removed for testing (Yousaf Nabi, Wed Jan 22 18:29:25 2025 +0000)
   * [7029057](https://github.com/pact-foundation/pact-go/commit/7029057) - ci: add support to skip provider tests on alpine (Yousaf Nabi, Wed Jan 22 18:26:12 2025 +0000)
