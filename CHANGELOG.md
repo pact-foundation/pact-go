@@ -5,8 +5,10 @@ Do this to generate your change history
 
 ## Versions
 
-### v2.4.0 (24 March 2025)
+### v2.4.1 (24 March 2025)
   * [eba6b2c](https://github.com/pact-foundation/pact-go/commit/eba6b2c) - fix: update pact-ffi to 0.4.27 (#509) (Matt Fellows, Mon Mar 24 11:56:14 2025 +1100)
+
+### v2.4.0 (24 March 2025)
   * [ada7782](https://github.com/pact-foundation/pact-go/commit/ada7782) - fix(deps): update module google.golang.org/grpc to v1.71.0 (renovate[bot], Tue Mar 11 12:28:07 2025 +0000)
 
 ### v2.3.0 (06 March 2025)
