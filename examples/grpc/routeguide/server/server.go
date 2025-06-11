@@ -67,6 +67,7 @@ type routeGuideServer struct {
 func (s *routeGuideServer) GetFeature(ctx context.Context, point *pb.Point) (*pb.Feature, error) {
 	for _, feature := range s.savedFeatures {
 		if proto.Equal(feature.Location, point) {
+			feature.SomeEnum = []pb.SomeEnum{pb.SomeEnum_SOME_ENUM_VALUE_1, pb.SomeEnum_SOME_ENUM_VALUE_2}
 			return feature, nil
 		}
 	}

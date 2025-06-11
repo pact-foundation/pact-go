@@ -74,6 +74,12 @@ message Rectangle {
   Point hi = 2;
 }
 
+enum SomeEnum {
+  SOME_ENUM_UNSPECIFIED = 0;
+  SOME_ENUM_VALUE_1 = 1;
+  SOME_ENUM_VALUE_2 = 2;
+}
+
 // A feature names something at a given point.
 //
 // If a feature could not be named, the name is empty.
@@ -86,6 +92,9 @@ message Feature {
 
   // A description of the feature.
   string description = 3;
+
+  // Some enum field.
+  repeated SomeEnum some_enum = 4;
 }
 
 // A RouteNote is a message sent while at a given point.
