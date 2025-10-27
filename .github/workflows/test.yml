@@ -75,7 +75,7 @@ jobs:
       - name: Send coverage
         if: matrix.os != 'windows-latest'
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
           path: ~/.pact/plugins/**/plugin.log
