@@ -20,6 +20,7 @@ jobs:
                 # 1.22.x, # Ended 11 Feb 2025
                 1.23.x,
                 1.24.x,
+                1.25.x,
                 ]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
