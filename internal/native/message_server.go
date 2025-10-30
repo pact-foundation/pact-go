@@ -247,7 +247,10 @@ func (m *Message) WithContents(part interactionPart, contentType string, body []
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
 
-	res := C.pactffi_with_body(m.handle, C.int(part), cHeader, (*C.char)(unsafe.Pointer(&body[0])))
+	cBody := C.CString(string(body))
+    defer free(cBody)
+
+	res := C.pactffi_with_body(m.handle, C.int(part), cHeader, cBody)
 	log.Println("[DEBUG] response from pactffi_interaction_contents", (bool(res)))
 
 	return m
