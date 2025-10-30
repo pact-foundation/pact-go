@@ -39,6 +39,7 @@ jobs:
                     # 1.22.x, # Ended 11 Feb 2025
                     1.23.x,
                     1.24.x,
+                    1.25.x,
                     ]
         os: [ubuntu-latest, macos-13, macos-14, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -89,7 +90,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm]
-        go-version: ["1.23", "1.24"]
+        go-version: ["1.23", "1.24", "1.25"]
         variant: [debian]
         experimental: [false]
         include:
@@ -102,11 +103,19 @@ jobs:
             experimental: true
             os: ubuntu-latest
           - variant: alpine
+            go-version: 1.25
+            experimental: true
+            os: ubuntu-latest
+          - variant: alpine
             go-version: 1.23
             experimental: true
             os: ubuntu-24.04-arm
           - variant: alpine
             go-version: 1.24
+            experimental: true
+            os: ubuntu-24.04-arm
+          - variant: alpine
+            go-version: 1.25
             experimental: true
             os: ubuntu-24.04-arm
     steps:
