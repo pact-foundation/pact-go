@@ -5,6 +5,19 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.4.2 (31 October 2025)
+  * [31d8d7f0](https://github.com/pact-foundation/pact-go/commit/31d8d7f0) - fix: convert the byte slice to string, async message WithContents (Yousaf Nabi, Thu Oct 30 23:57:48 2025 +0000)
+  * [54a7927b](https://github.com/pact-foundation/pact-go/commit/54a7927b) - fix(deps): update module github.com/linkedin/goavro/v2 to v2.14.1 (renovate[bot], Wed Oct 22 20:35:33 2025 +0000)
+  * [2f380fa7](https://github.com/pact-foundation/pact-go/commit/2f380fa7) - fix(deps): update module github.com/spf13/cobra to v1.10.1 (renovate[bot], Tue Oct 7 22:26:22 2025 +0000)
+  * [19597658](https://github.com/pact-foundation/pact-go/commit/19597658) - fix(deps): update module github.com/stretchr/testify to v1.11.1 (renovate[bot], Tue Oct 7 22:02:46 2025 +0000)
+  * [a2a24f36](https://github.com/pact-foundation/pact-go/commit/a2a24f36) - fix(deps): update module google.golang.org/protobuf to v1.36.10 (renovate[bot], Thu Oct 2 12:23:43 2025 +0000)
+  * [2f3434e7](https://github.com/pact-foundation/pact-go/commit/2f3434e7) - fix(deps): update module github.com/spf13/afero to v1.15.0 (renovate[bot], Tue Oct 7 22:01:38 2025 +0000)
+  * [c34f4178](https://github.com/pact-foundation/pact-go/commit/c34f4178) - fix: update pact-ffi to 0.4.28 (#533) (github-actions[bot], Wed Oct 1 13:48:08 2025 +1000)
+  * [78b4c214](https://github.com/pact-foundation/pact-go/commit/78b4c214) - fix(deps): update module google.golang.org/grpc to v1.73.0 (renovate[bot], Thu Jun 26 00:19:47 2025 +0000)
+  * [3b54121c](https://github.com/pact-foundation/pact-go/commit/3b54121c) - fix(deps): update module github.com/linkedin/goavro/v2 to v2.14.0 (renovate[bot], Thu Jun 26 00:19:43 2025 +0000)
+  * [e71bdf9e](https://github.com/pact-foundation/pact-go/commit/e71bdf9e) - fix(deps): update module github.com/spf13/afero to v1.14.0 (renovate[bot], Wed May 7 17:29:32 2025 +0000)
+  * [b8a22ed7](https://github.com/pact-foundation/pact-go/commit/b8a22ed7) - fix(deps): update module google.golang.org/protobuf to v1.36.6 (renovate[bot], Mon Mar 24 16:25:44 2025 +0000)
+
 ### v2.4.1 (24 March 2025)
   * [eba6b2c](https://github.com/pact-foundation/pact-go/commit/eba6b2c) - fix: update pact-ffi to 0.4.27 (#509) (Matt Fellows, Mon Mar 24 11:56:14 2025 +1100)
 
