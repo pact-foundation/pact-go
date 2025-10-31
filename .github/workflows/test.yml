@@ -13,16 +13,24 @@ on:
         description: 'Skip alpine provider tests'
         required: false
         default: 'false'
-
+      log_level:
+        description: 'Log level'
+        type: choice
+        required: true
+        default: 'INFO'
+        options:
+          - 'INFO'
+          - 'DEBUG'
+          - 'TRACE'
 env:
   PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   REACT_APP_API_BASE_URL: http://localhost:8080
   APP_SHA: ${{ github.sha }}
   APP_REF: ${{ github.ref }}
-  LD_LIBRARY_PATH: /tmp
-  PACT_GO_LIB_DOWNLOAD_PATH: /tmp
-  LOG_LEVEL: debug
+  # PACT_GO_LIB_DOWNLOAD_PATH: /tmp
+  # PACT_LD_LIBRARY_PATH: /tmp
+  LOG_LEVEL: ${{ github.event.inputs.log_level || 'INFO' }}
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -31,17 +39,11 @@ jobs:
       fail-fast: false
       matrix:
         go-version: [ # https://endoflife.date/go
-                    # 1.17.x, # Ended 02 Aug 2022
-                    # 1.18.x, # Ended 01 Feb 2023
-                    # 1.19.x, # Ended 06 Sep 2023
-                    # 1.20.x, # Ended 06 Feb 2024
-                    # 1.21.x, # Ended 13 Aug 2024
-                    # 1.22.x, # Ended 11 Feb 2025
-                    1.23.x,
                     1.24.x,
                     1.25.x,
                     ]
-        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+        os: [ubuntu-latest, macos-15, macos-15-intel, windows-latest]
+        cgo: [0,1]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -54,16 +56,23 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+      - name: "Set CGO_ENABLED: ${{ matrix.cgo }}"
+        if: matrix.os == 'windows-latest'
+        run: |
+          "CGO_ENABLED=${{ matrix.cgo }}" >> $env:GITHUB_ENV
+      - name: "Set CGO_ENABLED: ${{ matrix.cgo }}"
+        if: matrix.os != 'windows-latest'
+        run: |
+          echo "CGO_ENABLED=${{ matrix.cgo }}" >> $GITHUB_ENV
       - if: matrix.os == 'macos-14'
         run: brew install protobuf
       - name: Test
         if: matrix.os == 'ubuntu-latest'
         run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
-      - name: Set CGO_LDFLAGS / pact_ffi lib on PATH
-        if: matrix.os == 'windows-latest'
-        run: |
-          "CGO_LDFLAGS=-L$env:TMP" >> $env:GITHUB_ENV
-          "$env:TMP" >> $env:GITHUB_PATH
+      # - name: Set PACT_LD_LIBRARY_PATH
+      #   if: matrix.os == 'windows-latest'
+      #   run: |
+      #     "PACT_LD_LIBRARY_PATH=$env:TMP" >> $env:GITHUB_ENV
       - name: Test (unit)
         if: matrix.os != 'ubuntu-latest'
         run: make test
@@ -78,26 +87,23 @@ jobs:
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
       - uses: actions/upload-artifact@v5
         with:
-          name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
+          name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}-${{matrix.cgo}}.zip
           path: ~/.pact/plugins/**/plugin.log
         if: ${{ always() }}
 
   test-containers:
     continue-on-error: ${{ matrix.experimental }}
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }}-${{ matrix.variant }}-${{ matrix.go-version }}-test-container
+    name: ${{ matrix.os }}-${{ matrix.variant }}-${{ matrix.go-version }}-test-container-cgo-${{ matrix.cgo }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm]
-        go-version: ["1.23", "1.24", "1.25"]
+        go-version: ["1.24", "1.25"]
         variant: [debian]
         experimental: [false]
+        cgo: [0,1]
         include:
-          - variant: alpine
-            go-version: 1.23
-            experimental: true
-            os: ubuntu-latest
           - variant: alpine
             go-version: 1.24
             experimental: true
@@ -106,10 +112,6 @@ jobs:
             go-version: 1.25
             experimental: true
             os: ubuntu-latest
-          - variant: alpine
-            go-version: 1.23
-            experimental: true
-            os: ubuntu-24.04-arm
           - variant: alpine
             go-version: 1.24
             experimental: true
@@ -133,6 +135,7 @@ jobs:
         env:
           GO_VERSION: ${{ matrix.go-version }}
           IMAGE_VARIANT: ${{ matrix.variant }}
+          CGO_ENABLED: ${{ matrix.cgo }}
 
   finish:
     needs: [test,test-containers]

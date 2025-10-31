@@ -1,10 +1,5 @@
 package native
 
-/*
-#include "pact.h"
-*/
-import "C"
-
 import (
 	"crypto/tls"
 	"crypto/x509"
@@ -12,8 +7,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
 	"strings"
-	"unsafe"
 )
 
 type interactionPart int
@@ -61,19 +56,19 @@ var logLevelStringToInt = map[string]logLevel{
 
 // Pact is a Go representation of the PactHandle struct
 type Pact struct {
-	handle C.PactHandle
+	handle uintptr
 }
 
 // Interaction is a Go representation of the InteractionHandle struct
 type Interaction struct {
-	handle C.InteractionHandle
+	handle uintptr
 }
 
 // Version returns the current semver FFI interface version
 func Version() string {
-	v := C.pactffi_version()
+	v := pactffi_version()
 
-	return C.GoString(v)
+	return v
 }
 
 var loggingInitialised string
@@ -111,18 +106,13 @@ func Init(logLevel string) {
 // MockServer is the public interface for managing the HTTP mock server
 type MockServer struct {
 	pact         *Pact
-	messagePact  *MessagePact
+	// messagePact  *MessagePact
 	interactions []*Interaction
 }
 
 // NewHTTPPact creates a new HTTP mock server for a given consumer/provider
 func NewHTTPPact(consumer string, provider string) *MockServer {
-	cConsumer := C.CString(consumer)
-	cProvider := C.CString(provider)
-	defer free(cConsumer)
-	defer free(cProvider)
-
-	return &MockServer{pact: &Pact{handle: C.pactffi_new_pact(cConsumer, cProvider)}}
+	return &MockServer{pact: &Pact{handle: pactffi_new_pact(consumer, provider)}}
 }
 
 // Version returns the current semver FFI interface version
@@ -131,23 +121,19 @@ func (m *MockServer) Version() string {
 }
 
 func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
-	C.pactffi_with_specification(m.pact.handle, C.int(version))
+	pactffi_with_specification(m.pact.handle, int32(version))
 }
 
 // CreateMockServer creates a new Mock Server from a given Pact file.
 // Returns the port number it started on or an error if failed
 func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (int, error) {
 	log.Println("[DEBUG] mock server starting on address:", address)
-	cPact := C.CString(pact)
-	cAddress := C.CString(address)
-	defer free(cPact)
-	defer free(cAddress)
 	tlsEnabled := false
 	if tls {
 		tlsEnabled = true
 	}
 
-	p := C.pactffi_create_mock_server(cPact, cAddress, C.bool(tlsEnabled))
+	p := pactffi_create_mock_server(pact, address, tlsEnabled)
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -195,16 +181,16 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 	log.Println("[DEBUG] mock server determining mismatches:", port)
 	var res []MismatchedRequest
 
-	mismatches := C.pactffi_mock_server_mismatches(C.int(port))
+	mismatches := pactffi_mock_server_mismatches(int32(port))
 	// This method can return a nil pointer, in which case, it
 	// should be considered a failure (or at least, an issue)
 	// converting it to a string might also do nasty things here!
-	if mismatches == nil {
+	if mismatches == "" {
 		log.Println("[WARN] received a null pointer from the native interface, returning empty list of mismatches")
 		return []MismatchedRequest{}
 	}
 
-	err := json.Unmarshal([]byte(C.GoString(mismatches)), &res)
+	err := json.Unmarshal([]byte(mismatches), &res)
 	if err != nil {
 		log.Println("[ERROR] failed to unmarshal mismatches response, returning empty list of mismatches")
 		return []MismatchedRequest{}
@@ -218,25 +204,23 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 		return true
 	}
 	log.Println("[DEBUG] mock server cleaning up port:", port)
-	res := C.pactffi_cleanup_mock_server(C.int(port))
+	res := pactffi_cleanup_mock_server(int32(port))
 
-	return bool(res)
+	return res
 }
 
 // WritePactFile writes the Pact to file.
 // TODO: expose overwrite
 func (m *MockServer) WritePactFile(port int, dir string) error {
 	log.Println("[DEBUG] writing pact file for mock server on port:", port, ", dir:", dir)
-	cDir := C.CString(dir)
-	defer free(cDir)
 
-	// overwritePact := 0
+	overwritePact := false
 	// if overwrite {
 	// 	overwritePact = 1
 	// }
 
 	// res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.int(overwritePact)))
-	res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.bool(false)))
+	res := int(pactffi_write_pact_file(int32(port), dir, overwritePact))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -260,25 +244,28 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 // GetTLSConfig returns a tls.Config compatible with the TLS
 // mock server
 func GetTLSConfig() *tls.Config {
-	cert := C.pactffi_get_tls_ca_certificate()
-	defer libRustFree(cert)
+	cert := pactffi_get_tls_ca_certificate()
+	// defer libRustFree(cert)
 
-	goCert := C.GoString(cert)
 	certPool := x509.NewCertPool()
-	certPool.AppendCertsFromPEM([]byte(goCert))
+	certPool.AppendCertsFromPEM([]byte(cert))
 
 	return &tls.Config{
 		RootCAs: certPool,
 	}
 }
 
-func free(str *C.char) {
-	C.free(unsafe.Pointer(str))
-}
+// func free(str *C.char) {
+// 	C.free(unsafe.Pointer(str))
+// }
 
-func libRustFree(str *C.char) {
-	C.pactffi_free_string(str)
-}
+// func libRustFree(str uintptr) {
+// 	pactffi_free_string(str)
+// }
+
+// func libRustFree(str string) {
+// 	pactffi_string_delete(str)
+// }
 
 // Start starts up the mock HTTP server on the given address:port and TLS config
 // https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.create_mock_server_for_pact.html
@@ -288,14 +275,14 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	}
 
 	log.Println("[DEBUG] mock server starting on address:", address)
-	cAddress := C.CString(address)
-	defer free(cAddress)
+	// cAddress := C.CString(address)
+	// defer free(cAddress)
 	tlsEnabled := false
 	if tls {
 		tlsEnabled = true
 	}
 
-	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.bool(tlsEnabled))
+	p := pactffi_create_mock_server_for_pact(m.pact.handle, address, tlsEnabled)
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -334,19 +321,10 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 	if len(m.interactions) == 0 {
 		return 0, ErrNoInteractions
 	}
+	configJson := stringFromInterface(config)
 
 	log.Println("[DEBUG] mock server starting on address:", address, port)
-	cAddress := C.CString(address)
-	defer free(cAddress)
-
-	cTransport := C.CString(transport)
-	defer free(cTransport)
-
-	configJson := stringFromInterface(config)
-	cConfig := C.CString(configJson)
-	defer free(cConfig)
-
-	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, cConfig)
+	p := pactffi_create_mock_server_for_transport(m.pact.handle, address, uint16(port), transport, configJson)
 
 	// | Error | Description
 	// |-------|-------------
@@ -378,27 +356,15 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 
 // Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version
 func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
-	cNamespace := C.CString(namespace)
-	defer free(cNamespace)
-	cName := C.CString(k)
-	defer free(cName)
-	cValue := C.CString(v)
-	defer free(cValue)
-
-	C.pactffi_with_pact_metadata(m.pact.handle, cNamespace, cName, cValue)
+	pactffi_with_pact_metadata(m.pact.handle, namespace, k, v)
 
 	return m
 }
 
 // NewInteraction initialises a new interaction for the current contract
 func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error {
-	cPluginName := C.CString(pluginName)
-	defer free(cPluginName)
-	cPluginVersion := C.CString(pluginVersion)
-	defer free(cPluginVersion)
 
-	r := C.pactffi_using_plugin(m.pact.handle, cPluginName, cPluginVersion)
-
+	r := pactffi_using_plugin(m.pact.handle, pluginName, pluginVersion)
 	// 1 - A general panic was caught.
 	// 2 - Failed to load the plugin.
 	// 3 - Pact Handle is not valid.
@@ -421,16 +387,13 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 
 // NewInteraction initialises a new interaction for the current contract
 func (m *MockServer) CleanupPlugins() {
-	C.pactffi_cleanup_plugins(m.pact.handle)
+	pactffi_cleanup_plugins(m.pact.handle)
 }
 
 // NewInteraction initialises a new interaction for the current contract
 func (m *MockServer) NewInteraction(description string) *Interaction {
-	cDescription := C.CString(description)
-	defer free(cDescription)
-
 	i := &Interaction{
-		handle: C.pactffi_new_interaction(m.pact.handle, cDescription),
+		handle: pactffi_new_interaction(m.pact.handle, description),
 	}
 	m.interactions = append(m.interactions, i)
 
@@ -439,12 +402,8 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 
 // NewInteraction initialises a new interaction for the current contract
 func (i *Interaction) WithPluginInteractionContents(part interactionPart, contentType string, contents string) error {
-	cContentType := C.CString(contentType)
-	defer free(cContentType)
-	cContents := C.CString(contents)
-	defer free(cContents)
 
-	r := C.pactffi_interaction_contents(i.handle, C.int(part), cContentType, cContents)
+	r := pactffi_interaction_contents(i.handle, int32(part), contentType, contents)
 
 	// 1 - A general panic was caught.
 	// 2 - The mock server has already been started.
@@ -476,50 +435,31 @@ func (i *Interaction) WithPluginInteractionContents(part interactionPart, conten
 }
 
 func (i *Interaction) UponReceiving(description string) *Interaction {
-	cDescription := C.CString(description)
-	defer free(cDescription)
-
-	C.pactffi_upon_receiving(i.handle, cDescription)
+	pactffi_upon_receiving(i.handle, description)
 
 	return i
 }
 
 func (i *Interaction) Given(state string) *Interaction {
-	cState := C.CString(state)
-	defer free(cState)
-
-	C.pactffi_given(i.handle, cState)
+	pactffi_given(i.handle, state)
 
 	return i
 }
 
 func (i *Interaction) GivenWithParameter(state string, params map[string]interface{}) *Interaction {
-	cState := C.CString(state)
-	defer free(cState)
 
 	for k, v := range params {
-		cKey := C.CString(k)
 		param := stringFromInterface(v)
-		cValue := C.CString(param)
-
-		C.pactffi_given_with_param(i.handle, cState, cKey, cValue)
-
-		free(cValue)
-		free(cKey)
+		pactffi_given_with_param(i.handle, state, k, param)
 	}
 
 	return i
 }
 
 func (i *Interaction) WithRequest(method string, pathOrMatcher interface{}) *Interaction {
-	cMethod := C.CString(method)
-	defer free(cMethod)
-
 	path := stringFromInterface(pathOrMatcher)
-	cPath := C.CString(path)
-	defer free(cPath)
 
-	C.pactffi_with_request(i.handle, cMethod, cPath)
+	pactffi_with_request(i.handle, method, path)
 
 	return i
 }
@@ -534,18 +474,12 @@ func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string][]interface{
 
 func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[string][]interface{}) *Interaction {
 	for k, v := range valueOrMatcher {
-		cName := C.CString(k)
-
 		for _, header := range v {
 			value := stringFromInterface(header)
-			cValue := C.CString(value)
 
-			C.pactffi_with_header_v2(i.handle, C.int(part), cName, CUlong(0), cValue)
-
-			free(cValue)
+			pactffi_with_header_v2(i.handle, int32(part), k, int(0), value)
 		}
 
-		free(cName)
 	}
 
 	return i
@@ -553,18 +487,12 @@ func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[strin
 
 func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Interaction {
 	for k, values := range valueOrMatcher {
-		cName := C.CString(k)
 
 		for idx, v := range values {
 			value := stringFromInterface(v)
-			cValue := C.CString(value)
 
-			C.pactffi_with_query_parameter_v2(i.handle, cName, CUlong(idx), cValue)
-
-			free(cValue)
+			pactffi_with_query_parameter_v2(i.handle, k, int(idx), value)
 		}
-
-		free(cName)
 	}
 
 	return i
@@ -579,14 +507,9 @@ func (i *Interaction) WithJSONResponseBody(body interface{}) *Interaction {
 }
 
 func (i *Interaction) withJSONBody(body interface{}, part interactionPart) *Interaction {
-	cHeader := C.CString("application/json")
-	defer free(cHeader)
-
 	jsonBody := stringFromInterface(body)
-	cBody := C.CString(jsonBody)
-	defer free(cBody)
 
-	C.pactffi_with_body(i.handle, C.int(part), cHeader, cBody)
+	pactffi_with_body(i.handle, int32(part), "application/json", jsonBody)
 
 	return i
 }
@@ -600,22 +523,15 @@ func (i *Interaction) WithResponseBody(contentType string, body []byte) *Interac
 }
 
 func (i *Interaction) withBody(contentType string, body []byte, part interactionPart) *Interaction {
-	cHeader := C.CString(contentType)
-	defer free(cHeader)
 
-	cBody := C.CString(string(body))
-	defer free(cBody)
-
-	C.pactffi_with_body(i.handle, C.int(part), cHeader, cBody)
+	pactffi_with_body(i.handle, int32(part), contentType, string(body))
 
 	return i
 }
 
 func (i *Interaction) withBinaryBody(contentType string, body []byte, part interactionPart) *Interaction {
-	cHeader := C.CString(contentType)
-	defer free(cHeader)
 
-	C.pactffi_with_binary_file(i.handle, C.int(part), cHeader, (*C.uchar)(unsafe.Pointer(&body[0])), CUlong(len(body)))
+	pactffi_with_binary_file(i.handle, int32(part), contentType, string(body), size_t(len(body)))
 
 	return i
 }
@@ -637,30 +553,21 @@ func (i *Interaction) WithResponseMultipartFile(contentType string, filename str
 }
 
 func (i *Interaction) withMultipartFile(contentType string, filename string, mimePartName string, part interactionPart) *Interaction {
-	cHeader := C.CString(contentType)
-	defer free(cHeader)
-
-	cPartName := C.CString(mimePartName)
-	defer free(cPartName)
-
-	cFilename := C.CString(filename)
-	defer free(cFilename)
-
-	C.pactffi_with_multipart_file(i.handle, C.int(part), cHeader, cFilename, cPartName)
+	pactffi_with_multipart_file(i.handle, int32(part), contentType, filename, mimePartName)
 
 	return i
 }
 
 // Set the expected HTTTP response status
 func (i *Interaction) WithStatus(status int) *Interaction {
-	C.pactffi_response_status(i.handle, C.ushort(status))
+	pactffi_response_status(i.handle, uint16(status))
 
 	return i
 }
 
-type stringLike interface {
-	String() string
-}
+// type stringLike interface {
+// 	String() string
+// }
 
 func stringFromInterface(obj interface{}) string {
 	switch t := obj.(type) {
@@ -708,17 +615,14 @@ func quotedString(s string) string {
 // }
 
 func logToStdout(level logLevel) error {
-	res := C.pactffi_log_to_stdout(C.int(level))
+	res := pactffi_log_to_stdout(int32(level))
 	log.Println("[DEBUG] log_to_stdout res", res)
 
 	return logResultToError(int(res))
 }
 
 func logToFile(file string, level logLevel) error {
-	cFile := C.CString(file)
-	defer free(cFile)
-
-	res := C.pactffi_log_to_file(cFile, C.int(level))
+	res := pactffi_log_to_file(file, int32(level))
 	log.Println("[DEBUG] log_to_file res", res)
 
 	return logResultToError(int(res))

@@ -18,7 +18,7 @@ func TestNativeLibPath(t *testing.T) {
 	libFilePath := filepath.Join(lib, "lib.go")
 	file, err := os.ReadFile(libFilePath)
 	assert.NoError(t, err)
-	assert.Contains(t, string(file), "-lpact_ffi")
+	assert.Contains(t, string(file), "libpact_ffi")
 }
 
 // 1. Be able to specify the path of the binary in advance
