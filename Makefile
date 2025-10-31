@@ -12,10 +12,10 @@ PLUGIN_PACT_AVRO_VERSION=0.0.6
 GO_VERSION?=1.24
 IMAGE_VARIANT?=debian
 ci:: docker deps clean bin test pact
-PACT_DOWNLOAD_DIR=/tmp
-ifeq ($(OS),Windows_NT)
-	PACT_DOWNLOAD_DIR=$$TMP
-endif
+# PACT_DOWNLOAD_DIR=/tmp
+# ifeq ($(OS),Windows_NT)
+# 	PACT_DOWNLOAD_DIR=$$TMP
+# endif
 
 CGO_ENABLED?=1
 ifeq ($(CGO_ENABLED),0)
@@ -56,7 +56,6 @@ docker_test: docker_build
 		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
 		-e CGO_ENABLED=$(CGO_ENABLED) \
-		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		-it \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
@@ -67,7 +66,6 @@ docker_pact: docker_build
 		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
 		-e CGO_ENABLED=$(CGO_ENABLED) \
-		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make pact_local"
@@ -77,7 +75,6 @@ docker_test_all: docker_build
 		-e SKIP_PROVIDER_TESTS=$(SKIP_PROVIDER_TESTS) \
 		-e SKIP_RACE=$(SKIP_RACE) \
 		-e CGO_ENABLED=$(CGO_ENABLED) \
-		-e PACT_LD_LIBRARY_PATH=$(PACT_DOWNLOAD_DIR) \
 		--rm \
 		pactfoundation/pact-go-test-$(IMAGE_VARIANT) \
 		/bin/sh -c "make test && make pact_local"
@@ -129,18 +126,18 @@ cli:
 
 install: bin
 	echo "--- 🐿 Installing Pact FFI dependencies"
-	./build/pact-go -l DEBUG install --libDir $(PACT_DOWNLOAD_DIR)
+	./build/pact-go -l DEBUG install
 
 pact: clean install docker
 	@echo "--- 🔨 Running Pact examples"
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	./build/pact-go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 	make publish
-	go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	./build/pact-go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 pact_local: clean download_plugins install 
 	@echo "--- 🔨 Running Pact examples"
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+	./build/pact-go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 	if [ "$(SKIP_PROVIDER_TESTS)" != "true" ]; then \
-		SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...; \
+		SKIP_PUBLISH=true ./build/pact-go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...; \
 	fi
 
 publish:
@@ -163,7 +160,7 @@ test: deps install
 	@echo "mode: count" > coverage.txt
 	@for d in $$(go list ./... | grep -v vendor | grep -v examples); \
 		do \
-			go test -v $(RACE) -coverprofile=profile.out $(PROVIDER_TEST_TAGS) -covermode=atomic $$d; \
+			./build/pact-go test -v $(RACE) -coverprofile=profile.out $(PROVIDER_TEST_TAGS) -covermode=atomic $$d; \
 			if [ $$? != 0 ]; then \
 				exit 1; \
 			fi; \
@@ -176,7 +173,7 @@ test: deps install
 
 
 testrace:
-	go test $(RACE) $(TEST) $(TESTARGS)
+	./build/pact-go test $(RACE) $(TEST) $(TESTARGS)
 
 updatedeps:
 	go get -d -v -p 2 ./...
@@ -194,5 +191,5 @@ protos:
 .PHONY: grpc-test
 grpc-test:
 	rm -rf ./examples/pacts
-	go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
-	go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
+	./build/pact-go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
+	./build/pact-go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc

@@ -90,6 +90,8 @@ go install github.com/pact-foundation/pact-go/v2
 pact-go -l DEBUG install
 
 # 🚀 now write some tests!
+pact-go test
+# pact-go test is a wrapper around go test, and sets the PACT_LD_LIBRARY_PATH environment variable to the pact required libraries
 ```
 
 If the `pact-go` command above is not found, make sure that `$GOPATH/bin` is in your path. I.e.,
@@ -100,56 +102,14 @@ export PATH=$PATH:$GOPATH/bin
 
 You can also keep the library versions up to date by running the `version.CheckVersion()` function.
 
-Set `PACT_GO_LIB_DOWNLOAD_PATH` env var if you have installed the library in a non-standard location.
-
-<details><summary>Pre-Requisites</summary>
-
-### Pre-Requisites 
-
-- `cgo`
-  - Pact relies on C shared libraries compiled from Rust
-  - `CGO_ENABLED=1` (check with `go env`)
-
-#### Linux
-
-- Install `gcc` package
-  
-#### MacOS
-
-- Install the Xcode Command line tools
-
-By default, pact-go install will attempt to install in `/usr/local/lib`.
-
-Note this is not user-writable, so `pact-go install` must be run with `sudo`.
-
-An alternative is to install to `/tmp` via `pact-go -l DEBUG install --libDir /tmp`
-
-#### Windows
-
-- Install `gcc`
-  - `choco install mingw`
-  - `scoop install mingw`
-
-- Add location of the pact-go installed shared library to
-  - `PATH`
-  - `CGO_LDFLAGS`
- 
-##### Powershell
-
-- `$env:Path += ";$env:TMP"`
-- `$env:CGO_LDFLAGS = "-L$env:TMP"`
-
-- Command Prompt
-- `set PATH="%PATH%;%TMP%"`
-- `set CGO_LDFLAGS="-L%TMP%"`
-
-</details>
+- Set `PACT_GO_LIB_DOWNLOAD_PATH` env var if you have installed the library in a non-standard location.
+- Set `PACT_LD_LIBRARY_PATH` env var if you have installed the library in a non-standard location and are running `go test` directly without the `pact-go test` wrapper.
 
 <details><summary>Manual Installation Instructions</summary>
 
 ### Manual
 
-Download the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux):
+Download the latest `Pact FFI Library` [library] for your OS.
 
 Ensure you have the correct extension for your OS:
 
@@ -160,13 +120,12 @@ Ensure you have the correct extension for your OS:
 ```sh
 wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v0.4.21/libpact_ffi-macos-x86_64.dylib.gz
 gunzip libpact_ffi-macos-x86_64.dylib.gz
-mv libpact_ffi-macos-x86_64.dylib /usr/local/lib/libpact_ffi.dylib
 ```
 
 Test the installation:
 
 ```sh
-pact-go help
+PACT_LD_LIBRARY_PATH=${PATH_TO_LIB} pact-go check
 ```
 
 </details>

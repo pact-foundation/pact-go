@@ -28,8 +28,8 @@ env:
   REACT_APP_API_BASE_URL: http://localhost:8080
   APP_SHA: ${{ github.sha }}
   APP_REF: ${{ github.ref }}
-  PACT_GO_LIB_DOWNLOAD_PATH: /tmp
-  PACT_LD_LIBRARY_PATH: /tmp
+  # PACT_GO_LIB_DOWNLOAD_PATH: /tmp
+  # PACT_LD_LIBRARY_PATH: /tmp
   LOG_LEVEL: ${{ github.event.inputs.log_level || 'INFO' }}
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -69,10 +69,10 @@ jobs:
       - name: Test
         if: matrix.os == 'ubuntu-latest'
         run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
-      - name: Set PACT_LD_LIBRARY_PATH
-        if: matrix.os == 'windows-latest'
-        run: |
-          "PACT_LD_LIBRARY_PATH=$env:TMP" >> $env:GITHUB_ENV
+      # - name: Set PACT_LD_LIBRARY_PATH
+      #   if: matrix.os == 'windows-latest'
+      #   run: |
+      #     "PACT_LD_LIBRARY_PATH=$env:TMP" >> $env:GITHUB_ENV
       - name: Test (unit)
         if: matrix.os != 'ubuntu-latest'
         run: make test

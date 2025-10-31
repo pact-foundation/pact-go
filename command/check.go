@@ -27,7 +27,7 @@ var checkCmd = &cobra.Command{
 			log.Println("[INFO] set lib dir target to", libDir)
 			i.SetLibDir(libDir)
 		}
-
+		
 		if err = i.CheckPackageInstall(); err != nil {
 			log.Println("[DEBUG] error from CheckPackageInstall:", err)
 			log.Println("[ERROR] Your Pact library installation is out of date. Run `pact-go install` to correct")

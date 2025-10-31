@@ -88,6 +88,27 @@ func (i *Installer) SetLibDir(dir string) {
 	i.libDir = dir
 }
 
+// SetConfigLibDir stores the libDir in the config
+func (i *Installer) SetConfigLibDir(dir string) {
+	// print debug log
+	log.Printf("[DEBUG] setting config lib dir to %s", dir)
+	c := i.config.readConfig()
+	c.LibDir = dir
+	i.config.writeConfig(c)
+}
+
+// GetConfigLibDir retrieves the libDir from config
+func GetConfigLibDir() string {
+	c := &configuration{}
+	config := c.readConfig()
+	return config.LibDir
+}
+
+// GetActualLibDir returns the actual library directory being used
+func (i *Installer) GetActualLibDir() string {
+	return i.getLibDir()
+}
+
 // Force installs over the top
 func (i *Installer) Force(force bool) {
 	i.force = force
@@ -133,8 +154,13 @@ func (i *Installer) getLibDir() string {
 	if env != "" {
 		return env
 	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Printf("[WARN] Could not determine home directory: %v", err)
+		return ""
+	}
 
-	return "/usr/local/lib"
+	return filepath.Join(homeDir, ".pact", "pact-go", "libs")
 }
 
 // CheckPackageInstall discovers any existing packages, and checks installation of a given binary using semver-compatible checks
@@ -446,6 +472,7 @@ type packageMetadata struct {
 
 type pactConfig struct {
 	Libraries map[string]packageMetadata
+	LibDir    string `yaml:"libDir,omitempty"`
 }
 
 type configReader interface {
