@@ -39,13 +39,6 @@ jobs:
       fail-fast: false
       matrix:
         go-version: [ # https://endoflife.date/go
-                    # 1.17.x, # Ended 02 Aug 2022
-                    # 1.18.x, # Ended 01 Feb 2023
-                    # 1.19.x, # Ended 06 Sep 2023
-                    # 1.20.x, # Ended 06 Feb 2024
-                    # 1.21.x, # Ended 13 Aug 2024
-                    # 1.22.x, # Ended 11 Feb 2025
-                    1.23.x,
                     1.24.x,
                     1.25.x,
                     ]
@@ -106,15 +99,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm]
-        go-version: ["1.23", "1.24", "1.25"]
+        go-version: ["1.24", "1.25"]
         variant: [debian]
         experimental: [false]
         cgo: [0,1]
         include:
-          - variant: alpine
-            go-version: 1.23
-            experimental: true
-            os: ubuntu-latest
           - variant: alpine
             go-version: 1.24
             experimental: true
@@ -123,10 +112,6 @@ jobs:
             go-version: 1.25
             experimental: true
             os: ubuntu-latest
-          - variant: alpine
-            go-version: 1.23
-            experimental: true
-            os: ubuntu-24.04-arm
           - variant: alpine
             go-version: 1.24
             experimental: true
