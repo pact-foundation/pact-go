@@ -94,7 +94,9 @@ func (i *Installer) SetConfigLibDir(dir string) {
 	log.Printf("[DEBUG] setting config lib dir to %s", dir)
 	c := i.config.readConfig()
 	c.LibDir = dir
-	i.config.writeConfig(c)
+	if err := i.config.writeConfig(c); err != nil {
+		log.Printf("[ERROR] failed to write config: %v", err)
+	}
 }
 
 // GetConfigLibDir retrieves the libDir from config
