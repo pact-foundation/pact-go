@@ -102,7 +102,9 @@ You can also keep the library versions up to date by running the `version.CheckV
 
 Set `PACT_GO_LIB_DOWNLOAD_PATH` env var if you have installed the library in a non-standard location.
 
-<details><summary>Pre-Requisites</summary>
+<details>
+
+<summary>Pre-Requisites</summary>
 
 ### Pre-Requisites 
 
@@ -145,7 +147,9 @@ An alternative is to install to `/tmp` via `pact-go -l DEBUG install --libDir /t
 
 </details>
 
-<details><summary>Manual Installation Instructions</summary>
+<details>
+
+<summary>Manual Installation Instructions</summary>
 
 ### Manual
 
@@ -265,7 +269,9 @@ func TestV3HTTPProvider(t *testing.T) {
 
 ## Compatibility
 
-<details><summary>Specification Compatibility</summary>
+<details>
+
+<summary>Specification Compatibility</summary>
 
 | Version | Stable | [Spec] Compatibility | Install            |
 | ------- | ------ | -------------------- | ------------------ |
@@ -277,7 +283,9 @@ _\*_ v3 support is limited to the subset of functionality required to enable lan
 
 </details>
 
-<details><summary>Supported Platforms</summary>
+<details>
+
+<summary>Supported Platforms</summary>
 
 | OS            | Architecture | Supported  | Pact-Go Version  |
 | ------------- | ------------ | ---------  | ---------------- |
