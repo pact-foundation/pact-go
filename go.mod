@@ -6,7 +6,7 @@ toolchain go1.24.5
 
 require (
 	github.com/golang/protobuf v1.5.4
-	github.com/hashicorp/go-version v1.7.0
+	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/linkedin/goavro/v2 v2.14.1
 	github.com/spf13/afero v1.15.0
