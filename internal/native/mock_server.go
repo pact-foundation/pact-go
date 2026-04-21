@@ -485,28 +485,13 @@ func (i *Interaction) UponReceiving(description string) *Interaction {
 }
 
 func (i *Interaction) Given(state string) *Interaction {
-	cState := C.CString(state)
-	defer free(cState)
-
-	C.pactffi_given(i.handle, cState)
+	interactionGiven(i.handle, state)
 
 	return i
 }
 
 func (i *Interaction) GivenWithParameter(state string, params map[string]interface{}) *Interaction {
-	cState := C.CString(state)
-	defer free(cState)
-
-	for k, v := range params {
-		cKey := C.CString(k)
-		param := stringFromInterface(v)
-		cValue := C.CString(param)
-
-		C.pactffi_given_with_param(i.handle, cState, cKey, cValue)
-
-		free(cValue)
-		free(cKey)
-	}
+	interactionGivenWithParams(i.handle, state, params)
 
 	return i
 }

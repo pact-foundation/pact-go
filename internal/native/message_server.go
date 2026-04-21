@@ -108,32 +108,16 @@ func (m *MessageServer) WithSpecificationVersion(version specificationVersion) {
 }
 
 func (m *Message) Given(state string) *Message {
-	cState := C.CString(state)
-	defer free(cState)
-
-	C.pactffi_given(m.handle, cState)
+	interactionGiven(m.handle, state)
 
 	return m
 }
 
 func (m *Message) GivenWithParameter(state string, params map[string]interface{}) *Message {
-	cState := C.CString(state)
-	defer free(cState)
-
 	if len(params) == 0 {
-		C.pactffi_given(m.handle, cState)
+		interactionGiven(m.handle, state)
 	} else {
-		for k, v := range params {
-			cKey := C.CString(k)
-
-			param := stringFromInterface(v)
-			cValue := C.CString(param)
-
-			C.pactffi_given_with_param(m.handle, cState, cKey, cValue)
-
-			free(cValue)
-			free(cKey)
-		}
+		interactionGivenWithParams(m.handle, state, params)
 	}
 
 	return m
