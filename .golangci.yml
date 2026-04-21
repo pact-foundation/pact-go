@@ -1,0 +1,6 @@
+version: "2"
+linters:
+  exclusions:
+    paths:
+      # lib.go only contains cgo annotations
+      - internal/native/lib.go
