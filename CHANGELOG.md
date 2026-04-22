@@ -5,6 +5,10 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.4.3 (22 April 2026)
+  * [dfe16cc](https://github.com/pact-foundation/pact-go/commit/dfe16cc) - fix: upgrade goreleaser config to v2 and fix workflow_dispatch release trigger (#571) (Copilot, Wed Apr 22 14:17:04 2026 +1000)
+  * [f7cec64](https://github.com/pact-foundation/pact-go/commit/f7cec64) - fix: resolve "inconsistent definitions" build failure on Go 1.24+ (#568) (Copilot, Wed Apr 22 09:32:21 2026 +1000)
+
 ### v2.4.2 (31 October 2025)
   * [31d8d7f0](https://github.com/pact-foundation/pact-go/commit/31d8d7f0) - fix: convert the byte slice to string, async message WithContents (Yousaf Nabi, Thu Oct 30 23:57:48 2025 +0000)
   * [54a7927b](https://github.com/pact-foundation/pact-go/commit/54a7927b) - fix(deps): update module github.com/linkedin/goavro/v2 to v2.14.1 (renovate[bot], Wed Oct 22 20:35:33 2025 +0000)
