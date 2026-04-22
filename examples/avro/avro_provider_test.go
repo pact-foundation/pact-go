@@ -62,7 +62,7 @@ func startHTTPProvider(port int) {
 			log.Println("ERROR: ", err)
 			w.WriteHeader(500)
 		} else {
-			fmt.Fprintf(w, string(binary))
+			w.Write(binary)
 			w.WriteHeader(200)
 		}
 	})
