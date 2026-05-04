@@ -92,6 +92,15 @@ func (i *V4UnconfiguredInteraction) UponReceiving(description string) *V4Unconfi
 	return i
 }
 
+// AddExternalReference records a reference to an external resource (such as a ticket or
+// pull request) against the interaction. References appear under
+// comments.references[group][name] in the Pact file. May be called multiple times.
+func (i *V4UnconfiguredInteraction) AddExternalReference(group, name, value string) *V4UnconfiguredInteraction {
+	i.interaction.interaction.AddInteractionReference(group, name, value)
+
+	return i
+}
+
 // WithRequest provides a builder for the expected request
 func (i *V4UnconfiguredInteraction) WithCompleteRequest(request Request) *V4InteractionWithCompleteRequest {
 	i.interaction.WithCompleteRequest(request)
