@@ -264,7 +264,10 @@ func (m *MockServer) Start(address string, tlsEnabled bool) (int, error) {
 	cTransport := C.CString(transport)
 	defer free(cTransport)
 
-	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, nil)
+	cConfig := C.CString("{}")
+	defer free(cConfig)
+
+	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, cConfig)
 
 	// | Error | Description
 	// |-------|-------------
