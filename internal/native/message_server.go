@@ -597,10 +597,10 @@ func (m *MessageServer) WritePactFileForServer(port int, dir string, overwrite b
 	}
 }
 
-// AddInteractionReference records an external reference (e.g. a ticket or pull request)
+// WithReference records an external reference (e.g. a ticket or pull request)
 // against the interaction. References are stored under comments.references[group][name]
 // in the Pact file. This is a V4-only feature.
-func (m *Message) AddInteractionReference(group, name, value string) *Message {
+func (m *Message) WithReference(group, name, value string) *Message {
 	cGroup := C.CString(group)
 	defer free(cGroup)
 	cName := C.CString(name)

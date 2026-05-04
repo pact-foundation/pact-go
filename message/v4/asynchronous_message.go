@@ -51,7 +51,7 @@ func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.ProviderSta
 // pull request) against the interaction. References appear under
 // comments.references[group][name] in the Pact file. May be called multiple times.
 func (m *AsynchronousMessageBuilder) AddExternalReference(group, name, value string) *AsynchronousMessageBuilder {
-	m.messageHandle.AddInteractionReference(group, name, value)
+	m.messageHandle.WithReference(group, name, value)
 
 	return m
 }

@@ -11,7 +11,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"os"
+	"strconv"
 	"strings"
 	"unsafe"
 )
@@ -134,52 +136,6 @@ func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
 	C.pactffi_with_specification(m.pact.handle, C.int(version))
 }
 
-// CreateMockServer creates a new Mock Server from a given Pact file.
-// Returns the port number it started on or an error if failed
-func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (int, error) {
-	log.Println("[DEBUG] mock server starting on address:", address)
-	cPact := C.CString(pact)
-	cAddress := C.CString(address)
-	defer free(cPact)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
-	}
-
-	p := C.pactffi_create_mock_server(cPact, cAddress, C.bool(tlsEnabled))
-
-	// | Error | Description |
-	// |-------|-------------|
-	// | -1 | A null pointer was received |
-	// | -2 | The pact JSON could not be parsed |
-	// | -3 | The mock server could not be started |
-	// | -4 | The method panicked |
-	// | -5 | The address is not valid |
-	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
-	case -1:
-		return 0, ErrInvalidMockServerConfig
-	case -2:
-		return 0, ErrInvalidPact
-	case -3:
-		return 0, ErrMockServerUnableToStart
-	case -4:
-		return 0, ErrMockServerPanic
-	case -5:
-		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
-	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
-		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
-	}
-}
-
 // Verify verifies that all interactions were successful. If not, returns a slice
 // of Mismatch-es. Does not write the pact or cleanup server.
 func (m *MockServer) Verify(port int, dir string) (bool, []MismatchedRequest) {
@@ -281,50 +237,60 @@ func libRustFree(str *C.char) {
 }
 
 // Start starts up the mock HTTP server on the given address:port and TLS config
-// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.create_mock_server_for_pact.html
-func (m *MockServer) Start(address string, tls bool) (int, error) {
+// https://docs.rs/pact_ffi/latest/pact_ffi/mock_server/fn.pactffi_create_mock_server_for_transport.html
+func (m *MockServer) Start(address string, tlsEnabled bool) (int, error) {
 	if len(m.interactions) == 0 {
 		return 0, ErrNoInteractions
 	}
 
 	log.Println("[DEBUG] mock server starting on address:", address)
-	cAddress := C.CString(address)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
+
+	host, portStr, err := net.SplitHostPort(address)
+	if err != nil {
+		return 0, ErrInvalidAddress
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return 0, ErrInvalidAddress
 	}
 
-	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.bool(tlsEnabled))
+	cAddress := C.CString(host)
+	defer free(cAddress)
 
-	// | Error | Description |
-	// |-------|-------------|
-	// | -1 | A null pointer was received |
-	// | -2 | The pact JSON could not be parsed |
-	// | -3 | The mock server could not be started |
-	// | -4 | The method panicked |
-	// | -5 | The address is not valid |
-	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
+	transport := "http"
+	if tlsEnabled {
+		transport = "https"
+	}
+	cTransport := C.CString(transport)
+	defer free(cTransport)
+
+	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, nil)
+
+	// | Error | Description
+	// |-------|-------------
+	// | -1	   | An invalid handle was received. Handles should be created with pactffi_new_pact
+	// | -2	   | transport_config is not valid JSON
+	// | -3	   | The mock server could not be started
+	// | -4	   | The method panicked
+	// | -5	   | The address is not valid
+	msPort := int(p)
+	switch msPort {
 	case -1:
 		return 0, ErrInvalidMockServerConfig
 	case -2:
-		return 0, ErrInvalidPact
+		return 0, ErrInvalidMockServerConfig
 	case -3:
 		return 0, ErrMockServerUnableToStart
 	case -4:
 		return 0, ErrMockServerPanic
 	case -5:
 		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
 	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
+		if msPort > 0 {
+			log.Println("[DEBUG] mock server running on port:", msPort)
+			return msPort, nil
 		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
+		return msPort, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", msPort)
 	}
 }
 
@@ -643,10 +609,10 @@ func (i *Interaction) WithStatus(status int) *Interaction {
 	return i
 }
 
-// AddInteractionReference records an external reference (e.g. a ticket or pull request)
+// WithReference records an external reference (e.g. a ticket or pull request)
 // against the interaction. References are stored under comments.references[group][name]
 // in the Pact file. This is a V4-only feature.
-func (i *Interaction) AddInteractionReference(group, name, value string) *Interaction {
+func (i *Interaction) WithReference(group, name, value string) *Interaction {
 	cGroup := C.CString(group)
 	defer free(cGroup)
 	cName := C.CString(name)
