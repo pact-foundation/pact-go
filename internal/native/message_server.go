@@ -596,3 +596,19 @@ func (m *MessageServer) WritePactFileForServer(port int, dir string, overwrite b
 		return fmt.Errorf("an unknown error ocurred when writing to pact file")
 	}
 }
+
+// AddInteractionReference records an external reference (e.g. a ticket or pull request)
+// against the interaction. References are stored under comments.references[group][name]
+// in the Pact file. This is a V4-only feature.
+func (m *Message) AddInteractionReference(group, name, value string) *Message {
+	cGroup := C.CString(group)
+	defer free(cGroup)
+	cName := C.CString(name)
+	defer free(cName)
+	cValue := C.CString(value)
+	defer free(cValue)
+
+	C.pactffi_add_interaction_reference(m.handle, cGroup, cName, cValue)
+
+	return m
+}

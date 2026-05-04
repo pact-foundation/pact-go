@@ -4019,6 +4019,16 @@ bool pactffi_set_comment(InteractionHandle interaction, const char *key, const c
 bool pactffi_add_text_comment(InteractionHandle interaction, const char *comment);
 
 /**
+ * Add an external reference to the interaction.
+ *
+ * References are stored under `comments.references[group][name]` in the Pact file.
+ * The group, name and value parameters must be valid UTF-8 null-terminated strings.
+ *
+ * Returns false if the reference could not be added (e.g. invalid handle or NULL strings).
+ */
+bool pactffi_add_interaction_reference(InteractionHandle interaction, const char *group, const char *name, const char *value);
+
+/**
  * Get an iterator over all the messages of the Pact. The returned iterator needs to be
  * freed with `pactffi_pact_message_iter_delete`.
  *

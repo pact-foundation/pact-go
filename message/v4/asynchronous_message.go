@@ -47,6 +47,15 @@ func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.ProviderSta
 	return m
 }
 
+// AddExternalReference records a reference to an external resource (such as a ticket or
+// pull request) against the interaction. References appear under
+// comments.references[group][name] in the Pact file. May be called multiple times.
+func (m *AsynchronousMessageBuilder) AddExternalReference(group, name, value string) *AsynchronousMessageBuilder {
+	m.messageHandle.AddInteractionReference(group, name, value)
+
+	return m
+}
+
 // ExpectsToReceive specifies the content it is expecting to be
 // given from the Provider. The function must be able to handle this
 // message for the interaction to succeed.

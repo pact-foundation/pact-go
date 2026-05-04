@@ -85,6 +85,24 @@ func TestHttpV4TypeSystem(t *testing.T) {
 
 }
 
+func TestV4HTTPAddExternalReference(t *testing.T) {
+	p, err := NewV4Pact(MockHTTPProviderConfig{
+		Consumer: "consumer",
+		Provider: "provider",
+	})
+	assert.NoError(t, err)
+
+	err = p.AddInteraction().
+		UponReceiving("a request with an external reference").
+		AddExternalReference("Jira", "TICKET-123", "https://jira.example.com/browse/TICKET-123").
+		WithRequest("GET", "/", func(b *V4RequestBuilder) {}).
+		WillRespondWith(200, func(b *V4ResponseBuilder) {}).
+		ExecuteTest(t, func(msc MockServerConfig) error {
+			return nil
+		})
+	assert.NoError(t, err)
+}
+
 var Like = matchers.Like
 var EachLike = matchers.EachLike
 var Term = matchers.Term

@@ -643,6 +643,22 @@ func (i *Interaction) WithStatus(status int) *Interaction {
 	return i
 }
 
+// AddInteractionReference records an external reference (e.g. a ticket or pull request)
+// against the interaction. References are stored under comments.references[group][name]
+// in the Pact file. This is a V4-only feature.
+func (i *Interaction) AddInteractionReference(group, name, value string) *Interaction {
+	cGroup := C.CString(group)
+	defer free(cGroup)
+	cName := C.CString(name)
+	defer free(cName)
+	cValue := C.CString(value)
+	defer free(cValue)
+
+	C.pactffi_add_interaction_reference(i.handle, cGroup, cName, cValue)
+
+	return i
+}
+
 type stringLike interface {
 	String() string
 }
