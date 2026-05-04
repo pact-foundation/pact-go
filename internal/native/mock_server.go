@@ -237,7 +237,7 @@ func libRustFree(str *C.char) {
 }
 
 // Start starts up the mock HTTP server on the given address:port and TLS config
-// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.create_mock_server_for_pact.html
+// https://docs.rs/pact_ffi/latest/pact_ffi/mock_server/fn.pactffi_create_mock_server_for_transport.html
 func (m *MockServer) Start(address string, tls bool) (int, error) {
 	if len(m.interactions) == 0 {
 		return 0, ErrNoInteractions
@@ -280,15 +280,13 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	case -1:
 		return 0, ErrInvalidMockServerConfig
 	case -2:
-		return 0, ErrInvalidPact
+		return 0, ErrInvalidMockServerConfig
 	case -3:
 		return 0, ErrMockServerUnableToStart
 	case -4:
 		return 0, ErrMockServerPanic
 	case -5:
 		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
 	default:
 		if msPort > 0 {
 			log.Println("[DEBUG] mock server running on port:", msPort)
@@ -613,10 +611,10 @@ func (i *Interaction) WithStatus(status int) *Interaction {
 	return i
 }
 
-// AddInteractionReference records an external reference (e.g. a ticket or pull request)
+// WithReference records an external reference (e.g. a ticket or pull request)
 // against the interaction. References are stored under comments.references[group][name]
 // in the Pact file. This is a V4-only feature.
-func (i *Interaction) AddInteractionReference(group, name, value string) *Interaction {
+func (i *Interaction) WithReference(group, name, value string) *Interaction {
 	cGroup := C.CString(group)
 	defer free(cGroup)
 	cName := C.CString(name)

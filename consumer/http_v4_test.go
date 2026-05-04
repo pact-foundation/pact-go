@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -98,7 +99,8 @@ func TestV4HTTPAddExternalReference(t *testing.T) {
 		WithRequest("GET", "/", func(b *V4RequestBuilder) {}).
 		WillRespondWith(200, func(b *V4ResponseBuilder) {}).
 		ExecuteTest(t, func(msc MockServerConfig) error {
-			return nil
+			_, err := http.Get(fmt.Sprintf("http://%s:%d/", msc.Host, msc.Port))
+			return err
 		})
 	assert.NoError(t, err)
 }

@@ -96,7 +96,7 @@ func (i *V4UnconfiguredInteraction) UponReceiving(description string) *V4Unconfi
 // pull request) against the interaction. References appear under
 // comments.references[group][name] in the Pact file. May be called multiple times.
 func (i *V4UnconfiguredInteraction) AddExternalReference(group, name, value string) *V4UnconfiguredInteraction {
-	i.interaction.interaction.AddInteractionReference(group, name, value)
+	i.interaction.interaction.WithReference(group, name, value)
 
 	return i
 }

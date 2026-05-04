@@ -17,6 +17,125 @@ func init() {
 	Init("")
 }
 
+// newSimpleMockServer creates a mock server with a simple GET /foobar → 200 interaction
+// using the programmatic API, replacing the removed CreateMockServer function.
+func newSimpleMockServer(t *testing.T) (*MockServer, int) {
+	t.Helper()
+	m := NewHTTPPact("consumer", "provider")
+	m.NewInteraction("Some name for the test").
+		UponReceiving("Some name for the test").
+		Given("Some state").
+		WithRequest("GET", "/foobar").
+		WithStatus(200)
+	port, err := m.Start("0.0.0.0:0", false)
+	if err != nil {
+		t.Fatalf("failed to start mock server: %v", err)
+	}
+	return m, port
+}
+
+func TestMockServer_CreateAndCleanupMockServer(t *testing.T) {
+	m := NewHTTPPact("consumer", "provider")
+	m.NewInteraction("Some complex interaction").
+		UponReceiving("Some complex interaction").
+		Given("Some state").
+		WithRequest("GET", "/foobar").
+		WithStatus(200)
+	port, err := m.Start("0.0.0.0:0", false)
+	if err != nil {
+		t.Fatal("failed to start mock server:", err)
+	}
+	defer m.CleanupMockServer(port)
+
+	if port <= 0 {
+		t.Fatal("want port > 0, got", port)
+	}
+}
+
+func TestMockServer_MismatchesSuccess(t *testing.T) {
+	m, port := newSimpleMockServer(t)
+	defer m.CleanupMockServer(port)
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	if err != nil {
+		t.Fatalf("Error sending request: %v", err)
+	}
+
+	if res.StatusCode != 200 {
+		t.Fatalf("want '200', got '%d'", res.StatusCode)
+	}
+
+	mismatches := m.MockServerMismatchedRequests(port)
+	if len(mismatches) != 0 {
+		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
+	}
+}
+
+func TestMockServer_MismatchesFail(t *testing.T) {
+	m, port := newSimpleMockServer(t)
+	defer m.CleanupMockServer(port)
+
+	mismatches := m.MockServerMismatchedRequests(port)
+	if len(mismatches) != 1 {
+		t.Fatalf("want 1 mismatch, got '%d'", len(mismatches))
+	}
+}
+
+func TestMockServer_VerifySuccess(t *testing.T) {
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
+	assert.NoError(t, err)
+
+	m, port := newSimpleMockServer(t)
+	defer m.CleanupMockServer(port)
+
+	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	if err != nil {
+		t.Fatalf("Error sending request: %v", err)
+	}
+
+	success, mismatches := m.Verify(port, tmpPactFolder)
+	if !success {
+		t.Fatalf("want 'true' but got '%v'", success)
+	}
+
+	if len(mismatches) != 0 {
+		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
+	}
+}
+
+func TestMockServer_VerifyFail(t *testing.T) {
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
+	assert.NoError(t, err)
+	m, port := newSimpleMockServer(t)
+
+	success, mismatches := m.Verify(port, tmpPactFolder)
+	if success {
+		t.Fatalf("want 'false' but got '%v'", success)
+	}
+
+	if len(mismatches) != 1 {
+		t.Fatalf("want 1 mismatch, got '%d'", len(mismatches))
+	}
+}
+
+func TestMockServer_WritePactfile(t *testing.T) {
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
+	assert.NoError(t, err)
+
+	m, port := newSimpleMockServer(t)
+	defer m.CleanupMockServer(port)
+
+	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	if err != nil {
+		t.Fatalf("Error sending request: %v", err)
+	}
+	err = m.WritePactFile(port, tmpPactFolder)
+
+	if err != nil {
+		t.Fatal("error: ", err)
+	}
+}
+
 func TestMockServer_GetTLSConfig(t *testing.T) {
 	config := GetTLSConfig()
 
