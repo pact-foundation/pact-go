@@ -165,6 +165,51 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestHandleBasedHTTPTestsTLS(t *testing.T) {
+	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
+	assert.NoError(t, err)
+
+	m := NewHTTPPact("test-http-consumer-tls", "test-http-provider-tls")
+
+	i := m.NewInteraction("some TLS interaction")
+
+	i.UponReceiving("some TLS interaction").
+		Given("some state").
+		WithRequest("GET", "/products").
+		WithJSONResponseBody(`{
+	  	"name": {
+      	"pact:matcher:type": "type",
+      	"value": "some name"
+    	},
+	  	"age": 23,
+	  	"alive": true
+		}`).
+		WithStatus(200)
+
+	port, err := m.Start("0.0.0.0:0", true)
+	assert.NoError(t, err)
+	defer m.CleanupMockServer(port)
+
+	tlsConfig := GetTLSConfig()
+	tlsConfig.InsecureSkipVerify = true
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	_, err = client.Get(fmt.Sprintf("https://0.0.0.0:%d/products", port))
+	assert.NoError(t, err)
+
+	mismatches := m.MockServerMismatchedRequests(port)
+	if len(mismatches) != 0 {
+		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
+	}
+
+	err = m.WritePactFile(port, tmpPactFolder)
+	assert.NoError(t, err)
+}
+
 func TestPluginInteraction(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
