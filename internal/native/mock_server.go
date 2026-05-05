@@ -253,7 +253,9 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 	}
 	pactPort := m.pactMockPort(port)
 	if m.tlsProxy != nil && m.tlsProxy.pactPort == pactPort {
-		m.tlsProxy.server.Close()
+		if err := m.tlsProxy.server.Close(); err != nil {
+			log.Println("[WARN] error closing TLS proxy server:", err)
+		}
 		m.tlsProxy = nil
 	}
 	log.Println("[DEBUG] mock server cleaning up port:", pactPort)
@@ -389,7 +391,11 @@ func newTLSProxy(host string, requestedPort int, httpPort int) (int, *tlsProxySe
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
 	srv := &http.Server{Handler: proxy}
-	go func() { _ = srv.Serve(listener) }()
+	go func() {
+		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+			log.Println("[WARN] TLS proxy server exited with error:", err)
+		}
+	}()
 
 	log.Println("[DEBUG] TLS proxy started on port:", tlsPort, "→ HTTP mock server port:", httpPort)
 
