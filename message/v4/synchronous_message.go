@@ -63,6 +63,15 @@ type UnconfiguredSynchronousMessageBuilder struct {
 	pact          *SynchronousPact
 }
 
+// AddExternalReference records a reference to an external resource (such as a ticket or
+// pull request) against the interaction. References appear under
+// comments.references[group][name] in the Pact file. May be called multiple times.
+func (m *UnconfiguredSynchronousMessageBuilder) AddExternalReference(group, name, value string) *UnconfiguredSynchronousMessageBuilder {
+	m.messageHandle.WithReference(group, name, value)
+
+	return m
+}
+
 // UsingPlugin enables a plugin for use in the current test case
 func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
 	err := m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)

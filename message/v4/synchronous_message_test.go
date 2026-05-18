@@ -44,6 +44,27 @@ func TestSyncTypeSystem_NoPlugin(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSyncAddExternalReference(t *testing.T) {
+	p, _ := NewSynchronousPact(Config{
+		Consumer: "consumer",
+		Provider: "provider",
+	})
+
+	err := p.AddSynchronousMessage("a sync message with an external reference").
+		AddExternalReference("Jira", "TICKET-789", "https://jira.example.com/browse/TICKET-789").
+		WithRequest(func(r *SynchronousMessageWithRequestBuilder) {
+			r.WithJSONContent(map[string]string{"request": "ping"})
+		}).
+		WithResponse(func(r *SynchronousMessageWithResponseBuilder) {
+			r.WithJSONContent(map[string]string{"response": "pong"})
+		}).
+		ExecuteTest(t, func(m SynchronousMessage) error {
+			return nil
+		})
+
+	assert.NoError(t, err)
+}
+
 // Sync - with plugin, but no transport
 func TestSyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {
 	p, _ := NewSynchronousPact(Config{

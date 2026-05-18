@@ -40,6 +40,25 @@ func TestAsyncTypeSystem(t *testing.T) {
 
 }
 
+func TestAsyncAddExternalReference(t *testing.T) {
+	p, _ := NewAsynchronousPact(Config{
+		Consumer: "asyncconsumer",
+		Provider: "asyncprovider",
+		PactDir:  "/tmp/",
+	})
+
+	err := p.AddAsynchronousMessage().
+		AddExternalReference("GitHub", "PR-456", "https://github.com/org/repo/pull/456").
+		ExpectsToReceive("a message with an external reference").
+		WithJSONContent(map[string]string{"event": "user.created"}).
+		ConsumedBy(func(mc AsynchronousMessage) error {
+			return nil
+		}).
+		Verify(t)
+
+	assert.NoError(t, err)
+}
+
 // Sync - with plugin, but no transport
 // TODO: ExecuteTest has been disabled for now, because it's not very useful
 func TestAsyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {

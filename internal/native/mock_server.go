@@ -6,13 +6,25 @@ package native
 import "C"
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"log"
+	"math/big"
+	"net"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 	"unsafe"
 )
 
@@ -113,6 +125,18 @@ type MockServer struct {
 	pact         *Pact
 	messagePact  *MessagePact
 	interactions []*Interaction
+	tlsProxy     net.Listener // non-nil when a Go-level TLS proxy is in use
+	tlsServer    *http.Server // HTTP server for the TLS proxy (enables graceful shutdown)
+	internalPort int          // actual pact FFI server port when TLS proxy is active
+}
+
+// pactPort returns the port the FFI mock server is bound to.
+// When a TLS proxy is active, this differs from the external port callers see.
+func (m *MockServer) pactPort(visiblePort int) int {
+	if m.internalPort != 0 {
+		return m.internalPort
+	}
+	return visiblePort
 }
 
 // NewHTTPPact creates a new HTTP mock server for a given consumer/provider
@@ -134,52 +158,6 @@ func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
 	C.pactffi_with_specification(m.pact.handle, C.int(version))
 }
 
-// CreateMockServer creates a new Mock Server from a given Pact file.
-// Returns the port number it started on or an error if failed
-func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (int, error) {
-	log.Println("[DEBUG] mock server starting on address:", address)
-	cPact := C.CString(pact)
-	cAddress := C.CString(address)
-	defer free(cPact)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
-	}
-
-	p := C.pactffi_create_mock_server(cPact, cAddress, C.bool(tlsEnabled))
-
-	// | Error | Description |
-	// |-------|-------------|
-	// | -1 | A null pointer was received |
-	// | -2 | The pact JSON could not be parsed |
-	// | -3 | The mock server could not be started |
-	// | -4 | The method panicked |
-	// | -5 | The address is not valid |
-	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
-	case -1:
-		return 0, ErrInvalidMockServerConfig
-	case -2:
-		return 0, ErrInvalidPact
-	case -3:
-		return 0, ErrMockServerUnableToStart
-	case -4:
-		return 0, ErrMockServerPanic
-	case -5:
-		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
-	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
-		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
-	}
-}
-
 // Verify verifies that all interactions were successful. If not, returns a slice
 // of Mismatch-es. Does not write the pact or cleanup server.
 func (m *MockServer) Verify(port int, dir string) (bool, []MismatchedRequest) {
@@ -195,7 +173,7 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 	log.Println("[DEBUG] mock server determining mismatches:", port)
 	var res []MismatchedRequest
 
-	mismatches := C.pactffi_mock_server_mismatches(C.int(port))
+	mismatches := C.pactffi_mock_server_mismatches(C.int(m.pactPort(port)))
 	// This method can return a nil pointer, in which case, it
 	// should be considered a failure (or at least, an issue)
 	// converting it to a string might also do nasty things here!
@@ -218,7 +196,19 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 		return true
 	}
 	log.Println("[DEBUG] mock server cleaning up port:", port)
-	res := C.pactffi_cleanup_mock_server(C.int(port))
+
+	// Shut down the TLS proxy cleanly if active.
+	if m.tlsServer != nil {
+		_ = m.tlsServer.Close()
+		m.tlsServer = nil
+	}
+	if m.tlsProxy != nil {
+		_ = m.tlsProxy.Close()
+		m.tlsProxy = nil
+		m.internalPort = 0
+	}
+
+	res := C.pactffi_cleanup_mock_server(C.int(m.pactPort(port)))
 
 	return bool(res)
 }
@@ -236,7 +226,7 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 	// }
 
 	// res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.int(overwritePact)))
-	res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.bool(false)))
+	res := int(C.pactffi_write_pact_file(C.int(m.pactPort(port)), cDir, C.bool(false)))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -280,52 +270,161 @@ func libRustFree(str *C.char) {
 	C.pactffi_free_string(str)
 }
 
-// Start starts up the mock HTTP server on the given address:port and TLS config
-// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.create_mock_server_for_pact.html
-func (m *MockServer) Start(address string, tls bool) (int, error) {
+// Start starts up the mock HTTP server on the given address:port and TLS config.
+// When tlsEnabled is true, a plain HTTP pact mock server is started on an
+// auto-assigned port and a Go-level TLS termination proxy is placed in front
+// of it on the requested port. All FFI verification/cleanup calls are directed
+// to the internal plain HTTP port via pactPort().
+// https://docs.rs/pact_ffi/latest/pact_ffi/mock_server/fn.pactffi_create_mock_server_for_transport.html
+func (m *MockServer) Start(address string, tlsEnabled bool) (int, error) {
 	if len(m.interactions) == 0 {
 		return 0, ErrNoInteractions
 	}
 
 	log.Println("[DEBUG] mock server starting on address:", address)
-	cAddress := C.CString(address)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
+
+	host, portStr, err := net.SplitHostPort(address)
+	if err != nil {
+		return 0, ErrInvalidAddress
+	}
+	requestedPort, err := strconv.Atoi(portStr)
+	if err != nil {
+		return 0, ErrInvalidAddress
 	}
 
-	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.bool(tlsEnabled))
+	// When TLS is requested, let the OS pick the internal port for the plain HTTP
+	// pact mock server so it doesn't collide with the TLS proxy port.
+	ffiPort := requestedPort
+	if tlsEnabled {
+		ffiPort = 0
+	}
 
-	// | Error | Description |
-	// |-------|-------------|
-	// | -1 | A null pointer was received |
-	// | -2 | The pact JSON could not be parsed |
-	// | -3 | The mock server could not be started |
-	// | -4 | The method panicked |
-	// | -5 | The address is not valid |
-	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
+	internalPort, err := m.startFFIMockServer(host, ffiPort)
+	if err != nil {
+		return 0, err
+	}
+
+	if !tlsEnabled {
+		return internalPort, nil
+	}
+
+	// Stand up a Go TLS reverse proxy in front of the plain HTTP pact server.
+	tlsListener, err := m.startTLSProxy(host, requestedPort, internalPort)
+	if err != nil {
+		C.pactffi_cleanup_mock_server(C.int(internalPort))
+		return 0, fmt.Errorf("failed to start TLS proxy: %w", err)
+	}
+
+	m.internalPort = internalPort
+	m.tlsProxy = tlsListener
+
+	proxyPort := tlsListener.Addr().(*net.TCPAddr).Port
+	log.Println("[DEBUG] TLS proxy running on port:", proxyPort, "-> internal port:", internalPort)
+	return proxyPort, nil
+}
+
+// startFFIMockServer starts the pact FFI mock server as plain HTTP.
+func (m *MockServer) startFFIMockServer(host string, port int) (int, error) {
+	cAddress := C.CString(host)
+	defer free(cAddress)
+	cTransport := C.CString("http")
+	defer free(cTransport)
+	cConfig := C.CString("{}")
+	defer free(cConfig)
+
+	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, cConfig)
+
+	// | Error | Description
+	// |-------|-------------
+	// | -1	   | An invalid handle was received. Handles should be created with pactffi_new_pact
+	// | -2	   | transport_config is not valid JSON
+	// | -3	   | The mock server could not be started
+	// | -4	   | The method panicked
+	// | -5	   | The address is not valid
+	msPort := int(p)
+	switch msPort {
 	case -1:
 		return 0, ErrInvalidMockServerConfig
 	case -2:
-		return 0, ErrInvalidPact
+		return 0, ErrInvalidMockServerConfig
 	case -3:
 		return 0, ErrMockServerUnableToStart
 	case -4:
 		return 0, ErrMockServerPanic
 	case -5:
 		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
 	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
+		if msPort > 0 {
+			log.Println("[DEBUG] mock server running on port:", msPort)
+			return msPort, nil
 		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
+		return msPort, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", msPort)
 	}
+}
+
+// startTLSProxy creates a self-signed certificate, starts a TLS listener on
+// proxyPort (0 = OS-assigned) and launches a reverse-proxy goroutine that
+// forwards plain HTTP to the pact mock server on backendPort.
+func (m *MockServer) startTLSProxy(host string, proxyPort int, backendPort int) (net.Listener, error) {
+	cert, err := generateSelfSignedCert()
+	if err != nil {
+		return nil, err
+	}
+
+	tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}}
+	listener, err := tls.Listen("tcp", fmt.Sprintf("%s:%d", host, proxyPort), tlsConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	backendURL := &url.URL{
+		Scheme: "http",
+		Host:   fmt.Sprintf("127.0.0.1:%d", backendPort),
+	}
+	proxy := httputil.NewSingleHostReverseProxy(backendURL)
+	srv := &http.Server{Handler: proxy}
+	m.tlsServer = srv
+	go func() {
+		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+			log.Println("[ERROR] TLS proxy serve error:", err)
+		}
+	}()
+
+	return listener, nil
+}
+
+// generateSelfSignedCert creates an ECDSA P-256 self-signed certificate
+// valid for localhost / 127.0.0.1 for 24 hours.
+func generateSelfSignedCert() (tls.Certificate, error) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject:      pkix.Name{CommonName: "pact-go"},
+		NotBefore:    time.Now().Add(-time.Minute),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		DNSNames:     []string{"localhost"},
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	keyDER, err := x509.MarshalECPrivateKey(key)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
+	return tls.X509KeyPair(certPEM, keyPEM)
 }
 
 // StartTransport starts up a mock server on the given address:port for the given transport
@@ -639,6 +738,22 @@ func (i *Interaction) withMultipartFile(contentType string, filename string, mim
 // Set the expected HTTTP response status
 func (i *Interaction) WithStatus(status int) *Interaction {
 	C.pactffi_response_status(i.handle, C.ushort(status))
+
+	return i
+}
+
+// WithReference records an external reference (e.g. a ticket or pull request)
+// against the interaction. References are stored under comments.references[group][name]
+// in the Pact file. This is a V4-only feature.
+func (i *Interaction) WithReference(group, name, value string) *Interaction {
+	cGroup := C.CString(group)
+	defer free(cGroup)
+	cName := C.CString(name)
+	defer free(cName)
+	cValue := C.CString(value)
+	defer free(cValue)
+
+	C.pactffi_add_interaction_reference(i.handle, cGroup, cName, cValue)
 
 	return i
 }
