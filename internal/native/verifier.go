@@ -53,6 +53,9 @@ var (
 	// ErrInvalidVerifierConfig indicates an issue configuring the verifier
 	ErrInvalidVerifierConfig = fmt.Errorf("configuration for the verifier was invalid and an unknown error occurred (this is most likely a defect in the framework)")
 
+	// ErrVerifierFailed and ErrVerifierFailedToRun are mutually exclusive: a
+	// single Verifier call returns one or the other, never both.
+	//
 	//ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful)
 	ErrVerifierFailed = fmt.Errorf("the verifier failed to successfully verify the pacts, this indicates an issue with the provider API")
 	//ErrVerifierFailedToRun indicates the verification process was unable to run
