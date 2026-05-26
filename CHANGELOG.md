@@ -6,7 +6,7 @@ Do this to generate your change history
 ## Versions
 
 ### v2.5.1 (26 May 2026)
-
+  * f7737e8 - docs: update verifier error result sentinel descriptions
 
 ### v2.5.0 (22 May 2026)
   * [1342c81](https://github.com/pact-foundation/pact-go/commit/1342c81) - feat(provider): expose verifier error sentinels for errors.Is discrimination (#577) (Stanislav Vodetskyi, Thu May 21 16:45:56 2026 -0700)
