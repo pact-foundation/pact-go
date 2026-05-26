@@ -112,6 +112,23 @@ type VerifyRequest struct {
 	// PublishVerificationResults to the Pact Broker.
 	PublishVerificationResults bool
 
+	// SoftFail, when true, renders a verification mismatch (one or more
+	// consumer expectations not satisfied by the provider, returned by the
+	// verifier as ErrVerifierFailed) as a SKIPped subtest rather than a
+	// failed one. Use when the caller has a downstream gate — e.g. a Pact
+	// Broker can-i-merge / can-i-deploy check — that owns the authoritative
+	// compatibility decision, and local CI failure on the mismatch would
+	// duplicate or contradict that gate.
+	//
+	// Infrastructure errors (ErrVerifierFailedToRun, panics, broker auth
+	// failures, etc.) always fail the subtest regardless of this flag —
+	// they signal that the verifier could not produce a result for the
+	// downstream gate to act on.
+	//
+	// Default false preserves existing behavior: any verifier error fails
+	// the subtest.
+	SoftFail bool
+
 	// ProviderVersion is the semantical version of the Provider API.
 	ProviderVersion string
 
