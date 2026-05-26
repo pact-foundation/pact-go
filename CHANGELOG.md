@@ -5,6 +5,9 @@ Do this to generate your change history
 
 ## Versions
 
+### v2.5.1 (26 May 2026)
+
+
 ### v2.5.0 (22 May 2026)
   * [1342c81](https://github.com/pact-foundation/pact-go/commit/1342c81) - feat(provider): expose verifier error sentinels for errors.Is discrimination (#577) (Stanislav Vodetskyi, Thu May 21 16:45:56 2026 -0700)
   * [889dc1e](https://github.com/pact-foundation/pact-go/commit/889dc1e) - fix(deps): update module google.golang.org/grpc to v1.81.1 (#574) (renovate[bot], Mon May 18 10:10:39 2026 +1000)

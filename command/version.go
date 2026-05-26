@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	Version    = "v2.5.0"
+	Version    = "v2.5.1"
 	versionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of Pact Go",
