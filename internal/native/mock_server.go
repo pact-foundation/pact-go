@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"unsafe"
 )
@@ -134,52 +135,6 @@ func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
 	C.pactffi_with_specification(m.pact.handle, C.int(version))
 }
 
-// CreateMockServer creates a new Mock Server from a given Pact file.
-// Returns the port number it started on or an error if failed
-func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (int, error) {
-	log.Println("[DEBUG] mock server starting on address:", address)
-	cPact := C.CString(pact)
-	cAddress := C.CString(address)
-	defer free(cPact)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
-	}
-
-	p := C.pactffi_create_mock_server(cPact, cAddress, C.bool(tlsEnabled))
-
-	// | Error | Description |
-	// |-------|-------------|
-	// | -1 | A null pointer was received |
-	// | -2 | The pact JSON could not be parsed |
-	// | -3 | The mock server could not be started |
-	// | -4 | The method panicked |
-	// | -5 | The address is not valid |
-	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
-	case -1:
-		return 0, ErrInvalidMockServerConfig
-	case -2:
-		return 0, ErrInvalidPact
-	case -3:
-		return 0, ErrMockServerUnableToStart
-	case -4:
-		return 0, ErrMockServerPanic
-	case -5:
-		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
-	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
-		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
-	}
-}
-
 // Verify verifies that all interactions were successful. If not, returns a slice
 // of Mismatch-es. Does not write the pact or cleanup server.
 func (m *MockServer) Verify(port int, dir string) (bool, []MismatchedRequest) {
@@ -288,14 +243,45 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	}
 
 	log.Println("[DEBUG] mock server starting on address:", address)
-	cAddress := C.CString(address)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
-	}
 
-	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.bool(tlsEnabled))
+	// Split address into host and port, handling URLs with schemes
+    addr := address
+    if idx := strings.Index(address, "://"); idx != -1 {
+        addr = address[idx+3:]
+    }
+    if idx := strings.Index(addr, "/"); idx != -1 {
+        addr = addr[:idx]
+    }
+
+    host := addr
+    port := 0
+    if idx := strings.LastIndex(addr, ":"); idx != -1 {
+        potentialPort := addr[idx+1:]
+        if potentialPort != "" {
+            if p, err := strconv.Atoi(potentialPort); err == nil {
+                host = addr[:idx]
+                port = p
+            }
+        }
+    }
+    log.Println("[DEBUG] parsed host:", host, "port:", port)
+    cAddress := C.CString(host)
+    defer free(cAddress)
+
+    cTransport := C.CString("http")
+    defer free(cTransport)
+
+	// TODO: I dont think this is correct
+    var configJSON string
+    if tls {
+        configJSON = `{"tls":true}`
+    } else {
+        configJSON = `{}`
+    }
+    cConfig := C.CString(configJSON)
+    defer free(cConfig)
+
+    msPort := int(C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, cConfig))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -305,8 +291,7 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	// | -4 | The method panicked |
 	// | -5 | The address is not valid |
 	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
+	switch msPort {
 	case -1:
 		return 0, ErrInvalidMockServerConfig
 	case -2:
@@ -320,12 +305,12 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	case -6:
 		return 0, ErrMockServerTLSConfiguration
 	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
-		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
-	}
+		if msPort > 0 {
+            log.Println("[DEBUG] mock server running on port:", msPort)
+            return msPort, nil
+        }
+        return msPort, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", msPort)
+    }
 }
 
 // StartTransport starts up a mock server on the given address:port for the given transport
