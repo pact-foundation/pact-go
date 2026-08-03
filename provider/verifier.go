@@ -2,6 +2,7 @@ package provider
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -172,6 +173,16 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 // VerifyProvider accepts an instance of `*testing.T`
 // running the provider verification with granular test reporting and
 // automatic failure reporting for nice, simple tests.
+//
+// The subtest "Provider pact verification" renders as:
+//   - PASS when verification succeeded;
+//   - SKIP (with the underlying error in the skip message) when
+//     request.SoftFail is true AND the error is a verification mismatch
+//     (errors.Is(err, ErrVerifierFailed)) — i.e. a downstream gate owns
+//     the authoritative compatibility decision;
+//   - FAIL otherwise — strict mode for any error, or soft-fail mode when
+//     the verifier itself could not produce a result (infrastructure
+//     error, panic, etc.).
 func (v *Verifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
 	err := v.verifyProviderRaw(request, t)
 
@@ -179,7 +190,18 @@ func (v *Verifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
 	// runTestCases(t, res)
 
 	t.Run("Provider pact verification", func(t *testing.T) {
-		if err != nil {
+		switch {
+		case err == nil:
+			// PASS — verification succeeded.
+		case request.SoftFail && errors.Is(err, native.ErrVerifierFailed):
+			// Soft-fail mode + verification mismatch: render as SKIP so the
+			// test framework does not propagate failure. The caller is
+			// responsible for gating elsewhere (e.g. broker can-i-merge).
+			t.Skipf("pact verification failed (soft-fail enabled, broker has the record): %v", err)
+		default:
+			// Strict mode + any error, OR soft-fail mode + infrastructure
+			// error: fail loudly. Infrastructure errors signal the verifier
+			// could not produce a result for downstream gates to act on.
 			t.Error(err)
 		}
 	})
