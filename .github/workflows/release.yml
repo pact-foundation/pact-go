@@ -1,10 +1,14 @@
 name: Release
 
+# Publishes a GitHub Release with GoReleaser whenever release-please pushes
+# a version tag (see release-please.yml and RELEASING.md). The
+# workflow_dispatch input exists only to re-run publishing against an
+# already-tagged release, e.g. after a failed run.
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (e.g. v2.4.3). Must not already exist. The tag will be created at the current HEAD of the default branch.'
+        description: 'Existing tag to (re-)publish, e.g. v2.4.3.'
         required: true
   push:
     tags:
@@ -19,23 +23,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      -
-        name: Create and push tag (workflow_dispatch only)
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          TAG="${{ github.event.inputs.tag }}"
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9] ]]; then
-            echo "Error: tag '$TAG' does not match expected format (e.g. v2.4.3)"
-            exit 1
-          fi
-          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null 2>&1; then
-            echo "Error: tag '$TAG' already exists on the remote"
-            exit 1
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "$TAG"
-          git push origin "$TAG"
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref }}
       -
         name: Set up Go
         uses: actions/setup-go@v6

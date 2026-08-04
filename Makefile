@@ -135,10 +135,6 @@ publish:
 	@echo "-- 📃 Publishing pacts"
 	@"${PACT_CLI}" publish ${PWD}/examples/pacts --consumer-app-version ${APP_SHA} --tag ${APP_BRANCH} --tag prod
 
-release:
-	echo "--- 🚀 Releasing it"
-	"$(CURDIR)/scripts/release.sh"
-
 ifeq ($(SKIP_PROVIDER_TESTS),true)
 	PROVIDER_TEST_TAGS=
 else
@@ -169,7 +165,7 @@ testrace:
 updatedeps:
 	go get -d -v -p 2 ./...
 
-.PHONY: install bin default dev test pact updatedeps clean release
+.PHONY: install bin default dev test pact updatedeps clean
 
 PROTOC ?= $(shell which protoc)
 

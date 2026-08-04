@@ -11,15 +11,29 @@ builds:
       - linux
       - windows
       - darwin
+    ldflags:
+      - -s -w -X github.com/pact-foundation/pact-go/v2/command.Version={{.Tag}}
 checksum:
   name_template: 'checksums.txt'
 snapshot:
   version_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
+  groups:
+    - title: "Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Other changes"
+      order: 999
   filters:
     exclude:
       - '^docs:'
       - '^test:'
       - '^chore:'
       - '^wip:'
+      - '^ci:'
+      - 'Merge branch'
+      - 'Merge pull request'
