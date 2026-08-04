@@ -313,7 +313,7 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 
 ## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md).
+See [CONTRIBUTING](CONTRIBUTING.md). Maintainers cutting a release should see [RELEASING](RELEASING.md).
 
 <a href="https://github.com/pact-foundation/pact-go/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=pact-foundation/pact-go" />

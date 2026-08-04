@@ -1,0 +1,24 @@
+name: release-please
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      # A PAT (GITHUBRELEASETOKEN) is required, not the default GITHUB_TOKEN:
+      # tags/releases created with the default token don't trigger other
+      # workflows, which would prevent the tag push below from firing
+      # release.yml (the GoReleaser publish job).
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUBRELEASETOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

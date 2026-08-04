@@ -1,9 +1,10 @@
 # Changelog
-Do this to generate your change history
 
-    git log --pretty=format:'  * [%h](https://github.com/pact-foundation/pact-go/commit/%h) - %s (%an, %ad)' vX.Y.Z..HEAD | egrep -v "wip(:|\()" | grep -v "docs(" | grep -v "chore(" | grep -v Merge | grep -v "test("
+Releases from here on are generated automatically by [release-please](https://github.com/googleapis/release-please) from [Conventional Commits](https://www.conventionalcommits.org/) - see [RELEASING.md](RELEASING.md).
 
-## Versions
+## Previous releases
+
+_Entries below this point were generated manually before the release-please migration._
 
 ### v2.5.1 (26 May 2026)
   * f7737e8 - docs: update verifier error result sentinel descriptions
