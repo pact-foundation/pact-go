@@ -6,6 +6,13 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.6.0](https://github.com/pact-foundation/pact-go/compare/v2.5.1...v2.6.0) (2026-08-05)
+
+
+### Features
+
+* **provider:** add SoftFail mode for downstream-gated verification ([#580](https://github.com/pact-foundation/pact-go/issues/580)) ([5f12bb9](https://github.com/pact-foundation/pact-go/commit/5f12bb95e18882fc633a595486828239ba5a4a83))
+
 ### v2.5.1 (26 May 2026)
   * f7737e8 - docs: update verifier error result sentinel descriptions
 
