@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -244,30 +245,16 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 
 	log.Println("[DEBUG] mock server starting on address:", address)
 
-	// Split address into host and port, handling URLs with schemes
-	addr := address
-	if idx := strings.Index(address, "://"); idx != -1 {
-		addr = address[idx+3:]
+	host, portStr, err := net.SplitHostPort(address)
+	if err != nil {
+		return 0, ErrInvalidAddress
 	}
-	if idx := strings.Index(addr, "/"); idx != -1 {
-		addr = addr[:idx]
+	requestedPort, err := strconv.Atoi(portStr)
+	if err != nil {
+		return 0, ErrInvalidAddress
 	}
-
-	host := addr
-	port := 0
-	if idx := strings.LastIndex(addr, ":"); idx != -1 {
-		potentialPort := addr[idx+1:]
-		if potentialPort != "" {
-			if p, err := strconv.Atoi(potentialPort); err == nil {
-				host = addr[:idx]
-				port = p
-			}
-		}
-	}
-	log.Println("[DEBUG] parsed host:", host, "port:", port)
-	cAddress := C.CString(host)
-	defer free(cAddress)
-
+	cHost := C.CString(host)
+	defer free(cHost)
 	var transport string
 	if tls {
 		transport = "https"
@@ -279,7 +266,7 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 
 	cConfig := (*C.char)(nil)
 
-	msPort := int(C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, cConfig))
+	msPort := int(C.pactffi_create_mock_server_for_transport(m.pact.handle, cHost, C.ushort(requestedPort), cTransport, cConfig))
 
 	// | Error | Description |
 	// |-------|-------------|
