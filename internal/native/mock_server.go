@@ -395,7 +395,7 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 		return ErrHandleNotFound
 	default:
 		if res != 0 {
-			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code", res)
 		}
 	}
 
@@ -451,7 +451,7 @@ func (i *Interaction) WithPluginInteractionContents(part interactionPart, conten
 		return ErrPluginSpecificError
 	default:
 		if res != 0 {
-			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code", res)
 		}
 	}
 
@@ -761,11 +761,11 @@ var (
 
 // Log Errors
 var (
-	ErrCantSetLogger      = fmt.Errorf("can't set logger (applying the logger failed, perhaps because one is applied already).")
-	ErrNoLogger           = fmt.Errorf("no logger has been initialized (call `logger_init` before any other log function).")
-	ErrSpecifierNotUtf8   = fmt.Errorf("The sink specifier was not UTF-8 encoded.")
-	ErrUnknownSinkType    = fmt.Errorf(`the sink type specified is not a known type (known types: "buffer", "stdout", "stderr", or "file /some/path").`)
-	ErrMissingFilePath    = fmt.Errorf("no file path was specified in a file-type sink specification.")
-	ErrCantOpenSinkToFile = fmt.Errorf("opening a sink to the specified file path failed (check permissions).")
+	ErrCantSetLogger      = fmt.Errorf("can't set logger (applying the logger failed, perhaps because one is applied already)")
+	ErrNoLogger           = fmt.Errorf("no logger has been initialized (call `logger_init` before any other log function)")
+	ErrSpecifierNotUtf8   = fmt.Errorf("the sink specifier was not UTF-8 encoded")
+	ErrUnknownSinkType    = fmt.Errorf(`the sink type specified is not a known type (known types: "buffer", "stdout", "stderr", or "file /some/path")`)
+	ErrMissingFilePath    = fmt.Errorf("no file path was specified in a file-type sink specification")
+	ErrCantOpenSinkToFile = fmt.Errorf("opening a sink to the specified file path failed (check permissions)")
 	ErrCantConstructSink  = fmt.Errorf("can't construct the log sink")
 )

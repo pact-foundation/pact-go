@@ -12,7 +12,6 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
-	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
@@ -23,7 +22,7 @@ import (
 // e.g. MQ, pub/sub, Websocket, Lambda
 // AsynchronousMessageBuilder is the main implementation of the Pact AsynchronousMessageBuilder interface.
 type AsynchronousMessageBuilder struct {
-	messageHandle *mockserver.Message
+	messageHandle *native.Message
 	messagePactV3 *AsynchronousPact
 
 	// Type to Marshal content into when sending back to the consumer
@@ -78,7 +77,7 @@ type AsynchronousMessageBuilderWithContents struct {
 
 // WithBinaryContent accepts a binary payload
 func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
+	m.rootBuilder.messageHandle.WithContents(native.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,
@@ -87,7 +86,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithBinaryContent(contentType s
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string, body []byte) *AsynchronousMessageBuilderWithContents {
-	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
+	m.rootBuilder.messageHandle.WithContents(native.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageBuilderWithContents{
 		rootBuilder: m.rootBuilder,
@@ -135,7 +134,7 @@ type AsynchronousPact struct {
 	config Config
 
 	// Reference to the native rust handle
-	messageserver *mockserver.MessageServer
+	messageserver *native.MessageServer
 }
 
 // Deprecated: use NewAsynchronousPact
@@ -165,7 +164,7 @@ func (p *AsynchronousPact) validateConfig() error {
 		p.config.PactDir = filepath.Join(dir, "pacts")
 	}
 
-	p.messageserver = mockserver.NewMessageServer(p.config.Consumer, p.config.Provider)
+	p.messageserver = native.NewMessageServer(p.config.Consumer, p.config.Provider)
 	p.messageserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
 
 	return nil
@@ -204,12 +203,12 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 	// 1. Strip out the matchers
 	// Reify the message back to its "example/generated" form
 	body, err := messageToVerify.messageHandle.GetMessageRequestContents()
-	log.Println("[DEBUG] reified message raw", body)
+	log.Println("[DEBUG] reified message raw", string(body))
 	if err != nil {
 		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
 	}
 
-	log.Println("[DEBUG] reified message raw", body)
+	log.Println("[DEBUG] reified message raw", string(body))
 
 	var m MessageContents
 	// err = json.Unmarshal(body, &m)

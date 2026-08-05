@@ -10,7 +10,6 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
-	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
@@ -303,7 +302,7 @@ func (m *SynchronousPact) validateConfig() error {
 	}
 
 	m.mockserver = native.NewMessageServer(m.config.Consumer, m.config.Provider)
-	m.mockserver.WithSpecificationVersion(mockserver.SPECIFICATION_VERSION_V4)
+	m.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	m.mockserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
 
 	return nil

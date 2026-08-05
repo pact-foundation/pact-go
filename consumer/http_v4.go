@@ -36,7 +36,7 @@ func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 // AddInteraction to the pact
 func (p *V4HTTPMockProvider) AddInteraction() *V4UnconfiguredInteraction {
 	log.Println("[DEBUG] pact add V4 interaction")
-	interaction := p.httpMockProvider.mockserver.NewInteraction("")
+	interaction := p.mockserver.NewInteraction("")
 
 	i := &V4UnconfiguredInteraction{
 		interaction: &Interaction{

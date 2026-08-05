@@ -123,7 +123,9 @@ func Test_FindPortInRangeWithUsedPorts(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Could not bind to port %s in test", s)
 			}
-			defer l.Close()
+			defer func() {
+				_ = l.Close()
+			}()
 			p, err := FindPortInRange(c.s)
 			if err != nil && err.Error() != c.errorMsg {
 				t.Fatalf("unexpected error %s", err.Error())

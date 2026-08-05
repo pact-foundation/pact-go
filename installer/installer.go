@@ -302,7 +302,7 @@ var setMacOSInstallName = func(file string) error {
 		return fmt.Errorf("error setting install name on pact lib: %s", err)
 	}
 
-	log.Println("[DEBUG] output from command", stdoutStderr)
+	log.Println("[DEBUG] output from command", string(stdoutStderr))
 
 	return err
 }
@@ -417,13 +417,17 @@ func (d *defaultDownloader) download(src string, dst string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create output file; %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	resp, err := http.Get(src)
 	if err != nil {
 		return fmt.Errorf("failed http call to %s; %w", src, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	archive, err := gzip.NewReader(resp.Body)
 	if err != nil {
@@ -523,7 +527,9 @@ func (d *defaultHasher) hash(src string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	h := md5.New()
 	if _, err := io.Copy(h, f); err != nil {
