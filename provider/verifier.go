@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -382,7 +383,7 @@ func WaitForPort(port int, network string, address string, timeoutDuration time.
 			log.Printf("[ERROR] expected server to start < %s. %s", timeoutDuration, message)
 			return fmt.Errorf("expected server to start < %s. %s", timeoutDuration, message)
 		case <-time.After(50 * time.Millisecond):
-			_, err := net.Dial(network, fmt.Sprintf("%s:%d", address, port))
+			_, err := net.Dial(network, net.JoinHostPort(address, strconv.Itoa(port)))
 			if err == nil {
 				return nil
 			}

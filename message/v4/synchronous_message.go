@@ -10,7 +10,6 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
-	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
@@ -61,6 +60,15 @@ func (m *UnconfiguredSynchronousMessageBuilder) GivenWithParameter(state models.
 type UnconfiguredSynchronousMessageBuilder struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
+}
+
+// AddExternalReference records a reference to an external resource (such as a ticket or
+// pull request) against the interaction. References appear under
+// comments.references[group][name] in the Pact file. May be called multiple times.
+func (m *UnconfiguredSynchronousMessageBuilder) AddExternalReference(group, name, value string) *UnconfiguredSynchronousMessageBuilder {
+	m.messageHandle.WithReference(group, name, value)
+
+	return m
 }
 
 // UsingPlugin enables a plugin for use in the current test case
@@ -303,7 +311,7 @@ func (m *SynchronousPact) validateConfig() error {
 	}
 
 	m.mockserver = native.NewMessageServer(m.config.Consumer, m.config.Provider)
-	m.mockserver.WithSpecificationVersion(mockserver.SPECIFICATION_VERSION_V4)
+	m.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	m.mockserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
 
 	return nil
