@@ -35,7 +35,7 @@ func NewV3Pact(config MockHTTPProviderConfig) (*V3HTTPMockProvider, error) {
 // AddInteraction to the pact
 func (p *V3HTTPMockProvider) AddInteraction() *V3UnconfiguredInteraction {
 	log.Println("[DEBUG] pact add V3 interaction")
-	interaction := p.httpMockProvider.mockserver.NewInteraction("")
+	interaction := p.mockserver.NewInteraction("")
 
 	i := &V3UnconfiguredInteraction{
 		interaction: &Interaction{

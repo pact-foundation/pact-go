@@ -8,37 +8,11 @@ import "C"
 import (
 	"fmt"
 	"log"
-	"strings"
 	"unsafe"
 )
 
 type Verifier struct {
 	handle *C.VerifierHandle
-}
-
-func (v *Verifier) Verify(args []string) error {
-	log.Println("[DEBUG] executing verifier FFI with args", args)
-	cargs := C.CString(strings.Join(args, "\n"))
-	defer free(cargs)
-	result := C.pactffi_verify(cargs)
-
-	/// | Error | Description |
-	/// |-------|-------------|
-	/// | 1 | The verification process failed, see output for errors |
-	/// | 2 | A null pointer was received |
-	/// | 3 | The method panicked |
-	switch int(result) {
-	case 0:
-		return nil
-	case 1:
-		return ErrVerifierFailed
-	case 2:
-		return ErrInvalidVerifierConfig
-	case 3:
-		return ErrVerifierPanic
-	default:
-		return fmt.Errorf("an unknown error (%d) ocurred when verifying the provider (this indicates a defect in the framework)", int(result))
-	}
 }
 
 // Version returns the current semver FFI interface version

@@ -11,7 +11,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"os"
+	"strconv"
 	"strings"
 	"unsafe"
 )
@@ -134,52 +136,6 @@ func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
 	C.pactffi_with_specification(m.pact.handle, C.int(version))
 }
 
-// CreateMockServer creates a new Mock Server from a given Pact file.
-// Returns the port number it started on or an error if failed
-func (m *MockServer) CreateMockServer(pact string, address string, tls bool) (int, error) {
-	log.Println("[DEBUG] mock server starting on address:", address)
-	cPact := C.CString(pact)
-	cAddress := C.CString(address)
-	defer free(cPact)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
-	}
-
-	p := C.pactffi_create_mock_server(cPact, cAddress, C.bool(tlsEnabled))
-
-	// | Error | Description |
-	// |-------|-------------|
-	// | -1 | A null pointer was received |
-	// | -2 | The pact JSON could not be parsed |
-	// | -3 | The mock server could not be started |
-	// | -4 | The method panicked |
-	// | -5 | The address is not valid |
-	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
-	case -1:
-		return 0, ErrInvalidMockServerConfig
-	case -2:
-		return 0, ErrInvalidPact
-	case -3:
-		return 0, ErrMockServerUnableToStart
-	case -4:
-		return 0, ErrMockServerPanic
-	case -5:
-		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
-	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
-		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
-	}
-}
-
 // Verify verifies that all interactions were successful. If not, returns a slice
 // of Mismatch-es. Does not write the pact or cleanup server.
 func (m *MockServer) Verify(port int, dir string) (bool, []MismatchedRequest) {
@@ -281,21 +237,36 @@ func libRustFree(str *C.char) {
 }
 
 // Start starts up the mock HTTP server on the given address:port and TLS config
-// https://docs.rs/pact_mock_server_ffi/0.0.7/pact_mock_server_ffi/fn.create_mock_server_for_pact.html
+// https://docs.rs/pact_ffi/latest/pact_ffi/mock_server/fn.pactffi_create_mock_server_for_transport.html
 func (m *MockServer) Start(address string, tls bool) (int, error) {
 	if len(m.interactions) == 0 {
 		return 0, ErrNoInteractions
 	}
 
 	log.Println("[DEBUG] mock server starting on address:", address)
-	cAddress := C.CString(address)
-	defer free(cAddress)
-	tlsEnabled := false
-	if tls {
-		tlsEnabled = true
-	}
 
-	p := C.pactffi_create_mock_server_for_pact(m.pact.handle, cAddress, C.bool(tlsEnabled))
+	host, portStr, err := net.SplitHostPort(address)
+	if err != nil {
+		return 0, ErrInvalidAddress
+	}
+	requestedPort, err := strconv.Atoi(portStr)
+	if err != nil {
+		return 0, ErrInvalidAddress
+	}
+	cHost := C.CString(host)
+	defer free(cHost)
+	var transport string
+	if tls {
+		transport = "https"
+	} else {
+		transport = "http"
+	}
+	cTransport := C.CString(transport)
+	defer free(cTransport)
+
+	cConfig := (*C.char)(nil)
+
+	msPort := int(C.pactffi_create_mock_server_for_transport(m.pact.handle, cHost, C.ushort(requestedPort), cTransport, cConfig))
 
 	// | Error | Description |
 	// |-------|-------------|
@@ -305,26 +276,23 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 	// | -4 | The method panicked |
 	// | -5 | The address is not valid |
 	// | -6 | Could not create the TLS configuration with the self-signed certificate |
-	port := int(p)
-	switch port {
+	switch msPort {
 	case -1:
 		return 0, ErrInvalidMockServerConfig
 	case -2:
-		return 0, ErrInvalidPact
+		return 0, ErrInvalidMockServerConfig
 	case -3:
 		return 0, ErrMockServerUnableToStart
 	case -4:
 		return 0, ErrMockServerPanic
 	case -5:
 		return 0, ErrInvalidAddress
-	case -6:
-		return 0, ErrMockServerTLSConfiguration
 	default:
-		if port > 0 {
-			log.Println("[DEBUG] mock server running on port:", port)
-			return port, nil
+		if msPort > 0 {
+			log.Println("[DEBUG] mock server running on port:", msPort)
+			return msPort, nil
 		}
-		return port, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", port)
+		return msPort, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", msPort)
 	}
 }
 
@@ -412,7 +380,7 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 		return ErrHandleNotFound
 	default:
 		if res != 0 {
-			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code", res)
 		}
 	}
 
@@ -468,7 +436,7 @@ func (i *Interaction) WithPluginInteractionContents(part interactionPart, conten
 		return ErrPluginSpecificError
 	default:
 		if res != 0 {
-			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code", res)
 		}
 	}
 
@@ -643,6 +611,22 @@ func (i *Interaction) WithStatus(status int) *Interaction {
 	return i
 }
 
+// WithReference records an external reference (e.g. a ticket or pull request)
+// against the interaction. References are stored under comments.references[group][name]
+// in the Pact file. This is a V4-only feature.
+func (i *Interaction) WithReference(group, name, value string) *Interaction {
+	cGroup := C.CString(group)
+	defer free(cGroup)
+	cName := C.CString(name)
+	defer free(cName)
+	cValue := C.CString(value)
+	defer free(cValue)
+
+	C.pactffi_add_interaction_reference(i.handle, cGroup, cName, cValue)
+
+	return i
+}
+
 type stringLike interface {
 	String() string
 }
@@ -778,11 +762,11 @@ var (
 
 // Log Errors
 var (
-	ErrCantSetLogger      = fmt.Errorf("can't set logger (applying the logger failed, perhaps because one is applied already).")
-	ErrNoLogger           = fmt.Errorf("no logger has been initialized (call `logger_init` before any other log function).")
-	ErrSpecifierNotUtf8   = fmt.Errorf("The sink specifier was not UTF-8 encoded.")
-	ErrUnknownSinkType    = fmt.Errorf(`the sink type specified is not a known type (known types: "buffer", "stdout", "stderr", or "file /some/path").`)
-	ErrMissingFilePath    = fmt.Errorf("no file path was specified in a file-type sink specification.")
-	ErrCantOpenSinkToFile = fmt.Errorf("opening a sink to the specified file path failed (check permissions).")
+	ErrCantSetLogger      = fmt.Errorf("can't set logger (applying the logger failed, perhaps because one is applied already)")
+	ErrNoLogger           = fmt.Errorf("no logger has been initialized (call `logger_init` before any other log function)")
+	ErrSpecifierNotUtf8   = fmt.Errorf("the sink specifier was not UTF-8 encoded")
+	ErrUnknownSinkType    = fmt.Errorf(`the sink type specified is not a known type (known types: "buffer", "stdout", "stderr", or "file /some/path")`)
+	ErrMissingFilePath    = fmt.Errorf("no file path was specified in a file-type sink specification")
+	ErrCantOpenSinkToFile = fmt.Errorf("opening a sink to the specified file path failed (check permissions)")
 	ErrCantConstructSink  = fmt.Errorf("can't construct the log sink")
 )
