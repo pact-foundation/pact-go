@@ -6,6 +6,13 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.7.0](https://github.com/pact-foundation/pact-go/compare/v2.6.0...v2.7.0) (2026-08-06)
+
+
+### Features
+
+* add external reference ([#592](https://github.com/pact-foundation/pact-go/issues/592)) ([d32f05e](https://github.com/pact-foundation/pact-go/commit/d32f05ea226d2f8cd34c65a0359e7a9ec3cbdb11))
+
 ## [2.6.0](https://github.com/pact-foundation/pact-go/compare/v2.5.1...v2.6.0) (2026-08-05)
 
 
