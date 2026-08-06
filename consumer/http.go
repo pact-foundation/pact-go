@@ -201,7 +201,7 @@ func (p *httpMockProvider) displayMismatches(t *testing.T, mismatches []native.M
 		fmt.Println("\t\tDiff:")
 		log.Println("[INFO] pact validation failed, errors: ")
 		for _, m := range mismatches {
-			formattedRequest := fmt.Sprintf("%s %s", m.Method, m.Path)
+			formattedRequest := fmt.Sprintf("%s %s", m.Request.Method, m.Request.Path)
 			switch m.Type {
 			case "missing-request":
 				fmt.Printf("\t\texpected: \t%s (Expected request that was not received)\n", formattedRequest)

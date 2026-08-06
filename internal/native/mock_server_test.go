@@ -17,34 +17,9 @@ func init() {
 	Init("")
 }
 
-// newSimpleMockServer creates a mock server with a simple GET /foobar → 200 interaction
-// using the programmatic API, replacing the removed CreateMockServer function.
-func newSimpleMockServer(t *testing.T) (*MockServer, int) {
-	t.Helper()
-	m := NewHTTPPact("consumer", "provider")
-	m.NewInteraction("Some name for the test").
-		UponReceiving("Some name for the test").
-		Given("Some state").
-		WithRequest("GET", "/foobar").
-		WithStatus(200)
-	port, err := m.Start("0.0.0.0:0", false)
-	if err != nil {
-		t.Fatalf("failed to start mock server: %v", err)
-	}
-	return m, port
-}
-
 func TestMockServer_CreateAndCleanupMockServer(t *testing.T) {
-	m := NewHTTPPact("consumer", "provider")
-	m.NewInteraction("Some complex interaction").
-		UponReceiving("Some complex interaction").
-		Given("Some state").
-		WithRequest("GET", "/foobar").
-		WithStatus(200)
-	port, err := m.Start("0.0.0.0:0", false)
-	if err != nil {
-		t.Fatal("failed to start mock server:", err)
-	}
+	m := MockServer{}
+	port, _ := m.CreateMockServer(pactComplex, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
 	if port <= 0 {
@@ -53,7 +28,8 @@ func TestMockServer_CreateAndCleanupMockServer(t *testing.T) {
 }
 
 func TestMockServer_MismatchesSuccess(t *testing.T) {
-	m, port := newSimpleMockServer(t)
+	m := MockServer{}
+	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
 	res, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
@@ -72,7 +48,8 @@ func TestMockServer_MismatchesSuccess(t *testing.T) {
 }
 
 func TestMockServer_MismatchesFail(t *testing.T) {
-	m, port := newSimpleMockServer(t)
+	m := MockServer{}
+	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
 	mismatches := m.MockServerMismatchedRequests(port)
@@ -85,7 +62,8 @@ func TestMockServer_VerifySuccess(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 
-	m, port := newSimpleMockServer(t)
+	m := MockServer{}
+	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
 	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
@@ -106,7 +84,8 @@ func TestMockServer_VerifySuccess(t *testing.T) {
 func TestMockServer_VerifyFail(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
-	m, port := newSimpleMockServer(t)
+	m := MockServer{}
+	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 
 	success, mismatches := m.Verify(port, tmpPactFolder)
 	if success {
@@ -122,7 +101,8 @@ func TestMockServer_WritePactfile(t *testing.T) {
 	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
 	assert.NoError(t, err)
 
-	m, port := newSimpleMockServer(t)
+	m := MockServer{}
+	port, _ := m.CreateMockServer(pactSimple, "0.0.0.0:0", false)
 	defer m.CleanupMockServer(port)
 
 	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
@@ -175,6 +155,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 
 	_, err = http.Get(fmt.Sprintf("http://0.0.0.0:%d/products", port))
 	assert.NoError(t, err)
+
 	mismatches := m.MockServerMismatchedRequests(port)
 	if len(mismatches) != 0 {
 		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
@@ -242,3 +223,73 @@ func TestPluginInteraction(t *testing.T) {
 	err = m.WritePactFile(port, tmpPactFolder)
 	assert.NoError(t, err)
 }
+
+var pactSimple = `{
+  "consumer": {
+    "name": "consumer"
+  },
+  "provider": {
+    "name": "provider"
+  },
+  "interactions": [
+    {
+      "description": "Some name for the test",
+      "request": {
+        "method": "GET",
+        "path": "/foobar"
+      },
+      "response": {
+        "status": 200
+      },
+      "description": "Some name for the test",
+      "provider_state": "Some state"
+  }]
+}`
+
+var pactComplex = `{
+  "consumer": {
+    "name": "consumer"
+  },
+  "provider": {
+    "name": "provider"
+  },
+  "interactions": [
+    {
+    "request": {
+      "method": "GET",
+      "path": "/foobar",
+      "body": {
+        "pass": 1234,
+        "user": {
+          "address": "some address",
+          "name": "someusername",
+          "phone": 12345678,
+          "plaintext": "plaintext"
+        }
+      }
+    },
+    "response": {
+      "status": 200
+    },
+    "description": "Some name for the test",
+    "provider_state": "Some state",
+    "matchingRules": {
+      "$.body.pass": {
+        "match": "regex",
+        "regex": "\\d+"
+      },
+      "$.body.user.address": {
+        "match": "regex",
+        "regex": "\\s+"
+      },
+      "$.body.user.name": {
+        "match": "regex",
+        "regex": "\\s+"
+      },
+      "$.body.user.phone": {
+        "match": "regex",
+        "regex": "\\d+"
+      }
+    }
+  }]
+}`

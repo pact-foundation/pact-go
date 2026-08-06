@@ -298,8 +298,8 @@ func MatchV2(src interface{}) Matcher {
 // match recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
 func match(srcType reflect.Type, params params) Matcher {
-	switch srcType.Kind() {
-	case reflect.Pointer:
+	switch kind := srcType.Kind(); kind {
+	case reflect.Ptr:
 		return match(srcType.Elem(), params)
 	case reflect.Slice, reflect.Array:
 		return EachLike(match(srcType.Elem(), getDefaults()), params.slice.min)

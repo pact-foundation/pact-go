@@ -302,7 +302,7 @@ var setMacOSInstallName = func(file string) error {
 		return fmt.Errorf("error setting install name on pact lib: %s", err)
 	}
 
-	log.Println("[DEBUG] output from command", string(stdoutStderr))
+	log.Println("[DEBUG] output from command", stdoutStderr)
 
 	return err
 }
@@ -388,7 +388,7 @@ const (
 var packages = map[string]packageInfo{
 	FFIPackage: {
 		libName:     "libpact_ffi",
-		version:     "0.5.6",
+		version:     "0.4.28",
 		semverRange: ">= 0.4.0, < 1.0.0",
 	},
 }
@@ -417,17 +417,13 @@ func (d *defaultDownloader) download(src string, dst string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create output file; %w", err)
 	}
-	defer func() {
-		_ = f.Close()
-	}()
+	defer f.Close()
 
 	resp, err := http.Get(src)
 	if err != nil {
 		return fmt.Errorf("failed http call to %s; %w", src, err)
 	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
+	defer resp.Body.Close()
 
 	archive, err := gzip.NewReader(resp.Body)
 	if err != nil {
@@ -527,9 +523,7 @@ func (d *defaultHasher) hash(src string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer func() {
-		_ = f.Close()
-	}()
+	defer f.Close()
 
 	h := md5.New()
 	if _, err := io.Copy(h, f); err != nil {
