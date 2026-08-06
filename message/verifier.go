@@ -59,9 +59,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				// Extract message
 				var message messageVerificationHandlerRequest
 				body, err := io.ReadAll(r.Body)
-				if closeErr := r.Body.Close(); closeErr != nil {
-					log.Println("[WARN] failed to close request body:", closeErr)
-				}
+				r.Body.Close()
 				log.Printf("[TRACE] message verification handler received request: %+s, %s", body, r.URL.Path)
 
 				if err != nil {

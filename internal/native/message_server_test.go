@@ -406,9 +406,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	if err != nil {
 		l.Fatalf("did not connect: %v", err)
 	}
-	defer func() {
-		_ = conn.Close()
-	}()
+	defer conn.Close()
 	c := NewPactPluginClient(conn)
 
 	// Contact the server and print out its response.
@@ -482,9 +480,7 @@ func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 	if err != nil {
 		l.Fatalf("did not connect: %v", err)
 	}
-	defer func() {
-		_ = conn.Close()
-	}()
+	defer conn.Close()
 	c := NewPactPluginClient(conn)
 
 	// Contact the server and print out its response.

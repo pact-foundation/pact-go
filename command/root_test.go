@@ -54,7 +54,7 @@ func captureOutput(action func()) string {
 
 	action()
 
-	_ = w.Close()
+	w.Close()
 	out, _ := io.ReadAll(r)
 	os.Stderr = rescueStderr
 
