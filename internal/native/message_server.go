@@ -232,7 +232,7 @@ func (m *Message) WithContents(part interactionPart, contentType string, body []
 	defer free(cHeader)
 
 	cBody := C.CString(string(body))
-    defer free(cBody)
+	defer free(cBody)
 
 	res := C.pactffi_with_body(m.handle, C.int(part), cHeader, cBody)
 	log.Println("[DEBUG] response from pactffi_interaction_contents", (bool(res)))
@@ -264,7 +264,7 @@ func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) err
 		return ErrHandleNotFound
 	default:
 		if res != 0 {
-			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code", res)
 		}
 	}
 
@@ -302,7 +302,7 @@ func (m *Message) WithPluginInteractionContents(part interactionPart, contentTyp
 		return ErrPluginSpecificError
 	default:
 		if res != 0 {
-			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code:", res)
+			return fmt.Errorf("an unknown error (code: %v) occurred when adding a plugin for the test. Received error code", res)
 		}
 	}
 
@@ -543,10 +543,7 @@ func (m *MessageServer) WritePactFile(dir string, overwrite bool) error {
 	cDir := C.CString(dir)
 	defer free(cDir)
 
-	overwritePact := false
-	if overwrite {
-		overwritePact = true
-	}
+	overwritePact := overwrite
 
 	res := int(C.pactffi_write_message_pact_file(m.messagePact.handle, cDir, C.bool(overwritePact)))
 
@@ -572,10 +569,7 @@ func (m *MessageServer) WritePactFileForServer(port int, dir string, overwrite b
 	cDir := C.CString(dir)
 	defer free(cDir)
 
-	overwritePact := false
-	if overwrite {
-		overwritePact = true
-	}
+	overwritePact := overwrite
 
 	res := int(C.pactffi_write_pact_file(C.int(port), cDir, C.bool(overwritePact)))
 
@@ -595,4 +589,20 @@ func (m *MessageServer) WritePactFileForServer(port int, dir string, overwrite b
 	default:
 		return fmt.Errorf("an unknown error ocurred when writing to pact file")
 	}
+}
+
+// WithReference records an external reference (e.g. a ticket or pull request)
+// against the interaction. References are stored under comments.references[group][name]
+// in the Pact file. This is a V4-only feature.
+func (m *Message) WithReference(group, name, value string) *Message {
+	cGroup := C.CString(group)
+	defer free(cGroup)
+	cName := C.CString(name)
+	defer free(cName)
+	cValue := C.CString(value)
+	defer free(cValue)
+
+	C.pactffi_add_interaction_reference(m.handle, cGroup, cName, cValue)
+
+	return m
 }

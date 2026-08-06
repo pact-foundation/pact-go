@@ -36,7 +36,7 @@ func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 // AddInteraction to the pact
 func (p *V4HTTPMockProvider) AddInteraction() *V4UnconfiguredInteraction {
 	log.Println("[DEBUG] pact add V4 interaction")
-	interaction := p.httpMockProvider.mockserver.NewInteraction("")
+	interaction := p.mockserver.NewInteraction("")
 
 	i := &V4UnconfiguredInteraction{
 		interaction: &Interaction{
@@ -88,6 +88,15 @@ type V4RequestBuilder struct {
 // the consumer/provider pair in the Pact file. Mandatory.
 func (i *V4UnconfiguredInteraction) UponReceiving(description string) *V4UnconfiguredInteraction {
 	i.interaction.interaction.UponReceiving(description)
+
+	return i
+}
+
+// AddExternalReference records a reference to an external resource (such as a ticket or
+// pull request) against the interaction. References appear under
+// comments.references[group][name] in the Pact file. May be called multiple times.
+func (i *V4UnconfiguredInteraction) AddExternalReference(group, name, value string) *V4UnconfiguredInteraction {
+	i.interaction.interaction.WithReference(group, name, value)
 
 	return i
 }

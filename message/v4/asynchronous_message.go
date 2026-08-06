@@ -12,7 +12,6 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/command"
 	"github.com/pact-foundation/pact-go/v2/internal/native"
-	mockserver "github.com/pact-foundation/pact-go/v2/internal/native"
 	logging "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 )
@@ -22,7 +21,7 @@ import (
 // Builder 3: Async with plugin content + transport
 
 type AsynchronousMessageBuilder struct {
-	messageHandle *mockserver.Message
+	messageHandle *native.Message
 	pact          *AsynchronousPact
 
 	// Type to Marshal content into when sending back to the consumer
@@ -43,6 +42,15 @@ func (m *AsynchronousMessageBuilder) Given(state string) *AsynchronousMessageBui
 // Given specifies a provider state. Optional.
 func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *AsynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
+
+	return m
+}
+
+// AddExternalReference records a reference to an external resource (such as a ticket or
+// pull request) against the interaction. References appear under
+// comments.references[group][name] in the Pact file. May be called multiple times.
+func (m *AsynchronousMessageBuilder) AddExternalReference(group, name, value string) *AsynchronousMessageBuilder {
+	m.messageHandle.WithReference(group, name, value)
 
 	return m
 }
@@ -171,7 +179,7 @@ type AsynchronousMessageWithContents struct {
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
 func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string, body []byte) *AsynchronousMessageWithContents {
-	m.rootBuilder.messageHandle.WithContents(mockserver.INTERACTION_PART_REQUEST, contentType, body)
+	m.rootBuilder.messageHandle.WithContents(native.INTERACTION_PART_REQUEST, contentType, body)
 
 	return &AsynchronousMessageWithContents{
 		rootBuilder: m.rootBuilder,
@@ -219,7 +227,7 @@ type AsynchronousPact struct {
 	config Config
 
 	// Reference to the native rust handle
-	messageserver *mockserver.MessageServer
+	messageserver *native.MessageServer
 }
 
 func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
@@ -246,8 +254,8 @@ func (p *AsynchronousPact) validateConfig() error {
 		p.config.PactDir = filepath.Join(dir, "pacts")
 	}
 
-	p.messageserver = mockserver.NewMessageServer(p.config.Consumer, p.config.Provider)
-	p.messageserver.WithSpecificationVersion(mockserver.SPECIFICATION_VERSION_V4)
+	p.messageserver = native.NewMessageServer(p.config.Consumer, p.config.Provider)
+	p.messageserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	p.messageserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
 
 	return nil
@@ -320,7 +328,7 @@ func getAsynchronousMessageWithContents(message *native.Message) (AsynchronousMe
 	}, nil
 }
 
-func getAsynchronousMessageWithReifiedContents(message *mockserver.Message, reifiedType interface{}) (AsynchronousMessage, error) {
+func getAsynchronousMessageWithReifiedContents(message *native.Message, reifiedType interface{}) (AsynchronousMessage, error) {
 	var m AsynchronousMessage
 	var err error
 
