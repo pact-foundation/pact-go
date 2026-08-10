@@ -17,7 +17,7 @@ jobs:
       # tags/releases created with the default token don't trigger other
       # workflows, which would prevent the tag push below from firing
       # release.yml (the GoReleaser publish job).
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           token: ${{ secrets.GITHUBRELEASETOKEN }}
           config-file: release-please-config.json
