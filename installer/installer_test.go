@@ -255,3 +255,15 @@ func restoreMacOSInstallName() func() {
 func TestUpdateConfiguration(t *testing.T) {
 
 }
+
+// TestPackagesVersionSatisfiesOwnSemverRange guards against version/semverRange
+// drift: the FFI version compiled into each release must fall inside the semver
+// range used to accept an already-installed library. If they drift apart, a
+// fresh install of the shipped version can fail its own post-install check, or a
+// stale, mismatched library can pass the check and then break at link/load time.
+func TestPackagesVersionSatisfiesOwnSemverRange(t *testing.T) {
+	for pkg, info := range packages {
+		err := checkVersion(info.libName, info.version, info.semverRange)
+		assert.NoErrorf(t, err, "package %q: compiled-in version %q must satisfy its own semverRange %q", pkg, info.version, info.semverRange)
+	}
+}
