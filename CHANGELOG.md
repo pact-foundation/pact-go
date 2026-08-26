@@ -6,6 +6,14 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.7.1](https://github.com/pact-foundation/pact-go/compare/v2.7.0...v2.7.1) (2026-08-26)
+
+
+### Bug Fixes
+
+* **deps:** update module google.golang.org/grpc to v1.83.0 ([#585](https://github.com/pact-foundation/pact-go/issues/585)) ([52a2cb4](https://github.com/pact-foundation/pact-go/commit/52a2cb4da99e873b5f9939bcf3bc33a395db616f))
+* **installer:** pin libpact_ffi semver range to the shipped minor ([#605](https://github.com/pact-foundation/pact-go/issues/605)) ([ae9fe5f](https://github.com/pact-foundation/pact-go/commit/ae9fe5f7266c6a5c557908d5c39a1ba3a2419b0d))
+
 ## [2.7.0](https://github.com/pact-foundation/pact-go/compare/v2.6.0...v2.7.0) (2026-08-06)
 
 
