@@ -15,7 +15,7 @@ import (
 //     or when pact-go is imported as a module dependency, resolve it from
 //     the Go module's build info at runtime, so no source change is needed.
 //
-// There is no version to bump for a release - see RELEASING.md.
+// There is no version to bump for a release - see docs/contributing/releasing.md.
 var (
 	Version    = "dev"
 	versionCmd = &cobra.Command{

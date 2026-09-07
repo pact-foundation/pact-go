@@ -6,7 +6,7 @@ Security fixes are applied to the latest `2.x.x` release, the current major
 version. The previous major, `1.x.x`, is maintained on the [`release/1.x.x`
 branch](https://github.com/pact-foundation/pact-go/tree/release/1.x.x) and,
 per
-[`DEVELOPER.md`](https://github.com/pact-foundation/pact-go/blob/master/DEVELOPER.md#1xx),
+[`developer.md`](https://github.com/pact-foundation/pact-go/blob/master/docs/contributing/developer.md#1xx),
 bug fixes and security updates are still considered there. The `0.x.x`
 series is no longer maintained.
 

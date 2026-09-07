@@ -1,6 +1,6 @@
 # Changelog
 
-Releases from here on are generated automatically by [release-please](https://github.com/googleapis/release-please) from [Conventional Commits](https://www.conventionalcommits.org/) - see [RELEASING.md](RELEASING.md).
+Releases from here on are generated automatically by [release-please](https://github.com/googleapis/release-please) from [Conventional Commits](https://www.conventionalcommits.org/) - see [RELEASING.md](https://github.com/pact-foundation/pact-go/blob/master/docs/contributing/releasing.md).
 
 ## Previous releases
 
