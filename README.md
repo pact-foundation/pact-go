@@ -63,7 +63,7 @@ This readme offers an basic introduction to the library. The full documentation 
 - [Consumer Testing](./docs/consumer.md)
 - [Provider Testing](./docs/provider.md)
 - [Event Driven Systems](./docs/messages.md)
-- [Migration guide](./MIGRATION.md)
+- [Migration guide](./docs/migration.md)
 - [Troubleshooting](./docs/troubleshooting.md)
 
 ### Tutorial (60 minutes)
