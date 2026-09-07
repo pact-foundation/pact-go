@@ -1,5 +1,10 @@
+// Package v4 implements Pact V4 message pacts: asynchronous (one-way) and
+// synchronous (request/response) message interactions, built through the
+// fluent AsynchronousPact and SynchronousPact APIs.
 package v4
 
+// Metadata holds message-implementation-specific metadata, such as queue
+// or topic headers, sent alongside a message's content.
 type Metadata map[string]any
 
 // AsynchronousMessage is a representation of a single, unidirectional message
@@ -11,7 +16,9 @@ type AsynchronousMessage MessageContents
 // the content.
 type AsynchronousConsumer func(AsynchronousMessage) error
 
-// V3 Message (Asynchronous only).
+// MessageContents holds a V4 message's body and metadata, used for both
+// AsynchronousMessage (as the whole message) and SynchronousMessage's
+// separate Request and Responses.
 type MessageContents struct {
 	// Message Body
 	Contents []byte
@@ -24,6 +31,8 @@ type MessageContents struct {
 	// Metadata field (type Metadata): `json:"metadata"`
 }
 
+// Config identifies the consumer, provider and pact output directory for
+// an AsynchronousPact or SynchronousPact.
 type Config struct {
 	Consumer string
 	Provider string

@@ -1,3 +1,5 @@
+// Package version checks that the native pact_ffi library required by
+// this module is installed at a compatible version.
 package version
 
 import (
