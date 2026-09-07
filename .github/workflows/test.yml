@@ -27,7 +27,6 @@ env:
   LD_LIBRARY_PATH: /tmp
   PACT_GO_LIB_DOWNLOAD_PATH: /tmp
   LOG_LEVEL: error
-  COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   verify:
@@ -73,12 +72,15 @@ jobs:
       - name: Test (pact)
         if: matrix.os != 'ubuntu-latest'
         run: mise run pact-local
-      - name: Install goveralls
-        if: matrix.os != 'windows-latest'
-        run: go install github.com/mattn/goveralls@latest
-      - name: Send coverage
-        if: matrix.os != 'windows-latest'
-        run: goveralls -coverprofile=coverage.txt -service=github -parallel
+      - name: Test (examples coverage)
+        run: mise run test-examples
+      - name: Upload coverage
+        uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
+        with:
+          files: ./coverage.txt,./coverage-consumer.txt,./coverage-provider.txt
+          flags: ${{ matrix.os }}-go${{ matrix.go-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
@@ -137,13 +139,3 @@ jobs:
         env:
           GO_VERSION: ${{ matrix.go-version }}
           IMAGE_VARIANT: ${{ matrix.variant }}
-
-  finish:
-    needs: [test,test-containers]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: coverallsapp/github-action@main
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        parallel-finished: true

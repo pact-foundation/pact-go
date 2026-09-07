@@ -103,6 +103,21 @@ if [ -n "$failed" ] || [ $covstat -ne 0 ]; then
 fi
 """
 
+[tasks.test-examples]
+description = "Run the tagged example tests, contributing to coverage"
+depends = ["deps", "install"]
+run = """
+set -e
+go test -tags=consumer -count=1 -covermode=atomic \\
+  -coverpkg=github.com/pact-foundation/pact-go/v2/... \\
+  -coverprofile=coverage-consumer.txt github.com/pact-foundation/pact-go/v2/examples/...
+if [ "$SKIP_PROVIDER_TESTS" != "true" ]; then
+  SKIP_PUBLISH=true go test -tags=provider -count=1 -timeout=30s -covermode=atomic \\
+    -coverpkg=github.com/pact-foundation/pact-go/v2/... \\
+    -coverprofile=coverage-provider.txt github.com/pact-foundation/pact-go/v2/examples/...
+fi
+"""
+
 [tasks.publish]
 description = "Publish pacts to the broker"
 run = """

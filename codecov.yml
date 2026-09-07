@@ -1,0 +1,23 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        # auto measures new lines against the base commit's coverage. A fixed
+        # target above the repository's 32.7% would fail almost every pull
+        # request, which trains reviewers to ignore the status.
+        target: auto
+        threshold: 5%
+
+ignore:
+  - "examples/**/*"
+  - "internal/native/lib.go"
+  - "**/*.pb.go"
+  - "**/*_grpc.pb.go"
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
