@@ -28,16 +28,16 @@ type Request struct {
 
 // MismatchDetail contains the specific assertions that failed during the verification.
 type MismatchDetail struct {
-	Actual   string
-	Expected string
-	Key      string
-	Mismatch string
-	Type     string
+	Actual   string `json:"actual"`
+	Expected string `json:"expected"`
+	Key      string `json:"key"`
+	Mismatch string `json:"mismatch"`
+	Type     string `json:"type"`
 }
 
 // MismatchedRequest contains details of any request mismatches during pact verification.
 type MismatchedRequest struct {
 	Request
-	Mismatches []MismatchDetail
-	Type       string
+	Mismatches []MismatchDetail `json:"mismatches"`
+	Type       string           `json:"type"`
 }

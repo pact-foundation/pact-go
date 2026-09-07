@@ -508,13 +508,13 @@ const downloadTimeout = 5 * time.Minute
 var maxDecompressedLibSize int64 = 150 * 1024 * 1024
 
 type packageMetadata struct {
-	LibName string
-	Version string
-	Hash    string
+	LibName string `yaml:"libname"`
+	Version string `yaml:"version"`
+	Hash    string `yaml:"hash"`
 }
 
 type pactConfig struct {
-	Libraries map[string]packageMetadata
+	Libraries map[string]packageMetadata `yaml:"libraries"`
 }
 
 type configReader interface {

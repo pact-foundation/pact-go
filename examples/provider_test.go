@@ -19,6 +19,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/provider"
 	"github.com/pact-foundation/pact-go/v2/version"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -32,7 +33,7 @@ var (
 )
 
 func TestV3HTTPProvider(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("DEBUG"))
+	require.NoError(t, log.SetLogLevel("DEBUG"))
 	version.CheckVersion()
 
 	// Start provider API in the background
@@ -101,7 +102,7 @@ func TestV3HTTPProvider(t *testing.T) {
 			},
 			DisableColoredOutput: true,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, requestFilterCalled)
 		assert.True(t, stateHandlerCalled)
 	} else {
@@ -139,14 +140,14 @@ func TestV3HTTPProvider(t *testing.T) {
 			},
 			DisableColoredOutput: true,
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, requestFilterCalled)
 		assert.True(t, stateHandlerCalled)
 	}
 }
 
 func TestV3MessageProvider(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("DEBUG"))
+	require.NoError(t, log.SetLogLevel("DEBUG"))
 	var user *User
 
 	verifier := provider.NewVerifier()

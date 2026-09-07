@@ -16,12 +16,13 @@ import (
 	l "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/provider"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 )
 
 func TestGrpcProvider(t *testing.T) {
 	go startProvider()
-	assert.NoError(t, l.SetLogLevel("INFO"))
+	require.NoError(t, l.SetLogLevel("INFO"))
 
 	verifier := provider.NewVerifier()
 

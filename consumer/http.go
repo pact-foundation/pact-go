@@ -131,6 +131,7 @@ func (p *httpMockProvider) configure() error {
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful.
 func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockServerConfig) error) error {
+	t.Helper()
 	log.Println("[DEBUG] pact verify")
 
 	var err error
@@ -191,6 +192,7 @@ func (p *httpMockProvider) reset() {
 // TODO: improve / pretty print this to make it really easy to understand the problems
 // See existing Pact/Ruby code examples.
 func (p *httpMockProvider) displayMismatches(t *testing.T, mismatches []native.MismatchedRequest) {
+	t.Helper()
 	if len(mismatches) > 0 {
 		if len(callerInfo()) > 0 {
 			fmt.Printf("\n\n%s:\n", callerInfo()[len(callerInfo())-1])

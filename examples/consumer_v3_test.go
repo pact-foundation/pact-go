@@ -15,6 +15,7 @@ import (
 	message "github.com/pact-foundation/pact-go/v2/message/v3"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -33,7 +34,7 @@ var (
 )
 
 func TestConsumerV3(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("INFO"))
+	require.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV3Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV3Consumer",
@@ -41,7 +42,7 @@ func TestConsumerV3(t *testing.T) {
 		Host:     "127.0.0.1",
 		TLS:      true,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Set up our expected interactions.
 	err = mockProvider.
@@ -93,13 +94,13 @@ func TestConsumerV3(t *testing.T) {
 }
 
 func TestMessagePact(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("INFO"))
+	require.NoError(t, log.SetLogLevel("INFO"))
 
 	provider, err := message.NewAsynchronousPact(message.Config{
 		Consumer: "PactGoV3MessageConsumer",
 		Provider: "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = provider.AddMessage().
 		GivenWithParameter(models.ProviderState{

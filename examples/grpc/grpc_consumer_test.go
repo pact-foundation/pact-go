@@ -27,7 +27,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 		Provider: "grpcprovider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	assert.NoError(t, log.SetLogLevel("DEBUG"))
+	require.NoError(t, log.SetLogLevel("DEBUG"))
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
@@ -94,7 +94,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 }
 
 func TestGetFeatureError(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("DEBUG"))
+	require.NoError(t, log.SetLogLevel("DEBUG"))
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "grpcconsumer",
 		Provider: "grpcprovider",
@@ -164,7 +164,7 @@ func TestSaveFeature(t *testing.T) {
 		Provider: "grpcprovider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	assert.NoError(t, log.SetLogLevel("INFO"))
+	require.NoError(t, log.SetLogLevel("INFO"))
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
@@ -226,7 +226,7 @@ func TestSaveFeature(t *testing.T) {
 			}
 
 			assert.Equal(t, feature.GetName(), response.GetName())
-			assert.Equal(t, feature.GetLocation().GetLatitude(), feature.GetLocation().GetLatitude())
+			assert.Equal(t, feature.GetLocation().GetLatitude(), response.GetLocation().GetLatitude())
 
 			return nil
 		})
