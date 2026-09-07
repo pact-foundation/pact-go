@@ -44,9 +44,10 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+      - uses: jdx/mise-action@v2
       - name: Test
         if: matrix.os == 'ubuntu-latest'
-        run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" make
+        run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" mise run ci
       - name: Set CGO_LDFLAGS / pact_ffi lib on PATH
         if: matrix.os == 'windows-latest'
         run: |
@@ -54,10 +55,10 @@ jobs:
           "$env:TMP" >> $env:GITHUB_PATH
       - name: Test (unit)
         if: matrix.os != 'ubuntu-latest'
-        run: make test
+        run: mise run test
       - name: Test (pact)
         if: matrix.os != 'ubuntu-latest'
-        run: make pact_local
+        run: mise run pact-local
       - name: Install goveralls
         if: matrix.os != 'windows-latest'
         run: go install github.com/mattn/goveralls@latest
@@ -100,6 +101,7 @@ jobs:
             os: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v2
 
       - name: Test dockerfile
         run: |
@@ -109,7 +111,7 @@ jobs:
               export SKIP_PROVIDER_TESTS=false
             fi
           fi
-          make docker_test_all
+          mise run docker-test-all
         env:
           GO_VERSION: ${{ matrix.go-version }}
           IMAGE_VARIANT: ${{ matrix.variant }}

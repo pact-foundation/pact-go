@@ -1,0 +1,160 @@
+[tools]
+java = "temurin-17"
+protoc = "latest"
+
+[env]
+PLUGIN_PACT_PROTOBUF_VERSION = "0.5.4"
+PLUGIN_PACT_CSV_VERSION = "0.0.6"
+PLUGIN_PACT_MATT_VERSION = "0.1.1"
+PLUGIN_PACT_AVRO_VERSION = "0.0.6"
+PACT_BROKER_BASE_URL = "http://127.0.0.1"
+PACT_BROKER_USERNAME = "pact_workshop"
+PACT_BROKER_PASSWORD = "pact_workshop"
+PACT_DOWNLOAD_DIR = "{{ env.TMP | default(value='/tmp') }}"
+_.path = ["{{config_root}}/pact/bin"]
+
+[tasks.build]
+description = "Build the pact-go CLI into build/"
+# wait_for (not depends): mise runs `depends` entries in parallel, and clean's
+# `rm -rf build` races with this task's output whenever both are scheduled
+# together (ci, pact, pact-local all list clean and build/install as
+# siblings). wait_for orders the two without making build always clean first
+# when it is run on its own.
+wait_for = ["clean"]
+run = "go build -o build/pact-go"
+
+[tasks.clean]
+description = "Remove build output and generated pacts"
+run = """
+mkdir -p ./examples/pacts
+rm -rf build output dist examples/pacts
+"""
+
+[tasks.deps]
+description = "Install the pact plugin CLI and the pinned plugins"
+run = """
+set -e
+if [ -n "$SKIP_PLUGINS" ]; then echo "--- skipping plugins"; exit 0; fi
+if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then ./scripts/install-cli.sh; fi
+install_plugin() {
+  if [ ! -e "$1" ]; then ~/.pact/bin/pact-plugin-cli -y install "$2"; fi
+}
+install_plugin ~/.pact/plugins/protobuf-$PLUGIN_PACT_PROTOBUF_VERSION/pact-protobuf-plugin \\
+  https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-$PLUGIN_PACT_PROTOBUF_VERSION
+install_plugin ~/.pact/plugins/csv-$PLUGIN_PACT_CSV_VERSION/pact-csv-plugin \\
+  https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-$PLUGIN_PACT_CSV_VERSION
+install_plugin ~/.pact/plugins/matt-$PLUGIN_PACT_MATT_VERSION/matt \\
+  https://github.com/mefellows/pact-matt-plugin/releases/tag/v$PLUGIN_PACT_MATT_VERSION
+install_plugin ~/.pact/plugins/avro-$PLUGIN_PACT_AVRO_VERSION/bin/pact-avro-plugin \\
+  https://github.com/austek/pact-avro-plugin/releases/tag/v$PLUGIN_PACT_AVRO_VERSION
+"""
+
+[tasks.install]
+description = "Download the pact FFI library"
+depends = ["build"]
+run = "./build/pact-go -l DEBUG install --libDir $PACT_DOWNLOAD_DIR"
+
+[tasks.lint]
+description = "Run golangci-lint"
+run = "golangci-lint run"
+
+[tasks.test]
+description = "Run unit tests with coverage"
+depends = ["deps", "install"]
+run = """
+set -e
+RACE="-race"
+if [ "$SKIP_RACE" = "true" ]; then RACE=""; fi
+TAGS="-tags=provider"
+if [ "$SKIP_PROVIDER_TESTS" = "true" ]; then TAGS=""; fi
+rm -f coverage.txt
+echo "mode: count" > coverage.txt
+for d in $(go list ./... | grep -v vendor | grep -v examples); do
+  go test -v $RACE -coverprofile=profile.out $TAGS -covermode=atomic "$d"
+  if [ -f profile.out ]; then tail -n +2 profile.out >> coverage.txt; rm profile.out; fi
+done
+go tool cover -func coverage.txt
+"""
+
+[tasks.publish]
+description = "Publish pacts to the broker"
+run = """
+docker run --rm -v $PWD:$PWD -e PACT_BROKER_BASE_URL=${DOCKER_HOST_HTTP:-http://host.docker.internal} \\
+  -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli \\
+  publish $PWD/examples/pacts --consumer-app-version $APP_SHA --tag $APP_BRANCH --tag prod
+"""
+
+[tasks.docker-up]
+description = "Start the local broker and test services"
+run = "docker compose -f docker/docker-compose.yml up -d"
+
+[tasks.pact]
+description = "Run the pact examples against the broker"
+depends = ["clean", "install", "docker-up"]
+run = """
+set -e
+go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+mise run publish
+go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+"""
+
+[tasks.pact-local]
+description = "Run the pact examples without publishing"
+depends = ["clean", "deps", "install"]
+run = """
+set -e
+go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+if [ "$SKIP_PROVIDER_TESTS" != "true" ]; then
+  SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+fi
+"""
+
+[tasks.protos]
+description = "Compile the route guide protobufs"
+dir = "examples/grpc/routeguide"
+run = "protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. ./route_guide.proto"
+
+[tasks.grpc-test]
+description = "Run only the gRPC example"
+run = """
+set -e
+rm -rf ./examples/pacts
+go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
+go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
+"""
+
+[tasks.docker-build]
+description = "Build the containerised test image"
+run = "docker build -f docker/Dockerfile.${IMAGE_VARIANT:-debian} --build-arg GO_VERSION=${GO_VERSION:-1.27} -t pactfoundation/pact-go-test-${IMAGE_VARIANT:-debian} ."
+
+[tasks.docker-test-all]
+description = "Run unit and pact tests inside the container"
+depends = ["docker-build"]
+run = """
+docker run -e LOG_LEVEL=${LOG_LEVEL:-error} -e SKIP_PROVIDER_TESTS -e SKIP_RACE --rm \\
+  pactfoundation/pact-go-test-${IMAGE_VARIANT:-debian} \\
+  /bin/sh -c "mise run test && mise run pact-local"
+"""
+
+[tasks.ci]
+description = "The full CI sequence"
+depends = ["docker-up", "deps", "clean", "build", "test", "pact"]
+run = "echo 'ci complete'"
+
+[tasks.fake-ci]
+description = "Run the full CI sequence locally as if on CI, referenced by CONTRIBUTING.md"
+run = """
+CI=true \\
+APP_SHA=$(git rev-parse --short HEAD)+$(date +%s) \\
+APP_BRANCH=$(git rev-parse --abbrev-ref HEAD) \\
+mise run ci
+"""
+
+[tasks.fake-pact]
+description = "Run the pact examples locally as if on CI, referenced by CONTRIBUTING.md"
+run = """
+CI=true \\
+APP_SHA=$(git rev-parse --short HEAD)+$(date +%s) \\
+APP_BRANCH=$(git rev-parse --abbrev-ref HEAD) \\
+mise run pact
+"""
