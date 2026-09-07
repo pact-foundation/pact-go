@@ -189,6 +189,43 @@ type VerifyRequest struct {
 	DisableColoredOutput bool
 }
 
+// add in the PACT_URL env variable to support suggested webhook provider verification
+// see https://docs.pact.io/pact_broker/webhooks/template_library#bitbucket---trigger-pipeline-run
+// a generalized feature request added here https://github.com/pact-foundation/pact-reference/issues/250
+func addPactUrlsFromEnvironment(v *VerifyRequest) {
+	if pactUrl := os.Getenv("PACT_URL"); pactUrl != "" {
+		v.PactURLs = append(v.PactURLs, pactUrl)
+	}
+}
+
+func valueOrFromEnvironment(value string, envKey string) string {
+	if value != "" {
+		return value
+	}
+
+	return os.Getenv(envKey)
+}
+
+type outputWriter interface {
+	Log(args ...any)
+}
+
+func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) error {
+	for _, transport := range v.Transports {
+		log.Println("[DEBUG] adding transport to verification", transport)
+		handle.AddTransport(transport.Protocol, transport.Port, transport.Path, transport.Scheme)
+	}
+
+	if v.ProviderStatesSetupURL != "" {
+		handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
+	}
+
+	defer handle.Shutdown()
+	res := handle.Execute()
+
+	return res
+}
+
 // Validate checks that the minimum fields are provided.
 func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	if v.ProviderBaseURL == "" {
@@ -292,43 +329,6 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	handle.SetColoredOutput(!v.DisableColoredOutput)
 
 	return nil
-}
-
-// add in the PACT_URL env variable to support suggested webhook provider verification
-// see https://docs.pact.io/pact_broker/webhooks/template_library#bitbucket---trigger-pipeline-run
-// a generalized feature request added here https://github.com/pact-foundation/pact-reference/issues/250
-func addPactUrlsFromEnvironment(v *VerifyRequest) {
-	if pactUrl := os.Getenv("PACT_URL"); pactUrl != "" {
-		v.PactURLs = append(v.PactURLs, pactUrl)
-	}
-}
-
-func valueOrFromEnvironment(value string, envKey string) string {
-	if value != "" {
-		return value
-	}
-
-	return os.Getenv(envKey)
-}
-
-type outputWriter interface {
-	Log(args ...any)
-}
-
-func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) error {
-	for _, transport := range v.Transports {
-		log.Println("[DEBUG] adding transport to verification", transport)
-		handle.AddTransport(transport.Protocol, transport.Port, transport.Path, transport.Scheme)
-	}
-
-	if v.ProviderStatesSetupURL != "" {
-		handle.SetProviderState(v.ProviderStatesSetupURL, true, true)
-	}
-
-	defer handle.Shutdown()
-	res := handle.Execute()
-
-	return res
 }
 
 // Sentinel returns from getPort, distinct from any valid port (0-65535).

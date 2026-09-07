@@ -16,6 +16,19 @@ type Verifier struct {
 	handle *C.VerifierHandle
 }
 
+func NewVerifier(name string, version string) *Verifier {
+	cName := C.CString(name)
+	cVersion := C.CString(version)
+	defer free(cName)
+	defer free(cVersion)
+
+	h := C.pactffi_verifier_new_for_application(cName, cVersion)
+
+	return &Verifier{
+		handle: h,
+	}
+}
+
 // Version returns the current semver FFI interface version.
 func (v *Verifier) Version() string {
 	return Version()
@@ -36,19 +49,6 @@ var (
 	// ErrVerifierFailedToRun indicates the verification process was unable to run.
 	ErrVerifierFailedToRun = errors.New("the verifier failed to execute (this is most likely a defect in the framework)")
 )
-
-func NewVerifier(name string, version string) *Verifier {
-	cName := C.CString(name)
-	cVersion := C.CString(version)
-	defer free(cName)
-	defer free(cVersion)
-
-	h := C.pactffi_verifier_new_for_application(cName, cVersion)
-
-	return &Verifier{
-		handle: h,
-	}
-}
 
 func (v *Verifier) Shutdown() {
 	C.pactffi_verifier_shutdown(v.handle)

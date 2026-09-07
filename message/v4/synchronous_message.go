@@ -297,6 +297,17 @@ func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 	return provider, err
 }
 
+func (m *SynchronousPact) AddSynchronousMessage(description string) *UnconfiguredSynchronousMessageBuilder {
+	log.Println("[DEBUG] add sync message")
+
+	message := m.mockserver.NewSyncMessageInteraction(description)
+
+	return &UnconfiguredSynchronousMessageBuilder{
+		messageHandle: message,
+		pact:          m,
+	}
+}
+
 // validateConfig validates the configuration for the consumer test.
 func (m *SynchronousPact) validateConfig() error {
 	log.Println("[DEBUG] pact synchronous message validate config")
@@ -311,17 +322,6 @@ func (m *SynchronousPact) validateConfig() error {
 	m.mockserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
 
 	return nil
-}
-
-func (m *SynchronousPact) AddSynchronousMessage(description string) *UnconfiguredSynchronousMessageBuilder {
-	log.Println("[DEBUG] add sync message")
-
-	message := m.mockserver.NewSyncMessageInteraction(description)
-
-	return &UnconfiguredSynchronousMessageBuilder{
-		messageHandle: message,
-		pact:          m,
-	}
 }
 
 // ExecuteTest runs the current test case against a Mock Service.

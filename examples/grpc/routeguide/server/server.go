@@ -66,10 +66,17 @@ var (
 
 type routeGuideServer struct {
 	pb.UnimplementedRouteGuideServer
+
 	savedFeatures []*pb.Feature // read-only after initialized
 
 	mu         sync.Mutex // protects routeNotes
 	routeNotes map[string][]*pb.RouteNote
+}
+
+func NewServer() *routeGuideServer {
+	s := &routeGuideServer{routeNotes: make(map[string][]*pb.RouteNote)}
+	s.loadFeatures(*jsonDBFile)
+	return s
 }
 
 // GetFeature returns the feature at the given point.
@@ -231,12 +238,6 @@ func inRange(point *pb.Point, rect *pb.Rectangle) bool {
 
 func serialize(point *pb.Point) string {
 	return fmt.Sprintf("%d %d", point.GetLatitude(), point.GetLongitude())
-}
-
-func NewServer() *routeGuideServer {
-	s := &routeGuideServer{routeNotes: make(map[string][]*pb.RouteNote)}
-	s.loadFeatures(*jsonDBFile)
-	return s
 }
 
 func main() {
