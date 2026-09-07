@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -17,7 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
 
 func TestAvroHTTPProvider(t *testing.T) {

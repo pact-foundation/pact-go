@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
 	// "github.com/pact-foundation/pact-go/v2/log"
@@ -22,7 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var dir, _ = os.Getwd()
 var pactDir = fmt.Sprintf("%s/../pacts", dir)
 
 func TestPluginProvider(t *testing.T) {
@@ -122,15 +119,6 @@ func handleRequest(req string, conn net.Conn) {
 	// var expectedResponse = "badworld"
 	var expectedResponse = "tcpworld"
 	conn.Write([]byte(generateMattMessage(expectedResponse)))
-	conn.Write([]byte("\n"))
-}
-
-func generateMattMessage(message string) string {
-	return fmt.Sprintf("MATT%sMATT", message)
-}
-
-func parseMattMessage(message string) string {
-	return strings.ReplaceAll(message, "MATT", "")
 }
 
 func isValidMessage(str string) bool {

@@ -10,7 +10,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -21,8 +20,6 @@ import (
 	message "github.com/pact-foundation/pact-go/v2/message/v4"
 	"github.com/stretchr/testify/assert"
 )
-
-var dir, _ = os.Getwd()
 
 func TestHTTPPlugin(t *testing.T) {
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
@@ -135,12 +132,4 @@ func callMattServiceTCP(transport message.TransportConfig, message string) (stri
 	}
 
 	return parseMattMessage(str), nil
-}
-
-func generateMattMessage(message string) string {
-	return fmt.Sprintf("MATT%sMATT\n", message)
-}
-
-func parseMattMessage(message string) string {
-	return strings.TrimSpace(strings.ReplaceAll(message, "MATT", ""))
 }

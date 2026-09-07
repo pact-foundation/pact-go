@@ -19,8 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var dir, _ = os.Getwd()
-
 func TestAvroHTTP(t *testing.T) {
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "AvroConsumer",
