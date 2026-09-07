@@ -197,7 +197,7 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 	// and error. The object will be marshalled to JSON for comparison.
 	port, err := proxy.HTTPReverseProxy(opts)
 	if err != nil {
-		return err
+		return fmt.Errorf("starting the provider state reverse proxy: %w", err)
 	}
 
 	// Add any message targets
@@ -277,7 +277,7 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 	_, err := io.ReadAll(tr)
 	if err != nil {
 		log.Println("[ERROR] getStateFromRequest unable to read request body:", err)
-		return stateHandlerAction{}, err
+		return stateHandlerAction{}, fmt.Errorf("reading the state change request body: %w", err)
 	}
 
 	// Body is consumed above, need to put it back after ;P
@@ -289,7 +289,7 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 
 	if err != nil {
 		log.Println("[ERROR] getStateFromRequest unable to decode incoming state change payload", err)
-		return stateHandlerAction{}, err
+		return stateHandlerAction{}, fmt.Errorf("decoding the state change payload: %w", err)
 	}
 
 	return state, nil

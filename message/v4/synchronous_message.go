@@ -255,6 +255,10 @@ func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integra
 		return err
 	}
 
+	//nolint:wrapcheck // MessageServer.WritePactFile returns internal/native's
+	// sentinels (ErrUnableToWritePactFile, ErrMockServerPanic, ...) whose text
+	// mirrors the pact_ffi return code, and this is the last frame before the
+	// user's test output.
 	return m.pact.mockserver.WritePactFile(m.pact.config.PactDir, false)
 }
 
@@ -311,6 +315,10 @@ func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationT
 		return err
 	}
 
+	//nolint:wrapcheck // MessageServer.WritePactFile returns internal/native's
+	// sentinels (ErrUnableToWritePactFile, ErrMockServerPanic, ...) whose text
+	// mirrors the pact_ffi return code, and this is the last frame before the
+	// user's test output.
 	return s.pact.mockserver.WritePactFileForServer(s.transport.Port, s.pact.config.PactDir, false)
 }
 
@@ -326,14 +334,11 @@ func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 	provider := &SynchronousPact{
 		config: config,
 	}
-	err := provider.validateConfig()
-	if err != nil {
-		return nil, err
-	}
+	provider.validateConfig()
 
 	native.Init(string(logging.LogLevel()))
 
-	return provider, err
+	return provider, nil
 }
 
 // AddSynchronousMessage starts building a new request/response message
@@ -349,8 +354,8 @@ func (m *SynchronousPact) AddSynchronousMessage(description string) *Unconfigure
 	}
 }
 
-// validateConfig validates the configuration for the consumer test.
-func (m *SynchronousPact) validateConfig() error {
+// validateConfig applies the defaults for any unset consumer test configuration.
+func (m *SynchronousPact) validateConfig() {
 	log.Println("[DEBUG] pact synchronous message validate config")
 	dir, _ := os.Getwd()
 
@@ -361,8 +366,6 @@ func (m *SynchronousPact) validateConfig() error {
 	m.mockserver = native.NewMessageServer(m.config.Consumer, m.config.Provider)
 	m.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	m.mockserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
-
-	return nil
 }
 
 // ExecuteTest runs the current test case against a Mock Service.
@@ -380,6 +383,10 @@ func (m *SynchronousMessageWithResponse) ExecuteTest(t *testing.T, integrationTe
 		return err
 	}
 
+	//nolint:wrapcheck // MessageServer.WritePactFile returns internal/native's
+	// sentinels (ErrUnableToWritePactFile, ErrMockServerPanic, ...) whose text
+	// mirrors the pact_ffi return code, and this is the last frame before the
+	// user's test output.
 	return m.pact.mockserver.WritePactFile(m.pact.config.PactDir, false)
 }
 
@@ -388,11 +395,17 @@ func getSynchronousMessageWithContents(message *native.Message) (SynchronousMess
 
 	contents, err := message.GetMessageRequestContents()
 	if err != nil {
+		//nolint:wrapcheck // native.Message's contents accessors return
+		// internal/native's FFI-derived error; the callers of this helper add the
+		// "bug in the framework" context.
 		return m, err
 	}
 
 	responses, err := message.GetMessageResponseContents()
 	if err != nil {
+		//nolint:wrapcheck // native.Message's contents accessors return
+		// internal/native's FFI-derived error; the callers of this helper add the
+		// "bug in the framework" context.
 		return m, err
 	}
 

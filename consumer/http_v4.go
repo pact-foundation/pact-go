@@ -24,12 +24,9 @@ func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 			specificationVersion: models.V4,
 		},
 	}
-	err := provider.configure()
-	if err != nil {
-		return nil, err
-	}
+	provider.configure()
 
-	return provider, err
+	return provider, nil
 }
 
 // AddInteraction to the pact.
