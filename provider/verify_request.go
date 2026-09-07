@@ -228,9 +228,11 @@ func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) err
 	}
 
 	defer handle.Shutdown()
-	res := handle.Execute()
-
-	return res
+	//nolint:wrapcheck // Verifier.Execute reports the verification outcome through
+	// internal/native's sentinels (ErrVerifierFailed, ErrVerifierFailedToRun),
+	// selected by the pact_ffi return code; the mismatch detail goes to the output
+	// writer, so the sentinel's own wording is all the user's test failure prints.
+	return handle.Execute()
 }
 
 // Validate checks that the minimum fields are provided.
@@ -240,7 +242,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	} else {
 		url, err := url.Parse(v.ProviderBaseURL)
 		if err != nil {
-			return err
+			return fmt.Errorf("parsing ProviderBaseURL %q: %w", v.ProviderBaseURL, err)
 		}
 
 		port := getPort(v.ProviderBaseURL)

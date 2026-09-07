@@ -14,12 +14,12 @@ import (
 func GetFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("resolving a local TCP address: %w", err)
 	}
 
 	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("listening on a kernel-assigned port: %w", err)
 	}
 	defer func() {
 		_ = l.Close()
@@ -46,6 +46,9 @@ func FindPortInRange(s string) (int, error) {
 		for p := range ports {
 			i, err := strconv.Atoi(p)
 			if err != nil {
+				//nolint:wrapcheck // Test_FindPortInRange asserts this string
+				// verbatim, so strconv's own text is the documented contract for
+				// an unparseable port.
 				return 0, err
 			}
 			err = checkPort(i)
@@ -63,10 +66,13 @@ func FindPortInRange(s string) (int, error) {
 	}
 	lower, err := strconv.Atoi(ports[0])
 	if err != nil {
+		//nolint:wrapcheck // as above: Test_FindPortInRange asserts strconv's
+		// text verbatim for both bounds of a range.
 		return 0, err
 	}
 	upper, err := strconv.Atoi(ports[1])
 	if err != nil {
+		//nolint:wrapcheck // as above.
 		return 0, err
 	}
 	if upper < lower {
@@ -86,12 +92,12 @@ func checkPort(p int) error {
 	s := fmt.Sprintf("localhost:%d", p)
 	addr, err := net.ResolveTCPAddr("tcp", s)
 	if err != nil {
-		return err
+		return fmt.Errorf("resolving %s: %w", s, err)
 	}
 
 	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		return err
+		return fmt.Errorf("listening on %s: %w", s, err)
 	}
 	defer func() {
 		_ = l.Close()

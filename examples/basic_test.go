@@ -7,7 +7,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"strconv"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
@@ -75,22 +77,23 @@ func newClient(host string, port int) *productAPIClient {
 }
 
 func (u *productAPIClient) GetProduct(id string) (*Product, error) {
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("http://%s:%d/products/%s", u.host, u.port, id), nil)
+	url := "http://" + net.JoinHostPort(u.host, strconv.Itoa(u.port)) + "/products/" + id
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building the get product request: %w", err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting product %s: %w", id, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	product := new(Product)
 	err = json.NewDecoder(resp.Body).Decode(product)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decoding product %s: %w", id, err)
 	}
 
-	return product, err
+	return product, nil
 }

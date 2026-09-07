@@ -133,6 +133,10 @@ func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integr
 		return err
 	}
 
+	//nolint:wrapcheck // MessageServer.WritePactFile returns internal/native's
+	// sentinels (ErrUnableToWritePactFile, ErrMockServerPanic, ...) whose text
+	// mirrors the pact_ffi return code, and this is the last frame before the
+	// user's test output.
 	return s.rootBuilder.pact.messageserver.WritePactFile(s.rootBuilder.pact.config.PactDir, false)
 }
 
@@ -184,6 +188,10 @@ func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integration
 		return fmt.Errorf("pact validation failed: %+v", mismatches)
 	}
 
+	//nolint:wrapcheck // MessageServer.WritePactFile returns internal/native's
+	// sentinels (ErrUnableToWritePactFile, ErrMockServerPanic, ...) whose text
+	// mirrors the pact_ffi return code, and this is the last frame before the
+	// user's test output.
 	return s.rootBuilder.pact.messageserver.WritePactFileForServer(s.transport.Port, s.rootBuilder.pact.config.PactDir, false)
 }
 
@@ -267,14 +275,11 @@ func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
 	provider := &AsynchronousPact{
 		config: config,
 	}
-	err := provider.validateConfig()
-	if err != nil {
-		return nil, err
-	}
+	provider.validateConfig()
 
 	native.Init(string(logging.LogLevel()))
 
-	return provider, err
+	return provider, nil
 }
 
 // AddMessage creates a new asynchronous consumer expectation
@@ -308,8 +313,8 @@ func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuil
 	return err
 }
 
-// validateConfig validates the configuration for the consumer test.
-func (p *AsynchronousPact) validateConfig() error {
+// validateConfig applies the defaults for any unset consumer test configuration.
+func (p *AsynchronousPact) validateConfig() {
 	log.Println("[DEBUG] pact message validate config")
 	dir, _ := os.Getwd()
 
@@ -320,8 +325,6 @@ func (p *AsynchronousPact) validateConfig() error {
 	p.messageserver = native.NewMessageServer(p.config.Consumer, p.config.Provider)
 	p.messageserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	p.messageserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
-
-	return nil
 }
 
 // VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable
@@ -344,6 +347,10 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 		return err
 	}
 
+	//nolint:wrapcheck // MessageServer.WritePactFile returns internal/native's
+	// sentinels (ErrUnableToWritePactFile, ErrMockServerPanic, ...) whose text
+	// mirrors the pact_ffi return code, and this is the last frame before the
+	// user's test output.
 	return p.messageserver.WritePactFile(p.config.PactDir, false)
 }
 
@@ -352,6 +359,9 @@ func getAsynchronousMessageWithContents(message *native.Message) (AsynchronousMe
 
 	contents, err := message.GetMessageRequestContents()
 	if err != nil {
+		//nolint:wrapcheck // native.Message's contents accessors return
+		// internal/native's FFI-derived error; the callers of this helper add the
+		// "bug in the framework" context.
 		return m, err
 	}
 
@@ -390,5 +400,5 @@ func getAsynchronousMessageWithReifiedContents(message *native.Message, reifiedT
 		m.Body = reifiedType
 	}
 
-	return m, err
+	return m, nil
 }

@@ -137,7 +137,7 @@ func (i *Installer) CheckPackageInstall() error {
 		_, err := i.fs.Stat(dst)
 		if err != nil {
 			log.Println("[INFO] package", info.libName, "not found")
-			return err
+			return fmt.Errorf("checking for %s at %s: %w", info.libName, dst, err)
 		}
 		log.Println("[INFO] package", info.libName, "found")
 
@@ -309,7 +309,7 @@ var setMacOSInstallName = func(file string) error {
 
 	log.Println("[DEBUG] output from command", string(stdoutStderr))
 
-	return err
+	return nil
 }
 
 func checkVersion(lib, version, versionRange string) error {
@@ -317,12 +317,12 @@ func checkVersion(lib, version, versionRange string) error {
 
 	v, err := goversion.NewVersion(version)
 	if err != nil {
-		return err
+		return fmt.Errorf("parsing version %q of %s: %w", version, lib, err)
 	}
 
 	constraints, err := goversion.NewConstraint(versionRange)
 	if err != nil {
-		return err
+		return fmt.Errorf("parsing semver constraint %q for %s: %w", versionRange, lib, err)
 	}
 
 	if constraints.Check(v) {
@@ -578,17 +578,22 @@ func (configuration) writeConfig(c pactConfig) error {
 	err := os.MkdirAll(filepath.Dir(pactConfigPath), 0o750)
 	if err != nil {
 		log.Println("[DEBUG] error creating pact config directory")
-		return err
+		return fmt.Errorf("creating pact config directory %s: %w", filepath.Dir(pactConfigPath), err)
 	}
 
 	bytes, err := yaml.Marshal(c)
 	if err != nil {
 		log.Println("[DEBUG] error marshalling YAML", pactConfigPath, "error: ", err)
-		return err
+		return fmt.Errorf("marshalling pact config: %w", err)
 	}
 	log.Println("[DEBUG] writing yaml config to file", string(bytes))
 
-	return os.WriteFile(pactConfigPath, bytes, 0o600)
+	err = os.WriteFile(pactConfigPath, bytes, 0o600)
+	if err != nil {
+		return fmt.Errorf("writing pact config to %s: %w", pactConfigPath, err)
+	}
+
+	return nil
 }
 
 type hasher interface {
@@ -607,7 +612,7 @@ func (d *defaultHasher) hash(src string) (string, error) {
 	// who sets libDir already controls the filesystem the installer runs against.
 	f, err := os.Open(src)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("opening %s to hash it: %w", src, err)
 	}
 	defer func() {
 		_ = f.Close()
@@ -616,7 +621,7 @@ func (d *defaultHasher) hash(src string) (string, error) {
 	h := sha256.New()
 	_, err = io.Copy(h, f)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("reading %s to hash it: %w", src, err)
 	}
 
 	return hex.EncodeToString(h.Sum(nil)), nil

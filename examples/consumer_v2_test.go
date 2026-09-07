@@ -191,8 +191,11 @@ var rawTest = func(query string) func(config consumer.MockServerConfig) error {
 		req.Header.Set("Authorization", "Bearer 1234")
 
 		_, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("calling the mock provider: %w", err)
+		}
 
-		return err
+		return nil
 	}
 }
 

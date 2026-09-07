@@ -52,6 +52,9 @@ func (m eachLike) GetValue() any {
 // Fields and tags here must mirror eachLike by hand, keeping pact:matcher:type
 // first: the key order is contract-visible in pact files another party consumes.
 func (m eachLike) MarshalJSON() ([]byte, error) {
+	//nolint:wrapcheck // encoding/json wraps a MarshalJSON failure in a
+	// *json.MarshalerError recording the type and the original error, so an extra
+	// prefix here would be doubled up in the message the caller finally sees.
 	return json.Marshal(struct {
 		Type  string `json:"pact:matcher:type"`
 		Value any    `json:"value"`
@@ -88,6 +91,9 @@ func (m term) GetValue() any {
 // Fields and tags here must mirror term by hand, keeping pact:matcher:type
 // first: the key order is contract-visible in pact files another party consumes.
 func (m term) MarshalJSON() ([]byte, error) {
+	//nolint:wrapcheck // encoding/json wraps a MarshalJSON failure in a
+	// *json.MarshalerError recording the type and the original error, so an extra
+	// prefix here would be doubled up in the message the caller finally sees.
 	return json.Marshal(struct {
 		Type  string `json:"pact:matcher:type"`
 		Value string `json:"value"`
@@ -217,6 +223,9 @@ func (s S) GetValue() any {
 
 // MarshalJSON encodes s as a plain JSON string, without matcher metadata.
 func (s S) MarshalJSON() ([]byte, error) {
+	//nolint:wrapcheck // encoding/json wraps a MarshalJSON failure in a
+	// *json.MarshalerError recording the type and the original error, so an extra
+	// prefix here would be doubled up in the message the caller finally sees.
 	return json.Marshal(s.string())
 }
 
@@ -238,6 +247,9 @@ func (s String) GetValue() any {
 
 // MarshalJSON encodes s as a plain JSON string, without matcher metadata.
 func (s String) MarshalJSON() ([]byte, error) {
+	//nolint:wrapcheck // encoding/json wraps a MarshalJSON failure in a
+	// *json.MarshalerError recording the type and the original error, so an extra
+	// prefix here would be doubled up in the message the caller finally sees.
 	return json.Marshal(s.string())
 }
 
@@ -275,6 +287,10 @@ func (m *MapMatcher) UnmarshalJSON(bytes []byte) error {
 	sk := make(map[string]string)
 	err := json.Unmarshal(bytes, &sk)
 	if err != nil {
+		//nolint:wrapcheck // the inner Unmarshal into map[string]string already
+		// fails with an error naming the offset - a *json.SyntaxError, or a
+		// *json.UnmarshalTypeError that names the target type too - which is
+		// everything a prefix could add.
 		return err
 	}
 
