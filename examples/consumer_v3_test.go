@@ -101,7 +101,7 @@ func TestMessagePact(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = provider.AddMessage().
+	err = provider.AddAsynchronousMessage().
 		GivenWithParameter(models.ProviderState{
 			Name: "User with id 127 exists",
 			Parameters: map[string]any{

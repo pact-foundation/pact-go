@@ -260,6 +260,7 @@ func (p *AsynchronousPact) validateConfig() error {
 }
 
 // AddMessage creates a new asynchronous consumer expectation
+//
 // Deprecated: use AddAsynchronousMessage() instead.
 func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 	return p.AddAsynchronousMessage()
@@ -269,7 +270,7 @@ func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder {
 	log.Println("[DEBUG] add message")
 
-	message := p.messageserver.NewMessage()
+	message := p.messageserver.NewAsyncMessageInteraction("")
 
 	return &AsynchronousMessageBuilder{
 		messageHandle: message,

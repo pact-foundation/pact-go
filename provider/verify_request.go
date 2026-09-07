@@ -85,6 +85,7 @@ type VerifyRequest struct {
 
 	// ProviderStatesSetupURL is the endpoint to post current provider state
 	// to on the Provider API.
+	//
 	// Deprecated: For backward compatibility ProviderStatesSetupURL is
 	// still supported. Use StateHandlers instead.
 	ProviderStatesSetupURL string
