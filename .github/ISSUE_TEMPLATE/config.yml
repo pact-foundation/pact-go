@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Pact Foundation Slack
+    url: https://slack.pact.io
+    about: Questions and discussion about Pact.
+  - name: Stack Overflow
+    url: https://stackoverflow.com/questions/tagged/pact
+    about: Usage questions are often answered here already.
