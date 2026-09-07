@@ -115,6 +115,7 @@ func TestMatcher_EachLikeNumber(t *testing.T) {
 		t.Fatalf("Expected Term to match. '%s' != '%s'", expected, match)
 	}
 }
+
 func TestMatcher_EachLikeNumberAsString(t *testing.T) {
 	expected := formatJSON(`
 		{
@@ -234,7 +235,8 @@ func TestMatcher_NestTermInEachLike(t *testing.T) {
 	match := formatJSON(
 		EachLike(
 			StructMatcher{
-				"colour": Term("red", "red|green")},
+				"colour": Term("red", "red|green"),
+			},
 			1))
 
 	if expected != match {
@@ -379,13 +381,12 @@ func getMatcherValue(m interface{}) interface{} {
 }
 
 func TestMatcher_SugarMatchers(t *testing.T) {
-
 	type matcherTestCase struct {
 		matcher  Matcher
 		testCase func(val interface{}) error
 	}
 	matchers := map[string]matcherTestCase{
-		"HexValue": matcherTestCase{
+		"HexValue": {
 			matcher: HexValue(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "3F" {
@@ -394,7 +395,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Identifier": matcherTestCase{
+		"Identifier": {
 			matcher: Identifier(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
@@ -404,7 +405,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Integer": matcherTestCase{
+		"Integer": {
 			matcher: Integer(1),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
@@ -414,7 +415,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"IPAddress": matcherTestCase{
+		"IPAddress": {
 			matcher: IPAddress(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "127.0.0.1" {
@@ -423,7 +424,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"IPv4Address": matcherTestCase{
+		"IPv4Address": {
 			matcher: IPv4Address(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "127.0.0.1" {
@@ -432,7 +433,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"IPv6Address": matcherTestCase{
+		"IPv6Address": {
 			matcher: IPv6Address(),
 			testCase: func(v interface{}) (err error) {
 				if v.(string) != "::ffff:192.0.2.128" {
@@ -441,7 +442,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Decimal": matcherTestCase{
+		"Decimal": {
 			matcher: Decimal(27.3),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(float64)
@@ -451,7 +452,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Timestamp": matcherTestCase{
+		"Timestamp": {
 			matcher: Timestamp(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(string)
@@ -461,7 +462,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Date": matcherTestCase{
+		"Date": {
 			matcher: Date(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(string)
@@ -471,7 +472,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"Time": matcherTestCase{
+		"Time": {
 			matcher: Time(),
 			testCase: func(v interface{}) (err error) {
 				_, valid := v.(string)
@@ -481,7 +482,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				return
 			},
 		},
-		"UUID": matcherTestCase{
+		"UUID": {
 			matcher: UUID(),
 			testCase: func(v interface{}) (err error) {
 				match, err := regexp.MatchString(uuid, v.(string))
@@ -524,6 +525,7 @@ func ExampleLike_object() {
 	//	}
 	//}
 }
+
 func ExampleLike_number() {
 	match := Like(42)
 	fmt.Println(formatJSON(match))

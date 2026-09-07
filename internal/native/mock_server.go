@@ -61,17 +61,17 @@ var logLevelStringToInt = map[string]logLevel{
 	"TRACE": LOG_LEVEL_TRACE,
 }
 
-// Pact is a Go representation of the PactHandle struct
+// Pact is a Go representation of the PactHandle struct.
 type Pact struct {
 	handle C.PactHandle
 }
 
-// Interaction is a Go representation of the InteractionHandle struct
+// Interaction is a Go representation of the InteractionHandle struct.
 type Interaction struct {
 	handle C.InteractionHandle
 }
 
-// Version returns the current semver FFI interface version
+// Version returns the current semver FFI interface version.
 func Version() string {
 	v := C.pactffi_version()
 
@@ -80,7 +80,7 @@ func Version() string {
 
 var loggingInitialised string
 
-// Init initialises the library
+// Init initialises the library.
 func Init(logLevel string) {
 	log.Println("[DEBUG] initialising native interface")
 	logLevel = strings.ToUpper(logLevel)
@@ -110,14 +110,14 @@ func Init(logLevel string) {
 	}
 }
 
-// MockServer is the public interface for managing the HTTP mock server
+// MockServer is the public interface for managing the HTTP mock server.
 type MockServer struct {
 	pact         *Pact
 	messagePact  *MessagePact
 	interactions []*Interaction
 }
 
-// NewHTTPPact creates a new HTTP mock server for a given consumer/provider
+// NewHTTPPact creates a new HTTP mock server for a given consumer/provider.
 func NewHTTPPact(consumer string, provider string) *MockServer {
 	cConsumer := C.CString(consumer)
 	cProvider := C.CString(provider)
@@ -127,7 +127,7 @@ func NewHTTPPact(consumer string, provider string) *MockServer {
 	return &MockServer{pact: &Pact{handle: C.pactffi_new_pact(cConsumer, cProvider)}}
 }
 
-// Version returns the current semver FFI interface version
+// Version returns the current semver FFI interface version.
 func (m *MockServer) Version() string {
 	return Version()
 }
@@ -180,7 +180,7 @@ func (m *MockServer) CleanupMockServer(port int) bool {
 }
 
 // WritePactFile writes the Pact to file.
-// TODO: expose overwrite
+// TODO: expose overwrite.
 func (m *MockServer) WritePactFile(port int, dir string) error {
 	log.Println("[DEBUG] writing pact file for mock server on port:", port, ", dir:", dir)
 	cDir := C.CString(dir)
@@ -209,12 +209,12 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 	case 3:
 		return ErrMockServerNotfound
 	default:
-		return fmt.Errorf("an unknown error ocurred when writing to pact file")
+		return fmt.Errorf("an unknown error occurred when writing to pact file")
 	}
 }
 
 // GetTLSConfig returns a tls.Config compatible with the TLS
-// mock server
+// mock server.
 func GetTLSConfig() *tls.Config {
 	cert := C.pactffi_get_tls_ca_certificate()
 	defer libRustFree(cert)
@@ -344,7 +344,7 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 	}
 }
 
-// Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version
+// Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version.
 func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
 	cNamespace := C.CString(namespace)
 	defer free(cNamespace)
@@ -358,7 +358,7 @@ func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
 	return m
 }
 
-// NewInteraction initialises a new interaction for the current contract
+// NewInteraction initialises a new interaction for the current contract.
 func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error {
 	cPluginName := C.CString(pluginName)
 	defer free(cPluginName)
@@ -387,12 +387,12 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 	return nil
 }
 
-// NewInteraction initialises a new interaction for the current contract
+// NewInteraction initialises a new interaction for the current contract.
 func (m *MockServer) CleanupPlugins() {
 	C.pactffi_cleanup_plugins(m.pact.handle)
 }
 
-// NewInteraction initialises a new interaction for the current contract
+// NewInteraction initialises a new interaction for the current contract.
 func (m *MockServer) NewInteraction(description string) *Interaction {
 	cDescription := C.CString(description)
 	defer free(cDescription)
@@ -405,7 +405,7 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 	return i
 }
 
-// NewInteraction initialises a new interaction for the current contract
+// NewInteraction initialises a new interaction for the current contract.
 func (i *Interaction) WithPluginInteractionContents(part interactionPart, contentType string, contents string) error {
 	cContentType := C.CString(contentType)
 	defer free(cContentType)
@@ -604,7 +604,7 @@ func (i *Interaction) withMultipartFile(contentType string, filename string, mim
 	return i
 }
 
-// Set the expected HTTTP response status
+// Set the expected HTTTP response status.
 func (i *Interaction) WithStatus(status int) *Interaction {
 	C.pactffi_response_status(i.handle, C.ushort(status))
 
@@ -646,7 +646,7 @@ func stringFromInterface(obj interface{}) string {
 
 // This fixes a quirk where certain "matchers" (e.g. matchers.S/String) are
 // really just strings. However, whene we JSON encode them they get wrapped in quotes
-// and the rust core sees them as plain strings, requiring then the quotes to be matched
+// and the rust core sees them as plain strings, requiring then the quotes to be matched.
 func quotedString(s string) string {
 	if s[0] == '"' && s[len(s)-1] == '"' {
 		return s[1 : len(s)-1]
@@ -719,17 +719,17 @@ func logResultToError(res int) error {
 	case -7:
 		return ErrCantConstructSink
 	default:
-		return fmt.Errorf("an unknown error ocurred when writing to pact file")
+		return fmt.Errorf("an unknown error occurred when writing to pact file")
 	}
 }
 
-// Errors
+// Errors.
 var (
-	// ErrHandleNotFound indicates the underlying handle was not found, and a logic error in the framework
+	// ErrHandleNotFound indicates the underlying handle was not found, and a logic error in the framework.
 	ErrHandleNotFound = fmt.Errorf("unable to find the native interface handle (this indicates a defect in the framework)")
 
-	// ErrMockServerPanic indicates a panic ocurred when invoking the remote Mock Server.
-	ErrMockServerPanic = fmt.Errorf("a general panic occured when starting/invoking mock service (this indicates a defect in the framework)")
+	// ErrMockServerPanic indicates a panic occurred when invoking the remote Mock Server.
+	ErrMockServerPanic = fmt.Errorf("a general panic occurred when starting/invoking mock service (this indicates a defect in the framework)")
 
 	// ErrUnableToWritePactFile indicates an error when writing the pact file to disk.
 	ErrUnableToWritePactFile = fmt.Errorf("unable to write to file")
@@ -737,30 +737,30 @@ var (
 	// ErrMockServerNotfound indicates the Mock Server could not be found.
 	ErrMockServerNotfound = fmt.Errorf("unable to find mock server with the given port")
 
-	// ErrInvalidMockServerConfig indicates an issue configuring the mock server
+	// ErrInvalidMockServerConfig indicates an issue configuring the mock server.
 	ErrInvalidMockServerConfig = fmt.Errorf("configuration for the mock server was invalid and an unknown error occurred (this is most likely a defect in the framework)")
 
-	// ErrInvalidPact indicates the pact file provided to the mock server was not a valid pact file
+	// ErrInvalidPact indicates the pact file provided to the mock server was not a valid pact file.
 	ErrInvalidPact = fmt.Errorf("pact given to mock server is invalid")
 
-	// ErrMockServerUnableToStart means the mock server could not be started in the rust library
+	// ErrMockServerUnableToStart means the mock server could not be started in the rust library.
 	ErrMockServerUnableToStart = fmt.Errorf("unable to start the mock server")
 
-	// ErrInvalidAddress means the address provided to the mock server was invalid and could not be understood
+	// ErrInvalidAddress means the address provided to the mock server was invalid and could not be understood.
 	ErrInvalidAddress = fmt.Errorf("invalid address provided to the mock server")
 
 	// ErrMockServerTLSConfiguration indicates a TLS mock server could not be started
-	// and is likely a framework level problem
+	// and is likely a framework level problem.
 	ErrMockServerTLSConfiguration = fmt.Errorf("a tls mock server could not be started (this is likely a defect in the framework)")
 
-	// ErrNoInteractions indicates no Interactions have been registered to a mock server, and cannot be started/stopped until at least one is added
+	// ErrNoInteractions indicates no Interactions have been registered to a mock server, and cannot be started/stopped until at least one is added.
 	ErrNoInteractions = fmt.Errorf("no interactions have been registered for the mock server")
 
-	// ErrPluginFailed indicates the plugin could not be started
+	// ErrPluginFailed indicates the plugin could not be started.
 	ErrPluginFailed = fmt.Errorf("the plugin could not be started")
 )
 
-// Log Errors
+// Log Errors.
 var (
 	ErrCantSetLogger      = fmt.Errorf("can't set logger (applying the logger failed, perhaps because one is applied already)")
 	ErrNoLogger           = fmt.Errorf("no logger has been initialized (call `logger_init` before any other log function)")

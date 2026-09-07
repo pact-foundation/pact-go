@@ -6,7 +6,6 @@ package grpc
 import (
 	"fmt"
 	"log"
-
 	"net"
 	"path/filepath"
 	"testing"

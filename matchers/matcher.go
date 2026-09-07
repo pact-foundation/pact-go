@@ -12,7 +12,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
-// Term Matcher regexes
+// Term Matcher regexes.
 const (
 	hexadecimal = `[0-9a-fA-F]+`
 	ipAddress   = `(\d{1,3}\.)+\d{1,3}`
@@ -82,7 +82,7 @@ func (m term) MarshalJSON() ([]byte, error) {
 }
 
 // EachLike specifies that a given element in a JSON body can be repeated
-// "minRequired" times. Number needs to be 1 or greater
+// "minRequired" times. Number needs to be 1 or greater.
 func EachLike(content interface{}, minRequired int) Matcher {
 	if minRequired < 1 {
 		log.Println("[WARN] min value to an array matcher can't be less than one")
@@ -119,7 +119,7 @@ func Term(generate string, matcher string) Matcher {
 	}
 }
 
-// HexValue defines a matcher that accepts hexidecimal values.
+// HexValue defines a matcher that accepts hexadecimal values.
 func HexValue() Matcher {
 	return Regex("3F", hexadecimal)
 }
@@ -165,7 +165,7 @@ func UUID() Matcher {
 	return Regex("fc763eba-0905-41c5-a27f-3934ab26786c", uuid)
 }
 
-// Regex is a more appropriately named alias for the "Term" matcher
+// Regex is a more appropriately named alias for the "Term" matcher.
 var Regex = Term
 
 // Matcher allows various implementations such String or StructMatcher
@@ -185,13 +185,13 @@ type Matcher interface {
 // S is the string primitive wrapper (alias) for the Matcher type,
 // it allows plain strings to be matched
 // To keep backwards compatible with previous versions
-// we aren't using an alias here
+// we aren't using an alias here.
 type S string
 
 func (s S) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
-// without any of the matching detail context
+// without any of the matching detail context.
 func (s S) GetValue() interface{} {
 	return s
 }
@@ -205,13 +205,13 @@ func (s S) MarshalJSON() ([]byte, error) {
 }
 
 // String is the longer named form of the string primitive wrapper,
-// it allows plain strings to be matched
+// it allows plain strings to be matched.
 type String string
 
 func (s String) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
-// without any of the matching detail context
+// without any of the matching detail context.
 func (s String) GetValue() interface{} {
 	return s
 }
@@ -225,24 +225,26 @@ func (s String) MarshalJSON() ([]byte, error) {
 }
 
 // StructMatcher matches a complex object structure, which may itself
-// contain nested Matchers
+// contain nested Matchers.
 type StructMatcher map[string]interface{}
 
 func (m StructMatcher) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
-// without any of the matching detail context
+// without any of the matching detail context.
 func (m StructMatcher) GetValue() interface{} {
 	return nil
 }
 
 // MapMatcher allows a map[string]string-like object
-// to also contain complex matchers
-type MapMatcher map[string]Matcher
-type Map MapMatcher
+// to also contain complex matchers.
+type (
+	MapMatcher map[string]Matcher
+	Map        MapMatcher
+)
 
 // UnmarshalJSON is a custom JSON parser for MapMatcher
-// It treats the matchers as strings
+// It treats the matchers as strings.
 func (m *MapMatcher) UnmarshalJSON(bytes []byte) (err error) {
 	sk := make(map[string]string)
 	err = json.Unmarshal(bytes, &sk)
@@ -258,15 +260,17 @@ func (m *MapMatcher) UnmarshalJSON(bytes []byte) (err error) {
 	return
 }
 
-type HeadersMatcher = map[string][]Matcher
-type MetadataMatcher = MapMatcher
+type (
+	HeadersMatcher  = map[string][]Matcher
+	MetadataMatcher = MapMatcher
+)
 
 // QueryMatcher matches a query string interface
 // type QueryMatcher map[string][]interface{} // Why was it an interface and not the same as the others?
-// Can only be string values anyway, or
+// Can only be string values anyway, or.
 type QueryMatcher map[string][]Matcher
 
-// Takes an object and converts it to a JSON representation
+// Takes an object and converts it to a JSON representation.
 func objectToString(obj interface{}) string {
 	switch content := obj.(type) {
 	case string:
@@ -290,7 +294,7 @@ func objectToString(obj interface{}) string {
 //
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
-// String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
+// String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`.
 func MatchV2(src interface{}) Matcher {
 	return match(reflect.TypeOf(src), getDefaults())
 }
@@ -369,7 +373,7 @@ type stringParams struct {
 	regEx   string
 }
 
-// getDefaults returns the default params
+// getDefaults returns the default params.
 func getDefaults() params {
 	return params{
 		slice: sliceParams{
@@ -381,7 +385,7 @@ func getDefaults() params {
 // pluckParams converts a 'pact' tag into a pactParams struct
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
-// String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`
+// String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`.
 func pluckParams(srcType reflect.Type, pactTag string) params {
 	params := getDefaults()
 	if pactTag == "" {
@@ -422,7 +426,6 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 				triggerInvalidPactTagPanic(pactTag, err)
 			}
 			params.str.regEx = components[1]
-
 		} else if exampleRegex.Match([]byte(pactTag)) {
 			components := strings.Split(pactTag, "example=")
 

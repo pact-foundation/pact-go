@@ -20,11 +20,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var dir, _ = os.Getwd()
-var pactDir = fmt.Sprintf("%s/pacts", dir)
+var (
+	dir, _  = os.Getwd()
+	pactDir = fmt.Sprintf("%s/pacts", dir)
+)
 
-var requestFilterCalled = false
-var stateHandlerCalled = false
+var (
+	requestFilterCalled = false
+	stateHandlerCalled  = false
+)
 
 func TestV3HTTPProvider(t *testing.T) {
 	log.SetLogLevel("DEBUG")
@@ -138,7 +142,6 @@ func TestV3HTTPProvider(t *testing.T) {
 		assert.True(t, requestFilterCalled)
 		assert.True(t, stateHandlerCalled)
 	}
-
 }
 
 func TestV3MessageProvider(t *testing.T) {
@@ -197,7 +200,6 @@ func TestV3MessageProvider(t *testing.T) {
 			MessageHandlers: functionMappings,
 		})
 	}
-
 }
 
 func startServer() {

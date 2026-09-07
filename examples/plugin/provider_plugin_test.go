@@ -6,14 +6,12 @@ package plugin
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"path/filepath"
 	"regexp"
 	"testing"
-
-	// "github.com/pact-foundation/pact-go/v2/log"
-	"log"
 
 	"github.com/pact-foundation/pact-go/v2/provider"
 	"github.com/pact-foundation/pact-go/v2/utils"
@@ -42,7 +40,7 @@ func TestPluginProvider(t *testing.T) {
 			filepath.ToSlash(fmt.Sprintf("%s/matttcpconsumer-matttcpprovider.json", pactDir)),
 		},
 		Transports: []provider.Transport{
-			provider.Transport{
+			{
 				Protocol: "matt",
 				Port:     uint16(tcpPort),
 				Scheme:   "tcp",
@@ -95,7 +93,6 @@ func handleConnection(conn net.Conn) {
 	s := bufio.NewScanner(conn)
 
 	for s.Scan() {
-
 		data := s.Text()
 		log.Println("Data received from connection", data)
 
@@ -117,7 +114,7 @@ func handleRequest(req string, conn net.Conn) {
 	log.Println("TCP Server received valid request, responding")
 
 	// var expectedResponse = "badworld"
-	var expectedResponse = "tcpworld"
+	expectedResponse := "tcpworld"
 	conn.Write([]byte(generateMattMessage(expectedResponse)))
 }
 

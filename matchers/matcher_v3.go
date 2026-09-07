@@ -25,7 +25,7 @@ func Integer(example int) Matcher {
 	}
 }
 
-// Null is a matcher that only accepts nulls
+// Null is a matcher that only accepts nulls.
 type Null struct{}
 
 func (n Null) GetValue() interface{} {
@@ -108,7 +108,7 @@ func (s fromProviderState) isMatcher() {}
 //
 // "expression" is used to lookup the dynamic value from the provider state context
 // during verification
-// "example" is the example value to used in the consumer test
+// "example" is the example value to used in the consumer test.
 func FromProviderState(expression, example string) Matcher {
 	return fromProviderState{
 		Specification: models.V3,
@@ -134,7 +134,7 @@ func (e eachKeyLike) isMatcher() {}
 // Object where the key itself is ignored, but the value template must match.
 //
 // key - Example key to use (which will be ignored)
-// template - Example value template to base the comparison on
+// template - Example value template to base the comparison on.
 func EachKeyLike(key string, template interface{}) Matcher {
 	return eachKeyLike{
 		Specification: models.V3,
@@ -233,7 +233,7 @@ func (s stringGenerator) isMatcher() {}
 
 // DateGenerated matches a cross platform formatted date, and generates a current date during verification
 // String example value must match the provided date format string.
-// See Java SimpleDateFormat https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html for formatting options
+// See Java SimpleDateFormat https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html for formatting options.
 func DateGenerated(example string, format string) Matcher {
 	return stringGenerator{
 		Specification: models.V3,
@@ -246,7 +246,7 @@ func DateGenerated(example string, format string) Matcher {
 
 // TimeGenerated matches a cross platform formatted date, and generates a current time during verification
 // String example value must match the provided time format string.
-// See Java SimpleDateFormat https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html for formatting options
+// See Java SimpleDateFormat https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html for formatting options.
 func TimeGenerated(example string, format string) Matcher {
 	return stringGenerator{
 		Specification: models.V3,
@@ -259,7 +259,7 @@ func TimeGenerated(example string, format string) Matcher {
 
 // DateTimeGenerated matches a cross platform formatted datetime, and generates a current datetime during verification
 // String example value must match the provided datetime format string.
-// See Java SimpleDateFormat https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html for formatting options
+// See Java SimpleDateFormat https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html for formatting options.
 func DateTimeGenerated(example string, format string) Matcher {
 	return stringGenerator{
 		Specification: models.V3,

@@ -79,7 +79,6 @@ func TestGetFeatureSuccess(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			feature, err := c.GetFeature(ctx, point)
-
 			if err != nil {
 				t.Fatal(err.Error())
 			}
@@ -222,7 +221,6 @@ func TestSaveFeature(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			response, err := c.SaveFeature(ctx, feature)
-
 			if err != nil {
 				t.Fatal(err.Error())
 			}

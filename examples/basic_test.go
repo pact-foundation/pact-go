@@ -49,14 +49,14 @@ func TestProductAPIClient(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// Product domain model
+// Product domain model.
 type Product struct {
 	ID    int    `json:"id" pact:"example=10"`
 	Name  string `json:"name" pact:"example=Billy"`
 	Price string `json:"price" pact:"example=23.33"`
 }
 
-// Product API Client to test
+// Product API Client to test.
 type productAPIClient struct {
 	port int
 	host string
@@ -71,7 +71,6 @@ func newClient(host string, port int) *productAPIClient {
 
 func (u *productAPIClient) GetProduct(id string) (*Product, error) {
 	resp, err := http.Get(fmt.Sprintf("http://%s:%d:%s%s", u.host, u.port, "/products/", id))
-
 	if err != nil {
 		return nil, err
 	}

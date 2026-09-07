@@ -22,13 +22,13 @@ type ConsumerVersionSelector struct {
 	Branch             string `json:"branch,omitempty"`
 }
 
-// Type marker
+// Type marker.
 func (c *ConsumerVersionSelector) IsSelector() {
 }
 
 type UntypedConsumerVersionSelector map[string]interface{}
 
-// Type marker
+// Type marker.
 func (c *UntypedConsumerVersionSelector) IsSelector() {
 }
 

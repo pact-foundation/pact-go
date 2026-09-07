@@ -129,15 +129,12 @@ func TestInstallerDownloader(t *testing.T) {
 		}
 
 		// TODO:
-
 	})
 
 	t.Run("errors if installed versions are out of date", func(t *testing.T) {
-
 	})
 
 	t.Run("errors if installed versions are out of date", func(t *testing.T) {
-
 	})
 }
 
@@ -173,7 +170,6 @@ func TestInstallerCheckInstallation(t *testing.T) {
 		err := i.CheckInstallation()
 		assert.NoError(t, err)
 	})
-
 }
 
 func TestInstallerCheckPackageInstall(t *testing.T) {
@@ -221,15 +217,13 @@ func (m *mockDownloader) download(src, dst string) error {
 	return nil
 }
 
-type mockHasher struct {
-}
+type mockHasher struct{}
 
 func (m *mockHasher) hash(src string) (string, error) {
 	return "1234", nil
 }
 
-type mockConfiguration struct {
-}
+type mockConfiguration struct{}
 
 func (m *mockConfiguration) readConfig() pactConfig {
 	return pactConfig{
@@ -253,7 +247,6 @@ func restoreMacOSInstallName() func() {
 }
 
 func TestUpdateConfiguration(t *testing.T) {
-
 }
 
 // TestPackagesVersionSatisfiesOwnSemverRange guards against version/semverRange

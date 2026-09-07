@@ -15,24 +15,24 @@ type Verifier struct {
 	handle *C.VerifierHandle
 }
 
-// Version returns the current semver FFI interface version
+// Version returns the current semver FFI interface version.
 func (v *Verifier) Version() string {
 	return Version()
 }
 
 var (
-	// ErrVerifierPanic indicates a panic ocurred when invoking the verifier.
-	ErrVerifierPanic = fmt.Errorf("a general panic occured when starting/invoking verifier (this indicates a defect in the framework)")
+	// ErrVerifierPanic indicates a panic occurred when invoking the verifier.
+	ErrVerifierPanic = fmt.Errorf("a general panic occurred when starting/invoking verifier (this indicates a defect in the framework)")
 
-	// ErrInvalidVerifierConfig indicates an issue configuring the verifier
+	// ErrInvalidVerifierConfig indicates an issue configuring the verifier.
 	ErrInvalidVerifierConfig = fmt.Errorf("configuration for the verifier was invalid and an unknown error occurred (this is most likely a defect in the framework)")
 
 	// ErrVerifierFailed and ErrVerifierFailedToRun are mutually exclusive: a
 	// single Verifier call returns one or the other, never both.
 	//
-	//ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful)
+	//ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful).
 	ErrVerifierFailed = fmt.Errorf("the verifier failed to successfully verify the pacts, this indicates an issue with the provider API")
-	//ErrVerifierFailedToRun indicates the verification process was unable to run
+	// ErrVerifierFailedToRun indicates the verification process was unable to run.
 	ErrVerifierFailedToRun = fmt.Errorf("the verifier failed to execute (this is most likely a defect in the framework)")
 )
 
@@ -185,7 +185,7 @@ func (v *Verifier) Execute() error {
 	case 2:
 		return ErrVerifierFailedToRun
 	default:
-		return fmt.Errorf("an unknown error (%d) ocurred when verifying the provider (this indicates a defect in the framework)", int(result))
+		return fmt.Errorf("an unknown error (%d) occurred when verifying the provider (this indicates a defect in the framework)", int(result))
 	}
 }
 

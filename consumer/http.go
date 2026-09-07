@@ -76,7 +76,7 @@ type MockHTTPProviderConfig struct {
 }
 
 // httpMockProvider is the entrypoint for http consumer tests
-// This object is not thread safe
+// This object is not thread safe.
 type httpMockProvider struct {
 	specificationVersion models.SpecificationVersion
 	config               MockHTTPProviderConfig
@@ -84,14 +84,14 @@ type httpMockProvider struct {
 }
 
 // MockServerConfig stores the address configuration details of the server for the current executing test
-// This is most useful for the use of OS assigned, dynamic ports and parallel tests
+// This is most useful for the use of OS assigned, dynamic ports and parallel tests.
 type MockServerConfig struct {
 	Port      int
 	Host      string
 	TLSConfig *tls.Config
 }
 
-// configure validates the configuration for the consumer test
+// configure validates the configuration for the consumer test.
 func (p *httpMockProvider) configure() error {
 	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
@@ -129,7 +129,7 @@ func (p *httpMockProvider) configure() error {
 
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
-// and write the pact file if successful
+// and write the pact file if successful.
 func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockServerConfig) error) error {
 	log.Println("[DEBUG] pact verify")
 
@@ -177,7 +177,7 @@ func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockSe
 	return p.writePact()
 }
 
-// Clear state between tests
+// Clear state between tests.
 func (p *httpMockProvider) reset() {
 	p.mockserver.CleanupMockServer(p.config.Port)
 	p.mockserver.CleanupPlugins()
@@ -189,10 +189,9 @@ func (p *httpMockProvider) reset() {
 }
 
 // TODO: improve / pretty print this to make it really easy to understand the problems
-// See existing Pact/Ruby code examples
+// See existing Pact/Ruby code examples.
 func (p *httpMockProvider) displayMismatches(t *testing.T, mismatches []native.MismatchedRequest) {
 	if len(mismatches) > 0 {
-
 		if len(callerInfo()) > 0 {
 			fmt.Printf("\n\n%s:\n", callerInfo()[len(callerInfo())-1])
 		}
@@ -229,9 +228,8 @@ func (p *httpMockProvider) displayMismatches(t *testing.T, mismatches []native.M
 	}
 }
 
-// Stolen from "github.com/stretchr/testify/assert"
+// Stolen from "github.com/stretchr/testify/assert".
 func callerInfo() []string {
-
 	var pc uintptr
 	var ok bool
 	var file string
@@ -306,7 +304,7 @@ func isTest(name, prefix string) bool {
 
 // writePact may be called after each interaction with a mock server is completed
 // the shared core is threadsafe and will merge, as long as the requests come from a single process
-// (that is, there isn't separate) instances of the FFI running simultaneously
+// (that is, there isn't separate) instances of the FFI running simultaneously.
 func (p *httpMockProvider) writePact() error {
 	log.Println("[DEBUG] write pact file")
 	if p.config.Port != 0 {
@@ -317,7 +315,7 @@ func (p *httpMockProvider) writePact() error {
 
 // GetTLSConfigForTLSMockServer gets an http transport with
 // the certificates already trusted. Alternatively, simply set
-// trust level to insecure
+// trust level to insecure.
 func GetTLSConfigForTLSMockServer() *tls.Config {
 	return native.GetTLSConfig()
 }

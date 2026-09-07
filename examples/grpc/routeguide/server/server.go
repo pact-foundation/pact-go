@@ -82,7 +82,7 @@ func (s *routeGuideServer) GetFeature(ctx context.Context, point *pb.Point) (*pb
 	return nil, status.Errorf(codes.NotFound, "no feature was found at %v", point)
 }
 
-// SaveFeature saves the feature
+// SaveFeature saves the feature.
 func (s *routeGuideServer) SaveFeature(ctx context.Context, feature *pb.Feature) (*pb.Feature, error) {
 	s.savedFeatures = append(s.savedFeatures, feature)
 	return feature, nil

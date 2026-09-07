@@ -20,8 +20,8 @@ import (
 )
 
 func TestPluginMessageProvider(t *testing.T) {
-	var dir, _ = os.Getwd()
-	var pactDir = fmt.Sprintf("%s/../pacts", dir)
+	dir, _ := os.Getwd()
+	pactDir := fmt.Sprintf("%s/../pacts", dir)
 
 	err := pactlog.SetLogLevel("INFO")
 	assert.NoError(t, err)

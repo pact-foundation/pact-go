@@ -2,7 +2,7 @@ package native
 
 import "fmt"
 
-// Plugin Errors
+// Plugin Errors.
 var (
 	ErrPluginGenericPanic             = fmt.Errorf("a general panic was caught")
 	ErrPluginMockServerStarted        = fmt.Errorf("the mock server has already been started")

@@ -65,7 +65,7 @@ func TestSyncAddExternalReference(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// Sync - with plugin, but no transport
+// Sync - with plugin, but no transport.
 func TestSyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {
 	p, _ := NewSynchronousPact(Config{
 		Consumer: "consumer",
@@ -99,6 +99,7 @@ func TestSyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+
 func TestSyncTypeSystem_ProtobufPlugin_Matcher_Transport(t *testing.T) {
 	_ = log.SetLogLevel("INFO")
 	p, _ := NewSynchronousPact(Config{
@@ -156,7 +157,7 @@ func TestSyncTypeSystem_ProtobufPlugin_Matcher_Transport(t *testing.T) {
 	// 2024-07-04T01:36:33.745740Z DEBUG ThreadId(01) pact_plugin_driver::plugin_manager: Got response: ShutdownMockServerResponse { ok: false, results: [MockServerResult { path: "PactPlugin/InitPlugin", error: "Did not receive any requests for path 'PactPlugin/InitPlugin'", mismatches: [] }] }
 }
 
-// Sync - with plugin + transport (fail)
+// Sync - with plugin + transport (fail).
 func TestSyncTypeSystem_ProtobufPlugin_Matcher_Transport_Fail(t *testing.T) {
 	p, _ := NewSynchronousPact(Config{
 		Consumer: "consumer",

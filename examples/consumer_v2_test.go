@@ -18,19 +18,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var Like = matchers.Like
-var EachLike = matchers.EachLike
-var Term = matchers.Term
-var Regex = matchers.Regex
-var HexValue = matchers.HexValue
-var Identifier = matchers.Identifier
-var IPAddress = matchers.IPAddress
-var IPv6Address = matchers.IPv6Address
-var Timestamp = matchers.Timestamp
-var Date = matchers.Date
-var Time = matchers.Time
-var UUID = matchers.UUID
-var ArrayMinLike = matchers.ArrayMinLike
+var (
+	Like         = matchers.Like
+	EachLike     = matchers.EachLike
+	Term         = matchers.Term
+	Regex        = matchers.Regex
+	HexValue     = matchers.HexValue
+	Identifier   = matchers.Identifier
+	IPAddress    = matchers.IPAddress
+	IPv6Address  = matchers.IPv6Address
+	Timestamp    = matchers.Timestamp
+	Date         = matchers.Date
+	Time         = matchers.Time
+	UUID         = matchers.UUID
+	ArrayMinLike = matchers.ArrayMinLike
+)
 
 type Map = matchers.MapMatcher
 
@@ -100,7 +102,6 @@ func TestConsumerV2_Match(t *testing.T) {
 			b.Header("Authorization", Like("Bearer 1234"))
 			b.Query("baz", Regex("bar", "[a-z]+"), Regex("bat", "[a-z]+"), Regex("baz", "[a-z]+"))
 			b.BodyMatch(&User{})
-
 		}).
 		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
 			b.Header("Content-Type", Regex("application/json", "application\\/json"))
@@ -164,9 +165,7 @@ var test = func() func(config consumer.MockServerConfig) error {
 }()
 
 var rawTest = func(query string) func(config consumer.MockServerConfig) error {
-
 	return func(config consumer.MockServerConfig) error {
-
 		config.TLSConfig.InsecureSkipVerify = true
 		client := &http.Client{
 			Transport: &http.Transport{

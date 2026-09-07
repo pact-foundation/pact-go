@@ -19,7 +19,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/proxy"
 )
 
-// Hook functions are used to tap into the lifecycle of a Consumer or Provider test
+// Hook functions are used to tap into the lifecycle of a Consumer or Provider test.
 type Hook func() error
 
 // VerifyRequest contains the verification params.
@@ -191,7 +191,6 @@ type VerifyRequest struct {
 
 // Validate checks that the minimum fields are provided.
 func (v *VerifyRequest) validate(handle *native.Verifier) error {
-
 	if v.ProviderBaseURL == "" {
 		logging.PactCrash(fmt.Errorf("ProviderBaseURL is a required field"))
 	} else {
@@ -326,7 +325,7 @@ func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) err
 	return res
 }
 
-// Get a port given a URL
+// Get a port given a URL.
 func getPort(rawURL string) int {
 	parsedURL, err := url.Parse(rawURL)
 	if err == nil {

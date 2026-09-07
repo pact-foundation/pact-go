@@ -16,18 +16,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var Decimal = matchers.Decimal
-var Integer = matchers.Integer
-var Equality = matchers.Equality
-var Includes = matchers.Includes
-var FromProviderState = matchers.FromProviderState
-var EachKeyLike = matchers.EachKeyLike
-var ArrayContaining = matchers.ArrayContaining
-var ArrayMinMaxLike = matchers.ArrayMinMaxLike
-var ArrayMaxLike = matchers.ArrayMaxLike
-var DateGenerated = matchers.DateGenerated
-var TimeGenerated = matchers.TimeGenerated
-var DateTimeGenerated = matchers.DateTimeGenerated
+var (
+	Decimal           = matchers.Decimal
+	Integer           = matchers.Integer
+	Equality          = matchers.Equality
+	Includes          = matchers.Includes
+	FromProviderState = matchers.FromProviderState
+	EachKeyLike       = matchers.EachKeyLike
+	ArrayContaining   = matchers.ArrayContaining
+	ArrayMinMaxLike   = matchers.ArrayMinMaxLike
+	ArrayMaxLike      = matchers.ArrayMaxLike
+	DateGenerated     = matchers.DateGenerated
+	TimeGenerated     = matchers.TimeGenerated
+	DateTimeGenerated = matchers.DateTimeGenerated
+)
 
 func TestConsumerV3(t *testing.T) {
 	log.SetLogLevel("INFO")
@@ -62,7 +64,6 @@ func TestConsumerV3(t *testing.T) {
 					"lastName": Like("billy"),
 					"datetime": DateTimeGenerated("2020-01-01T08:00:45", "yyyy-MM-dd'T'HH:mm:ss"),
 				})
-
 		}).
 		WillRespondWith(200, func(b *consumer.V3ResponseBuilder) {
 			b.
@@ -89,6 +90,7 @@ func TestConsumerV3(t *testing.T) {
 		ExecuteTest(t, test)
 	assert.NoError(t, err)
 }
+
 func TestMessagePact(t *testing.T) {
 	log.SetLogLevel("INFO")
 
@@ -122,12 +124,12 @@ func TestMessagePact(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// Message Pact - wrapped handler extracts the message
+// Message Pact - wrapped handler extracts the message.
 var userHandlerWrapper = func(m message.MessageContents) error {
 	return userHandler(*m.Content.(*User))
 }
 
-// Message Pact - actual handler
+// Message Pact - actual handler.
 var userHandler = func(u User) error {
 	if u.ID == 0 {
 		return errors.New("invalid object supplied, missing fields (id)")

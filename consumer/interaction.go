@@ -38,7 +38,7 @@ func (i *Interaction) WithCompleteRequest(request Request) *Interaction {
 	return i
 }
 
-// WithCompleteResponse specifies the details of the HTTP response required by the consumer
+// WithCompleteResponse specifies the details of the HTTP response required by the consumer.
 func (i *Interaction) WithCompleteResponse(response Response) *Interaction {
 	if response.Body != nil {
 		i.interaction.WithJSONResponseBody(response.Body)
