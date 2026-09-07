@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -49,7 +50,7 @@ type Options struct {
 // loggingMiddleware logs requests to the proxy.
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("[DEBUG] http reverse proxy received connection from %s on path %s\n", r.RemoteAddr, r.RequestURI)
+		log.Printf("[DEBUG] http reverse proxy received connection from %s on path %s\n", strconv.Quote(r.RemoteAddr), strconv.Quote(r.RequestURI))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -97,7 +98,12 @@ func HTTPReverseProxy(options Options) (int, error) {
 
 	log.Println("[DEBUG] starting reverse proxy on port", port)
 	go func() {
-		err := http.ListenAndServe(fmt.Sprintf(":%d", port), wrapper(proxy))
+		server := &http.Server{
+			Addr:              fmt.Sprintf(":%d", port),
+			Handler:           wrapper(proxy),
+			ReadHeaderTimeout: 10 * time.Second,
+		}
+		err := server.ListenAndServe()
 		if err != nil {
 			log.Println("[ERROR] error when starting reverse proxy server:", err)
 			panic(err)
@@ -156,13 +162,13 @@ func createProxy(target *url.URL, ignorePrefix string) *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		if !strings.HasPrefix(req.URL.Path, ignorePrefix) {
 			log.Println("[DEBUG] setting proxy to target")
-			log.Println("[DEBUG] incoming request", req.URL)
+			log.Println("[DEBUG] incoming request", strconv.Quote(req.URL.String()))
 			req.URL.Scheme = target.Scheme
 			req.URL.Host = target.Host
 			req.Host = target.Host
 
 			req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-			log.Println("[DEBUG] outgoing request to target", req.URL)
+			log.Println("[DEBUG] outgoing request to target", strconv.Quote(req.URL.String()))
 			if targetQuery == "" || req.URL.RawQuery == "" {
 				req.URL.RawQuery = targetQuery + req.URL.RawQuery
 			} else {

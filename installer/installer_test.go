@@ -3,7 +3,11 @@
 package installer
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,6 +20,8 @@ func TestNativeLibPath(t *testing.T) {
 	lib := NativeLibPath()
 
 	libFilePath := filepath.Join(lib, "lib.go")
+	//nolint:gosec // G304: libFilePath is derived from NativeLibPath(), a fixed repo-relative
+	// path, not user- or network-supplied input.
 	file, err := os.ReadFile(libFilePath)
 	assert.NoError(t, err)
 	assert.Contains(t, string(file), "-lpact_ffi")
@@ -259,4 +265,56 @@ func TestPackagesVersionSatisfiesOwnSemverRange(t *testing.T) {
 		err := checkVersion(info.libName, info.version, info.semverRange)
 		assert.NoErrorf(t, err, "package %q: compiled-in version %q must satisfy its own semverRange %q", pkg, info.version, info.semverRange)
 	}
+}
+
+// gzipped returns n bytes of zeroes, gzip compressed.
+func gzipped(t *testing.T, n int) []byte {
+	t.Helper()
+
+	var buf bytes.Buffer
+	w := gzip.NewWriter(&buf)
+	_, err := w.Write(make([]byte, n))
+	assert.NoError(t, err)
+	assert.NoError(t, w.Close())
+
+	return buf.Bytes()
+}
+
+func TestDefaultDownloader_Download(t *testing.T) {
+	original := maxDecompressedLibSize
+	defer func() { maxDecompressedLibSize = original }()
+	maxDecompressedLibSize = 1024
+
+	t.Run("within the size limit", func(t *testing.T) {
+		body := gzipped(t, int(maxDecompressedLibSize))
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write(body)
+		}))
+		defer server.Close()
+
+		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
+		assert.NoError(t, (&defaultDownloader{}).download(server.URL, dst))
+
+		info, err := os.Stat(dst)
+		assert.NoError(t, err)
+		assert.Equal(t, maxDecompressedLibSize, info.Size())
+	})
+
+	t.Run("beyond the size limit", func(t *testing.T) {
+		body := gzipped(t, int(maxDecompressedLibSize)+1)
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write(body)
+		}))
+		defer server.Close()
+
+		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
+		err := (&defaultDownloader{}).download(server.URL, dst)
+
+		assert.ErrorContains(t, err, "exceeds the 1024 byte safety limit")
+
+		// The oversized partial download must not be left behind for
+		// CheckPackageInstall to mistake for a good library.
+		_, statErr := os.Stat(dst)
+		assert.True(t, os.IsNotExist(statErr), "expected %s to be removed, got %v", dst, statErr)
+	})
 }

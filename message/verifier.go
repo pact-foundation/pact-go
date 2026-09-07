@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
@@ -78,7 +79,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				if closeErr != nil {
 					log.Println("[WARN] failed to close request body:", closeErr)
 				}
-				log.Printf("[TRACE] message verification handler received request: %+s, %s", body, r.URL.Path)
+				log.Printf("[TRACE] message verification handler received request: %s, %s", strconv.Quote(string(body)), strconv.Quote(r.URL.Path))
 
 				if err != nil {
 					log.Printf("[ERROR] unable to parse message verification request: %s", err)
@@ -135,7 +136,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 
 				return
 			}
-			log.Println("[TRACE] skipping message handler for request", r.RequestURI)
+			log.Println("[TRACE] skipping message handler for request", strconv.Quote(r.RequestURI))
 
 			// Pass through to application
 			next.ServeHTTP(w, r)

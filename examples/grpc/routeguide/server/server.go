@@ -174,6 +174,8 @@ func (s *routeGuideServer) loadFeatures(filePath string) {
 	var data []byte
 	if filePath != "" {
 		var err error
+		//nolint:gosec // G304: filePath is an operator-supplied CLI flag (-json_db_file), not
+		// remote or otherwise untrusted input.
 		data, err = os.ReadFile(filePath)
 		if err != nil {
 			log.Fatalf("Failed to load default features: %v", err)

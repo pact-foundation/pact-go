@@ -63,7 +63,12 @@ func (v *Verifier) validateConfig() error {
 func (v *Verifier) startDefaultHTTPServer(port int) {
 	mux := http.NewServeMux()
 
-	_ = http.ListenAndServe(fmt.Sprintf("%s:%d", v.Hostname, port), mux)
+	server := &http.Server{
+		Addr:              fmt.Sprintf("%s:%d", v.Hostname, port),
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	_ = server.ListenAndServe()
 }
 
 // VerifyProviderRaw reads the provided pact files and runs verification against
@@ -138,7 +143,10 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 		request.Transports = append(request.Transports, Transport{
 			Path:     MESSAGE_PATH,
 			Protocol: "message",
-			Port:     uint16(port),
+			//nolint:gosec // G115: port is returned by proxy.HTTPReverseProxy. The Options
+			// passed to it here never set ProxyPort, so port is always utils.GetFreePort(),
+			// an OS-assigned net.TCPAddr.Port, always 0-65535.
+			Port: uint16(port),
 		})
 	}
 
@@ -358,7 +366,7 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 				return
 			}
 
-			log.Println("[TRACE] skipping state handler for request", r.RequestURI)
+			log.Println("[TRACE] skipping state handler for request", strconv.Quote(r.RequestURI))
 
 			// Pass through to application
 			next.ServeHTTP(w, r)
