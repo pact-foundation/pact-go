@@ -32,7 +32,7 @@ var (
 )
 
 func TestConsumerV3(t *testing.T) {
-	log.SetLogLevel("INFO")
+	assert.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV3Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV3Consumer",
@@ -92,7 +92,7 @@ func TestConsumerV3(t *testing.T) {
 }
 
 func TestMessagePact(t *testing.T) {
-	log.SetLogLevel("INFO")
+	assert.NoError(t, log.SetLogLevel("INFO"))
 
 	provider, err := message.NewMessagePact(message.Config{
 		Consumer: "PactGoV3MessageConsumer",

@@ -258,7 +258,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 		for i, selector := range v.ConsumerVersionSelectors {
 			body, err := json.Marshal(selector)
 			if err != nil {
-				return fmt.Errorf("invalid consumer version selector specified: %v", err)
+				return fmt.Errorf("invalid consumer version selector specified: %w", err)
 			}
 
 			selectors[i] = string(body)

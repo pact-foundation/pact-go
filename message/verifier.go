@@ -60,7 +60,8 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				// Extract message
 				var message messageVerificationHandlerRequest
 				body, err := io.ReadAll(r.Body)
-				if closeErr := r.Body.Close(); closeErr != nil {
+				closeErr := r.Body.Close()
+				if closeErr != nil {
 					log.Println("[WARN] failed to close request body:", closeErr)
 				}
 				log.Printf("[TRACE] message verification handler received request: %+s, %s", body, r.URL.Path)
@@ -91,7 +92,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				res, metadata, handlerErr := f(message.States)
 
 				if handlerErr != nil {
-					log.Printf("[ERROR] error executive message handler %s", err)
+					log.Printf("[ERROR] error executive message handler %s", handlerErr)
 					w.WriteHeader(http.StatusServiceUnavailable)
 					return
 				}

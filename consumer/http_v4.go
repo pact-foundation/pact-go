@@ -171,7 +171,8 @@ func (i *V4RequestBuilder) Headers(headers matchers.HeadersMatcher) *V4RequestBu
 // JSONBody adds a JSON body to the expected request.
 func (i *V4RequestBuilder) JSONBody(body interface{}) *V4RequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 
@@ -274,7 +275,8 @@ func (i *V4ResponseBuilder) Headers(headers matchers.HeadersMatcher) *V4Response
 // JSONBody adds a JSON body to the expected response.
 func (i *V4ResponseBuilder) JSONBody(body interface{}) *V4ResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 
@@ -477,7 +479,8 @@ func (i *V4InteractionWithPluginRequestBuilder) PluginContents(contentType strin
 // JSONBody adds a JSON body to the expected request.
 func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body interface{}) *V4InteractionWithPluginRequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 
@@ -562,7 +565,8 @@ func (i *V4InteractionWithPluginResponseBuilder) PluginContents(contentType stri
 // JSONBody adds a JSON body to the expected response.
 func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body interface{}) *V4InteractionWithPluginResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 

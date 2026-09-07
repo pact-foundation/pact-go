@@ -98,25 +98,29 @@ func (i *Installer) CheckInstallation() error {
 	// Check if files exist
 	// --> Check if existing installed files
 	if !i.force {
-		if err := i.CheckPackageInstall(); err == nil {
+		err := i.CheckPackageInstall()
+		if err == nil {
 			return nil
 		}
 	}
 
 	// Download dependencies
-	if err := i.downloadDependencies(); err != nil {
+	err := i.downloadDependencies()
+	if err != nil {
 		return err
 	}
 
 	// Install dependencies
-	if err := i.installDependencies(); err != nil {
+	err = i.installDependencies()
+	if err != nil {
 		return err
 	}
 
 	// Double check files landed correctly (can't execute 'version' call here,
 	// because of dependency on the native libs we're trying to download!)
-	if err := i.CheckPackageInstall(); err != nil {
-		return fmt.Errorf("unable to verify downloaded/installed dependencies: %s", err)
+	err = i.CheckPackageInstall()
+	if err != nil {
+		return fmt.Errorf("unable to verify downloaded/installed dependencies: %w", err)
 	}
 
 	return nil
@@ -140,7 +144,8 @@ func (i *Installer) CheckPackageInstall() error {
 	for pkg, info := range packages {
 		dst, _ := i.getLibDstForPackage(pkg)
 
-		if _, err := i.fs.Stat(dst); err != nil {
+		_, err := i.fs.Stat(dst)
+		if err != nil {
 			log.Println("[INFO] package", info.libName, "not found")
 			return err
 		} else {
@@ -149,7 +154,8 @@ func (i *Installer) CheckPackageInstall() error {
 
 		lib, ok := i.config.readConfig().Libraries[pkg]
 		if ok {
-			if err := checkVersion(info.libName, lib.Version, info.semverRange); err != nil {
+			err := checkVersion(info.libName, lib.Version, info.semverRange)
+			if err != nil {
 				return err
 			}
 			log.Println("[INFO] package", info.libName, "is correctly installed")
@@ -166,7 +172,8 @@ func (i *Installer) CheckPackageInstall() error {
 
 			if ok {
 				log.Println("[INFO] checking version", lib.Version(), "for lib", info.libName, "within semver range", info.semverRange)
-				if err := checkVersion(info.libName, lib.Version(), info.semverRange); err != nil {
+				err := checkVersion(info.libName, lib.Version(), info.semverRange)
+				if err != nil {
 					return err
 				}
 			} else {
@@ -287,7 +294,7 @@ var setMacOSInstallName = func(file string) error {
 	log.Println("[DEBUG] running command:", cmd)
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error setting install name on pact lib: %s", err)
+		return fmt.Errorf("error setting install name on pact lib: %w", err)
 	}
 
 	log.Println("[DEBUG] output from command", string(stdoutStderr))
@@ -402,7 +409,8 @@ func (d *defaultDownloader) download(src string, dst string) error {
 	log.Println("[INFO] downloading library from", src, "to", dst)
 
 	baseDir := path.Dir(dst)
-	if err := os.MkdirAll(baseDir, 0o755); err != nil {
+	err := os.MkdirAll(baseDir, 0o755)
+	if err != nil {
 		return fmt.Errorf("failed to create %s; %w", baseDir, err)
 	}
 
@@ -525,7 +533,8 @@ func (d *defaultHasher) hash(src string) (string, error) {
 	}()
 
 	h := md5.New()
-	if _, err := io.Copy(h, f); err != nil {
+	_, err = io.Copy(h, f)
+	if err != nil {
 		return "", err
 	}
 

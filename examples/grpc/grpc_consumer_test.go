@@ -27,7 +27,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 		Provider: "grpcprovider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	log.SetLogLevel("DEBUG")
+	assert.NoError(t, log.SetLogLevel("DEBUG"))
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
@@ -65,7 +65,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 			if err != nil {
 				t.Fatal("unable to communicate to grpc server", err)
 			}
-			defer conn.Close()
+			defer func() { _ = conn.Close() }() // best-effort cleanup; error is not actionable in a test
 
 			// Create the gRPC client
 			c := routeguide.NewRouteGuideClient(conn)
@@ -94,7 +94,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 }
 
 func TestGetFeatureError(t *testing.T) {
-	log.SetLogLevel("DEBUG")
+	assert.NoError(t, log.SetLogLevel("DEBUG"))
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "grpcconsumer",
 		Provider: "grpcprovider",
@@ -132,7 +132,7 @@ func TestGetFeatureError(t *testing.T) {
 			// Establish the gRPC connection
 			conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", transport.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 			require.NoError(t, err)
-			defer conn.Close()
+			defer func() { _ = conn.Close() }() // best-effort cleanup; error is not actionable in a test
 
 			// Create the gRPC client
 			c := routeguide.NewRouteGuideClient(conn)
@@ -164,7 +164,7 @@ func TestSaveFeature(t *testing.T) {
 		Provider: "grpcprovider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	log.SetLogLevel("INFO")
+	assert.NoError(t, log.SetLogLevel("INFO"))
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
@@ -205,7 +205,7 @@ func TestSaveFeature(t *testing.T) {
 			if err != nil {
 				t.Fatal("unable to communicate to grpc server", err)
 			}
-			defer conn.Close()
+			defer func() { _ = conn.Close() }() // best-effort cleanup; error is not actionable in a test
 
 			// Create the gRPC client
 			c := routeguide.NewRouteGuideClient(conn)

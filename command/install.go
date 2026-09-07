@@ -33,7 +33,8 @@ var (
 
 			i.Force(force)
 
-			if err = i.CheckInstallation(); err != nil {
+			err = i.CheckInstallation()
+			if err != nil {
 				log.Println("[ERROR] Your Pact library installation is out of date and we were unable to download a newer one for you:", err)
 				os.Exit(1)
 			}

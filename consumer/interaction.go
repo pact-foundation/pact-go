@@ -63,10 +63,15 @@ func validateMatchers(version models.SpecificationVersion, obj interface{}) erro
 		return err
 	}
 
-	var maybeMatchers map[string]interface{}
-	err = json.Unmarshal(str, &maybeMatchers)
+	var raw interface{}
+	err = json.Unmarshal(str, &raw)
 	if err != nil {
-		// This means the object is not really an object, it's probably a primitive
+		return err
+	}
+
+	maybeMatchers, ok := raw.(map[string]interface{})
+	if !ok {
+		// Not a JSON object (e.g. a string, number, or array) - nothing to validate.
 		return nil
 	}
 

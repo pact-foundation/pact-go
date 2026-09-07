@@ -31,7 +31,7 @@ var (
 )
 
 func TestV3HTTPProvider(t *testing.T) {
-	log.SetLogLevel("DEBUG")
+	assert.NoError(t, log.SetLogLevel("DEBUG"))
 	version.CheckVersion()
 
 	// Start provider API in the background
@@ -145,7 +145,7 @@ func TestV3HTTPProvider(t *testing.T) {
 }
 
 func TestV3MessageProvider(t *testing.T) {
-	log.SetLogLevel("DEBUG")
+	assert.NoError(t, log.SetLogLevel("DEBUG"))
 	var user *User
 
 	verifier := provider.NewVerifier()
@@ -184,7 +184,7 @@ func TestV3MessageProvider(t *testing.T) {
 	// Verify the Provider with local Pact Files
 
 	if os.Getenv("SKIP_PUBLISH") != "true" {
-		verifier.VerifyProvider(t, provider.VerifyRequest{
+		err := verifier.VerifyProvider(t, provider.VerifyRequest{
 			StateHandlers:   stateMappings,
 			Provider:        "V3MessageProvider",
 			ProviderVersion: os.Getenv("APP_SHA"),
@@ -192,13 +192,15 @@ func TestV3MessageProvider(t *testing.T) {
 			BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
 			MessageHandlers: functionMappings,
 		})
+		assert.NoError(t, err)
 	} else {
-		verifier.VerifyProvider(t, provider.VerifyRequest{
+		err := verifier.VerifyProvider(t, provider.VerifyRequest{
 			PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
 			StateHandlers:   stateMappings,
 			Provider:        "V3MessageProvider",
 			MessageHandlers: functionMappings,
 		})
+		assert.NoError(t, err)
 	}
 }
 
@@ -207,7 +209,7 @@ func startServer() {
 
 	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		fmt.Fprintf(w, `
+		_, err := fmt.Fprintf(w, `
 			{
 				"accountBalance": 123.76,
 				"datetime": "2020-01-01",
@@ -237,6 +239,9 @@ func startServer() {
 				]
 			}`,
 		)
+		if err != nil {
+			l.Println("[ERROR] failed to write response body:", err)
+		}
 	})
 
 	l.Fatal(http.ListenAndServe("127.0.0.1:8111", mux))

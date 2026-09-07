@@ -20,7 +20,7 @@ import (
 
 func TestGrpcProvider(t *testing.T) {
 	go startProvider()
-	l.SetLogLevel("INFO")
+	assert.NoError(t, l.SetLogLevel("INFO"))
 
 	verifier := provider.NewVerifier()
 
@@ -49,5 +49,8 @@ func startProvider() {
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterRouteGuideServer(grpcServer, server.NewServer())
-	grpcServer.Serve(lis)
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		log.Printf("failed to serve: %v", err)
+	}
 }

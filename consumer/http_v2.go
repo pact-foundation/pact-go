@@ -150,7 +150,8 @@ func (i *V2RequestBuilder) Headers(headers matchers.HeadersMatcher) *V2RequestBu
 // JSONBody adds a JSON body to the expected request.
 func (i *V2RequestBuilder) JSONBody(body interface{}) *V2RequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 
@@ -253,7 +254,8 @@ func (i *V2ResponseBuilder) Headers(headers matchers.HeadersMatcher) *V2Response
 // JSONBody adds a JSON body to the expected response.
 func (i *V2ResponseBuilder) JSONBody(body interface{}) *V2ResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 

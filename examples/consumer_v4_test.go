@@ -14,7 +14,7 @@ import (
 )
 
 func TestConsumerV4(t *testing.T) {
-	log.SetLogLevel("INFO")
+	assert.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV4Consumer",
