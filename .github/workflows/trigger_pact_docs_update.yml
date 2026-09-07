@@ -6,7 +6,10 @@ on:
     branches:
       - master
     paths:
-      - '**.md'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'docs/**.md'
+      - '!docs/contributing/**'
 
 jobs:
   run:
