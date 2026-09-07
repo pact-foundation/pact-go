@@ -32,6 +32,10 @@ func GetFreePort() (int, error) {
 	return tcpAddr.Port, nil
 }
 
+// portRangeParts is the number of "-"-separated parts a "lower-upper" port
+// range splits into.
+const portRangeParts = 2
+
 // FindPortInRange Iterate through CSV or Range of ports to find open port
 // Valid inputs are "8081", "8081,8085", "8081-8085". Do not combine
 // list and range.
@@ -54,7 +58,7 @@ func FindPortInRange(s string) (int, error) {
 	}
 	// Now take care of ranges
 	ports := strings.Split(strings.TrimSpace(s), "-")
-	if len(ports) != 2 {
+	if len(ports) != portRangeParts {
 		return 0, errors.New("invalid range passed")
 	}
 	lower, err := strconv.Atoi(ports[0])

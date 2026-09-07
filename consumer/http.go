@@ -29,6 +29,10 @@ import (
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
+// defaultClientTimeout is how long the mock server client waits for the
+// native library when MockHTTPProviderConfig.ClientTimeout is left unset.
+const defaultClientTimeout = 10 * time.Second
+
 // MockHTTPProviderConfig provides the configuration options for an HTTP mock server
 // consumer test.
 type MockHTTPProviderConfig struct {
@@ -160,7 +164,7 @@ func (p *httpMockProvider) configure() error {
 	}
 
 	if p.config.ClientTimeout == 0 {
-		p.config.ClientTimeout = 10 * time.Second
+		p.config.ClientTimeout = defaultClientTimeout
 	}
 
 	p.mockserver = native.NewHTTPPact(p.config.Consumer, p.config.Provider)
