@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pact-foundation/pact-go/v2/internal/native"
@@ -200,10 +199,16 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 		}
 
 		port := getPort(v.ProviderBaseURL)
-		if port == -1 {
+		switch port {
+		case portOutOfRange:
+			return fmt.Errorf("port in 'ProviderBaseURL' %q is out of range, must be between 0 and 65535", v.ProviderBaseURL)
+		case portUnknownScheme:
 			return fmt.Errorf("unknown scheme '%s' given to 'ProviderBaseURL', unable to determine default port. Use 'Transports' for non-HTTP providers instead", url.Scheme)
 		}
 
+		//nolint:gosec // G115: getPort returns either portOutOfRange or portUnknownScheme
+		// (both handled above) or a value already checked to be within 0-65535, so this
+		// conversion cannot overflow uint16.
 		handle.SetProviderInfo(v.Provider, url.Scheme, url.Hostname(), uint16(port), url.Path)
 
 		log.Println("[DEBUG] v.Transports", v.Transports)
@@ -325,22 +330,40 @@ func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) err
 	return res
 }
 
-// Get a port given a URL.
+// Sentinel returns from getPort, distinct from any valid port (0-65535).
+const (
+	// portUnknownScheme means the URL did not parse, or its scheme has no
+	// default port. A caller that has already parsed the URL itself only ever
+	// sees the latter.
+	portUnknownScheme = -1
+	// portOutOfRange means the URL carried an explicit port outside 0-65535.
+	portOutOfRange = -2
+)
+
+// getPort returns the port of a URL, falling back to the default port for the
+// scheme when the URL carries none. Only http and https have a default port.
 func getPort(rawURL string) int {
 	parsedURL, err := url.Parse(rawURL)
-	if err == nil {
-		splitHost := strings.Split(parsedURL.Host, ":")
-		if len(splitHost) == 2 {
-			port, err := strconv.Atoi(splitHost[1])
-			if err == nil {
-				return port
-			}
-		}
-		if parsedURL.Scheme == "https" {
-			return 443
-		}
-		return 80
+	if err != nil {
+		return portUnknownScheme
 	}
 
-	return -1
+	// Port is empty unless the URL carries an explicit port, and strips the
+	// brackets from an IPv6 host.
+	if rawPort := parsedURL.Port(); rawPort != "" {
+		port, err := strconv.Atoi(rawPort)
+		if err != nil || port < 0 || port > 65535 {
+			return portOutOfRange
+		}
+		return port
+	}
+
+	switch parsedURL.Scheme {
+	case "https":
+		return 443
+	case "http":
+		return 80
+	default:
+		return portUnknownScheme
+	}
 }

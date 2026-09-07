@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/pact-foundation/pact-go/v2/provider"
 	"github.com/pact-foundation/pact-go/v2/utils"
@@ -43,8 +44,10 @@ func TestPluginProvider(t *testing.T) {
 		Transports: []provider.Transport{
 			{
 				Protocol: "matt",
-				Port:     uint16(tcpPort),
-				Scheme:   "tcp",
+				//nolint:gosec // G115: tcpPort comes from utils.GetFreePort(), which returns
+				// net.TCPAddr.Port, a value the kernel always assigns in the 0-65535 range.
+				Port:   uint16(tcpPort),
+				Scheme: "tcp",
 			},
 		},
 	})
@@ -65,7 +68,12 @@ func startHTTPProvider(port int) {
 	})
 
 	log.Printf("started HTTP server on port: %d\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), mux))
+	server := &http.Server{
+		Addr:              fmt.Sprintf("127.0.0.1:%d", port),
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 func startTCPServer(port int) {
