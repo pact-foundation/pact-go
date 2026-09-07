@@ -63,6 +63,7 @@ func (m *MessageServer) WithMetadata(namespace, k, v string) *MessageServer {
 }
 
 // NewMessage initialises a new message for the current contract.
+//
 // Deprecated: use NewAsyncMessageInteraction instead.
 func (m *MessageServer) NewMessage() *Message {
 	// Alias
@@ -319,81 +320,97 @@ func (m *Message) WithPluginInteractionContents(part interactionPart, contentTyp
 func (m *Message) GetMessageRequestContents() ([]byte, error) {
 	log.Println("[DEBUG] GetMessageRequestContents")
 	if m.messageType == MESSAGE_TYPE_ASYNC {
-		iter := C.pactffi_pact_handle_get_message_iter(m.pact.handle)
-		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter")
-		if iter == nil {
-			return nil, errors.New("unable to get a message iterator")
+		return m.getAsyncMessageRequestContents()
+	}
+	return m.getSyncMessageRequestContents()
+}
+
+// getAsyncMessageRequestContents is the MESSAGE_TYPE_ASYNC branch of
+// GetMessageRequestContents, split out to keep both branches readable.
+func (m *Message) getAsyncMessageRequestContents() ([]byte, error) {
+	iter := C.pactffi_pact_handle_get_message_iter(m.pact.handle)
+	log.Println("[DEBUG] pactffi_pact_handle_get_message_iter")
+	if iter == nil {
+		return nil, errors.New("unable to get a message iterator")
+	}
+	log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - OK")
+
+	///////
+	// TODO: some debugging in here to see what's exploding.......
+	///////
+
+	log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - len", len(m.server.messages))
+
+	for i := range len(m.server.messages) {
+		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - index", i)
+		message := C.pactffi_pact_message_iter_next(iter)
+		log.Println("[DEBUG] pactffi_pact_message_iter_next - message", message)
+
+		if i != m.index {
+			continue
 		}
-		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - OK")
+		log.Println("[DEBUG] pactffi_pact_message_iter_next - index match", message)
 
-		///////
-		// TODO: some debugging in here to see what's exploding.......
-		///////
-
-		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - len", len(m.server.messages))
-
-		for i := range len(m.server.messages) {
-			log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - index", i)
-			message := C.pactffi_pact_message_iter_next(iter)
-			log.Println("[DEBUG] pactffi_pact_message_iter_next - message", message)
-
-			if i == m.index {
-				log.Println("[DEBUG] pactffi_pact_message_iter_next - index match", message)
-
-				if message == nil {
-					return nil, errors.New("retrieved a null message pointer")
-				}
-
-				len := C.pactffi_message_get_contents_length(message)
-				log.Println("[DEBUG] pactffi_message_get_contents_length - len", len)
-				if len == 0 {
-					// You can have empty bodies
-					log.Println("[DEBUG] message body is empty")
-					return nil, nil
-				}
-				data := C.pactffi_message_get_contents_bin(message)
-				log.Println("[DEBUG] pactffi_message_get_contents_bin - data", data)
-				if data == nil {
-					// You can have empty bodies
-					log.Println("[DEBUG] message binary contents are empty")
-					return nil, nil
-				}
-				ptr := unsafe.Pointer(data)
-				bytes := C.GoBytes(ptr, C.int(len))
-
-				return bytes, nil
-			}
-		}
-	} else {
-		iter := C.pactffi_pact_handle_get_sync_message_iter(m.pact.handle)
-		if iter == nil {
-			return nil, errors.New("unable to get a message iterator")
+		if message == nil {
+			return nil, errors.New("retrieved a null message pointer")
 		}
 
-		for i := range len(m.server.messages) {
-			message := C.pactffi_pact_sync_message_iter_next(iter)
-
-			if i == m.index {
-				if message == nil {
-					return nil, errors.New("retrieved a null message pointer")
-				}
-
-				len := C.pactffi_sync_message_get_request_contents_length(message)
-				if len == 0 {
-					log.Println("[DEBUG] message body is empty")
-					return nil, nil
-				}
-				data := C.pactffi_sync_message_get_request_contents_bin(message)
-				if data == nil {
-					log.Println("[DEBUG] message binary contents are empty")
-					return nil, nil
-				}
-				ptr := unsafe.Pointer(data)
-				bytes := C.GoBytes(ptr, C.int(len))
-
-				return bytes, nil
-			}
+		len := C.pactffi_message_get_contents_length(message)
+		log.Println("[DEBUG] pactffi_message_get_contents_length - len", len)
+		if len == 0 {
+			// You can have empty bodies
+			log.Println("[DEBUG] message body is empty")
+			return nil, nil
 		}
+		data := C.pactffi_message_get_contents_bin(message)
+		log.Println("[DEBUG] pactffi_message_get_contents_bin - data", data)
+		if data == nil {
+			// You can have empty bodies
+			log.Println("[DEBUG] message binary contents are empty")
+			return nil, nil
+		}
+		ptr := unsafe.Pointer(data)
+		bytes := C.GoBytes(ptr, C.int(len))
+
+		return bytes, nil
+	}
+
+	return nil, errors.New("unable to find the message")
+}
+
+// getSyncMessageRequestContents is the synchronous-message branch of
+// GetMessageRequestContents, split out to keep both branches readable.
+func (m *Message) getSyncMessageRequestContents() ([]byte, error) {
+	iter := C.pactffi_pact_handle_get_sync_message_iter(m.pact.handle)
+	if iter == nil {
+		return nil, errors.New("unable to get a message iterator")
+	}
+
+	for i := range len(m.server.messages) {
+		message := C.pactffi_pact_sync_message_iter_next(iter)
+
+		if i != m.index {
+			continue
+		}
+
+		if message == nil {
+			return nil, errors.New("retrieved a null message pointer")
+		}
+
+		len := C.pactffi_sync_message_get_request_contents_length(message)
+		if len == 0 {
+			log.Println("[DEBUG] message body is empty")
+			return nil, nil
+		}
+		data := C.pactffi_sync_message_get_request_contents_bin(message)
+		if data == nil {
+			log.Println("[DEBUG] message binary contents are empty")
+			return nil, nil
+		}
+		ptr := unsafe.Pointer(data)
+		bytes := C.GoBytes(ptr, C.int(len))
+
+		return bytes, nil
 	}
 
 	return nil, errors.New("unable to find the message")

@@ -417,8 +417,8 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 			triggerInvalidPactTagPanic(pactTag, err)
 		}
 	case reflect.String:
-		fullRegex, _ := regexp.Compile(`regex=(.*)$`)
-		exampleRegex, _ := regexp.Compile(`^example=(.*)`)
+		fullRegex := regexp.MustCompile(`regex=(.*)$`)
+		exampleRegex := regexp.MustCompile(`^example=(.*)`)
 
 		if fullRegex.MatchString(pactTag) {
 			components := strings.Split(pactTag, ",regex=")

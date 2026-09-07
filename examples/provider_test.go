@@ -31,6 +31,23 @@ var (
 	stateHandlerCalled  = false
 )
 
+// userFooExistsStateHandler backs the "User foo exists" provider state,
+// shared by both the local-file and broker-published verification runs.
+func userFooExistsStateHandler(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+	stateHandlerCalled = true
+
+	if setup {
+		l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
+	} else {
+		l.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
+	}
+
+	// ... do something, such as create "foo" in the database
+
+	// Optionally (if there are generators in the pact) return provider state values to be used in the verification
+	return models.ProviderStateResponse{"uuid": "1234"}, nil
+}
+
 func TestV3HTTPProvider(t *testing.T) {
 	require.NoError(t, log.SetLogLevel("DEBUG"))
 	version.CheckVersion()
@@ -84,20 +101,7 @@ func TestV3HTTPProvider(t *testing.T) {
 				return nil
 			},
 			StateHandlers: models.StateHandlers{
-				"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
-					stateHandlerCalled = true
-
-					if setup {
-						l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
-					} else {
-						l.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
-					}
-
-					// ... do something, such as create "foo" in the database
-
-					// Optionally (if there are generators in the pact) return provider state values to be used in the verification
-					return models.ProviderStateResponse{"uuid": "1234"}, nil
-				},
+				"User foo exists": userFooExistsStateHandler,
 			},
 			DisableColoredOutput: true,
 		})
@@ -122,20 +126,7 @@ func TestV3HTTPProvider(t *testing.T) {
 				return nil
 			},
 			StateHandlers: models.StateHandlers{
-				"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
-					stateHandlerCalled = true
-
-					if setup {
-						l.Println("[DEBUG] HOOK calling user foo exists state handler", s)
-					} else {
-						l.Println("[DEBUG] HOOK teardown the 'User foo exists' state")
-					}
-
-					// ... do something, such as create "foo" in the database
-
-					// Optionally (if there are generators in the pact) return provider state values to be used in the verification
-					return models.ProviderStateResponse{"uuid": "1234"}, nil
-				},
+				"User foo exists": userFooExistsStateHandler,
 			},
 			DisableColoredOutput: true,
 		})
