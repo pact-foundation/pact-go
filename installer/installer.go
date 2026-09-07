@@ -4,6 +4,7 @@ package installer
 
 import (
 	"compress/gzip"
+	"context"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	goversion "github.com/hashicorp/go-version"
 	"gopkg.in/yaml.v3"
@@ -330,7 +332,7 @@ func checkMusl() bool {
 		return false
 	}
 
-	cmd := exec.Command(lddPath, "/bin/echo")
+	cmd := exec.CommandContext(context.Background(), lddPath, "/bin/echo")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return false
@@ -422,7 +424,15 @@ func (d *defaultDownloader) download(src string, dst string) error {
 		_ = f.Close()
 	}()
 
-	resp, err := http.Get(src)
+	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for %s; %w", src, err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed http call to %s; %w", src, err)
 	}
@@ -442,6 +452,12 @@ func (d *defaultDownloader) download(src string, dst string) error {
 
 	return nil
 }
+
+// downloadTimeout bounds a single library download end to end, so a stalled
+// connection fails the install instead of hanging it. The largest FFI asset is
+// ~6.6MB compressed, so this leaves room for a slow link without leaving
+// `pact-go install` waiting forever.
+const downloadTimeout = 5 * time.Minute
 
 type packageMetadata struct {
 	LibName string

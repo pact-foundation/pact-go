@@ -88,8 +88,15 @@ func hasMatcherGreaterThanSpec(version models.SpecificationVersion, obj map[stri
 	results := make([]string, 0)
 
 	for k, v := range obj {
-		if k == "pact:specification" && v.(string) > string(version) {
-			results = append(results, obj["pact:matcher:type"].(string))
+		specVersion, ok := v.(string)
+		if k == "pact:specification" && ok && specVersion > string(version) {
+			matcherType, ok := obj["pact:matcher:type"].(string)
+			if !ok {
+				// Still surface the finding even if the matcher type is
+				// missing or malformed, so it isn't silently dropped.
+				matcherType = "<unknown matcher type>"
+			}
+			results = append(results, matcherType)
 		}
 
 		m, ok := v.(map[string]interface{})

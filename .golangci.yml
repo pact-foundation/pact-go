@@ -8,12 +8,16 @@ issues:
   max-same-issues: 0
 linters:
   enable:
+    - bodyclose
     - dupword
     - errorlint
+    - exhaustive
+    - forcetypeassert
     - godot
     - misspell
     - nilerr
     - nilnesserr
+    - noctx
     - noinlineerr
     - whitespace
   settings:
@@ -27,19 +31,14 @@ linters:
       # lib.go only contains cgo annotations
       - internal/native/lib.go
     rules:
-      # TEMPORARY. Adding consumer/provider to run.build-tags brings ~3,600
-      # previously uncompiled lines under examples/ into scope, and the linters
-      # already on by default immediately report 21 findings there: 18 errcheck,
-      # one govet hostport and two staticcheck SA1019 deprecations. Fixing them
-      # here would pull the error-handling and safety work forward out of the
-      # commits that own it, so the examples are excused from those three
-      # linters until it lands. Remove this rule once the safety pass fixes the
-      # last of them.
-      - path: ^examples/
+      # matchers/matcher.go switches over reflect.Kind to build Pact matchers.
+      # Kinds with no JSON representation (Chan, Func, Complex*, ...) have no
+      # meaningful matcher and are handled by an explicit default case; scoped
+      # to this file only so exhaustive still catches a missing case in a real
+      # enum switch (e.g. models.SpecificationVersion) elsewhere in the repo.
+      - path: matchers/matcher\.go
         linters:
-          - errcheck
-          - govet
-          - staticcheck
+          - exhaustive
 formatters:
   enable:
     - gofumpt
