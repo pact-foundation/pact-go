@@ -5,8 +5,8 @@ import (
 )
 
 type (
-	Body     interface{}
-	Metadata map[string]interface{}
+	Body     any
+	Metadata map[string]any
 )
 
 // Handler is a provider function that generates a

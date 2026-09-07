@@ -2,7 +2,6 @@ package provider
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/internal/native"
@@ -24,7 +23,7 @@ func TestErrVerificationFailed_IsNativeSentinel(t *testing.T) {
 // TestErrVerificationFailed_DiscriminatesFromGenericError makes sure the
 // sentinels are not confused with arbitrary error values.
 func TestErrVerificationFailed_DiscriminatesFromGenericError(t *testing.T) {
-	generic := fmt.Errorf("something else broke")
+	generic := errors.New("something else broke")
 	if errors.Is(generic, ErrVerificationFailed) {
 		t.Error("generic error should not match ErrVerificationFailed")
 	}

@@ -169,7 +169,7 @@ func (i *V4RequestBuilder) Headers(headers matchers.HeadersMatcher) *V4RequestBu
 }
 
 // JSONBody adds a JSON body to the expected request.
-func (i *V4RequestBuilder) JSONBody(body interface{}) *V4RequestBuilder {
+func (i *V4RequestBuilder) JSONBody(body any) *V4RequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	err := validateMatchers(i.interaction.specificationVersion, body)
 	if err != nil {
@@ -180,7 +180,7 @@ func (i *V4RequestBuilder) JSONBody(body interface{}) *V4RequestBuilder {
 		// Check if someone tried to add an object as a string representation
 		// as per original allowed implementation, e.g.
 		// { "foo": "bar", "baz": like("bat") }
-		if utils.IsJSONFormattedObject(string(s)) {
+		if utils.IsJSONFormattedObject(s) {
 			log.Println("[WARN] request body appears to be a JSON formatted object, " +
 				"no matching will occur. Support for structured strings has been" +
 				"deprecated as of 0.13.0. Please use the JSON() method instead")
@@ -223,7 +223,7 @@ func (i *V4RequestBuilder) Body(contentType string, body []byte) *V4RequestBuild
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct.
-func (i *V4RequestBuilder) BodyMatch(body interface{}) *V4RequestBuilder {
+func (i *V4RequestBuilder) BodyMatch(body any) *V4RequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
@@ -273,7 +273,7 @@ func (i *V4ResponseBuilder) Headers(headers matchers.HeadersMatcher) *V4Response
 }
 
 // JSONBody adds a JSON body to the expected response.
-func (i *V4ResponseBuilder) JSONBody(body interface{}) *V4ResponseBuilder {
+func (i *V4ResponseBuilder) JSONBody(body any) *V4ResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	err := validateMatchers(i.interaction.specificationVersion, body)
 	if err != nil {
@@ -284,7 +284,7 @@ func (i *V4ResponseBuilder) JSONBody(body interface{}) *V4ResponseBuilder {
 		// Check if someone tried to add an object as a string representation
 		// as per original allowed implementation, e.g.
 		// { "foo": "bar", "baz": like("bat") }
-		if utils.IsJSONFormattedObject(string(s)) {
+		if utils.IsJSONFormattedObject(s) {
 			log.Println("[WARN] response body appears to be a JSON formatted object, " +
 				"no matching will occur. Support for structured strings has been" +
 				"deprecated as of 0.13.0. Please use the JSON() method instead")
@@ -317,7 +317,7 @@ func (i *V4ResponseBuilder) Body(contentType string, body []byte) *V4ResponseBui
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct.
-func (i *V4ResponseBuilder) BodyMatch(body interface{}) *V4ResponseBuilder {
+func (i *V4ResponseBuilder) BodyMatch(body any) *V4ResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 
 	return i
@@ -479,7 +479,7 @@ func (i *V4InteractionWithPluginRequestBuilder) PluginContents(contentType strin
 }
 
 // JSONBody adds a JSON body to the expected request.
-func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body interface{}) *V4InteractionWithPluginRequestBuilder {
+func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body any) *V4InteractionWithPluginRequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	err := validateMatchers(i.interaction.specificationVersion, body)
 	if err != nil {
@@ -490,7 +490,7 @@ func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body interface{}) *V4In
 		// Check if someone tried to add an object as a string representation
 		// as per original allowed implementation, e.g.
 		// { "foo": "bar", "baz": like("bat") }
-		if utils.IsJSONFormattedObject(string(s)) {
+		if utils.IsJSONFormattedObject(s) {
 			log.Println("[WARN] request body appears to be a JSON formatted object, " +
 				"no matching will occur. Support for structured strings has been" +
 				"deprecated as of 0.13.0. Please use the JSON() method instead")
@@ -533,7 +533,7 @@ func (i *V4InteractionWithPluginRequestBuilder) Body(contentType string, body []
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct.
-func (i *V4InteractionWithPluginRequestBuilder) BodyMatch(body interface{}) *V4InteractionWithPluginRequestBuilder {
+func (i *V4InteractionWithPluginRequestBuilder) BodyMatch(body any) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
@@ -565,7 +565,7 @@ func (i *V4InteractionWithPluginResponseBuilder) PluginContents(contentType stri
 }
 
 // JSONBody adds a JSON body to the expected response.
-func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body interface{}) *V4InteractionWithPluginResponseBuilder {
+func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body any) *V4InteractionWithPluginResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	err := validateMatchers(i.interaction.specificationVersion, body)
 	if err != nil {
@@ -576,7 +576,7 @@ func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body interface{}) *V4I
 		// Check if someone tried to add an object as a string representation
 		// as per original allowed implementation, e.g.
 		// { "foo": "bar", "baz": like("bat") }
-		if utils.IsJSONFormattedObject(string(s)) {
+		if utils.IsJSONFormattedObject(s) {
 			log.Println("[WARN] response body appears to be a JSON formatted object, " +
 				"no matching will occur. Support for structured strings has been" +
 				"deprecated as of 0.13.0. Please use the JSON() method instead")
@@ -609,7 +609,7 @@ func (i *V4InteractionWithPluginResponseBuilder) Body(contentType string, body [
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct.
-func (i *V4InteractionWithPluginResponseBuilder) BodyMatch(body interface{}) *V4InteractionWithPluginResponseBuilder {
+func (i *V4InteractionWithPluginResponseBuilder) BodyMatch(body any) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 
 	return i

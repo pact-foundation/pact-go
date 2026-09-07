@@ -113,7 +113,7 @@ func (m *Message) Given(state string) *Message {
 	return m
 }
 
-func (m *Message) GivenWithParameter(state string, params map[string]interface{}) *Message {
+func (m *Message) GivenWithParameter(state string, params map[string]any) *Message {
 	if len(params) == 0 {
 		interactionGiven(m.handle, state)
 	} else {
@@ -203,7 +203,7 @@ func (m *Message) WithRequestBinaryContentType(contentType string, body []byte) 
 	return m
 }
 
-func (m *Message) WithRequestJSONContents(body interface{}) *Message {
+func (m *Message) WithRequestJSONContents(body any) *Message {
 	value := stringFromInterface(body)
 
 	log.Println("[DEBUG] message WithJSONContents", value)
@@ -221,7 +221,7 @@ func (m *Message) WithResponseBinaryContents(body []byte) *Message {
 	return m
 }
 
-func (m *Message) WithResponseJSONContents(body interface{}) *Message {
+func (m *Message) WithResponseJSONContents(body any) *Message {
 	value := stringFromInterface(body)
 
 	log.Println("[DEBUG] message WithJSONContents", value)
@@ -332,7 +332,7 @@ func (m *Message) GetMessageRequestContents() ([]byte, error) {
 
 		log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - len", len(m.server.messages))
 
-		for i := 0; i < len(m.server.messages); i++ {
+		for i := range len(m.server.messages) {
 			log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - index", i)
 			message := C.pactffi_pact_message_iter_next(iter)
 			log.Println("[DEBUG] pactffi_pact_message_iter_next - message", message)
@@ -370,7 +370,7 @@ func (m *Message) GetMessageRequestContents() ([]byte, error) {
 			return nil, errors.New("unable to get a message iterator")
 		}
 
-		for i := 0; i < len(m.server.messages); i++ {
+		for i := range len(m.server.messages) {
 			message := C.pactffi_pact_sync_message_iter_next(iter)
 
 			if i == m.index {
@@ -413,7 +413,7 @@ func (m *Message) GetMessageResponseContents() ([][]byte, error) {
 		return nil, errors.New("unable to get a message iterator")
 	}
 
-	for i := 0; i < len(m.server.messages); i++ {
+	for i := range len(m.server.messages) {
 		message := C.pactffi_pact_sync_message_iter_next(iter)
 
 		if message == nil {
@@ -438,7 +438,7 @@ func (m *Message) GetMessageResponseContents() ([][]byte, error) {
 
 // StartTransport starts up a mock server on the given address:port for the given transport
 // https://docs.rs/pact_ffi/latest/pact_ffi/mock_server/fn.pactffi_create_mock_server_for_transport.html
-func (m *MessageServer) StartTransport(transport string, address string, port int, config map[string][]interface{}) (int, error) {
+func (m *MessageServer) StartTransport(transport string, address string, port int, config map[string][]any) (int, error) {
 	if len(m.messages) == 0 {
 		return 0, ErrNoInteractions
 	}
@@ -561,7 +561,7 @@ func (m *MessageServer) WritePactFile(dir string, overwrite bool) error {
 	case 2:
 		return ErrHandleNotFound
 	default:
-		return fmt.Errorf("an unknown error occurred when writing to pact file")
+		return errors.New("an unknown error occurred when writing to pact file")
 	}
 }
 
@@ -589,7 +589,7 @@ func (m *MessageServer) WritePactFileForServer(port int, dir string, overwrite b
 	case 3:
 		return ErrHandleNotFound
 	default:
-		return fmt.Errorf("an unknown error occurred when writing to pact file")
+		return errors.New("an unknown error occurred when writing to pact file")
 	}
 }
 

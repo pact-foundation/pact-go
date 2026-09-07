@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -209,7 +210,7 @@ func (m *MockServer) WritePactFile(port int, dir string) error {
 	case 3:
 		return ErrMockServerNotfound
 	default:
-		return fmt.Errorf("an unknown error occurred when writing to pact file")
+		return errors.New("an unknown error occurred when writing to pact file")
 	}
 }
 
@@ -298,7 +299,7 @@ func (m *MockServer) Start(address string, tls bool) (int, error) {
 
 // StartTransport starts up a mock server on the given address:port for the given transport
 // https://docs.rs/pact_ffi/latest/pact_ffi/mock_server/fn.pactffi_create_mock_server_for_transport.html
-func (m *MockServer) StartTransport(transport string, address string, port int, config map[string][]interface{}) (int, error) {
+func (m *MockServer) StartTransport(transport string, address string, port int, config map[string][]any) (int, error) {
 	if len(m.interactions) == 0 {
 		return 0, ErrNoInteractions
 	}
@@ -459,13 +460,13 @@ func (i *Interaction) Given(state string) *Interaction {
 	return i
 }
 
-func (i *Interaction) GivenWithParameter(state string, params map[string]interface{}) *Interaction {
+func (i *Interaction) GivenWithParameter(state string, params map[string]any) *Interaction {
 	interactionGivenWithParams(i.handle, state, params)
 
 	return i
 }
 
-func (i *Interaction) WithRequest(method string, pathOrMatcher interface{}) *Interaction {
+func (i *Interaction) WithRequest(method string, pathOrMatcher any) *Interaction {
 	cMethod := C.CString(method)
 	defer free(cMethod)
 
@@ -478,15 +479,15 @@ func (i *Interaction) WithRequest(method string, pathOrMatcher interface{}) *Int
 	return i
 }
 
-func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string][]interface{}) *Interaction {
+func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string][]any) *Interaction {
 	return i.withHeaders(INTERACTION_PART_REQUEST, valueOrMatcher)
 }
 
-func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string][]interface{}) *Interaction {
+func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string][]any) *Interaction {
 	return i.withHeaders(INTERACTION_PART_RESPONSE, valueOrMatcher)
 }
 
-func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[string][]interface{}) *Interaction {
+func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[string][]any) *Interaction {
 	for k, v := range valueOrMatcher {
 		cName := C.CString(k)
 
@@ -505,7 +506,7 @@ func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[strin
 	return i
 }
 
-func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Interaction {
+func (i *Interaction) WithQuery(valueOrMatcher map[string][]any) *Interaction {
 	for k, values := range valueOrMatcher {
 		cName := C.CString(k)
 
@@ -524,15 +525,15 @@ func (i *Interaction) WithQuery(valueOrMatcher map[string][]interface{}) *Intera
 	return i
 }
 
-func (i *Interaction) WithJSONRequestBody(body interface{}) *Interaction {
+func (i *Interaction) WithJSONRequestBody(body any) *Interaction {
 	return i.withJSONBody(body, INTERACTION_PART_REQUEST)
 }
 
-func (i *Interaction) WithJSONResponseBody(body interface{}) *Interaction {
+func (i *Interaction) WithJSONResponseBody(body any) *Interaction {
 	return i.withJSONBody(body, INTERACTION_PART_RESPONSE)
 }
 
-func (i *Interaction) withJSONBody(body interface{}, part interactionPart) *Interaction {
+func (i *Interaction) withJSONBody(body any, part interactionPart) *Interaction {
 	cHeader := C.CString("application/json")
 	defer free(cHeader)
 
@@ -632,7 +633,7 @@ type stringLike interface {
 	String() string
 }
 
-func stringFromInterface(obj interface{}) string {
+func stringFromInterface(obj any) string {
 	switch t := obj.(type) {
 	case string:
 		return t
@@ -720,54 +721,54 @@ func logResultToError(res int) error {
 	case -7:
 		return ErrCantConstructSink
 	default:
-		return fmt.Errorf("an unknown error occurred when writing to pact file")
+		return errors.New("an unknown error occurred when writing to pact file")
 	}
 }
 
 // Errors.
 var (
 	// ErrHandleNotFound indicates the underlying handle was not found, and a logic error in the framework.
-	ErrHandleNotFound = fmt.Errorf("unable to find the native interface handle (this indicates a defect in the framework)")
+	ErrHandleNotFound = errors.New("unable to find the native interface handle (this indicates a defect in the framework)")
 
 	// ErrMockServerPanic indicates a panic occurred when invoking the remote Mock Server.
-	ErrMockServerPanic = fmt.Errorf("a general panic occurred when starting/invoking mock service (this indicates a defect in the framework)")
+	ErrMockServerPanic = errors.New("a general panic occurred when starting/invoking mock service (this indicates a defect in the framework)")
 
 	// ErrUnableToWritePactFile indicates an error when writing the pact file to disk.
-	ErrUnableToWritePactFile = fmt.Errorf("unable to write to file")
+	ErrUnableToWritePactFile = errors.New("unable to write to file")
 
 	// ErrMockServerNotfound indicates the Mock Server could not be found.
-	ErrMockServerNotfound = fmt.Errorf("unable to find mock server with the given port")
+	ErrMockServerNotfound = errors.New("unable to find mock server with the given port")
 
 	// ErrInvalidMockServerConfig indicates an issue configuring the mock server.
-	ErrInvalidMockServerConfig = fmt.Errorf("configuration for the mock server was invalid and an unknown error occurred (this is most likely a defect in the framework)")
+	ErrInvalidMockServerConfig = errors.New("configuration for the mock server was invalid and an unknown error occurred (this is most likely a defect in the framework)")
 
 	// ErrInvalidPact indicates the pact file provided to the mock server was not a valid pact file.
-	ErrInvalidPact = fmt.Errorf("pact given to mock server is invalid")
+	ErrInvalidPact = errors.New("pact given to mock server is invalid")
 
 	// ErrMockServerUnableToStart means the mock server could not be started in the rust library.
-	ErrMockServerUnableToStart = fmt.Errorf("unable to start the mock server")
+	ErrMockServerUnableToStart = errors.New("unable to start the mock server")
 
 	// ErrInvalidAddress means the address provided to the mock server was invalid and could not be understood.
-	ErrInvalidAddress = fmt.Errorf("invalid address provided to the mock server")
+	ErrInvalidAddress = errors.New("invalid address provided to the mock server")
 
 	// ErrMockServerTLSConfiguration indicates a TLS mock server could not be started
 	// and is likely a framework level problem.
-	ErrMockServerTLSConfiguration = fmt.Errorf("a tls mock server could not be started (this is likely a defect in the framework)")
+	ErrMockServerTLSConfiguration = errors.New("a tls mock server could not be started (this is likely a defect in the framework)")
 
 	// ErrNoInteractions indicates no Interactions have been registered to a mock server, and cannot be started/stopped until at least one is added.
-	ErrNoInteractions = fmt.Errorf("no interactions have been registered for the mock server")
+	ErrNoInteractions = errors.New("no interactions have been registered for the mock server")
 
 	// ErrPluginFailed indicates the plugin could not be started.
-	ErrPluginFailed = fmt.Errorf("the plugin could not be started")
+	ErrPluginFailed = errors.New("the plugin could not be started")
 )
 
 // Log Errors.
 var (
-	ErrCantSetLogger      = fmt.Errorf("can't set logger (applying the logger failed, perhaps because one is applied already)")
-	ErrNoLogger           = fmt.Errorf("no logger has been initialized (call `logger_init` before any other log function)")
-	ErrSpecifierNotUtf8   = fmt.Errorf("the sink specifier was not UTF-8 encoded")
-	ErrUnknownSinkType    = fmt.Errorf(`the sink type specified is not a known type (known types: "buffer", "stdout", "stderr", or "file /some/path")`)
-	ErrMissingFilePath    = fmt.Errorf("no file path was specified in a file-type sink specification")
-	ErrCantOpenSinkToFile = fmt.Errorf("opening a sink to the specified file path failed (check permissions)")
-	ErrCantConstructSink  = fmt.Errorf("can't construct the log sink")
+	ErrCantSetLogger      = errors.New("can't set logger (applying the logger failed, perhaps because one is applied already)")
+	ErrNoLogger           = errors.New("no logger has been initialized (call `logger_init` before any other log function)")
+	ErrSpecifierNotUtf8   = errors.New("the sink specifier was not UTF-8 encoded")
+	ErrUnknownSinkType    = errors.New(`the sink type specified is not a known type (known types: "buffer", "stdout", "stderr", or "file /some/path")`)
+	ErrMissingFilePath    = errors.New("no file path was specified in a file-type sink specification")
+	ErrCantOpenSinkToFile = errors.New("opening a sink to the specified file path failed (check permissions)")
+	ErrCantConstructSink  = errors.New("can't construct the log sink")
 )

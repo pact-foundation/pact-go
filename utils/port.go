@@ -38,8 +38,8 @@ func GetFreePort() (int, error) {
 func FindPortInRange(s string) (int, error) {
 	// Take care of csv and single value
 	if !strings.Contains(s, "-") {
-		ports := strings.Split(strings.TrimSpace(s), ",")
-		for _, p := range ports {
+		ports := strings.SplitSeq(strings.TrimSpace(s), ",")
+		for p := range ports {
 			i, err := strconv.Atoi(p)
 			if err != nil {
 				return 0, err

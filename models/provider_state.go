@@ -2,13 +2,13 @@ package models
 
 // ProviderState allows parameters and a description to be passed to the verification process.
 type ProviderState struct {
-	Name       string                 `json:"name"`
-	Parameters map[string]interface{} `json:"params,omitempty"`
+	Name       string         `json:"name"`
+	Parameters map[string]any `json:"params,omitempty"`
 }
 
 // ProviderStateResponse may return values in the state setup
 // for the "value from provider state" feature.
-type ProviderStateResponse map[string]interface{}
+type ProviderStateResponse map[string]any
 
 // StateHandler is a provider function that sets up a given state before
 // the provider interaction is validated

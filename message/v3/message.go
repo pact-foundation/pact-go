@@ -1,8 +1,8 @@
 package v3
 
 type (
-	Body     interface{}
-	Metadata map[string]interface{}
+	Body     any
+	Metadata map[string]any
 )
 
 // AsynchronousConsumer receives a message and must be able to parse

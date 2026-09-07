@@ -242,9 +242,9 @@ func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 
 // {"action":"teardown","id":"foo","state":"User foo exists"}.
 type stateHandlerAction struct {
-	Action string                 `json:"action"`
-	State  string                 `json:"state"`
-	Params map[string]interface{} `json:"params"`
+	Action string         `json:"action"`
+	State  string         `json:"state"`
+	Params map[string]any `json:"params"`
 }
 
 func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
