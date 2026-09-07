@@ -88,26 +88,28 @@ func Init(logLevel string) {
 
 	if loggingInitialised != "" {
 		log.Printf("log level ('%s') cannot be set to '%s' after initialisation\n", loggingInitialised, logLevel)
-	} else {
-		l, ok := logLevelStringToInt[logLevel]
-		if !ok {
-			l = LOG_LEVEL_INFO
-		}
-		log.Printf("[DEBUG] initialised native log level to %s (%d)", logLevel, l)
+		return
+	}
 
-		if os.Getenv("PACT_LOG_PATH") != "" {
-			log.Println("[DEBUG] initialised native log to log to file:", os.Getenv("PACT_LOG_PATH"))
-			err := logToFile(os.Getenv("PACT_LOG_PATH"), l)
-			if err != nil {
-				log.Println("[ERROR] failed to log to file:", err)
-			}
-		} else {
-			log.Println("[DEBUG] initialised native log to log to stdout")
-			err := logToStdout(l)
-			if err != nil {
-				log.Println("[ERROR] failed to log to stdout:", err)
-			}
+	l, ok := logLevelStringToInt[logLevel]
+	if !ok {
+		l = LOG_LEVEL_INFO
+	}
+	log.Printf("[DEBUG] initialised native log level to %s (%d)", logLevel, l)
+
+	if os.Getenv("PACT_LOG_PATH") != "" {
+		log.Println("[DEBUG] initialised native log to log to file:", os.Getenv("PACT_LOG_PATH"))
+		err := logToFile(os.Getenv("PACT_LOG_PATH"), l)
+		if err != nil {
+			log.Println("[ERROR] failed to log to file:", err)
 		}
+		return
+	}
+
+	log.Println("[DEBUG] initialised native log to log to stdout")
+	err := logToStdout(l)
+	if err != nil {
+		log.Println("[ERROR] failed to log to stdout:", err)
 	}
 }
 

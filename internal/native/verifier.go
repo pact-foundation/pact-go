@@ -31,7 +31,7 @@ var (
 	// ErrVerifierFailed and ErrVerifierFailedToRun are mutually exclusive: a
 	// single Verifier call returns one or the other, never both.
 	//
-	//ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful).
+	// ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful).
 	ErrVerifierFailed = errors.New("the verifier failed to successfully verify the pacts, this indicates an issue with the provider API")
 	// ErrVerifierFailedToRun indicates the verification process was unable to run.
 	ErrVerifierFailedToRun = errors.New("the verifier failed to execute (this is most likely a defect in the framework)")
