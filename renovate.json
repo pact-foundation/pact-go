@@ -1,6 +1,100 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":semanticCommits",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "Australia/Melbourne",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "postUpdateOptions": ["gomodTidy"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "The pact-protobuf-plugin pin in mise.toml's [env] section; mise's own manager only reads [tools].",
+      "managerFilePatterns": ["/^mise\\.toml$/"],
+      "matchStrings": ["PLUGIN_PACT_PROTOBUF_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "pactflow/pact-protobuf-plugin",
+      "packageNameTemplate": "pactflow/pact-protobuf-plugin",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v-(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "The pact-csv-plugin pin in mise.toml's [env] section; the csv plugin ships from the shared pact-plugins monorepo under a csv-plugin- tag prefix.",
+      "managerFilePatterns": ["/^mise\\.toml$/"],
+      "matchStrings": ["PLUGIN_PACT_CSV_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "pact-foundation/pact-plugins",
+      "packageNameTemplate": "pact-foundation/pact-plugins",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^csv-plugin-(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "The pact-matt-plugin pin in mise.toml's [env] section.",
+      "managerFilePatterns": ["/^mise\\.toml$/"],
+      "matchStrings": ["PLUGIN_PACT_MATT_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "mefellows/pact-matt-plugin",
+      "packageNameTemplate": "mefellows/pact-matt-plugin",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "The pact-avro-plugin pin in mise.toml's [env] section.",
+      "managerFilePatterns": ["/^mise\\.toml$/"],
+      "matchStrings": ["PLUGIN_PACT_AVRO_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "austek/pact-avro-plugin",
+      "packageNameTemplate": "austek/pact-avro-plugin",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "The golangci-lint binary version pinned via the golangci-lint-action's `with: version:` input, which the github-actions manager does not read.",
+      "managerFilePatterns": ["/^\\.github/workflows/golangci-lint\\.yml$/"],
+      "matchStrings": ["version:\\s*v(?<currentValue>[0-9.]+)"],
+      "depNameTemplate": "golangci/golangci-lint",
+      "packageNameTemplate": "golangci/golangci-lint",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "go modules (non-major)",
+      "semanticCommitType": "deps"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "semanticCommitType": "ci",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "description": "Automerge is deliberately off pending a maintainer decision; enabling it would land third-party action bumps on master with nobody reviewing them."
+    },
+    {
+      "matchPackageNames": ["golangci/golangci-lint", "golangci/golangci-lint-action"],
+      "groupName": "golangci-lint",
+      "description": "Grouped so the linter and its action move together; a mismatch between the linter's build toolchain and the CI Go version panics the run."
+    },
+    {
+      "matchManagers": ["mise"],
+      "groupName": "mise dev tooling",
+      "semanticCommitType": "chore",
+      "description": "Java and protoc, from mise.toml's [tools] section. Development tooling, not a released dependency."
+    },
+    {
+      "matchDepNames": [
+        "pactflow/pact-protobuf-plugin",
+        "pact-foundation/pact-plugins",
+        "mefellows/pact-matt-plugin",
+        "austek/pact-avro-plugin"
+      ],
+      "groupName": "pact plugins",
+      "semanticCommitType": "deps"
+    }
   ]
 }
