@@ -138,9 +138,8 @@ func (i *Installer) CheckPackageInstall() error {
 		if err != nil {
 			log.Println("[INFO] package", info.libName, "not found")
 			return err
-		} else {
-			log.Println("[INFO] package", info.libName, "found")
 		}
+		log.Println("[INFO] package", info.libName, "found")
 
 		lib, ok := i.config.readConfig().Libraries[pkg]
 		if ok {
@@ -259,9 +258,8 @@ func (i *Installer) getDownloadURLForPackage(pkg string) (string, error) {
 
 	if checkMusl() && i.os == linux {
 		return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch+"-musl", osToExtension[i.os]), nil
-	} else {
-		return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch, osToExtension[i.os]), nil
 	}
+	return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch, osToExtension[i.os]), nil
 }
 
 func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
@@ -384,6 +382,8 @@ type packageInfo struct {
 }
 
 const (
+	// FFIPackage is the package key for the pact_ffi shared library, used
+	// to look it up in packages and LibRegistry.
 	FFIPackage     = "libpact_ffi"
 	downloadEnvVar = "PACT_GO_LIB_DOWNLOAD_PATH"
 	linux          = "linux"
@@ -407,10 +407,16 @@ var packages = map[string]packageInfo{
 	},
 }
 
+// Versioner reports the version of an already-loaded native library.
 type Versioner interface {
 	Version() string
 }
 
+// LibRegistry holds the native libraries actually loaded into this
+// process, keyed by package (e.g. FFIPackage), so CheckPackageInstall can
+// verify the loaded version against the installed package metadata. It is
+// only populated when a native library has been loaded, such as during
+// tests; the internal/checker package registers native.MockServer here.
 var LibRegistry = map[string]Versioner{}
 
 type downloader interface {

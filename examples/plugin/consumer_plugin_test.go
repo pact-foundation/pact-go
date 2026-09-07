@@ -75,7 +75,7 @@ func TestTCPPlugin(t *testing.T) {
 		}).
 		WithContents(mattMessage, "application/matt").
 		StartTransport("matt", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
-		ExecuteTest(t, func(transport message.TransportConfig, m message.SynchronousMessage) error {
+		ExecuteTest(t, func(transport message.TransportConfig, _ message.SynchronousMessage) error {
 			fmt.Println("matt TCP transport running on", transport)
 
 			str, err := callMattServiceTCP(transport, "hellotcp")

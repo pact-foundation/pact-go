@@ -14,6 +14,8 @@ import (
 	"github.com/pact-foundation/pact-go/v2/models"
 )
 
+// SynchronousPact is a request/response message pact between a consumer
+// and provider, built via AddSynchronousMessage.
 type SynchronousPact struct {
 	config Config
 
@@ -46,7 +48,8 @@ func (m *UnconfiguredSynchronousMessageBuilder) Given(state string) *Unconfigure
 	}
 }
 
-// Given specifies a provider state.
+// GivenWithParameter specifies a provider state along with parameters
+// used to set it up.
 func (m *UnconfiguredSynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *UnconfiguredSynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
 
@@ -56,6 +59,9 @@ func (m *UnconfiguredSynchronousMessageBuilder) GivenWithParameter(state models.
 	}
 }
 
+// UnconfiguredSynchronousMessageBuilder builds a single synchronous
+// message interaction, starting from AddSynchronousMessage and continuing
+// via Given/UsingPlugin/WithRequest.
 type UnconfiguredSynchronousMessageBuilder struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
@@ -95,7 +101,8 @@ func (m *SynchronousMessageWithPlugin) UsingPlugin(config PluginConfig) *Synchro
 	return m
 }
 
-// AddMessage creates a new asynchronous consumer expectation.
+// WithRequest configures the request half of this message via r, then
+// moves on to configuring the response.
 func (m *UnconfiguredSynchronousMessageBuilder) WithRequest(r RequestBuilderFunc) *SynchronousMessageWithRequest {
 	r(&SynchronousMessageWithRequestBuilder{
 		messageHandle: m.messageHandle,
@@ -108,13 +115,19 @@ func (m *UnconfiguredSynchronousMessageBuilder) WithRequest(r RequestBuilderFunc
 	}
 }
 
+// SynchronousMessageWithRequest is a message interaction whose request
+// has been configured, ready to configure a response via WithResponse.
 type SynchronousMessageWithRequest struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
 }
 
+// RequestBuilderFunc configures the request half of a synchronous
+// message, as passed to UnconfiguredSynchronousMessageBuilder.WithRequest.
 type RequestBuilderFunc func(*SynchronousMessageWithRequestBuilder)
 
+// SynchronousMessageWithRequestBuilder configures the request contents
+// and metadata of a synchronous message.
 type SynchronousMessageWithRequestBuilder struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
@@ -143,7 +156,8 @@ func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content any) *Syn
 	return m
 }
 
-// AddMessage creates a new asynchronous consumer expectation.
+// WithResponse configures the response half of this message via builder,
+// then moves on to running the test.
 func (m *SynchronousMessageWithRequest) WithResponse(builder ResponseBuilderFunc) *SynchronousMessageWithResponse {
 	builder(&SynchronousMessageWithResponseBuilder{
 		messageHandle: m.messageHandle,
@@ -156,13 +170,19 @@ func (m *SynchronousMessageWithRequest) WithResponse(builder ResponseBuilderFunc
 	}
 }
 
+// SynchronousMessageWithResponse is a message interaction whose request
+// and response have both been configured, ready to run via ExecuteTest.
 type SynchronousMessageWithResponse struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
 }
 
+// ResponseBuilderFunc configures the response half of a synchronous
+// message, as passed to SynchronousMessageWithRequest.WithResponse.
 type ResponseBuilderFunc func(*SynchronousMessageWithResponseBuilder)
 
+// SynchronousMessageWithResponseBuilder configures the response contents
+// and metadata of a synchronous message.
 type SynchronousMessageWithResponseBuilder struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
@@ -192,20 +212,28 @@ func (m *SynchronousMessageWithResponseBuilder) WithJSONContent(content any) *Sy
 	return m
 }
 
+// SynchronousMessageWithPlugin is a message interaction with a plugin
+// loaded via UsingPlugin, ready to have its contents set by that plugin.
 type SynchronousMessageWithPlugin struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
 }
 
-func (s *SynchronousMessageWithPlugin) WithContents(contents string, contentType string) *SynchronousMessageWithPluginContents {
-	_ = s.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
+// WithContents sets the request contents of this message from contents,
+// interpreted by the loaded plugin according to contentType (e.g. a
+// protobuf message type).
+func (m *SynchronousMessageWithPlugin) WithContents(contents string, contentType string) *SynchronousMessageWithPluginContents {
+	_ = m.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
 
 	return &SynchronousMessageWithPluginContents{
-		pact:          s.pact,
-		messageHandle: s.messageHandle,
+		pact:          m.pact,
+		messageHandle: m.messageHandle,
 	}
 }
 
+// SynchronousMessageWithPluginContents is a plugin-backed message
+// interaction with its contents set, ready to run directly via
+// ExecuteTest or to start a transport (e.g. gRPC) first via StartTransport.
 type SynchronousMessageWithPluginContents struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
@@ -230,15 +258,18 @@ func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integra
 	return m.pact.mockserver.WritePactFile(m.pact.config.PactDir, false)
 }
 
-func (s *SynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]any) *SynchronousMessageWithTransport {
-	port, err := s.pact.mockserver.StartTransport(transport, address, 0, make(map[string][]any))
+// StartTransport starts a plugin-provided mock server for transport (e.g.
+// "grpc") on address, for tests that need a live connection rather than
+// reading the message contents directly.
+func (m *SynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]any) *SynchronousMessageWithTransport {
+	port, err := m.pact.mockserver.StartTransport(transport, address, 0, make(map[string][]any))
 	if err != nil {
 		log.Fatalln("unable to start plugin transport:", err)
 	}
 
 	return &SynchronousMessageWithTransport{
-		pact:          s.pact,
-		messageHandle: s.messageHandle,
+		pact:          m.pact,
+		messageHandle: m.messageHandle,
 		transport: TransportConfig{
 			Port:    port,
 			Address: address,
@@ -246,12 +277,17 @@ func (s *SynchronousMessageWithPluginContents) StartTransport(transport string, 
 	}
 }
 
+// SynchronousMessageWithTransport is a plugin-backed message interaction
+// with a live transport (e.g. gRPC) running, ready to run via ExecuteTest.
 type SynchronousMessageWithTransport struct {
 	messageHandle *native.Message
 	pact          *SynchronousPact
 	transport     TransportConfig
 }
 
+// ExecuteTest runs integrationTest against the transport started by
+// StartTransport, then verifies the interaction and writes the pact file
+// if successful.
 func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m SynchronousMessage) error) error {
 	t.Helper()
 	defer s.pact.mockserver.CleanupMockServer(s.transport.Port)
@@ -278,11 +314,14 @@ func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationT
 	return s.pact.mockserver.WritePactFileForServer(s.transport.Port, s.pact.config.PactDir, false)
 }
 
+// PluginConfig identifies a pact_ffi plugin to load via UsingPlugin.
 type PluginConfig struct {
 	Plugin  string
 	Version string
 }
 
+// NewSynchronousPact creates a new synchronous (request/response) message
+// pact for the consumer/provider pair described by config.
 func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 	provider := &SynchronousPact{
 		config: config,
@@ -297,6 +336,8 @@ func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 	return provider, err
 }
 
+// AddSynchronousMessage starts building a new request/response message
+// interaction, described by description.
 func (m *SynchronousPact) AddSynchronousMessage(description string) *UnconfiguredSynchronousMessageBuilder {
 	log.Println("[DEBUG] add sync message")
 

@@ -28,10 +28,12 @@ func Integer(example int) Matcher {
 // Null is a matcher that only accepts nulls.
 type Null struct{}
 
+// GetValue returns the raw generated value for the matcher, always nil.
 func (n Null) GetValue() any {
 	return nil
 }
 
+// MarshalJSON encodes n as a Pact V3 null matcher.
 func (n Null) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Specification models.SpecificationVersion `json:"pact:specification"`
@@ -79,6 +81,7 @@ func (i includes) GetValue() any {
 
 func (i includes) isMatcher() {}
 
+// Includes checks if the given string is contained by the actual value.
 func Includes(content string) Matcher {
 	return includes{
 		Specification: models.V3,
@@ -101,7 +104,7 @@ func (s fromProviderState) GetValue() any {
 
 func (s fromProviderState) isMatcher() {}
 
-// Marks a item as to be injected from the provider state
+// FromProviderState marks an item as to be injected from the provider state.
 //
 // "expression" is used to lookup the dynamic value from the provider state context
 // during verification
@@ -128,7 +131,8 @@ func (e eachKeyLike) GetValue() any {
 
 func (e eachKeyLike) isMatcher() {}
 
-// Object where the key itself is ignored, but the value template must match.
+// EachKeyLike matches an object where the key itself is ignored, but the
+// value template must match.
 //
 // key - Example key to use (which will be ignored)
 // template - Example value template to base the comparison on.
@@ -179,29 +183,29 @@ func (m minMaxLike) isMatcher() {}
 
 // ArrayMinMaxLike is like EachLike except has a bounds on the max and the min
 // https://github.com/pact-foundation/pact-specification/tree/version-3#add-a-minmax-type-matcher
-func ArrayMinMaxLike(content any, min int, max int) Matcher {
-	if min < 1 {
+func ArrayMinMaxLike(content any, minCount int, maxCount int) Matcher {
+	if minCount < 1 {
 		log.Println("[WARN] min value to an array matcher can't be less than one")
-		min = 1
+		minCount = 1
 	}
-	examples := make([]any, max)
-	for i := range max {
+	examples := make([]any, maxCount)
+	for i := range maxCount {
 		examples[i] = content
 	}
 	return minMaxLike{
 		Specification: models.V3,
 		Type:          "type",
 		Contents:      examples,
-		Min:           min,
-		Max:           max,
+		Min:           minCount,
+		Max:           maxCount,
 	}
 }
 
 // ArrayMaxLike is like EachLike except has a bounds on the max
 // https://github.com/pact-foundation/pact-specification/tree/version-3#add-a-minmax-type-matcher
-func ArrayMaxLike(content any, max int) Matcher {
-	examples := make([]any, max)
-	for i := range max {
+func ArrayMaxLike(content any, maxCount int) Matcher {
+	examples := make([]any, maxCount)
+	for i := range maxCount {
 		examples[i] = content
 	}
 
@@ -210,7 +214,7 @@ func ArrayMaxLike(content any, max int) Matcher {
 		Type:          "type",
 		Contents:      examples,
 		Min:           1,
-		Max:           max,
+		Max:           maxCount,
 	}
 }
 

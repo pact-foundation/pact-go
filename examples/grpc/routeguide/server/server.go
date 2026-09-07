@@ -16,7 +16,7 @@
  *
  */
 
-// Package main implements a simple gRPC server that demonstrates how to use gRPC-Go libraries
+// Package server implements a simple gRPC server that demonstrates how to use gRPC-Go libraries
 // to perform unary, client streaming, server streaming and full duplex RPCs.
 //
 // It implements the route guide service whose definition can be found in routeguide/route_guide.proto.
@@ -73,14 +73,16 @@ type routeGuideServer struct {
 	routeNotes map[string][]*pb.RouteNote
 }
 
-func NewServer() *routeGuideServer {
+// NewServer creates a routeGuideServer, loading its saved features from
+// the file passed via the -json_db_file flag, if any.
+func NewServer() pb.RouteGuideServer {
 	s := &routeGuideServer{routeNotes: make(map[string][]*pb.RouteNote)}
 	s.loadFeatures(*jsonDBFile)
 	return s
 }
 
 // GetFeature returns the feature at the given point.
-func (s *routeGuideServer) GetFeature(ctx context.Context, point *pb.Point) (*pb.Feature, error) {
+func (s *routeGuideServer) GetFeature(_ context.Context, point *pb.Point) (*pb.Feature, error) {
 	for _, feature := range s.savedFeatures {
 		if proto.Equal(feature.GetLocation(), point) {
 			return feature, nil
@@ -91,7 +93,7 @@ func (s *routeGuideServer) GetFeature(ctx context.Context, point *pb.Point) (*pb
 }
 
 // SaveFeature saves the feature.
-func (s *routeGuideServer) SaveFeature(ctx context.Context, feature *pb.Feature) (*pb.Feature, error) {
+func (s *routeGuideServer) SaveFeature(_ context.Context, feature *pb.Feature) (*pb.Feature, error) {
 	s.savedFeatures = append(s.savedFeatures, feature)
 	return feature, nil
 }

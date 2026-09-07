@@ -1,3 +1,7 @@
+// Package matchers implements the Pact matching DSL: matchers such as
+// Like, EachLike and Term/Regex that generate example values while
+// asserting on their type or shape rather than an exact literal, plus the
+// struct-tag driven Match/MatchV2 helpers.
 package matchers
 
 import (
@@ -35,6 +39,8 @@ func (m eachLike) GetValue() any {
 	return m.Value
 }
 
+// Fields and tags here must mirror eachLike by hand, keeping pact:matcher:type
+// first: the key order is contract-visible in pact files another party consumes.
 func (m eachLike) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Type  string `json:"pact:matcher:type"`
@@ -69,6 +75,8 @@ func (m term) GetValue() any {
 	return m.Value
 }
 
+// Fields and tags here must mirror term by hand, keeping pact:matcher:type
+// first: the key order is contract-visible in pact files another party consumes.
 func (m term) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Type  string `json:"pact:matcher:type"`
@@ -97,6 +105,7 @@ func EachLike(content any, minRequired int) Matcher {
 	}
 }
 
+// ArrayMinLike is an alias for EachLike.
 var ArrayMinLike = EachLike
 
 // Like specifies that the given content type should be matched based
@@ -193,6 +202,7 @@ func (s S) GetValue() any {
 	return s
 }
 
+// MarshalJSON encodes s as a plain JSON string, without matcher metadata.
 func (s S) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.string())
 }
@@ -213,6 +223,7 @@ func (s String) GetValue() any {
 	return s
 }
 
+// MarshalJSON encodes s as a plain JSON string, without matcher metadata.
 func (s String) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.string())
 }
@@ -235,11 +246,14 @@ func (m StructMatcher) GetValue() any {
 
 func (m StructMatcher) isMatcher() {}
 
-// MapMatcher allows a map[string]string-like object
-// to also contain complex matchers.
 type (
+	// MapMatcher allows a map[string]string-like object
+	// to also contain complex matchers.
 	MapMatcher map[string]Matcher
-	Map        MapMatcher
+	// Map has the same underlying type as MapMatcher, but is a distinct
+	// defined type: converting between the two requires an explicit
+	// conversion (e.g. Map(m) or MapMatcher(m)).
+	Map MapMatcher
 )
 
 // UnmarshalJSON is a custom JSON parser for MapMatcher
@@ -260,7 +274,10 @@ func (m *MapMatcher) UnmarshalJSON(bytes []byte) error {
 }
 
 type (
-	HeadersMatcher  = map[string][]Matcher
+	// HeadersMatcher matches HTTP headers, keyed by header name, where
+	// each value may itself be a matcher.
+	HeadersMatcher = map[string][]Matcher
+	// MetadataMatcher matches message metadata, keyed by metadata name.
 	MetadataMatcher = MapMatcher
 )
 
@@ -284,7 +301,7 @@ func objectToString(obj any) string {
 	}
 }
 
-// Match recursively traverses the provided type and outputs a
+// MatchV2 recursively traverses the provided type and outputs a
 // matcher string for it that is compatible with the Pact dsl.
 // By default, it requires slices to have a minimum of 1 element.
 // For concrete types, it uses `dsl.Like` to assert that types match.

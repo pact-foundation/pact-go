@@ -1,6 +1,5 @@
 //go:build provider
 
-// Package main contains a runnable Provider Pact test example.
 package main
 
 import (
@@ -149,17 +148,16 @@ func TestV3MessageProvider(t *testing.T) {
 				return user, message.Metadata{
 					"Content-Type": "application/json",
 				}, nil
-			} else {
-				return models.ProviderStateResponse{
-					"message": "not found",
-				}, nil, nil
 			}
+			return models.ProviderStateResponse{
+				"message": "not found",
+			}, nil, nil
 		},
 	}
 
 	// Setup any required states for the handlers
 	stateMappings := models.StateHandlers{
-		"User with id 127 exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"User with id 127 exists": func(setup bool, _ models.ProviderState) (models.ProviderStateResponse, error) {
 			if setup {
 				user = &User{
 					ID:       127,
@@ -199,7 +197,7 @@ func TestV3MessageProvider(t *testing.T) {
 func startServer() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/foobar", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		_, err := fmt.Fprintf(w, `
 			{

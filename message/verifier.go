@@ -17,9 +17,12 @@ type messageVerificationHandlerRequest struct {
 	States      []models.ProviderState `json:"providerStates"`
 }
 
+// HTTP header names used to carry a message's metadata (as base64-encoded
+// JSON) on the mock message verification response, when the message has
+// metadata. Both are set, so that verifiers looking for either name find it.
 var (
-	PACT_MESSAGE_METADATA_HEADER  = "PACT_MESSAGE_METADATA"
-	PACT_MESSAGE_METADATA_HEADER2 = "Pact-Message-Metadata"
+	PACT_MESSAGE_METADATA_HEADER  = "PACT_MESSAGE_METADATA" //nolint:revive // renaming would break the public API
+	PACT_MESSAGE_METADATA_HEADER2 = "Pact-Message-Metadata" //nolint:revive // renaming would break the public API
 )
 
 func appendMetadataToResponseHeaders(metadata Metadata, w http.ResponseWriter) {
@@ -66,6 +69,10 @@ func stringMetadataValue(metadata Metadata, keys ...string) (string, bool) {
 	return "", false
 }
 
+// CreateMessageHandler returns proxy middleware that serves message
+// verification requests on /__messages, dispatching each by description
+// to the matching entry in messageHandlers and writing back its produced
+// body and metadata. Requests to any other path are passed through.
 func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
