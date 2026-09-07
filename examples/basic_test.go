@@ -1,3 +1,6 @@
+// Package main contains runnable Pact examples: consumer tests (built
+// with the "consumer" tag) and provider verification tests (built with
+// the "provider" tag).
 package main
 
 import (

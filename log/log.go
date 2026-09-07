@@ -1,3 +1,7 @@
+// Package log configures the leveled logging used throughout Pact Go.
+// It filters the standard library's log output by level (TRACE, DEBUG,
+// INFO, WARN, ERROR), defaulting to INFO, or to the PACT_LOG_LEVEL or
+// LOG_LEVEL environment variable if set.
 package log
 
 import (
@@ -57,6 +61,8 @@ func SetLogLevel(level logutils.LogLevel) error {
 }
 
 // LogLevel gets the current log level for the Pact framework.
+//
+//nolint:revive // renaming would break the public API
 func LogLevel() logutils.LogLevel {
 	if logFilter != nil {
 		return logFilter.MinLevel
@@ -65,6 +71,8 @@ func LogLevel() logutils.LogLevel {
 	return logutils.LogLevel(defaultLogLevel)
 }
 
+// PactCrash panics with err wrapped in a crash report asking the caller to
+// open a bug report against Pact Go, for use where Pact Go cannot recover.
 func PactCrash(err error) {
 	log.Panicf(crashMessage, err.Error())
 }

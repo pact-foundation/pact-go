@@ -110,8 +110,8 @@ func TestVerifyRequestValidate(t *testing.T) {
 
 func TestVerifyRequest(t *testing.T) {
 	t.Run("#addPactUrlsFromEnvironment", func(t *testing.T) {
-		const webhookURL, verificationUrl = "pact_changed_webhook_url", "http://localhost:1234/path/to/pact"
-		enablePactUrlFunc := func(t *testing.T) {
+		const webhookURL, verificationURL = "pact_changed_webhook_url", "http://localhost:1234/path/to/pact"
+		enablePactURLFunc := func(t *testing.T) {
 			t.Helper()
 			t.Setenv("PACT_URL", webhookURL)
 		}
@@ -124,20 +124,20 @@ func TestVerifyRequest(t *testing.T) {
 		}{
 			{
 				name:         "with env var and undefined request.PactURLs",
-				setup:        enablePactUrlFunc,
+				setup:        enablePactURLFunc,
 				request:      &VerifyRequest{},
 				expectedUrls: []string{webhookURL},
 			},
 			{
 				name:         "with env var and configured PactURLS",
-				setup:        enablePactUrlFunc,
-				request:      &VerifyRequest{PactURLs: []string{verificationUrl}},
-				expectedUrls: []string{verificationUrl, webhookURL},
+				setup:        enablePactURLFunc,
+				request:      &VerifyRequest{PactURLs: []string{verificationURL}},
+				expectedUrls: []string{verificationURL, webhookURL},
 			},
 			{
 				name:         "without env var and configured PactURLS",
-				request:      &VerifyRequest{PactURLs: []string{verificationUrl}},
-				expectedUrls: []string{verificationUrl},
+				request:      &VerifyRequest{PactURLs: []string{verificationURL}},
+				expectedUrls: []string{verificationURL},
 			},
 		}
 		for _, tt := range tests {

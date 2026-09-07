@@ -1,3 +1,7 @@
+// Package provider verifies the provider side of an HTTP or message Pact
+// contract: it fetches pacts from local files or a Pact Broker, replays
+// their interactions against a running provider (or its message
+// handlers), and optionally publishes the results back to the broker.
 package provider
 
 import (
@@ -24,7 +28,10 @@ import (
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
-const MESSAGE_PATH = "/__messages"
+// MESSAGE_PATH is the local reverse-proxy path the verifier registers as a
+// message transport, so pact-reference can route message verification
+// requests to the message handlers configured on this VerifyRequest.
+const MESSAGE_PATH = "/__messages" //nolint:revive // renaming would break the public API
 
 // Verifier is used to verify the provider side of an HTTP API contract.
 type Verifier struct {
@@ -39,6 +46,9 @@ type Verifier struct {
 	handle *native.Verifier
 }
 
+// NewVerifier creates a new provider verifier, initialising the native
+// pact_ffi library at the log level currently configured via
+// log.SetLogLevel (or its default) as a side effect.
 func NewVerifier() *Verifier {
 	native.Init(string(logging.LogLevel()))
 
@@ -376,8 +386,9 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 	}
 }
 
-// Use this to wait for a port to be running prior
-// to running tests.
+// WaitForPort polls address:port on network (e.g. "tcp") every 50ms until
+// it accepts a connection, prior to running tests against it. It returns
+// an error naming message if timeoutDuration elapses first.
 func WaitForPort(port int, network string, address string, timeoutDuration time.Duration, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
 

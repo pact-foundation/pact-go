@@ -1,5 +1,3 @@
-// Package install contains functions necessary for installing and checking
-// if the necessary underlying shared libs have been properly installed
 package installer
 
 import (
@@ -47,9 +45,8 @@ func TestInstallerDownloader(t *testing.T) {
 				want: func() string {
 					if checkMusl() {
 						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64-musl.so.gz", packages[FFIPackage].version)
-					} else {
-						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64.so.gz", packages[FFIPackage].version)
 					}
+					return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64.so.gz", packages[FFIPackage].version)
 				}(),
 				test: Installer{
 					os:   linux,
@@ -62,9 +59,8 @@ func TestInstallerDownloader(t *testing.T) {
 				want: func() string {
 					if checkMusl() {
 						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-aarch64-musl.so.gz", packages[FFIPackage].version)
-					} else {
-						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-aarch64.so.gz", packages[FFIPackage].version)
 					}
+					return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-aarch64.so.gz", packages[FFIPackage].version)
 				}(),
 				test: Installer{
 					os:   linux,
@@ -123,7 +119,7 @@ func TestInstallerDownloader(t *testing.T) {
 		assert.True(t, mock.called)
 	})
 
-	t.Run("checks if existing libraries are present", func(t *testing.T) {
+	t.Run("checks if existing libraries are present", func(_ *testing.T) {
 		oldPackages := packages
 		defer func() { packages = oldPackages }()
 
@@ -138,10 +134,10 @@ func TestInstallerDownloader(t *testing.T) {
 		// TODO:
 	})
 
-	t.Run("errors if installed versions are out of date", func(t *testing.T) {
+	t.Run("errors if installed versions are out of date", func(_ *testing.T) {
 	})
 
-	t.Run("errors if installed versions are out of date", func(t *testing.T) {
+	t.Run("errors if installed versions are out of date", func(_ *testing.T) {
 	})
 }
 
@@ -226,7 +222,7 @@ func (m *mockDownloader) download(src, dst string) error {
 
 type mockHasher struct{}
 
-func (m *mockHasher) hash(src string) (string, error) {
+func (m *mockHasher) hash(_ string) (string, error) {
 	return "1234", nil
 }
 
@@ -253,7 +249,7 @@ func restoreMacOSInstallName() func() {
 	}
 }
 
-func TestUpdateConfiguration(t *testing.T) {
+func TestUpdateConfiguration(_ *testing.T) {
 }
 
 // TestPackagesVersionSatisfiesOwnSemverRange guards against version/semverRange

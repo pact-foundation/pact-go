@@ -19,7 +19,7 @@ import (
 // characterise CreateMessageHandler's handling of a body it cannot read.
 type erroringBody struct{}
 
-func (erroringBody) Read(p []byte) (int, error) { return 0, errors.New("read boom") }
+func (erroringBody) Read(_ []byte) (int, error) { return 0, errors.New("read boom") }
 func (erroringBody) Close() error               { return nil }
 
 // TestCreateMessageHandler_PassThrough characterises the case where the
@@ -27,7 +27,7 @@ func (erroringBody) Close() error               { return nil }
 // must not touch the response and must delegate straight to next.
 func TestCreateMessageHandler_PassThrough(t *testing.T) {
 	nextCalled := false
-	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		nextCalled = true
 		w.WriteHeader(http.StatusTeapot)
 	})
@@ -83,7 +83,7 @@ func TestCreateMessageHandler_MessageNotFound(t *testing.T) {
 // the registered handler returns an error.
 func TestCreateMessageHandler_HandlerErrors(t *testing.T) {
 	handlers := Handlers{
-		"a user event": func(states []models.ProviderState) (Body, Metadata, error) {
+		"a user event": func(_ []models.ProviderState) (Body, Metadata, error) {
 			return nil, nil, errors.New("handler boom")
 		},
 	}
@@ -128,7 +128,7 @@ func TestCreateMessageHandler_ByteBody(t *testing.T) {
 // being written.
 func TestCreateMessageHandler_NonByteBody(t *testing.T) {
 	handlers := Handlers{
-		"a user event": func(states []models.ProviderState) (Body, Metadata, error) {
+		"a user event": func(_ []models.ProviderState) (Body, Metadata, error) {
 			return map[string]any{"id": float64(127)}, nil, nil
 		},
 	}
@@ -151,7 +151,7 @@ func TestCreateMessageHandler_NonByteBody(t *testing.T) {
 // headers, and a "contentType" entry overrides the response Content-Type.
 func TestCreateMessageHandler_MetadataHeaders(t *testing.T) {
 	handlers := Handlers{
-		"a user event": func(states []models.ProviderState) (Body, Metadata, error) {
+		"a user event": func(_ []models.ProviderState) (Body, Metadata, error) {
 			return []byte("payload"), Metadata{"contentType": "text/plain"}, nil
 		},
 	}

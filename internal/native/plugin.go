@@ -8,6 +8,6 @@ var (
 	ErrPluginMockServerStarted        = errors.New("the mock server has already been started")
 	ErrPluginInteractionHandleInvalid = errors.New("the interaction handle is invalid")
 	ErrPluginInvalidContentType       = errors.New("the content type is not valid")
-	ErrPluginInvalidJson              = errors.New("the contents JSON is not valid JSON")
+	ErrPluginInvalidJSON              = errors.New("the contents JSON is not valid JSON")
 	ErrPluginSpecificError            = errors.New("the plugin returned an error")
 )

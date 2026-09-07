@@ -1,4 +1,4 @@
-// package consumer contains the main Pact DSL used in the Consumer
+// Package consumer contains the main Pact DSL used in the Consumer
 // collaboration test cases, and Provider contract test verification.
 package consumer
 

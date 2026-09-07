@@ -34,11 +34,14 @@ type AsynchronousMessageBuilder struct {
 	handler AsynchronousConsumer
 }
 
+// UnconfiguredAsynchronousMessageBuilder is a message interaction with its
+// expected description set, ready to configure content.
 type UnconfiguredAsynchronousMessageBuilder struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// Given specifies a provider state. Optional.
+// GivenWithParameter specifies a provider state along with parameters
+// used to set it up. Optional.
 func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *AsynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
 
@@ -71,6 +74,9 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithMetadata(metadata map[strin
 	return m
 }
 
+// AsynchronousMessageBuilderWithContents is a message interaction with
+// its contents set, ready to optionally narrow the decoded type via
+// AsType and attach a consumer handler via ConsumedBy.
 type AsynchronousMessageBuilderWithContents struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
@@ -103,7 +109,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content any) *A
 	}
 }
 
-// // AsType specifies that the content sent through to the
+// AsType specifies that the content sent through to the
 // consumer handler should be sent as the given type.
 func (m *AsynchronousMessageBuilderWithContents) AsType(t any) *AsynchronousMessageBuilderWithContents {
 	log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
@@ -112,11 +118,13 @@ func (m *AsynchronousMessageBuilderWithContents) AsType(t any) *AsynchronousMess
 	return m
 }
 
+// AsynchronousMessageBuilderWithConsumer is a fully configured message
+// interaction, ready to run via Verify.
 type AsynchronousMessageBuilderWithConsumer struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// The function that will consume the message.
+// ConsumedBy sets the function that will consume the message.
 func (m *AsynchronousMessageBuilderWithContents) ConsumedBy(handler AsynchronousConsumer) *AsynchronousMessageBuilderWithConsumer {
 	m.rootBuilder.handler = handler
 
@@ -125,12 +133,15 @@ func (m *AsynchronousMessageBuilderWithContents) ConsumedBy(handler Asynchronous
 	}
 }
 
-// The function that will consume the message.
+// Verify runs the configured consumer handler against the message and
+// writes the pact file if successful.
 func (m *AsynchronousMessageBuilderWithConsumer) Verify(t *testing.T) error {
 	t.Helper()
 	return m.rootBuilder.messagePactV3.Verify(t, m.rootBuilder, m.rootBuilder.handler)
 }
 
+// AsynchronousPact is a one-way message pact between a consumer and
+// provider, built via AddAsynchronousMessage.
 type AsynchronousPact struct {
 	config Config
 
@@ -138,9 +149,13 @@ type AsynchronousPact struct {
 	messageserver *native.MessageServer
 }
 
+// NewMessagePact creates a new asynchronous message pact.
+//
 // Deprecated: use NewAsynchronousPact.
 var NewMessagePact = NewAsynchronousPact
 
+// NewAsynchronousPact creates a new asynchronous (one-way) message pact
+// for the consumer/provider pair described by config.
 func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
 	provider := &AsynchronousPact{
 		config: config,
@@ -162,7 +177,7 @@ func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 	return p.AddAsynchronousMessage()
 }
 
-// AddMessage creates a new asynchronous consumer expectation.
+// AddAsynchronousMessage creates a new asynchronous consumer expectation.
 func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder {
 	log.Println("[DEBUG] add message")
 
@@ -176,7 +191,7 @@ func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder 
 	return m
 }
 
-// VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
+// Verify is a test convenience function for verifyMessageConsumerRaw,
 // accepting an instance of `*testing.T`.
 func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
 	t.Helper()

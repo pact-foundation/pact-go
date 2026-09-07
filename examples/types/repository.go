@@ -1,4 +1,4 @@
-// package v3 contains types to use across the Consumer/Provider tests.
+// Package types contains types to use across the Consumer/Provider tests.
 package types
 
 // UserRepository is an in-memory user database.
