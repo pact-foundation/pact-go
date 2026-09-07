@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,7 +23,7 @@ func DummyMiddleware(header string) Middleware {
 }
 
 func TestLoggingMiddleware(t *testing.T) {
-	req, err := http.NewRequest("GET", "/x", nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", "/x", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +39,7 @@ func TestLoggingMiddleware(t *testing.T) {
 }
 
 func TestChainHandlers(t *testing.T) {
-	req, err := http.NewRequest("GET", "/health-check", nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", "/health-check", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

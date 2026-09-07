@@ -5,12 +5,14 @@ package plugin
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -104,6 +106,7 @@ func callMattServiceHTTP(msc consumer.MockServerConfig, message string) (string,
 	if err != nil {
 		return "", err
 	}
+	defer func() { _ = res.Body.Close() }()
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -114,10 +117,11 @@ func callMattServiceHTTP(msc consumer.MockServerConfig, message string) (string,
 }
 
 func callMattServiceTCP(transport message.TransportConfig, message string) (string, error) {
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", transport.Address, transport.Port))
+	conn, err := (&net.Dialer{}).DialContext(context.Background(), "tcp", net.JoinHostPort(transport.Address, strconv.Itoa(transport.Port)))
 	if err != nil {
 		return "", err
 	}
+	defer func() { _ = conn.Close() }()
 
 	_, err = conn.Write([]byte(generateMattMessage(message)))
 	if err != nil {

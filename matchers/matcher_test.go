@@ -389,7 +389,8 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		"HexValue": {
 			matcher: HexValue(),
 			testCase: func(v interface{}) (err error) {
-				if v.(string) != "3F" {
+				s, valid := v.(string)
+				if !valid || s != "3F" {
 					err = fmt.Errorf("want '3F', got '%v'", reflect.TypeOf(v))
 				}
 				return
@@ -418,7 +419,8 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		"IPAddress": {
 			matcher: IPAddress(),
 			testCase: func(v interface{}) (err error) {
-				if v.(string) != "127.0.0.1" {
+				s, valid := v.(string)
+				if !valid || s != "127.0.0.1" {
 					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
 				}
 				return
@@ -427,7 +429,8 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		"IPv4Address": {
 			matcher: IPv4Address(),
 			testCase: func(v interface{}) (err error) {
-				if v.(string) != "127.0.0.1" {
+				s, valid := v.(string)
+				if !valid || s != "127.0.0.1" {
 					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
 				}
 				return
@@ -436,7 +439,8 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		"IPv6Address": {
 			matcher: IPv6Address(),
 			testCase: func(v interface{}) (err error) {
-				if v.(string) != "::ffff:192.0.2.128" {
+				s, valid := v.(string)
+				if !valid || s != "::ffff:192.0.2.128" {
 					err = fmt.Errorf("want '::ffff:192.0.2.128', got '%v'", reflect.TypeOf(v))
 				}
 				return
@@ -485,8 +489,12 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		"UUID": {
 			matcher: UUID(),
 			testCase: func(v interface{}) (err error) {
-				match, err := regexp.MatchString(uuid, v.(string))
+				s, valid := v.(string)
+				if !valid {
+					return fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+				}
 
+				match, err := regexp.MatchString(uuid, s)
 				if !match {
 					err = fmt.Errorf("want string, got '%v'", v)
 				}

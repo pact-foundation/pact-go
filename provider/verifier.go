@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -369,16 +370,21 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 // to running tests.
 func WaitForPort(port int, network string, address string, timeoutDuration time.Duration, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
-	timeout := time.After(timeoutDuration)
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
+	defer cancel()
 
 	for {
 		select {
-		case <-timeout:
+		case <-ctx.Done():
 			log.Printf("[ERROR] expected server to start < %s. %s", timeoutDuration, message)
 			return fmt.Errorf("expected server to start < %s. %s", timeoutDuration, message)
 		case <-time.After(50 * time.Millisecond):
-			_, err := net.Dial(network, net.JoinHostPort(address, strconv.Itoa(port)))
+			// The dial shares the overall deadline, so a connection that hangs
+			// rather than refusing cannot hold the loop past timeoutDuration.
+			conn, err := (&net.Dialer{}).DialContext(ctx, network, net.JoinHostPort(address, strconv.Itoa(port)))
 			if err == nil {
+				_ = conn.Close()
 				return nil
 			}
 		}

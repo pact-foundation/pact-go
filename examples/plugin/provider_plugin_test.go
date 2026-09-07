@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -69,7 +70,7 @@ func startHTTPProvider(port int) {
 
 func startTCPServer(port int) {
 	log.Println("Starting TCP server on port", port)
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	listener, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Println("ERROR:", err)
 	}

@@ -440,6 +440,9 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 
 			params.str.example = components[1]
 		}
+	default:
+		// Other kinds (e.g. Struct, Pointer, Map) have no `pact:"..."` tag
+		// support; the tag is silently ignored and the defaults are used.
 	}
 
 	return params

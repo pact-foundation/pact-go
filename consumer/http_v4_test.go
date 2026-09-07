@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -96,8 +97,16 @@ func TestV4HTTPAddExternalReference(t *testing.T) {
 		WithRequest("GET", "/", func(b *V4RequestBuilder) {}).
 		WillRespondWith(200, func(b *V4ResponseBuilder) {}).
 		ExecuteTest(t, func(msc MockServerConfig) error {
-			_, err := http.Get(fmt.Sprintf("http://%s:%d/", msc.Host, msc.Port))
-			return err
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("http://%s:%d/", msc.Host, msc.Port), nil)
+			if err != nil {
+				return err
+			}
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return err
+			}
+			defer func() { _ = res.Body.Close() }()
+			return nil
 		})
 	assert.NoError(t, err)
 }

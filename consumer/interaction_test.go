@@ -65,3 +65,57 @@ func TestInteraction(t *testing.T) {
 		}
 	})
 }
+
+func TestHasMatcherGreaterThanSpec(t *testing.T) {
+	testCases := []struct {
+		description string
+		obj         map[string]interface{}
+		want        []string
+	}{
+		{
+			description: "matcher within the spec version is not reported",
+			obj: map[string]interface{}{
+				"pact:specification": "2.0.0",
+				"pact:matcher:type":  "regex",
+			},
+			want: []string{},
+		},
+		{
+			description: "matcher beyond the spec version is reported by type",
+			obj: map[string]interface{}{
+				"pact:specification": "3.0.0",
+				"pact:matcher:type":  "include",
+			},
+			want: []string{"include"},
+		},
+		{
+			description: "matcher beyond the spec version with no type is still reported",
+			obj: map[string]interface{}{
+				"pact:specification": "3.0.0",
+			},
+			want: []string{"<unknown matcher type>"},
+		},
+		{
+			description: "matcher beyond the spec version with a non-string type is still reported",
+			obj: map[string]interface{}{
+				"pact:specification": "3.0.0",
+				"pact:matcher:type":  27,
+			},
+			want: []string{"<unknown matcher type>"},
+		},
+		{
+			description: "a non-string specification version is ignored",
+			obj: map[string]interface{}{
+				"pact:specification": 3,
+				"pact:matcher:type":  "include",
+			},
+			want: []string{},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.description, func(t *testing.T) {
+			assert.Equal(t, test.want, hasMatcherGreaterThanSpec(models.V2, test.obj))
+		})
+	}
+}

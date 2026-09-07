@@ -24,7 +24,12 @@ func GetFreePort() (int, error) {
 	defer func() {
 		_ = l.Close()
 	}()
-	return l.Addr().(*net.TCPAddr).Port, nil
+
+	tcpAddr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		return 0, fmt.Errorf("expected a *net.TCPAddr from net.ListenTCP, got %T", l.Addr())
+	}
+	return tcpAddr.Port, nil
 }
 
 // FindPortInRange Iterate through CSV or Range of ports to find open port
