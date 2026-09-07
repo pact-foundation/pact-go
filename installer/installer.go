@@ -371,8 +371,8 @@ var osToExtension = map[string]string{
 
 var osToLibName = map[string]string{
 	windows: "pact_ffi",
-	linux:   "libpact_ffi",
-	macos:   "libpact_ffi",
+	linux:   ffiLibBaseName,
+	macos:   ffiLibBaseName,
 }
 
 type packageInfo struct {
@@ -391,11 +391,15 @@ const (
 	macos          = "macos"
 	x86_64         = "x86_64"
 	aarch64        = "aarch64"
+	// ffiLibBaseName is the shared library file's base name on the OSes
+	// that don't rename it (linux, macos); it happens to equal FFIPackage
+	// today, but names a different thing - a file prefix, not a package key.
+	ffiLibBaseName = "libpact_ffi"
 )
 
 var packages = map[string]packageInfo{
 	FFIPackage: {
-		libName: "libpact_ffi",
+		libName: ffiLibBaseName,
 		version: "0.5.6",
 		// Pin to the shipped FFI minor. The bindings in this release reference
 		// symbols specific to this libpact_ffi minor, and past minors have both

@@ -112,7 +112,7 @@ func (s fromProviderState) isMatcher() {}
 func FromProviderState(expression, example string) Matcher {
 	return fromProviderState{
 		Specification: models.V3,
-		Type:          "type",
+		Type:          matcherKindType,
 		Generator:     "ProviderState",
 		Expression:    expression,
 		Value:         example,
@@ -194,7 +194,7 @@ func ArrayMinMaxLike(content any, minCount int, maxCount int) Matcher {
 	}
 	return minMaxLike{
 		Specification: models.V3,
-		Type:          "type",
+		Type:          matcherKindType,
 		Contents:      examples,
 		Min:           minCount,
 		Max:           maxCount,
@@ -211,7 +211,7 @@ func ArrayMaxLike(content any, maxCount int) Matcher {
 
 	return minMaxLike{
 		Specification: models.V3,
-		Type:          "type",
+		Type:          matcherKindType,
 		Contents:      examples,
 		Min:           1,
 		Max:           maxCount,
