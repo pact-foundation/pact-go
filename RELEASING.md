@@ -17,6 +17,6 @@ That's the whole process. Keep merging PRs into `master` with conventional commi
 ## Notes
 
 - No `command/version.go` bump is needed: `pact-go version` resolves itself at runtime, either from the GoReleaser `-ldflags` (release binaries) or from the Go module version (`go install .../pact-go/v2@vX.Y.Z`).
-- Release-please's config lives in [`release-please-config.json`](release-please-config.json); the version it currently believes is released is tracked in [`.release-please-manifest.json`](.release-please-manifest.json).
+- Release-please's config lives in [`release-please-config.json`](.github/release-please-config.json); the version it currently believes is released is tracked in [`.release-please-manifest.json`](.github/.release-please-manifest.json).
 - If a GoReleaser run fails after a tag is already published, re-run [`release.yml`](https://github.com/pact-foundation/pact-go/actions/workflows/release.yml) manually via `workflow_dispatch`, passing the existing tag - it won't create a new tag or PR.
 - Commits that aren't `feat`/`fix`/etc. (e.g. `chore:`, `docs:`, `test:`) don't trigger a version bump on their own, but will still be picked up once a `feat`/`fix` commit lands.
