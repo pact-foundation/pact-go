@@ -14,6 +14,10 @@ on:
         required: false
         default: 'false'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PACT_BROKER_BASE_URL: https://testdemo.pactflow.io
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
@@ -22,29 +26,39 @@ env:
   APP_REF: ${{ github.ref }}
   LD_LIBRARY_PATH: /tmp
   PACT_GO_LIB_DOWNLOAD_PATH: /tmp
-  LOG_LEVEL: debug
+  LOG_LEVEL: error
   COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
+      - run: mise run verify
+
   test:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.25", "1.26"]
+        go-version: ["1.25", "1.26", "1.27"]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version: ${{ matrix.go-version }}
-      - uses: actions/setup-java@v6 # Needed for the Avro example
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6, needed for the Avro example
         with:
           distribution: 'zulu'
           java-version: '17'
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
       - name: Test
         if: matrix.os == 'ubuntu-latest'
         run: APP_BRANCH=${APP_REF:11} DOCKER_GATEWAY_HOST=172.17.0.1 DOCKER_HOST_HTTP="http://172.17.0.1" mise run ci
@@ -65,7 +79,7 @@ jobs:
       - name: Send coverage
         if: matrix.os != 'windows-latest'
         run: goveralls -coverprofile=coverage.txt -service=github -parallel
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: logs-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go-version }}-${{ matrix.os }}.zip
           path: ~/.pact/plugins/**/plugin.log
@@ -79,7 +93,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm]
-        go-version: ["1.25", "1.26"]
+        go-version: ["1.25", "1.26", "1.27"]
         variant: [debian]
         experimental: [false]
         include:
@@ -92,6 +106,10 @@ jobs:
             experimental: true
             os: ubuntu-latest
           - variant: alpine
+            go-version: 1.27
+            experimental: true
+            os: ubuntu-latest
+          - variant: alpine
             go-version: 1.25
             experimental: true
             os: ubuntu-24.04-arm
@@ -99,9 +117,13 @@ jobs:
             go-version: 1.26
             experimental: true
             os: ubuntu-24.04-arm
+          - variant: alpine
+            go-version: 1.27
+            experimental: true
+            os: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
 
       - name: Test dockerfile
         run: |

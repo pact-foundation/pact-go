@@ -58,22 +58,49 @@ run = "./build/pact-go -l DEBUG install --libDir $PACT_DOWNLOAD_DIR"
 description = "Run golangci-lint"
 run = "golangci-lint run"
 
+[tasks.verify]
+description = "Check formatting and module tidiness"
+# golangci-lint fmt, not gofmt: .golangci.yml's formatter is gofumpt, so gofmt
+# accepts files that `mise run lint` then rejects.
+run = """
+set -e
+golangci-lint fmt --diff
+go mod tidy -diff
+"""
+
+[tasks.fmt]
+description = "Format all Go source"
+run = "golangci-lint fmt"
+
 [tasks.test]
 description = "Run unit tests with coverage"
 depends = ["deps", "install"]
 run = """
-set -e
+set +e
 RACE="-race"
-if [ "$SKIP_RACE" = "true" ]; then RACE=""; fi
+if [ "${SKIP_RACE:-}" = "true" ]; then RACE=""; fi
 TAGS="-tags=provider"
-if [ "$SKIP_PROVIDER_TESTS" = "true" ]; then TAGS=""; fi
+if [ "${SKIP_PROVIDER_TESTS:-}" = "true" ]; then TAGS=""; fi
 rm -f coverage.txt
 echo "mode: count" > coverage.txt
+failed=""
 for d in $(go list ./... | grep -v vendor | grep -v examples); do
-  go test -v $RACE -coverprofile=profile.out $TAGS -covermode=atomic "$d"
+  go test $RACE -coverprofile=profile.out $TAGS -covermode=atomic "$d"
+  status=$?
   if [ -f profile.out ]; then tail -n +2 profile.out >> coverage.txt; rm profile.out; fi
+  if [ $status -ne 0 ]; then failed="$failed $d"; fi
 done
 go tool cover -func coverage.txt
+covstat=$?
+if [ -n "$failed" ]; then
+  echo "FAILED packages:$failed"
+fi
+if [ $covstat -ne 0 ]; then
+  echo "coverage report failed (go tool cover -func exited $covstat)"
+fi
+if [ -n "$failed" ] || [ $covstat -ne 0 ]; then
+  exit 1
+fi
 """
 
 [tasks.publish]
@@ -93,9 +120,9 @@ description = "Run the pact examples against the broker"
 depends = ["clean", "install", "docker-up"]
 run = """
 set -e
-go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 mise run publish
-go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 """
 
 [tasks.pact-local]
@@ -103,9 +130,9 @@ description = "Run the pact examples without publishing"
 depends = ["clean", "deps", "install"]
 run = """
 set -e
-go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 if [ "$SKIP_PROVIDER_TESTS" != "true" ]; then
-  SKIP_PUBLISH=true go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
+  SKIP_PUBLISH=true go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 fi
 """
 
@@ -119,8 +146,8 @@ description = "Run only the gRPC example"
 run = """
 set -e
 rm -rf ./examples/pacts
-go test -v -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
-go test -v -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
+go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
+go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
 """
 
 [tasks.docker-build]
