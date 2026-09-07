@@ -60,13 +60,13 @@ func validateMatchers(version models.SpecificationVersion, obj any) error {
 
 	str, err := json.Marshal(obj)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshalling the interaction body to check its matchers: %w", err)
 	}
 
 	var raw any
 	err = json.Unmarshal(str, &raw)
 	if err != nil {
-		return err
+		return fmt.Errorf("unmarshalling the interaction body to check its matchers: %w", err)
 	}
 
 	maybeMatchers, ok := raw.(map[string]any)

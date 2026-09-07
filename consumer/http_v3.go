@@ -23,12 +23,9 @@ func NewV3Pact(config MockHTTPProviderConfig) (*V3HTTPMockProvider, error) {
 			specificationVersion: models.V3,
 		},
 	}
-	err := provider.configure()
-	if err != nil {
-		return nil, err
-	}
+	provider.configure()
 
-	return provider, err
+	return provider, nil
 }
 
 // AddInteraction to the pact.

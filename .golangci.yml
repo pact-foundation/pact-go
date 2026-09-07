@@ -7,44 +7,55 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
 linters:
-  enable:
-    - bodyclose
-    - dogsled
-    - dupword
-    - embeddedstructfieldcheck
-    - errorlint
-    - exhaustive
-    - forcetypeassert
-    - funcorder
-    - gocritic
-    - godoclint
-    - godot
-    - goconst
-    - gosec
-    - inamedparam
-    - intrange
-    - mirror
-    - misspell
-    - mnd
-    - modernize
-    - musttag
-    - nestif
-    - nilerr
-    - nilnesserr
-    - noctx
-    - noinlineerr
-    - nonamedreturns
-    - perfsprint
-    - protogetter
-    - revive
-    - tagalign
-    - testifylint
-    - thelper
-    - unconvert
-    - usestdlibvars
-    - usetesting
-    - whitespace
+  default: all
+  disable:
+    # Line and whitespace rules that fight gofmt
+    - wsl
+    - wsl_v5
+    - nlreturn
+    - lll
+    # Arbitrary complexity thresholds; high false-positive rate on FFI binding code
+    - cyclop
+    - gocognit
+    - funlen
+    - gocyclo
+    - maintidx
+    - dupl
+    # House styles this project does not hold
+    - exhaustruct
+    - exhaustruct_v5
+    - varnamelen
+    - ireturn
+    # The cgo and FFI layer requires both
+    - gochecknoglobals
+    - gochecknoinits
+    # Demands sentinel errors throughout, which is a public API redesign
+    - err113
+    # Needs a curated allowlist; an empty config produces noise
+    - depguard
+    # Fails CI on every existing TODO
+    - godox
+    # Wrong for tests driving a stateful native library
+    - paralleltest
+    - testpackage
+    # The examples print deliberately
+    - forbidigo
+    # Deprecated since v2.12.0 in favour of gomodguard_v2, which `default: all`
+    # already enables; running both only emits a deprecation warning.
+    - gomodguard
   settings:
+    # models.ProviderStateResponse is a map, and a state handler with nothing to
+    # report hands back a nil map with a nil error - the idiomatic zero value for
+    # a map result, not a missing sentinel. Every other nil-value/nil-error pair
+    # is still reported.
+    nilnil:
+      checked-types:
+        - chan
+        - func
+        - iface
+        - ptr
+        - uintptr
+        - unsafeptr
     mnd:
       ignored-functions:
         # File-permission arguments are already self-explanatory in octal
@@ -139,6 +150,13 @@ linters:
       - path: examples/grpc/routeguide/server/server\.go
         linters:
           - mnd
+      # Verbatim upstream gRPC route-guide example (Copyright gRPC authors): the
+      # stream Send/Recv errors are returned unchanged on purpose. grpc-go reads
+      # the status code off the error it gets back from a handler; wrapping one
+      # in fmt.Errorf loses that code and the client sees Unknown instead.
+      - path: examples/grpc/routeguide/server/server\.go
+        linters:
+          - wrapcheck
       # Repeated literals in tests usually read better inline than behind a
       # shared constant name - a test asserting "application/json" states
       # its expectation literally rather than through an indirection.

@@ -35,6 +35,9 @@ func (n Null) GetValue() any {
 
 // MarshalJSON encodes n as a Pact V3 null matcher.
 func (n Null) MarshalJSON() ([]byte, error) {
+	//nolint:wrapcheck // encoding/json wraps a MarshalJSON failure in a
+	// *json.MarshalerError recording the type and the original error, so an extra
+	// prefix here would be doubled up in the message the caller finally sees.
 	return json.Marshal(struct {
 		Specification models.SpecificationVersion `json:"pact:specification"`
 		Type          string                      `json:"pact:matcher:type"`

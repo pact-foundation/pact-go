@@ -76,19 +76,19 @@ func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("calling the avro service: %w", err)
 	}
 	defer func() { _ = res.Body.Close() }()
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("reading the avro service response: %w", err)
 	}
 
 	codec := getCodec()
 	native, _, err := codec.NativeFromBinary(bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decoding the avro response: %w", err)
 	}
 
 	fields, ok := native.(map[string]any)
@@ -111,5 +111,5 @@ func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 		Username: username,
 	}
 
-	return user, err
+	return user, nil
 }
