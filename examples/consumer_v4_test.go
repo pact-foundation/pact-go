@@ -11,10 +11,11 @@ import (
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConsumerV4(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("INFO"))
+	require.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV4Consumer",
@@ -22,7 +23,7 @@ func TestConsumerV4(t *testing.T) {
 		Host:     "127.0.0.1",
 		TLS:      true,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Set up our expected interactions.
 	err = mockProvider.

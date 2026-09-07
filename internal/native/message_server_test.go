@@ -17,13 +17,13 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 func TestHandleBasedMessageTestsWithString(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 	s := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	m := s.NewMessage().
@@ -39,7 +39,7 @@ func TestHandleBasedMessageTestsWithString(t *testing.T) {
 
 	body, err := m.GetMessageRequestContents()
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "some string", string(body))
 
 	// This is where you would invoke the real function with the message
@@ -49,8 +49,7 @@ func TestHandleBasedMessageTestsWithString(t *testing.T) {
 }
 
 func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 	s := NewMessageServer("test-message-consumer", "test-message-provider")
 
 	m := s.NewMessage().
@@ -67,13 +66,13 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 		})
 
 	body, err := m.GetMessageRequestContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var res struct {
 		Some string `json:"some"`
 	}
 	err = json.Unmarshal(body, &res)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "json", res.Some)
 
 	// This is where you would invoke the real function with the message
@@ -83,8 +82,7 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 }
 
 func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 
 	s := NewMessageServer("test-binarymessage-consumer", "test-binarymessage-provider").
 		WithMetadata("some-namespace", "the-key", "the-value")
@@ -94,11 +92,11 @@ func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
 	zw := gzip.NewWriter(&buf)
 
 	encodedMessage := "A long time ago in a galaxy far, far away..."
-	_, err = zw.Write([]byte(encodedMessage))
-	assert.NoError(t, err)
+	_, err := zw.Write([]byte(encodedMessage))
+	require.NoError(t, err)
 
 	err = zw.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	m := s.NewMessage().
 		Given("some binary state").
@@ -112,11 +110,11 @@ func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
 		WithRequestBinaryContentType("application/gzip", buf.Bytes())
 
 	body, err := m.GetMessageRequestContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Extract binary payload, base 64 decode it, unzip it
 	r, err := gzip.NewReader(bytes.NewReader(body))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	result, _ := io.ReadAll(r)
 
 	assert.Equal(t, encodedMessage, string(result))
@@ -144,7 +142,7 @@ func TestGetAsyncMessageContentsAsBytes(t *testing.T) {
 		})
 
 	bytes, err := m.GetMessageRequestContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, bytes)
 
 	// Should be able to convert back into the JSON structure
@@ -152,7 +150,7 @@ func TestGetAsyncMessageContentsAsBytes(t *testing.T) {
 		Some string `json:"some"`
 	}
 	err = json.Unmarshal(bytes, &v)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "json", v.Some)
 }
 
@@ -176,7 +174,7 @@ func TestGetSyncMessageContentsAsBytes(t *testing.T) {
 		})
 
 	bytes, err := m.GetMessageResponseContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, bytes)
 
 	// Should be able to convert back into the JSON structure
@@ -184,7 +182,7 @@ func TestGetSyncMessageContentsAsBytes(t *testing.T) {
 		Some string `json:"some"`
 	}
 	err = json.Unmarshal(bytes[0], &v)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "response", v.Some)
 }
 
@@ -202,9 +200,9 @@ func TestGetSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 		})
 
 	bytes, err := m.GetMessageResponseContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, bytes)
-	assert.Equal(t, 1, len(bytes))
+	assert.Len(t, bytes, 1)
 	assert.Empty(t, bytes[0])
 }
 
@@ -214,7 +212,7 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
 	err := m.UsingPlugin("protobuf", "0.5.4")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
@@ -243,25 +241,25 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	bytes, err := i.GetMessageRequestContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, bytes)
 
 	// Should be able to convert request body back into a protobuf
 	p := &InitPluginRequest{}
 	err = proto.Unmarshal(bytes, p)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "0.0.0", p.Version)
 
 	// Should be able to convert response into a protobuf
 	response, err := i.GetMessageResponseContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, bytes)
 	r := &InitPluginResponse{}
 	err = proto.Unmarshal(response[0], r)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "test", r.Catalogue[0].Key)
 }
 
@@ -271,7 +269,7 @@ func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 	// Protobuf plugin test
 	defer m.CleanupPlugins()
 	err := m.UsingPlugin("protobuf", "0.5.4")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
@@ -292,23 +290,23 @@ func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	bytes, err := i.GetMessageRequestContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, bytes)
 
 	// Should be able to convert request body back into a protobuf
 	p := &InitPluginRequest{}
 	err = proto.Unmarshal(bytes, p)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "0.0.0", p.Version)
 
 	// Should be able to convert response into a protobuf
 	response_bytes, err := i.GetMessageResponseContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, response_bytes)
-	assert.Equal(t, 1, len(response_bytes))
+	assert.Len(t, response_bytes, 1)
 	assert.Empty(t, response_bytes[0])
 }
 
@@ -336,22 +334,21 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", protobufInteraction)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	bytes, err := i.GetMessageRequestContents()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, bytes)
 
 	// Should be able to convert body back into a protobuf
 	p := &InitPluginRequest{}
 	err = proto.Unmarshal(bytes, p)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "0.0.0", p.Version)
 }
 
 func TestGrpcPluginInteraction(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 	_ = log.SetLogLevel("INFO")
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
@@ -383,15 +380,15 @@ func TestGrpcPluginInteraction(t *testing.T) {
 			}
 		}`
 
-	err = i.
+	err := i.
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Start the gRPC mock server
 	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]interface{}))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
 	// Now we can make a normal gRPC request
@@ -421,7 +418,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 
 	mismatches := m.MockServerMismatchedRequests(port)
 	if len(mismatches) != 0 {
-		assert.Len(t, mismatches, 0)
+		assert.Empty(t, mismatches)
 		t.Log(mismatches)
 	}
 
@@ -430,8 +427,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 }
 
 func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 	_ = log.SetLogLevel("INFO")
 
 	m := NewMessageServer("test-message-consumer", "test-message-provider")
@@ -459,15 +455,15 @@ func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 			}
 		}`
 
-	err = i.
+	err := i.
 		Given("plugin state").
 		// For gRPC interactions we prpvide the config once for both the request and response parts
 		WithPluginInteractionContents(INTERACTION_PART_REQUEST, "application/protobuf", grpcInteraction)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Start the gRPC mock server
 	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]interface{}))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
 	// Now we can make a normal gRPC request
@@ -491,11 +487,11 @@ func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 	defer cancel()
 	r, err := c.InitPlugin(ctx, initPluginRequest)
 	assert.Nil(t, r)
-	assert.ErrorContains(t, err, "not found")
+	require.ErrorContains(t, err, "not found")
 
 	mismatches := m.MockServerMismatchedRequests(port)
 	if len(mismatches) != 0 {
-		assert.Len(t, mismatches, 0)
+		assert.Empty(t, mismatches)
 		t.Log(mismatches)
 	}
 
