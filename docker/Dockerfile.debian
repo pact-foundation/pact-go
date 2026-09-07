@@ -1,0 +1,11 @@
+ARG GO_VERSION=1.27
+FROM golang:${GO_VERSION}
+
+RUN apt-get update && apt-get install -y openjdk-21-jre file protobuf-compiler curl
+RUN curl https://mise.run | sh && ln -s /root/.local/bin/mise /usr/local/bin/mise
+
+COPY . /go/src/github.com/pact-foundation/pact-go
+
+WORKDIR /go/src/github.com/pact-foundation/pact-go
+
+CMD ["mise", "run", "test"]
