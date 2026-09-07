@@ -1,5 +1,4 @@
 //go:build provider
-// +build provider
 
 package native
 

@@ -15,14 +15,20 @@ linters:
     - forcetypeassert
     - godot
     - gosec
+    - intrange
+    - mirror
     - misspell
+    - modernize
     - musttag
     - nilerr
     - nilnesserr
     - noctx
     - noinlineerr
+    - perfsprint
     - testifylint
     - thelper
+    - unconvert
+    - usestdlibvars
     - usetesting
     - whitespace
   settings:

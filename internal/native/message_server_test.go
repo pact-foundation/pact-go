@@ -28,7 +28,7 @@ func TestHandleBasedMessageTestsWithString(t *testing.T) {
 
 	m := s.NewMessage().
 		Given("some state").
-		GivenWithParameter("param", map[string]interface{}{
+		GivenWithParameter("param", map[string]any{
 			"foo": "bar",
 		}).
 		ExpectsToReceive("some message").
@@ -54,7 +54,7 @@ func TestHandleBasedMessageTestsWithJSON(t *testing.T) {
 
 	m := s.NewMessage().
 		Given("some state").
-		GivenWithParameter("param", map[string]interface{}{
+		GivenWithParameter("param", map[string]any{
 			"foo": "bar",
 		}).
 		ExpectsToReceive("some message").
@@ -100,7 +100,7 @@ func TestHandleBasedMessageTestsWithBinary(t *testing.T) {
 
 	m := s.NewMessage().
 		Given("some binary state").
-		GivenWithParameter("param", map[string]interface{}{
+		GivenWithParameter("param", map[string]any{
 			"foo": "bar",
 		}).
 		ExpectsToReceive("some binary message").
@@ -130,7 +130,7 @@ func TestGetAsyncMessageContentsAsBytes(t *testing.T) {
 
 	m := s.NewMessage().
 		Given("some state").
-		GivenWithParameter("param", map[string]interface{}{
+		GivenWithParameter("param", map[string]any{
 			"foo": "bar",
 		}).
 		ExpectsToReceive("some message").
@@ -159,7 +159,7 @@ func TestGetSyncMessageContentsAsBytes(t *testing.T) {
 
 	m := s.NewSyncMessageInteraction("").
 		Given("some state").
-		GivenWithParameter("param", map[string]interface{}{
+		GivenWithParameter("param", map[string]any{
 			"foo": "bar",
 		}).
 		ExpectsToReceive("some message").
@@ -191,7 +191,7 @@ func TestGetSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 
 	m := s.NewSyncMessageInteraction("").
 		Given("some state").
-		GivenWithParameter("param", map[string]interface{}{
+		GivenWithParameter("param", map[string]any{
 			"foo": "bar",
 		}).
 		ExpectsToReceive("some message").
@@ -217,7 +217,7 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/pact_plugin.proto"
 
 	grpcInteraction := `{
 			"pact:proto": "` + path + `",
@@ -274,7 +274,7 @@ func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/pact_plugin.proto"
 
 	grpcInteraction := `{
 			"pact:proto": "` + path + `",
@@ -320,7 +320,7 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 	i := m.NewAsyncMessageInteraction("grpc interaction")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/pact_plugin.proto"
 
 	protobufInteraction := `{
 			"pact:proto": "` + path + `",
@@ -360,7 +360,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/pact_plugin.proto"
 
 	grpcInteraction := `{
 			"pact:proto": "` + path + `",
@@ -387,7 +387,7 @@ func TestGrpcPluginInteraction(t *testing.T) {
 	require.NoError(t, err)
 
 	// Start the gRPC mock server
-	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]interface{}))
+	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]any))
 	require.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
@@ -439,7 +439,7 @@ func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 	i := m.NewSyncMessageInteraction("grpc interaction")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/pact_plugin.proto"
 
 	grpcInteraction := `{
 			"pact:proto": "` + path + `",
@@ -462,7 +462,7 @@ func TestGrpcPluginInteraction_ErrorResponse(t *testing.T) {
 	require.NoError(t, err)
 
 	// Start the gRPC mock server
-	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]interface{}))
+	port, err := m.StartTransport("grpc", "127.0.0.1", 0, make(map[string][]any))
 	require.NoError(t, err)
 	defer m.CleanupMockServer(port)
 

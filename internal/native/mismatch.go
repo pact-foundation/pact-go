@@ -6,7 +6,7 @@ type Request struct {
 	Path    string            `json:"path"`
 	Query   string            `json:"query,omitempty"`
 	Headers map[string]string `json:"headers,omitempty"`
-	Body    interface{}       `json:"body,omitempty"`
+	Body    any               `json:"body,omitempty"`
 }
 
 // [

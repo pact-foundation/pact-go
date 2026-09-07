@@ -1,5 +1,4 @@
 //go:build consumer
-// +build consumer
 
 // Package main contains a runnable Consumer Pact test example.
 package main
@@ -50,7 +49,7 @@ func TestConsumerV3(t *testing.T) {
 		Given("state 1").
 		GivenWithParameter(models.ProviderState{
 			Name: "User foo exists",
-			Parameters: map[string]interface{}{
+			Parameters: map[string]any{
 				"id": "foo",
 			},
 		}).
@@ -80,7 +79,7 @@ func TestConsumerV3(t *testing.T) {
 					"itemsMinMax":    ArrayMinMaxLike(27, 3, 5),
 					"itemsMin":       ArrayMinLike("thereshouldbe3ofthese", 3),
 					"equality":       Equality("a thing"),
-					"arrayContaining": ArrayContaining([]interface{}{
+					"arrayContaining": ArrayContaining([]any{
 						Like("string"),
 						Integer(1),
 						Map{
@@ -105,7 +104,7 @@ func TestMessagePact(t *testing.T) {
 	err = provider.AddMessage().
 		GivenWithParameter(models.ProviderState{
 			Name: "User with id 127 exists",
-			Parameters: map[string]interface{}{
+			Parameters: map[string]any{
 				"id": 127,
 			},
 		}).

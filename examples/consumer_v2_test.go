@@ -1,5 +1,4 @@
 //go:build consumer
-// +build consumer
 
 // Package main contains a runnable Consumer Pact test example.
 package main
@@ -175,7 +174,7 @@ var rawTest = func(query string) func(config consumer.MockServerConfig) error {
 			},
 		}
 		req := &http.Request{
-			Method: "POST",
+			Method: http.MethodPost,
 			URL: &url.URL{
 				Host:     fmt.Sprintf("%s:%d", "localhost", config.Port),
 				Scheme:   "https",
