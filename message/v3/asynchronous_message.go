@@ -155,21 +155,6 @@ func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
 	return provider, err
 }
 
-// validateConfig validates the configuration for the consumer test.
-func (p *AsynchronousPact) validateConfig() error {
-	log.Println("[DEBUG] pact message validate config")
-	dir, _ := os.Getwd()
-
-	if p.config.PactDir == "" {
-		p.config.PactDir = filepath.Join(dir, "pacts")
-	}
-
-	p.messageserver = native.NewMessageServer(p.config.Consumer, p.config.Provider)
-	p.messageserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
-
-	return nil
-}
-
 // AddMessage creates a new asynchronous consumer expectation
 //
 // Deprecated: use AddAsynchronousMessage() instead.
@@ -189,6 +174,33 @@ func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder 
 	}
 
 	return m
+}
+
+// VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
+// accepting an instance of `*testing.T`.
+func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
+	t.Helper()
+	err := p.verifyMessageConsumerRaw(message, handler)
+	if err != nil {
+		t.Errorf("VerifyMessageConsumer failed: %v", err)
+	}
+
+	return err
+}
+
+// validateConfig validates the configuration for the consumer test.
+func (p *AsynchronousPact) validateConfig() error {
+	log.Println("[DEBUG] pact message validate config")
+	dir, _ := os.Getwd()
+
+	if p.config.PactDir == "" {
+		p.config.PactDir = filepath.Join(dir, "pacts")
+	}
+
+	p.messageserver = native.NewMessageServer(p.config.Consumer, p.config.Provider)
+	p.messageserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
+
+	return nil
 }
 
 // VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable
@@ -244,16 +256,4 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 	}
 
 	return p.messageserver.WritePactFile(p.config.PactDir, false)
-}
-
-// VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
-// accepting an instance of `*testing.T`.
-func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
-	t.Helper()
-	err := p.verifyMessageConsumerRaw(message, handler)
-	if err != nil {
-		t.Errorf("VerifyMessageConsumer failed: %v", err)
-	}
-
-	return err
 }
