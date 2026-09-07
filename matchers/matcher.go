@@ -2,6 +2,7 @@ package matchers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -26,11 +27,11 @@ const (
 var timeExample = time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
 
 type eachLike struct {
-	Value interface{} `json:"value"`
-	Min   int         `json:"min"`
+	Value any `json:"value"`
+	Min   int `json:"min"`
 }
 
-func (m eachLike) GetValue() interface{} {
+func (m eachLike) GetValue() any {
 	return m.Value
 }
 
@@ -49,10 +50,10 @@ func (m eachLike) MarshalJSON() ([]byte, error) {
 type like struct {
 	Specification models.SpecificationVersion `json:"specification"`
 	Type          string                      `json:"pact:matcher:type"`
-	Value         interface{}                 `json:"value"`
+	Value         any                         `json:"value"`
 }
 
-func (m like) GetValue() interface{} {
+func (m like) GetValue() any {
 	return m.Value
 }
 
@@ -65,7 +66,7 @@ type term struct {
 	Regex string `json:"regex"` // TODO: should this be a golang regex?!
 }
 
-func (m term) GetValue() interface{} {
+func (m term) GetValue() any {
 	return m.Value
 }
 
@@ -83,13 +84,13 @@ func (m term) MarshalJSON() ([]byte, error) {
 
 // EachLike specifies that a given element in a JSON body can be repeated
 // "minRequired" times. Number needs to be 1 or greater.
-func EachLike(content interface{}, minRequired int) Matcher {
+func EachLike(content any, minRequired int) Matcher {
 	if minRequired < 1 {
 		log.Println("[WARN] min value to an array matcher can't be less than one")
 		minRequired = 1
 	}
-	examples := make([]interface{}, minRequired)
-	for i := 0; i < minRequired; i++ {
+	examples := make([]any, minRequired)
+	for i := range minRequired {
 		examples[i] = content
 	}
 	return eachLike{
@@ -102,7 +103,7 @@ var ArrayMinLike = EachLike
 
 // Like specifies that the given content type should be matched based
 // on type (int, string etc.) instead of a verbatim match.
-func Like(content interface{}) Matcher {
+func Like(content any) Matcher {
 	return like{
 		Specification: models.V2,
 		Type:          "type",
@@ -179,7 +180,7 @@ type Matcher interface {
 
 	// GetValue returns the raw generated value for the matcher
 	// without any of the matching detail context
-	GetValue() interface{}
+	GetValue() any
 }
 
 // S is the string primitive wrapper (alias) for the Matcher type,
@@ -192,7 +193,7 @@ func (s S) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context.
-func (s S) GetValue() interface{} {
+func (s S) GetValue() any {
 	return s
 }
 
@@ -212,7 +213,7 @@ func (s String) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context.
-func (s String) GetValue() interface{} {
+func (s String) GetValue() any {
 	return s
 }
 
@@ -226,13 +227,13 @@ func (s String) MarshalJSON() ([]byte, error) {
 
 // StructMatcher matches a complex object structure, which may itself
 // contain nested Matchers.
-type StructMatcher map[string]interface{}
+type StructMatcher map[string]any
 
 func (m StructMatcher) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context.
-func (m StructMatcher) GetValue() interface{} {
+func (m StructMatcher) GetValue() any {
 	return nil
 }
 
@@ -271,7 +272,7 @@ type (
 type QueryMatcher map[string][]Matcher
 
 // Takes an object and converts it to a JSON representation.
-func objectToString(obj interface{}) string {
+func objectToString(obj any) string {
 	switch content := obj.(type) {
 	case string:
 		return content
@@ -295,7 +296,7 @@ func objectToString(obj interface{}) string {
 // Supported Tag Formats
 // Minimum Slice Size: `pact:"min=2"`
 // String RegEx:       `pact:"example=2000-01-01,regex=^\\d{4}-\\d{2}-\\d{2}$"`.
-func MatchV2(src interface{}) Matcher {
+func MatchV2(src any) Matcher {
 	return match(reflect.TypeOf(src), getDefaults())
 }
 
@@ -310,7 +311,7 @@ func match(srcType reflect.Type, params params) Matcher {
 	case reflect.Struct:
 		result := StructMatcher{}
 
-		for i := 0; i < srcType.NumField(); i++ {
+		for i := range srcType.NumField() {
 			field := srcType.Field(i)
 			result[strings.Split(field.Tag.Get("json"), ",")[0]] = match(field.Type, pluckParams(field.Type, field.Tag.Get("pact")))
 		}
@@ -419,11 +420,11 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 		fullRegex, _ := regexp.Compile(`regex=(.*)$`)
 		exampleRegex, _ := regexp.Compile(`^example=(.*)`)
 
-		if fullRegex.Match([]byte(pactTag)) {
+		if fullRegex.MatchString(pactTag) {
 			components := strings.Split(pactTag, ",regex=")
 
 			if len(components[1]) == 0 {
-				triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: regex must not be empty"))
+				triggerInvalidPactTagPanic(pactTag, errors.New("invalid format: regex must not be empty"))
 			}
 
 			_, err := fmt.Sscanf(components[0], "example=%s", &params.str.example)
@@ -431,11 +432,11 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 				triggerInvalidPactTagPanic(pactTag, err)
 			}
 			params.str.regEx = components[1]
-		} else if exampleRegex.Match([]byte(pactTag)) {
+		} else if exampleRegex.MatchString(pactTag) {
 			components := strings.Split(pactTag, "example=")
 
 			if len(components) != 2 || strings.TrimSpace(components[1]) == "" {
-				triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: example must not be empty"))
+				triggerInvalidPactTagPanic(pactTag, errors.New("invalid format: example must not be empty"))
 			}
 
 			params.str.example = components[1]

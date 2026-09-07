@@ -1,13 +1,13 @@
 package native
 
-import "fmt"
+import "errors"
 
 // Plugin Errors.
 var (
-	ErrPluginGenericPanic             = fmt.Errorf("a general panic was caught")
-	ErrPluginMockServerStarted        = fmt.Errorf("the mock server has already been started")
-	ErrPluginInteractionHandleInvalid = fmt.Errorf("the interaction handle is invalid")
-	ErrPluginInvalidContentType       = fmt.Errorf("the content type is not valid")
-	ErrPluginInvalidJson              = fmt.Errorf("the contents JSON is not valid JSON")
-	ErrPluginSpecificError            = fmt.Errorf("the plugin returned an error")
+	ErrPluginGenericPanic             = errors.New("a general panic was caught")
+	ErrPluginMockServerStarted        = errors.New("the mock server has already been started")
+	ErrPluginInteractionHandleInvalid = errors.New("the interaction handle is invalid")
+	ErrPluginInvalidContentType       = errors.New("the content type is not valid")
+	ErrPluginInvalidJson              = errors.New("the contents JSON is not valid JSON")
+	ErrPluginSpecificError            = errors.New("the plugin returned an error")
 )

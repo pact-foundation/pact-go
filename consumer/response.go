@@ -6,5 +6,5 @@ import "github.com/pact-foundation/pact-go/v2/matchers"
 type Response struct {
 	Status  int                 `json:"status"`
 	Headers matchers.MapMatcher `json:"headers,omitempty"`
-	Body    interface{}         `json:"body,omitempty"`
+	Body    any                 `json:"body,omitempty"`
 }

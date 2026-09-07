@@ -1,5 +1,4 @@
 //go:build provider
-// +build provider
 
 package plugin
 
@@ -20,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var pactDir = fmt.Sprintf("%s/../pacts", dir)
+var pactDir = dir + "/../pacts"
 
 func TestPluginProvider(t *testing.T) {
 	t.Skip()
@@ -38,8 +37,8 @@ func TestPluginProvider(t *testing.T) {
 		ProviderBaseURL: fmt.Sprintf("http://127.0.0.1:%d", httpPort),
 		// Provider:        "provider",
 		PactFiles: []string{
-			filepath.ToSlash(fmt.Sprintf("%s/MattConsumer-MattProvider.json", pactDir)),
-			filepath.ToSlash(fmt.Sprintf("%s/matttcpconsumer-matttcpprovider.json", pactDir)),
+			filepath.ToSlash(pactDir + "/MattConsumer-MattProvider.json"),
+			filepath.ToSlash(pactDir + "/matttcpconsumer-matttcpprovider.json"),
 		},
 		Transports: []provider.Transport{
 			{
@@ -60,7 +59,7 @@ func startHTTPProvider(port int) {
 
 	mux.HandleFunc("/matt", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/matt")
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		_, err := fmt.Fprintf(w, `MATTworldMATT`)
 		if err != nil {
 			log.Println("ERROR writing response body:", err)

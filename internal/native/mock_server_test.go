@@ -74,7 +74,7 @@ func TestMockServer_MismatchesSuccess(t *testing.T) {
 	}
 	defer func() { _ = res.Body.Close() }()
 
-	if res.StatusCode != 200 {
+	if res.StatusCode != http.StatusOK {
 		t.Fatalf("want '200', got '%d'", res.StatusCode)
 	}
 
@@ -209,7 +209,7 @@ func TestPluginInteraction(t *testing.T) {
 	i := m.NewInteraction("some plugin interaction")
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/pact_plugin.proto"
 
 	protobufInteraction := `{
 			"pact:proto": "` + path + `",

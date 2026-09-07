@@ -1,5 +1,4 @@
 //go:build consumer
-// +build consumer
 
 package plugin
 
@@ -26,7 +25,7 @@ func TestHTTPPlugin(t *testing.T) {
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "MattConsumer",
 		Provider: "MattProvider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		PactDir:  filepath.ToSlash(dir + "/../pacts"),
 	})
 	require.NoError(t, err)
 
@@ -62,7 +61,7 @@ func TestTCPPlugin(t *testing.T) {
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "matttcpconsumer",
 		Provider: "matttcpprovider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		PactDir:  filepath.ToSlash(dir + "/../pacts"),
 	})
 
 	// MATT is a protocol, where all message start and end with a MATT
@@ -91,7 +90,7 @@ func TestTCPPlugin(t *testing.T) {
 func callMattServiceHTTP(msc consumer.MockServerConfig, message string) (string, error) {
 	client := &http.Client{}
 	req := &http.Request{
-		Method: "POST",
+		Method: http.MethodPost,
 		URL: &url.URL{
 			Host:   fmt.Sprintf("%s:%d", msc.Host, msc.Port),
 			Scheme: "http",

@@ -1,5 +1,4 @@
 //go:build provider
-// +build provider
 
 // Package main contains a runnable Provider Pact test example.
 package main
@@ -24,7 +23,7 @@ import (
 
 var (
 	dir, _  = os.Getwd()
-	pactDir = fmt.Sprintf("%s/pacts", dir)
+	pactDir = dir + "/pacts"
 )
 
 var (
@@ -110,8 +109,8 @@ func TestV3HTTPProvider(t *testing.T) {
 			ProviderBaseURL: "http://127.0.0.1:8111",
 			Provider:        "V3Provider",
 			PactFiles: []string{
-				filepath.ToSlash(fmt.Sprintf("%s/PactGoV3Consumer-V3Provider.json", pactDir)),
-				filepath.ToSlash(fmt.Sprintf("%s/PactGoV2ConsumerMatch-V2ProviderMatch.json", pactDir)),
+				filepath.ToSlash(pactDir + "/PactGoV3Consumer-V3Provider.json"),
+				filepath.ToSlash(pactDir + "/PactGoV2ConsumerMatch-V2ProviderMatch.json"),
 			},
 			RequestFilter: f,
 			BeforeEach: func() error {
@@ -197,7 +196,7 @@ func TestV3MessageProvider(t *testing.T) {
 		assert.NoError(t, err)
 	} else {
 		err := verifier.VerifyProvider(t, provider.VerifyRequest{
-			PactFiles:       []string{filepath.ToSlash(fmt.Sprintf("%s/PactGoV3MessageConsumer-V3MessageProvider.json", pactDir))},
+			PactFiles:       []string{filepath.ToSlash(pactDir + "/PactGoV3MessageConsumer-V3MessageProvider.json")},
 			StateHandlers:   stateMappings,
 			Provider:        "V3MessageProvider",
 			MessageHandlers: functionMappings,
