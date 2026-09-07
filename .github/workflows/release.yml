@@ -1,7 +1,7 @@
 name: Release
 
 # Publishes a GitHub Release with GoReleaser whenever release-please pushes
-# a version tag (see release-please.yml and RELEASING.md). The
+# a version tag (see release-please.yml and docs/contributing/releasing.md). The
 # workflow_dispatch input exists only to re-run publishing against an
 # already-tagged release, e.g. after a failed run.
 on:
