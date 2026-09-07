@@ -489,25 +489,6 @@ func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string][]any) *Inte
 	return i.withHeaders(INTERACTION_PART_RESPONSE, valueOrMatcher)
 }
 
-func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[string][]any) *Interaction {
-	for k, v := range valueOrMatcher {
-		cName := C.CString(k)
-
-		for _, header := range v {
-			value := stringFromInterface(header)
-			cValue := C.CString(value)
-
-			C.pactffi_with_header_v2(i.handle, C.int(part), cName, CUlong(0), cValue)
-
-			free(cValue)
-		}
-
-		free(cName)
-	}
-
-	return i
-}
-
 func (i *Interaction) WithQuery(valueOrMatcher map[string][]any) *Interaction {
 	for k, values := range valueOrMatcher {
 		cName := C.CString(k)
@@ -535,6 +516,72 @@ func (i *Interaction) WithJSONResponseBody(body any) *Interaction {
 	return i.withJSONBody(body, INTERACTION_PART_RESPONSE)
 }
 
+func (i *Interaction) WithRequestBody(contentType string, body []byte) *Interaction {
+	return i.withBody(contentType, body, 0)
+}
+
+func (i *Interaction) WithResponseBody(contentType string, body []byte) *Interaction {
+	return i.withBody(contentType, body, 1)
+}
+
+func (i *Interaction) WithBinaryRequestBody(body []byte) *Interaction {
+	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_REQUEST)
+}
+
+func (i *Interaction) WithBinaryResponseBody(body []byte) *Interaction {
+	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_RESPONSE)
+}
+
+func (i *Interaction) WithRequestMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
+	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_REQUEST)
+}
+
+func (i *Interaction) WithResponseMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
+	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_RESPONSE)
+}
+
+// Set the expected HTTTP response status.
+func (i *Interaction) WithStatus(status int) *Interaction {
+	C.pactffi_response_status(i.handle, C.ushort(status))
+
+	return i
+}
+
+// WithReference records an external reference (e.g. a ticket or pull request)
+// against the interaction. References are stored under comments.references[group][name]
+// in the Pact file. This is a V4-only feature.
+func (i *Interaction) WithReference(group, name, value string) *Interaction {
+	cGroup := C.CString(group)
+	defer free(cGroup)
+	cName := C.CString(name)
+	defer free(cName)
+	cValue := C.CString(value)
+	defer free(cValue)
+
+	C.pactffi_add_interaction_reference(i.handle, cGroup, cName, cValue)
+
+	return i
+}
+
+func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[string][]any) *Interaction {
+	for k, v := range valueOrMatcher {
+		cName := C.CString(k)
+
+		for _, header := range v {
+			value := stringFromInterface(header)
+			cValue := C.CString(value)
+
+			C.pactffi_with_header_v2(i.handle, C.int(part), cName, CUlong(0), cValue)
+
+			free(cValue)
+		}
+
+		free(cName)
+	}
+
+	return i
+}
+
 func (i *Interaction) withJSONBody(body any, part interactionPart) *Interaction {
 	cHeader := C.CString("application/json")
 	defer free(cHeader)
@@ -546,14 +593,6 @@ func (i *Interaction) withJSONBody(body any, part interactionPart) *Interaction 
 	C.pactffi_with_body(i.handle, C.int(part), cHeader, cBody)
 
 	return i
-}
-
-func (i *Interaction) WithRequestBody(contentType string, body []byte) *Interaction {
-	return i.withBody(contentType, body, 0)
-}
-
-func (i *Interaction) WithResponseBody(contentType string, body []byte) *Interaction {
-	return i.withBody(contentType, body, 1)
 }
 
 func (i *Interaction) withBody(contentType string, body []byte, part interactionPart) *Interaction {
@@ -577,22 +616,6 @@ func (i *Interaction) withBinaryBody(contentType string, body []byte, part inter
 	return i
 }
 
-func (i *Interaction) WithBinaryRequestBody(body []byte) *Interaction {
-	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_REQUEST)
-}
-
-func (i *Interaction) WithBinaryResponseBody(body []byte) *Interaction {
-	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_RESPONSE)
-}
-
-func (i *Interaction) WithRequestMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
-	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_REQUEST)
-}
-
-func (i *Interaction) WithResponseMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
-	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_RESPONSE)
-}
-
 func (i *Interaction) withMultipartFile(contentType string, filename string, mimePartName string, part interactionPart) *Interaction {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
@@ -604,29 +627,6 @@ func (i *Interaction) withMultipartFile(contentType string, filename string, mim
 	defer free(cFilename)
 
 	C.pactffi_with_multipart_file(i.handle, C.int(part), cHeader, cFilename, cPartName)
-
-	return i
-}
-
-// Set the expected HTTTP response status.
-func (i *Interaction) WithStatus(status int) *Interaction {
-	C.pactffi_response_status(i.handle, C.ushort(status))
-
-	return i
-}
-
-// WithReference records an external reference (e.g. a ticket or pull request)
-// against the interaction. References are stored under comments.references[group][name]
-// in the Pact file. This is a V4-only feature.
-func (i *Interaction) WithReference(group, name, value string) *Interaction {
-	cGroup := C.CString(group)
-	defer free(cGroup)
-	cName := C.CString(name)
-	defer free(cName)
-	cValue := C.CString(value)
-	defer free(cValue)
-
-	C.pactffi_add_interaction_reference(i.handle, cGroup, cName, cValue)
 
 	return i
 }

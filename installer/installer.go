@@ -129,19 +129,6 @@ func (i *Installer) CheckInstallation() error {
 	return nil
 }
 
-func (i *Installer) getLibDir() string {
-	if i.libDir != "" {
-		return i.libDir
-	}
-
-	env := os.Getenv(downloadEnvVar)
-	if env != "" {
-		return env
-	}
-
-	return "/usr/local/lib"
-}
-
 // CheckPackageInstall discovers any existing packages, and checks installation of a given binary using semver-compatible checks.
 func (i *Installer) CheckPackageInstall() error {
 	for pkg, info := range packages {
@@ -191,6 +178,19 @@ func (i *Installer) CheckPackageInstall() error {
 	}
 
 	return nil
+}
+
+func (i *Installer) getLibDir() string {
+	if i.libDir != "" {
+		return i.libDir
+	}
+
+	env := os.Getenv(downloadEnvVar)
+	if env != "" {
+		return env
+	}
+
+	return "/usr/local/lib"
 }
 
 // Download all dependencies, and update the pact-go configuration file.
@@ -521,7 +521,7 @@ type configReader interface {
 	readConfig() pactConfig
 }
 type configWriter interface {
-	writeConfig(pactConfig) error
+	writeConfig(c pactConfig) error
 }
 
 type configReadWriter interface {

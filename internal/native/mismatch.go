@@ -38,6 +38,7 @@ type MismatchDetail struct {
 // MismatchedRequest contains details of any request mismatches during pact verification.
 type MismatchedRequest struct {
 	Request
+
 	Mismatches []MismatchDetail `json:"mismatches"`
 	Type       string           `json:"type"`
 }

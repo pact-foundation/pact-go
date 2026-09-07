@@ -4,11 +4,11 @@ import "errors"
 
 // User is a representation of a User. Dah.
 type User struct {
-	Name     string `json:"name" pact:"example=Jean-Marie de La Beaujardière😀😍"`
+	Name     string `json:"name"     pact:"example=Jean-Marie de La Beaujardière😀😍"`
 	Username string `json:"username" pact:"example=jmarie"`
 	Password string `json:"password" pact:"example=password123"`
-	Type     string `json:"type" pact:"example=admin,regex=^(admin|user|guest)$"`
-	ID       int    `json:"id" pact:"example=10"`
+	Type     string `json:"type"     pact:"example=admin,regex=^(admin|user|guest)$"`
+	ID       int    `json:"id"       pact:"example=10"`
 }
 
 var (
