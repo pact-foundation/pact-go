@@ -251,7 +251,7 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	p := &InitPluginRequest{}
 	err = proto.Unmarshal(bytes, p)
 	require.NoError(t, err)
-	assert.Equal(t, "0.0.0", p.Version)
+	assert.Equal(t, "0.0.0", p.GetVersion())
 
 	// Should be able to convert response into a protobuf
 	response, err := i.GetMessageResponseContents()
@@ -260,7 +260,7 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	r := &InitPluginResponse{}
 	err = proto.Unmarshal(response[0], r)
 	require.NoError(t, err)
-	assert.Equal(t, "test", r.Catalogue[0].Key)
+	assert.Equal(t, "test", r.GetCatalogue()[0].GetKey())
 }
 
 func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
@@ -300,7 +300,7 @@ func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 	p := &InitPluginRequest{}
 	err = proto.Unmarshal(bytes, p)
 	require.NoError(t, err)
-	assert.Equal(t, "0.0.0", p.Version)
+	assert.Equal(t, "0.0.0", p.GetVersion())
 
 	// Should be able to convert response into a protobuf
 	response_bytes, err := i.GetMessageResponseContents()
@@ -344,7 +344,7 @@ func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {
 	p := &InitPluginRequest{}
 	err = proto.Unmarshal(bytes, p)
 	require.NoError(t, err)
-	assert.Equal(t, "0.0.0", p.Version)
+	assert.Equal(t, "0.0.0", p.GetVersion())
 }
 
 func TestGrpcPluginInteraction(t *testing.T) {

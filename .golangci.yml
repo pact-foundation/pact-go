@@ -27,6 +27,7 @@ linters:
     - noctx
     - noinlineerr
     - perfsprint
+    - protogetter
     - testifylint
     - thelper
     - unconvert
