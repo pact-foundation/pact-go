@@ -9,12 +9,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
-
-	"path/filepath"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -59,7 +58,6 @@ func TestAvroHTTP(t *testing.T) {
 			return err
 		})
 	assert.NoError(t, err)
-
 }
 
 func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
@@ -77,13 +75,11 @@ func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 	req.Header.Set("Content-Type", "avro/binary;record=User")
 
 	res, err := client.Do(req)
-
 	if err != nil {
 		return nil, err
 	}
 
 	bytes, err := io.ReadAll(res.Body)
-
 	if err != nil {
 		return nil, err
 	}

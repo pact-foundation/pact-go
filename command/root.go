@@ -11,10 +11,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var verbose bool
-var logLevel string
+var (
+	verbose  bool
+	logLevel string
+)
 
-// RootCmd represents the base command when called without any subcommands
+// RootCmd represents the base command when called without any subcommands.
 var RootCmd = &cobra.Command{
 	Use:   "pact-go",
 	Short: "Pact Go makes it easier to work with Pact with Golang projects",

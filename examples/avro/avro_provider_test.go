@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	"path/filepath"
 	"testing"
 
@@ -36,7 +35,6 @@ func TestAvroHTTPProvider(t *testing.T) {
 	})
 
 	assert.NoError(t, err)
-
 }
 
 func startHTTPProvider(port int) {

@@ -46,7 +46,6 @@ func TestConsumerV4(t *testing.T) {
 					"lastName": Like("billy"),
 					"datetime": DateTimeGenerated("2020-01-01T08:00:45", "yyyy-MM-dd'T'HH:mm:ss"),
 				})
-
 		}).
 		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
 			b.

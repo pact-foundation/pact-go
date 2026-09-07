@@ -70,7 +70,6 @@ func TestChainHandlers(t *testing.T) {
 }
 
 func TestHTTPReverseProxy(t *testing.T) {
-
 	// Setup target to proxy
 	port, err := HTTPReverseProxy(Options{
 		Middleware: []Middleware{
@@ -79,7 +78,6 @@ func TestHTTPReverseProxy(t *testing.T) {
 		TargetScheme:  "http",
 		TargetAddress: "127.0.0.1:1234",
 	})
-
 	if err != nil {
 		t.Errorf("unexpected error %v", err)
 	}

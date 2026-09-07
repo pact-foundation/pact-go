@@ -11,12 +11,12 @@ import (
 )
 
 // V4HTTPMockProvider is the entrypoint for V4 http consumer tests
-// This object is not thread safe
+// This object is not thread safe.
 type V4HTTPMockProvider struct {
 	*httpMockProvider
 }
 
-// NewV4Pact configures a new V4 HTTP Mock Provider for consumer tests
+// NewV4Pact configures a new V4 HTTP Mock Provider for consumer tests.
 func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 	provider := &V4HTTPMockProvider{
 		httpMockProvider: &httpMockProvider{
@@ -25,7 +25,6 @@ func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 		},
 	}
 	err := provider.configure()
-
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +32,7 @@ func NewV4Pact(config MockHTTPProviderConfig) (*V4HTTPMockProvider, error) {
 	return provider, err
 }
 
-// AddInteraction to the pact
+// AddInteraction to the pact.
 func (p *V4HTTPMockProvider) AddInteraction() *V4UnconfiguredInteraction {
 	log.Println("[DEBUG] pact add V4 interaction")
 	interaction := p.mockserver.NewInteraction("")
@@ -101,7 +100,7 @@ func (i *V4UnconfiguredInteraction) AddExternalReference(group, name, value stri
 	return i
 }
 
-// WithRequest provides a builder for the expected request
+// WithRequest provides a builder for the expected request.
 func (i *V4UnconfiguredInteraction) WithCompleteRequest(request Request) *V4InteractionWithCompleteRequest {
 	i.interaction.WithCompleteRequest(request)
 
@@ -116,7 +115,7 @@ type V4InteractionWithCompleteRequest struct {
 	provider    *V4HTTPMockProvider
 }
 
-// WithRequest provides a builder for the expected request
+// WithRequest provides a builder for the expected request.
 func (i *V4InteractionWithCompleteRequest) WithCompleteResponse(response Response) *V4InteractionWithResponse {
 	i.interaction.WithCompleteResponse(response)
 
@@ -126,12 +125,12 @@ func (i *V4InteractionWithCompleteRequest) WithCompleteResponse(response Respons
 	}
 }
 
-// WithRequest provides a builder for the expected request
+// WithRequest provides a builder for the expected request.
 func (i *V4UnconfiguredInteraction) WithRequest(method Method, path string, builders ...V4RequestBuilderFunc) *V4InteractionWithRequest {
 	return i.WithRequestPathMatcher(method, matchers.String(path), builders...)
 }
 
-// WithRequestPathMatcher allows a matcher in the expected request path
+// WithRequestPathMatcher allows a matcher in the expected request path.
 func (i *V4UnconfiguredInteraction) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...V4RequestBuilderFunc) *V4InteractionWithRequest {
 	i.interaction.interaction.WithRequest(string(method), path)
 
@@ -148,28 +147,28 @@ func (i *V4UnconfiguredInteraction) WithRequestPathMatcher(method Method, path m
 	}
 }
 
-// Query specifies any query string on the expect request
+// Query specifies any query string on the expect request.
 func (i *V4RequestBuilder) Query(key string, values ...matchers.Matcher) *V4RequestBuilder {
 	i.interaction.interaction.WithQuery(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-// Header adds a header to the expected request
+// Header adds a header to the expected request.
 func (i *V4RequestBuilder) Header(key string, values ...matchers.Matcher) *V4RequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-// Headers sets the headers on the expected request
+// Headers sets the headers on the expected request.
 func (i *V4RequestBuilder) Headers(headers matchers.HeadersMatcher) *V4RequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
-// JSONBody adds a JSON body to the expected request
+// JSONBody adds a JSON body to the expected request.
 func (i *V4RequestBuilder) JSONBody(body interface{}) *V4RequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -192,21 +191,21 @@ func (i *V4RequestBuilder) JSONBody(body interface{}) *V4RequestBuilder {
 	return i
 }
 
-// BinaryBody adds a binary body to the expected request
+// BinaryBody adds a binary body to the expected request.
 func (i *V4RequestBuilder) BinaryBody(body []byte) *V4RequestBuilder {
 	i.interaction.interaction.WithBinaryRequestBody(body)
 
 	return i
 }
 
-// MultipartBody adds a multipart  body to the expected request
+// MultipartBody adds a multipart  body to the expected request.
 func (i *V4RequestBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4RequestBuilder {
 	i.interaction.interaction.WithRequestMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
-// Body adds general body to the expected request
+// Body adds general body to the expected request.
 func (i *V4RequestBuilder) Body(contentType string, body []byte) *V4RequestBuilder {
 	// Check if someone tried to add an object as a string representation
 	// as per original allowed implementation, e.g.
@@ -222,19 +221,18 @@ func (i *V4RequestBuilder) Body(contentType string, body []byte) *V4RequestBuild
 	return i
 }
 
-// BodyMatch uses struct tags to automatically determine matchers from the given struct
+// BodyMatch uses struct tags to automatically determine matchers from the given struct.
 func (i *V4RequestBuilder) BodyMatch(body interface{}) *V4RequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
 }
 
-// WillRespondWith sets the expected status and provides a response builder
+// WillRespondWith sets the expected status and provides a response builder.
 func (i *V4InteractionWithRequest) WillRespondWith(status int, builders ...V4ResponseBuilderFunc) *V4InteractionWithResponse {
 	i.interaction.interaction.WithStatus(status)
 
 	for _, builder := range builders {
-
 		builder(&V4ResponseBuilder{
 			interaction: i.interaction,
 			provider:    i.provider,
@@ -259,21 +257,21 @@ type V4InteractionWithResponse struct {
 	provider    *V4HTTPMockProvider
 }
 
-// Header adds a header to the expected response
+// Header adds a header to the expected response.
 func (i *V4ResponseBuilder) Header(key string, values ...matchers.Matcher) *V4ResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-// Headers sets the headers on the expected response
+// Headers sets the headers on the expected response.
 func (i *V4ResponseBuilder) Headers(headers matchers.HeadersMatcher) *V4ResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
 
 	return i
 }
 
-// JSONBody adds a JSON body to the expected response
+// JSONBody adds a JSON body to the expected response.
 func (i *V4ResponseBuilder) JSONBody(body interface{}) *V4ResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -295,28 +293,28 @@ func (i *V4ResponseBuilder) JSONBody(body interface{}) *V4ResponseBuilder {
 	return i
 }
 
-// BinaryBody adds a binary body to the expected response
+// BinaryBody adds a binary body to the expected response.
 func (i *V4ResponseBuilder) BinaryBody(body []byte) *V4ResponseBuilder {
 	i.interaction.interaction.WithBinaryResponseBody(body)
 
 	return i
 }
 
-// MultipartBody adds a multipart  body to the expected response
+// MultipartBody adds a multipart  body to the expected response.
 func (i *V4ResponseBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4ResponseBuilder {
 	i.interaction.interaction.WithResponseMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
-// Body adds general body to the expected request
+// Body adds general body to the expected request.
 func (i *V4ResponseBuilder) Body(contentType string, body []byte) *V4ResponseBuilder {
 	i.interaction.interaction.WithResponseBody(contentType, body)
 
 	return i
 }
 
-// BodyMatch uses struct tags to automatically determine matchers from the given struct
+// BodyMatch uses struct tags to automatically determine matchers from the given struct.
 func (i *V4ResponseBuilder) BodyMatch(body interface{}) *V4ResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 
@@ -343,7 +341,7 @@ type V4InteractionWithPlugin struct {
 }
 
 // UsingPlugin specifies the current interaction relies on one or more plugins for operation
-// If the plugin is not correctly installed, this method will terminate the test immediately with a non-zero status
+// If the plugin is not correctly installed, this method will terminate the test immediately with a non-zero status.
 func (i *V4UnconfiguredInteraction) UsingPlugin(config PluginConfig) *V4InteractionWithPlugin {
 	res := i.provider.mockserver.UsingPlugin(config.Plugin, config.Version)
 	if res != nil {
@@ -357,7 +355,7 @@ func (i *V4UnconfiguredInteraction) UsingPlugin(config PluginConfig) *V4Interact
 }
 
 // UsingPlugin specifies the current interaction relies on one or more plugins for operation
-// If the plugin is not correctly installed, this method will terminate the test immediately with a non-zero status
+// If the plugin is not correctly installed, this method will terminate the test immediately with a non-zero status.
 func (i *V4InteractionWithPlugin) UsingPlugin(config PluginConfig) *V4InteractionWithPlugin {
 	res := i.provider.mockserver.UsingPlugin(config.Plugin, config.Version)
 	if res != nil {
@@ -378,7 +376,7 @@ type V4InteractionWithPluginRequestBuilder struct {
 	interaction *Interaction
 }
 
-// WithRequest provides a builder for the expected request
+// WithRequest provides a builder for the expected request.
 func (i *V4InteractionWithPlugin) WithRequest(method Method, path string, builders ...PluginRequestBuilderFunc) *V4InteractionWithPluginRequest {
 	i.interaction.interaction.WithRequest(string(method), matchers.String(path))
 
@@ -394,7 +392,7 @@ func (i *V4InteractionWithPlugin) WithRequest(method Method, path string, builde
 	}
 }
 
-// WithRequestPathMatcher allows a matcher in the expected request path
+// WithRequestPathMatcher allows a matcher in the expected request path.
 func (i *V4InteractionWithPlugin) WithRequestPathMatcher(method Method, path matchers.Matcher, builders ...PluginRequestBuilderFunc) *V4InteractionWithPluginRequest {
 	i.interaction.interaction.WithRequest(string(method), path)
 
@@ -410,7 +408,7 @@ func (i *V4InteractionWithPlugin) WithRequestPathMatcher(method Method, path mat
 	}
 }
 
-// WillResponseWithContent provides a builder for the expected response
+// WillResponseWithContent provides a builder for the expected response.
 func (i *V4InteractionWithPluginRequest) WillRespondWith(status int, builders ...PluginResponseBuilderFunc) *V4InteractionWithPluginResponse {
 	i.interaction.interaction.WithStatus(status)
 
@@ -444,21 +442,21 @@ func (m *V4InteractionWithPluginResponse) ExecuteTest(t *testing.T, integrationT
 	return m.provider.ExecuteTest(t, integrationTest)
 }
 
-// Query specifies any query string on the expect request
+// Query specifies any query string on the expect request.
 func (i *V4InteractionWithPluginRequestBuilder) Query(key string, values ...matchers.Matcher) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithQuery(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-// Header adds a header to the expected request
+// Header adds a header to the expected request.
 func (i *V4InteractionWithPluginRequestBuilder) Header(key string, values ...matchers.Matcher) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-// Headers sets the headers on the expected request
+// Headers sets the headers on the expected request.
 func (i *V4InteractionWithPluginRequestBuilder) Headers(headers matchers.HeadersMatcher) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithRequestHeaders(headersMatcherToNativeHeaders(headers))
 
@@ -476,7 +474,7 @@ func (i *V4InteractionWithPluginRequestBuilder) PluginContents(contentType strin
 	return i
 }
 
-// JSONBody adds a JSON body to the expected request
+// JSONBody adds a JSON body to the expected request.
 func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body interface{}) *V4InteractionWithPluginRequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -499,21 +497,21 @@ func (i *V4InteractionWithPluginRequestBuilder) JSONBody(body interface{}) *V4In
 	return i
 }
 
-// BinaryBody adds a binary body to the expected request
+// BinaryBody adds a binary body to the expected request.
 func (i *V4InteractionWithPluginRequestBuilder) BinaryBody(body []byte) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithBinaryRequestBody(body)
 
 	return i
 }
 
-// MultipartBody adds a multipart  body to the expected request
+// MultipartBody adds a multipart  body to the expected request.
 func (i *V4InteractionWithPluginRequestBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithRequestMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
-// Body adds general body to the expected request
+// Body adds general body to the expected request.
 func (i *V4InteractionWithPluginRequestBuilder) Body(contentType string, body []byte) *V4InteractionWithPluginRequestBuilder {
 	// Check if someone tried to add an object as a string representation
 	// as per original allowed implementation, e.g.
@@ -529,21 +527,21 @@ func (i *V4InteractionWithPluginRequestBuilder) Body(contentType string, body []
 	return i
 }
 
-// BodyMatch uses struct tags to automatically determine matchers from the given struct
+// BodyMatch uses struct tags to automatically determine matchers from the given struct.
 func (i *V4InteractionWithPluginRequestBuilder) BodyMatch(body interface{}) *V4InteractionWithPluginRequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
 }
 
-// Header adds a header to the expected response
+// Header adds a header to the expected response.
 func (i *V4InteractionWithPluginResponseBuilder) Header(key string, values ...matchers.Matcher) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(keyValuesToMapStringArrayInterface(key, values...))
 
 	return i
 }
 
-// Headers sets the headers on the expected response
+// Headers sets the headers on the expected response.
 func (i *V4InteractionWithPluginResponseBuilder) Headers(headers matchers.HeadersMatcher) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseHeaders(headersMatcherToNativeHeaders(headers))
 
@@ -561,7 +559,7 @@ func (i *V4InteractionWithPluginResponseBuilder) PluginContents(contentType stri
 	return i
 }
 
-// JSONBody adds a JSON body to the expected response
+// JSONBody adds a JSON body to the expected response.
 func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body interface{}) *V4InteractionWithPluginResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
@@ -583,28 +581,28 @@ func (i *V4InteractionWithPluginResponseBuilder) JSONBody(body interface{}) *V4I
 	return i
 }
 
-// BinaryBody adds a binary body to the expected response
+// BinaryBody adds a binary body to the expected response.
 func (i *V4InteractionWithPluginResponseBuilder) BinaryBody(body []byte) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithBinaryResponseBody(body)
 
 	return i
 }
 
-// MultipartBody adds a multipart  body to the expected response
+// MultipartBody adds a multipart  body to the expected response.
 func (i *V4InteractionWithPluginResponseBuilder) MultipartBody(contentType string, filename string, mimePartName string) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseMultipartFile(contentType, filename, mimePartName)
 
 	return i
 }
 
-// Body adds general body to the expected request
+// Body adds general body to the expected request.
 func (i *V4InteractionWithPluginResponseBuilder) Body(contentType string, body []byte) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithResponseBody(contentType, body)
 
 	return i
 }
 
-// BodyMatch uses struct tags to automatically determine matchers from the given struct
+// BodyMatch uses struct tags to automatically determine matchers from the given struct.
 func (i *V4InteractionWithPluginResponseBuilder) BodyMatch(body interface{}) *V4InteractionWithPluginResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 

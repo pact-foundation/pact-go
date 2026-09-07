@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Sync - no plugin
+// Sync - no plugin.
 func TestAsyncTypeSystem(t *testing.T) {
 	p, _ := NewAsynchronousPact(Config{
 		Consumer: "asyncconsumer",
@@ -37,7 +37,6 @@ func TestAsyncTypeSystem(t *testing.T) {
 		Verify(t)
 
 	assert.NoError(t, err)
-
 }
 
 func TestAsyncAddExternalReference(t *testing.T) {
@@ -60,7 +59,7 @@ func TestAsyncAddExternalReference(t *testing.T) {
 }
 
 // Sync - with plugin, but no transport
-// TODO: ExecuteTest has been disabled for now, because it's not very useful
+// TODO: ExecuteTest has been disabled for now, because it's not very useful.
 func TestAsyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {
 	csvInteraction := `{
 		"request.path": "/reports/report002.csv",
@@ -91,7 +90,6 @@ func TestAsyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {
 		WithContents(csvInteraction, "text/csv").
 		// StartTransport("notarealtransport", "127.0.0.1", nil).
 		ExecuteTest(t, func(m AsynchronousMessage) error {
-
 			fmt.Println("Executing the CSV test", string(m.Contents))
 			return nil
 		})

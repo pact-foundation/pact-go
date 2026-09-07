@@ -8,10 +8,10 @@ type Metadata map[string]interface{}
 type AsynchronousMessage MessageContents
 
 // AsynchronousConsumer receives a message and must be able to parse
-// the content
+// the content.
 type AsynchronousConsumer func(AsynchronousMessage) error
 
-// V3 Message (Asynchronous only)
+// V3 Message (Asynchronous only).
 type MessageContents struct {
 	// Message Body
 	Contents []byte
@@ -21,7 +21,7 @@ type MessageContents struct {
 	Body interface{} `json:"contents"`
 
 	// Message metadata. Currently not populated for synchronous messages
-	// Metadata Metadata `json:"metadata"`
+	// Metadata field (type Metadata): `json:"metadata"`
 }
 
 type Config struct {

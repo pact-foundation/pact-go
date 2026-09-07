@@ -8,8 +8,10 @@ import (
 	"github.com/hashicorp/logutils"
 )
 
-var logFilter *logutils.LevelFilter
-var defaultLogLevel = "INFO"
+var (
+	logFilter       *logutils.LevelFilter
+	defaultLogLevel = "INFO"
+)
 
 const (
 	logLevelTrace logutils.LogLevel = "TRACE"
@@ -43,7 +45,7 @@ func init() {
 
 // TODO: use the unified logging method to the FFI
 
-// SetLogLevel sets the default log level for the Pact framework
+// SetLogLevel sets the default log level for the Pact framework.
 func SetLogLevel(level logutils.LogLevel) error {
 	switch level {
 	case logLevelTrace, logLevelDebug, logLevelError, logLevelInfo, logLevelWarn:
@@ -54,7 +56,7 @@ func SetLogLevel(level logutils.LogLevel) error {
 	}
 }
 
-// LogLevel gets the current log level for the Pact framework
+// LogLevel gets the current log level for the Pact framework.
 func LogLevel() logutils.LogLevel {
 	if logFilter != nil {
 		return logFilter.MinLevel

@@ -25,7 +25,7 @@ import (
 
 const MESSAGE_PATH = "/__messages"
 
-// Verifier is used to verify the provider side of an HTTP API contract
+// Verifier is used to verify the provider side of an HTTP API contract.
 type Verifier struct {
 	// ClientTimeout specifies how long to wait for the provider to start
 	// Can be increased to reduce likelihood of intermittent failure
@@ -44,7 +44,6 @@ func NewVerifier() *Verifier {
 	return &Verifier{
 		handle: native.NewVerifier("pact-go", strings.TrimPrefix(command.Version, "v")),
 	}
-
 }
 
 func (v *Verifier) validateConfig() error {
@@ -69,9 +68,8 @@ func (v *Verifier) startDefaultHTTPServer(port int) {
 // VerifyProviderRaw reads the provided pact files and runs verification against
 // a running Provider API, providing raw response from the Verification process.
 //
-// Order of events: BeforeEach, stateHandlers, requestFilter(pre <execute provider> post), AfterEach
+// Order of events: BeforeEach, stateHandlers, requestFilter(pre <execute provider> post), AfterEach.
 func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter) error {
-
 	// proxy target
 	var u *url.URL
 
@@ -130,7 +128,6 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 	// that will implement the message producer. This function must return an object and optionally
 	// and error. The object will be marshalled to JSON for comparison.
 	port, err := proxy.HTTPReverseProxy(opts)
-
 	if err != nil {
 		return err
 	}
@@ -211,7 +208,7 @@ func (v *Verifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
 }
 
 // beforeEachMiddleware is invoked before any other, only on the __setup
-// request (to avoid duplication)
+// request (to avoid duplication).
 func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -222,7 +219,6 @@ func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 				if err == nil && state.Action == "setup" {
 					log.Println("[DEBUG] executing before hook")
 					err := BeforeEach()
-
 					if err != nil {
 						log.Println("[ERROR] error executing before hook:", err)
 						w.WriteHeader(http.StatusInternalServerError)
@@ -234,7 +230,7 @@ func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 	}
 }
 
-// {"action":"teardown","id":"foo","state":"User foo exists"}
+// {"action":"teardown","id":"foo","state":"User foo exists"}.
 type stateHandlerAction struct {
 	Action string `json:"action"`
 	State  string `json:"state"`
@@ -272,7 +268,7 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 //
 // statehandler accepts a state object from the verifier and executes
 // any state handlers associated with the provider.
-// It will not execute further middleware if it is the designted "state" request
+// It will not execute further middleware if it is the designted "state" request.
 func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -321,7 +317,6 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 				} else {
 					// Execute state handler
 					res, err := sf(state.Action == "setup", models.ProviderState{Name: state.State, Parameters: state.Params})
-
 					if err != nil {
 						log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
 						w.WriteHeader(http.StatusInternalServerError)
@@ -330,7 +325,6 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 
 					if state.Action == "teardown" && afterEach != nil {
 						err := afterEach()
-
 						if err != nil {
 							log.Printf("[ERROR] after each hook for test errored: %v", err)
 							w.WriteHeader(http.StatusInternalServerError)

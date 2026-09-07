@@ -32,9 +32,9 @@ func TestVerifyRequestValidate(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				if tt.panic {
-					assert.Panics(t, (func() {
+					assert.Panics(t, func() {
 						_ = tt.request.validate(handle)
-					}))
+					})
 				} else {
 					err := tt.request.validate(handle)
 					if tt.err {
@@ -45,7 +45,6 @@ func TestVerifyRequestValidate(t *testing.T) {
 				}
 			})
 		}
-
 	})
 
 	t.Run("broker integration", func(t *testing.T) {
@@ -131,17 +130,20 @@ func TestVerifyRequest(t *testing.T) {
 			expectedSize int
 			expectedUrls []string
 		}{
-			{name: "with env var and undefined request.PactURLs",
+			{
+				name:         "with env var and undefined request.PactURLs",
 				setup:        enablePactUrlFunc,
 				request:      &VerifyRequest{},
 				expectedUrls: []string{webhookURL},
 			},
-			{name: "with env var and configured PactURLS",
+			{
+				name:         "with env var and configured PactURLS",
 				setup:        enablePactUrlFunc,
 				request:      &VerifyRequest{PactURLs: []string{verificationUrl}},
 				expectedUrls: []string{verificationUrl, webhookURL},
 			},
-			{name: "without env var and configured PactURLS",
+			{
+				name:         "without env var and configured PactURLS",
 				setup:        func() func() { return func() {} },
 				request:      &VerifyRequest{PactURLs: []string{verificationUrl}},
 				expectedUrls: []string{verificationUrl},

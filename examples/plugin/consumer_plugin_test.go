@@ -15,8 +15,6 @@ import (
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
-
-	// "github.com/pact-foundation/pact-go/v2/matchers"
 	message "github.com/pact-foundation/pact-go/v2/message/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -103,13 +101,11 @@ func callMattServiceHTTP(msc consumer.MockServerConfig, message string) (string,
 	req.Header.Set("Content-Type", "application/matt")
 
 	res, err := client.Do(req)
-
 	if err != nil {
 		return "", err
 	}
 
 	bytes, err := io.ReadAll(res.Body)
-
 	if err != nil {
 		return "", err
 	}
@@ -126,7 +122,6 @@ func callMattServiceTCP(transport message.TransportConfig, message string) (stri
 	conn.Write([]byte(generateMattMessage(message)))
 
 	str, err := bufio.NewReader(conn).ReadString('\n')
-
 	if err != nil {
 		return "", err
 	}

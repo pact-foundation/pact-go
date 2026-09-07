@@ -32,13 +32,13 @@ type Message struct {
 	server      *MessageServer
 }
 
-// MessageServer is the public interface for managing the message based interface
+// MessageServer is the public interface for managing the message based interface.
 type MessageServer struct {
 	messagePact *MessagePact
 	messages    []*Message
 }
 
-// NewMessage initialises a new message for the current contract
+// NewMessage initialises a new message for the current contract.
 func NewMessageServer(consumer string, provider string) *MessageServer {
 	cConsumer := C.CString(consumer)
 	cProvider := C.CString(provider)
@@ -48,7 +48,7 @@ func NewMessageServer(consumer string, provider string) *MessageServer {
 	return &MessageServer{messagePact: &MessagePact{handle: C.pactffi_new_message_pact(cConsumer, cProvider)}}
 }
 
-// Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version
+// Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version.
 func (m *MessageServer) WithMetadata(namespace, k, v string) *MessageServer {
 	cNamespace := C.CString(namespace)
 	defer free(cNamespace)
@@ -62,14 +62,14 @@ func (m *MessageServer) WithMetadata(namespace, k, v string) *MessageServer {
 	return m
 }
 
-// NewMessage initialises a new message for the current contract
-// Deprecated: use NewAsyncMessageInteraction instead
+// NewMessage initialises a new message for the current contract.
+// Deprecated: use NewAsyncMessageInteraction instead.
 func (m *MessageServer) NewMessage() *Message {
 	// Alias
 	return m.NewAsyncMessageInteraction("")
 }
 
-// NewSyncMessageInteraction initialises a new synchronous message interaction for the current contract
+// NewSyncMessageInteraction initialises a new synchronous message interaction for the current contract.
 func (m *MessageServer) NewSyncMessageInteraction(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
@@ -86,7 +86,7 @@ func (m *MessageServer) NewSyncMessageInteraction(description string) *Message {
 	return i
 }
 
-// NewAsyncMessageInteraction initialises a new asynchronous message interaction for the current contract
+// NewAsyncMessageInteraction initialises a new asynchronous message interaction for the current contract.
 func (m *MessageServer) NewAsyncMessageInteraction(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
@@ -150,6 +150,7 @@ func (m *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 
 	return m
 }
+
 func (m *Message) WithRequestMetadata(valueOrMatcher map[string]string) *Message {
 	for k, v := range valueOrMatcher {
 		cName := C.CString(k)
@@ -163,6 +164,7 @@ func (m *Message) WithRequestMetadata(valueOrMatcher map[string]string) *Message
 
 	return m
 }
+
 func (m *Message) WithResponseMetadata(valueOrMatcher map[string]string) *Message {
 	for k, v := range valueOrMatcher {
 		cName := C.CString(k)
@@ -188,6 +190,7 @@ func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 
 	return m
 }
+
 func (m *Message) WithRequestBinaryContentType(contentType string, body []byte) *Message {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
@@ -235,14 +238,14 @@ func (m *Message) WithContents(part interactionPart, contentType string, body []
 	defer free(cBody)
 
 	res := C.pactffi_with_body(m.handle, C.int(part), cHeader, cBody)
-	log.Println("[DEBUG] response from pactffi_interaction_contents", (bool(res)))
+	log.Println("[DEBUG] response from pactffi_interaction_contents", bool(res))
 
 	return m
 }
 
 // TODO: migrate plugin code to shared struct/code?
 
-// NewInteraction initialises a new interaction for the current contract
+// NewInteraction initialises a new interaction for the current contract.
 func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) error {
 	cPluginName := C.CString(pluginName)
 	defer free(cPluginName)
@@ -271,7 +274,7 @@ func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) err
 	return nil
 }
 
-// NewInteraction initialises a new interaction for the current contract
+// NewInteraction initialises a new interaction for the current contract.
 func (m *Message) WithPluginInteractionContents(part interactionPart, contentType string, contents string) error {
 	cContentType := C.CString(contentType)
 	defer free(cContentType)
@@ -312,7 +315,7 @@ func (m *Message) WithPluginInteractionContents(part interactionPart, contentTyp
 // GetMessageContents retreives the binary contents of the request for a given message
 // any matchers are stripped away if given
 // if the contents is from a plugin, the byte[] representation of the parsed
-// plugin data is returned, again, with any matchers etc. removed
+// plugin data is returned, again, with any matchers etc. removed.
 func (m *Message) GetMessageRequestContents() ([]byte, error) {
 	log.Println("[DEBUG] GetMessageRequestContents")
 	if m.messageType == MESSAGE_TYPE_ASYNC {
@@ -361,7 +364,6 @@ func (m *Message) GetMessageRequestContents() ([]byte, error) {
 				return bytes, nil
 			}
 		}
-
 	} else {
 		iter := C.pactffi_pact_handle_get_sync_message_iter(m.pact.handle)
 		if iter == nil {
@@ -400,9 +402,8 @@ func (m *Message) GetMessageRequestContents() ([]byte, error) {
 // GetMessageResponseContents retreives the binary contents of the response for a given message
 // any matchers are stripped away if given
 // if the contents is from a plugin, the byte[] representation of the parsed
-// plugin data is returned, again, with any matchers etc. removed
+// plugin data is returned, again, with any matchers etc. removed.
 func (m *Message) GetMessageResponseContents() ([][]byte, error) {
-
 	responses := make([][]byte, len(m.server.messages))
 	if m.messageType == MESSAGE_TYPE_ASYNC {
 		return nil, errors.New("invalid request: asynchronous messages do not have response")
@@ -483,7 +484,7 @@ func (m *MessageServer) StartTransport(transport string, address string, port in
 	}
 }
 
-// NewInteraction initialises a new interaction for the current contract
+// NewInteraction initialises a new interaction for the current contract.
 func (m *MessageServer) CleanupPlugins() {
 	C.pactffi_cleanup_plugins(m.messagePact.handle)
 }
@@ -559,7 +560,7 @@ func (m *MessageServer) WritePactFile(dir string, overwrite bool) error {
 	case 2:
 		return ErrHandleNotFound
 	default:
-		return fmt.Errorf("an unknown error ocurred when writing to pact file")
+		return fmt.Errorf("an unknown error occurred when writing to pact file")
 	}
 }
 
@@ -587,7 +588,7 @@ func (m *MessageServer) WritePactFileForServer(port int, dir string, overwrite b
 	case 3:
 		return ErrHandleNotFound
 	default:
-		return fmt.Errorf("an unknown error ocurred when writing to pact file")
+		return fmt.Errorf("an unknown error occurred when writing to pact file")
 	}
 }
 

@@ -7,7 +7,6 @@ import (
 
 func Test_GetFreePort(t *testing.T) {
 	port, err := GetFreePort()
-
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -90,7 +89,7 @@ func Test_FindPortInRange(t *testing.T) {
 }
 
 // Need to differentiate from above cases because this one requires
-// us to use a port. Because of this the values must remain the same
+// us to use a port. Because of this the values must remain the same.
 func Test_FindPortInRangeWithUsedPorts(t *testing.T) {
 	cases := []struct {
 		description string

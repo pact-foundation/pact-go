@@ -22,7 +22,7 @@ type SynchronousPact struct {
 }
 
 // SynchronousMessage contains a req/res message
-// It is currently an empty struct to allow future expansion
+// It is currently an empty struct to allow future expansion.
 type SynchronousMessage struct {
 	// TODO: should we pass this in? Probably need to be able to reify the message
 	//       in these cases
@@ -33,11 +33,10 @@ type SynchronousMessage struct {
 	Response []MessageContents
 }
 
-// SynchronousMessageBuilder is a representation of a single, bidirectional message
-type SynchronousMessageBuilder struct {
-}
+// SynchronousMessageBuilder is a representation of a single, bidirectional message.
+type SynchronousMessageBuilder struct{}
 
-// Given specifies a provider state
+// Given specifies a provider state.
 func (m *UnconfiguredSynchronousMessageBuilder) Given(state string) *UnconfiguredSynchronousMessageBuilder {
 	m.messageHandle.Given(state)
 
@@ -47,7 +46,7 @@ func (m *UnconfiguredSynchronousMessageBuilder) Given(state string) *Unconfigure
 	}
 }
 
-// Given specifies a provider state
+// Given specifies a provider state.
 func (m *UnconfiguredSynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *UnconfiguredSynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
 
@@ -71,7 +70,7 @@ func (m *UnconfiguredSynchronousMessageBuilder) AddExternalReference(group, name
 	return m
 }
 
-// UsingPlugin enables a plugin for use in the current test case
+// UsingPlugin enables a plugin for use in the current test case.
 func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
 	err := m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
 	if err != nil {
@@ -85,7 +84,7 @@ func (m *UnconfiguredSynchronousMessageBuilder) UsingPlugin(config PluginConfig)
 	}
 }
 
-// UsingPlugin enables a plugin for use in the current test case
+// UsingPlugin enables a plugin for use in the current test case.
 func (m *SynchronousMessageWithPlugin) UsingPlugin(config PluginConfig) *SynchronousMessageWithPlugin {
 	err := m.pact.mockserver.UsingPlugin(config.Plugin, config.Version)
 	if err != nil {
@@ -96,7 +95,7 @@ func (m *SynchronousMessageWithPlugin) UsingPlugin(config PluginConfig) *Synchro
 	return m
 }
 
-// AddMessage creates a new asynchronous consumer expectation
+// AddMessage creates a new asynchronous consumer expectation.
 func (m *UnconfiguredSynchronousMessageBuilder) WithRequest(r RequestBuilderFunc) *SynchronousMessageWithRequest {
 	r(&SynchronousMessageWithRequestBuilder{
 		messageHandle: m.messageHandle,
@@ -122,15 +121,14 @@ type SynchronousMessageWithRequestBuilder struct {
 }
 
 // WithMetadata specifies message-implementation specific metadata
-// to go with the content
-// func (m *Message) WithMetadata(metadata MapMatcher) *Message {
+// to go with the content.
 func (m *SynchronousMessageWithRequestBuilder) WithMetadata(metadata map[string]string) *SynchronousMessageWithRequestBuilder {
 	m.messageHandle.WithRequestMetadata(metadata)
 
 	return m
 }
 
-// WithContent specifies the payload in bytes that the consumer expects to receive
+// WithContent specifies the payload in bytes that the consumer expects to receive.
 func (m *SynchronousMessageWithRequestBuilder) WithContent(contentType string, body []byte) *SynchronousMessageWithRequestBuilder {
 	m.messageHandle.WithContents(native.INTERACTION_PART_REQUEST, contentType, body)
 
@@ -138,14 +136,14 @@ func (m *SynchronousMessageWithRequestBuilder) WithContent(contentType string, b
 }
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
-// is expected to be consumed
+// is expected to be consumed.
 func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithRequestBuilder {
 	m.messageHandle.WithRequestJSONContents(content)
 
 	return m
 }
 
-// AddMessage creates a new asynchronous consumer expectation
+// AddMessage creates a new asynchronous consumer expectation.
 func (m *SynchronousMessageWithRequest) WithResponse(builder ResponseBuilderFunc) *SynchronousMessageWithResponse {
 	builder(&SynchronousMessageWithResponseBuilder{
 		messageHandle: m.messageHandle,
@@ -171,8 +169,7 @@ type SynchronousMessageWithResponseBuilder struct {
 }
 
 // WithMetadata specifies message-implementation specific metadata
-// to go with the content
-// func (m *Message) WithMetadata(metadata MapMatcher) *Message {
+// to go with the content.
 func (m *SynchronousMessageWithResponseBuilder) WithMetadata(metadata map[string]string) *SynchronousMessageWithResponseBuilder {
 	m.messageHandle.WithResponseMetadata(metadata)
 
@@ -180,7 +177,7 @@ func (m *SynchronousMessageWithResponseBuilder) WithMetadata(metadata map[string
 }
 
 // WithContent specifies the payload in bytes that the consumer expects to receive
-// May be called multiple times, with each call appeding a new response to the interaction
+// May be called multiple times, with each call appeding a new response to the interaction.
 func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, body []byte) *SynchronousMessageWithResponseBuilder {
 	m.messageHandle.WithContents(native.INTERACTION_PART_RESPONSE, contentType, body)
 
@@ -188,7 +185,7 @@ func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, 
 }
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
-// is expected to be consumed
+// is expected to be consumed.
 func (m *SynchronousMessageWithResponseBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithResponseBuilder {
 	m.messageHandle.WithResponseJSONContents(content)
 
@@ -216,7 +213,7 @@ type SynchronousMessageWithPluginContents struct {
 
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
-// and write the pact file if successful
+// and write the pact file if successful.
 func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m SynchronousMessage) error) error {
 	defer m.pact.mockserver.CleanupPlugins()
 	message, err := getSynchronousMessageWithContents(m.messageHandle)
@@ -225,7 +222,6 @@ func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integra
 	}
 
 	err = integrationTest(message)
-
 	if err != nil {
 		return err
 	}
@@ -235,7 +231,6 @@ func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integra
 
 func (s *SynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]interface{}) *SynchronousMessageWithTransport {
 	port, err := s.pact.mockserver.StartTransport(transport, address, 0, make(map[string][]interface{}))
-
 	if err != nil {
 		log.Fatalln("unable to start plugin transport:", err)
 	}
@@ -291,7 +286,6 @@ func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 		config: config,
 	}
 	err := provider.validateConfig()
-
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +295,7 @@ func NewSynchronousPact(config Config) (*SynchronousPact, error) {
 	return provider, err
 }
 
-// validateConfig validates the configuration for the consumer test
+// validateConfig validates the configuration for the consumer test.
 func (m *SynchronousPact) validateConfig() error {
 	log.Println("[DEBUG] pact synchronous message validate config")
 	dir, _ := os.Getwd()
@@ -330,7 +324,7 @@ func (m *SynchronousPact) AddSynchronousMessage(description string) *Unconfigure
 
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
-// and write the pact file if successful
+// and write the pact file if successful.
 func (m *SynchronousMessageWithResponse) ExecuteTest(t *testing.T, integrationTest func(md SynchronousMessage) error) error {
 	message, err := getSynchronousMessageWithContents(m.messageHandle)
 	if err != nil {
@@ -338,7 +332,6 @@ func (m *SynchronousMessageWithResponse) ExecuteTest(t *testing.T, integrationTe
 	}
 
 	err = integrationTest(message)
-
 	if err != nil {
 		return err
 	}

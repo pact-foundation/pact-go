@@ -10,9 +10,7 @@ import (
 )
 
 func TestInteraction(t *testing.T) {
-
 	t.Run("validateMatchers for V2 Specification", func(t *testing.T) {
-
 		testCases := []struct {
 			description string
 			test        interface{}

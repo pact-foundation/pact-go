@@ -17,12 +17,11 @@ import (
 // Middleware is a way to use composition to add functionality
 // by intercepting the req/response cycle of the Reverse Proxy.
 // Each handler must accept an http.Handler and also return an
-// http.Handler, allowing a simple way to chain functionality together
+// http.Handler, allowing a simple way to chain functionality together.
 type Middleware func(http.Handler) http.Handler
 
-// Options for the Reverse Proxy configuration
+// Options for the Reverse Proxy configuration.
 type Options struct {
-
 	// TargetScheme is one of 'http' or 'https'
 	TargetScheme string
 
@@ -47,7 +46,7 @@ type Options struct {
 	CustomTLSConfig *tls.Config
 }
 
-// loggingMiddleware logs requests to the proxy
+// loggingMiddleware logs requests to the proxy.
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[DEBUG] http reverse proxy received connection from %s on path %s\n", r.RemoteAddr, r.RequestURI)
@@ -57,7 +56,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 // chainHandlers takes a set of middleware and joins them together
 // into a single Middleware, making it much simpler to compose middleware
-// together
+// together.
 func chainHandlers(mw ...Middleware) Middleware {
 	return func(final http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +70,7 @@ func chainHandlers(mw ...Middleware) Middleware {
 }
 
 // HTTPReverseProxy provides a default setup for proxying
-// internal components within the framework
+// internal components within the framework.
 func HTTPReverseProxy(options Options) (int, error) {
 	log.Println("[DEBUG] starting new proxy with opts", options)
 	port := options.ProxyPort

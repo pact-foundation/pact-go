@@ -263,7 +263,6 @@ func TestGetPluginSyncMessageContentsAsBytes(t *testing.T) {
 	err = proto.Unmarshal(response[0], r)
 	assert.NoError(t, err)
 	assert.Equal(t, "test", r.Catalogue[0].Key)
-
 }
 
 func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {

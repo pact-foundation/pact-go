@@ -70,7 +70,7 @@ type UnconfiguredAsynchronousMessageBuilder struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// UsingPlugin enables a plugin for use in the current test case
+// UsingPlugin enables a plugin for use in the current test case.
 func (m *UnconfiguredAsynchronousMessageBuilder) UsingPlugin(config PluginConfig) *AsynchronousMessageWithPlugin {
 	err := m.rootBuilder.pact.messageserver.UsingPlugin(config.Plugin, config.Version)
 	if err != nil {
@@ -112,7 +112,6 @@ func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integr
 
 	fmt.Println()
 	err = integrationTest(message)
-
 	if err != nil {
 		return err
 	}
@@ -122,7 +121,6 @@ func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integr
 
 func (s *AsynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]interface{}) *AsynchronousMessageWithTransport {
 	port, err := s.rootBuilder.pact.messageserver.StartTransport(transport, address, 0, make(map[string][]interface{}))
-
 	if err != nil {
 		log.Fatalln("unable to start plugin transport:", err)
 	}
@@ -150,7 +148,6 @@ func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integration
 	}
 
 	err = integrationTest(s.transport, message)
-
 	if err != nil {
 		return err
 	}
@@ -165,8 +162,7 @@ func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integration
 }
 
 // WithMetadata specifies message-implementation specific metadata
-// to go with the content
-// func (m *Message) WithMetadata(metadata MapMatcher) *Message {
+// to go with the content.
 func (m *UnconfiguredAsynchronousMessageBuilder) WithMetadata(metadata map[string]string) *UnconfiguredAsynchronousMessageBuilder {
 	m.rootBuilder.messageHandle.WithMetadata(metadata)
 
@@ -177,7 +173,7 @@ type AsynchronousMessageWithContents struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// WithContent specifies the payload in bytes that the consumer expects to receive
+// WithContent specifies the payload in bytes that the consumer expects to receive.
 func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string, body []byte) *AsynchronousMessageWithContents {
 	m.rootBuilder.messageHandle.WithContents(native.INTERACTION_PART_REQUEST, contentType, body)
 
@@ -187,7 +183,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string,
 }
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
-// is expected to be consumed
+// is expected to be consumed.
 func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interface{}) *AsynchronousMessageWithContents {
 	m.rootBuilder.messageHandle.WithRequestJSONContents(content)
 
@@ -197,7 +193,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interfa
 }
 
 // AsType specifies that the content sent through to the
-// consumer handler should be sent as the given type
+// consumer handler should be sent as the given type.
 func (m *AsynchronousMessageWithContents) AsType(t interface{}) *AsynchronousMessageWithContents {
 	log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
 	m.rootBuilder.Type = t
@@ -205,7 +201,7 @@ func (m *AsynchronousMessageWithContents) AsType(t interface{}) *AsynchronousMes
 	return m
 }
 
-// The function that will consume the message
+// The function that will consume the message.
 func (m *AsynchronousMessageWithContents) ConsumedBy(handler AsynchronousConsumer) *AsynchronousMessageWithConsumer {
 	m.rootBuilder.handler = handler
 
@@ -218,7 +214,7 @@ type AsynchronousMessageWithConsumer struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// The function that will consume the message
+// The function that will consume the message.
 func (m *AsynchronousMessageWithConsumer) Verify(t *testing.T) error {
 	return m.rootBuilder.pact.Verify(t, m.rootBuilder, m.rootBuilder.handler)
 }
@@ -235,7 +231,6 @@ func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
 		config: config,
 	}
 	err := provider.validateConfig()
-
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +240,7 @@ func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
 	return provider, err
 }
 
-// validateConfig validates the configuration for the consumer test
+// validateConfig validates the configuration for the consumer test.
 func (p *AsynchronousPact) validateConfig() error {
 	log.Println("[DEBUG] pact message validate config")
 	dir, _ := os.Getwd()
@@ -262,12 +257,12 @@ func (p *AsynchronousPact) validateConfig() error {
 }
 
 // AddMessage creates a new asynchronous consumer expectation
-// Deprecated: use AddAsynchronousMessage() instead
+// Deprecated: use AddAsynchronousMessage() instead.
 func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 	return p.AddAsynchronousMessage()
 }
 
-// AddMessage creates a new asynchronous consumer expectation
+// AddMessage creates a new asynchronous consumer expectation.
 func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder {
 	log.Println("[DEBUG] add message")
 
@@ -282,7 +277,7 @@ func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder 
 // VerifyMessageConsumerRaw creates a new Pact _message_ interaction to build a testable
 // interaction.
 //
-// A Message Consumer is analagous to a Provider in the HTTP Interaction model.
+// A Message Consumer is analogous to a Provider in the HTTP Interaction model.
 // It is the receiver of an interaction, and needs to be able to handle whatever
 // request was provided.
 func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
@@ -295,7 +290,6 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 
 	// Yield message, and send through handler function
 	err = handler(m)
-
 	if err != nil {
 		return err
 	}
@@ -304,10 +298,9 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 }
 
 // VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
-// accepting an instance of `*testing.T`
+// accepting an instance of `*testing.T`.
 func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
 	err := p.verifyMessageConsumerRaw(message, handler)
-
 	if err != nil {
 		t.Errorf("VerifyMessageConsumer failed: %v", err)
 	}
@@ -351,7 +344,6 @@ func getAsynchronousMessageWithReifiedContents(message *native.Message, reifiedT
 	t := reflect.TypeOf(reifiedType)
 	if t != nil && t.Name() != "interface" {
 		err = json.Unmarshal(m.Contents, &reifiedType)
-
 		if err != nil {
 			return m, fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
 		}

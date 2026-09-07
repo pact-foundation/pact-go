@@ -29,7 +29,7 @@ func GetFreePort() (int, error) {
 
 // FindPortInRange Iterate through CSV or Range of ports to find open port
 // Valid inputs are "8081", "8081,8085", "8081-8085". Do not combine
-// list and range
+// list and range.
 func FindPortInRange(s string) (int, error) {
 	// Take care of csv and single value
 	if !strings.Contains(s, "-") {

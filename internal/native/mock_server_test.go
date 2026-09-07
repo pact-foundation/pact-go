@@ -130,7 +130,6 @@ func TestMockServer_WritePactfile(t *testing.T) {
 		t.Fatalf("Error sending request: %v", err)
 	}
 	err = m.WritePactFile(port, tmpPactFolder)
-
 	if err != nil {
 		t.Fatal("error: ", err)
 	}

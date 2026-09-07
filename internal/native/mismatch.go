@@ -1,6 +1,6 @@
 package native
 
-// Request is the sub-struct of Mismatch
+// Request is the sub-struct of Mismatch.
 type Request struct {
 	Method  string            `json:"method"`
 	Path    string            `json:"path"`
@@ -26,7 +26,7 @@ type Request struct {
 //   }
 // ]
 
-// MismatchDetail contains the specific assertions that failed during the verification
+// MismatchDetail contains the specific assertions that failed during the verification.
 type MismatchDetail struct {
 	Actual   string
 	Expected string
@@ -35,7 +35,7 @@ type MismatchDetail struct {
 	Type     string
 }
 
-// MismatchedRequest contains details of any request mismatches during pact verification
+// MismatchedRequest contains details of any request mismatches during pact verification.
 type MismatchedRequest struct {
 	Request
 	Mismatches []MismatchDetail

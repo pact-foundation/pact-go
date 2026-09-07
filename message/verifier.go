@@ -16,8 +16,10 @@ type messageVerificationHandlerRequest struct {
 	States      []models.ProviderState `json:"providerStates"`
 }
 
-var PACT_MESSAGE_METADATA_HEADER = "PACT_MESSAGE_METADATA"
-var PACT_MESSAGE_METADATA_HEADER2 = "Pact-Message-Metadata"
+var (
+	PACT_MESSAGE_METADATA_HEADER  = "PACT_MESSAGE_METADATA"
+	PACT_MESSAGE_METADATA_HEADER2 = "Pact-Message-Metadata"
+)
 
 func appendMetadataToResponseHeaders(metadata Metadata, w http.ResponseWriter) {
 	if len(metadata) > 0 {
@@ -51,7 +53,6 @@ func appendMetadataToResponseHeaders(metadata Metadata, w http.ResponseWriter) {
 
 func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
-
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/__messages" {
 				log.Printf("[TRACE] message verification handler")
@@ -71,7 +72,6 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				}
 
 				err = json.Unmarshal(body, &message)
-
 				if err != nil {
 					log.Printf("[ERROR] unable to parse message verification request: %s", err)
 					w.WriteHeader(http.StatusBadRequest)
@@ -124,7 +124,6 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 
 			// Pass through to application
 			next.ServeHTTP(w, r)
-
 		})
 	}
 }

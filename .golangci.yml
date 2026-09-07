@@ -4,6 +4,17 @@ run:
     - consumer
     - provider
 linters:
+  enable:
+    - dupword
+    - godot
+    - misspell
+    - whitespace
+  settings:
+    dupword:
+      ignore:
+        # utils/datetime.go documents a Java DateTimeFormatter symbol table where the
+        # Meaning and Presentation columns both read "year" for the `u` symbol.
+        - year
   exclusions:
     paths:
       # lib.go only contains cgo annotations
@@ -22,3 +33,6 @@ linters:
           - errcheck
           - govet
           - staticcheck
+formatters:
+  enable:
+    - gofumpt

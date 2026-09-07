@@ -12,7 +12,6 @@ import (
 )
 
 func TestHttpV4TypeSystem(t *testing.T) {
-
 	p, err := NewV4Pact(MockHTTPProviderConfig{
 		Consumer: "consumer",
 		Provider: "provider",
@@ -43,7 +42,6 @@ func TestHttpV4TypeSystem(t *testing.T) {
 					"lastName": S("Sampson"),
 					"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
 				})
-
 		}).
 		ExecuteTest(t, func(msc MockServerConfig) error {
 			// <- normally run the actually test here.
@@ -83,7 +81,6 @@ func TestHttpV4TypeSystem(t *testing.T) {
 			return nil
 		})
 	assert.Error(t, err)
-
 }
 
 func TestV4HTTPAddExternalReference(t *testing.T) {
@@ -105,18 +102,20 @@ func TestV4HTTPAddExternalReference(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-var Like = matchers.Like
-var EachLike = matchers.EachLike
-var Term = matchers.Term
-var Regex = matchers.Regex
-var HexValue = matchers.HexValue
-var Identifier = matchers.Identifier
-var IPAddress = matchers.IPAddress
-var IPv6Address = matchers.IPv6Address
-var Timestamp = matchers.Timestamp
-var Date = matchers.Date
-var Time = matchers.Time
-var UUID = matchers.UUID
+var (
+	Like        = matchers.Like
+	EachLike    = matchers.EachLike
+	Term        = matchers.Term
+	Regex       = matchers.Regex
+	HexValue    = matchers.HexValue
+	Identifier  = matchers.Identifier
+	IPAddress   = matchers.IPAddress
+	IPv6Address = matchers.IPv6Address
+	Timestamp   = matchers.Timestamp
+	Date        = matchers.Date
+	Time        = matchers.Time
+	UUID        = matchers.UUID
+)
 
 type S = matchers.String
 
