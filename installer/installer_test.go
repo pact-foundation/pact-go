@@ -14,6 +14,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNativeLibPath(t *testing.T) {
@@ -23,7 +24,7 @@ func TestNativeLibPath(t *testing.T) {
 	//nolint:gosec // G304: libFilePath is derived from NativeLibPath(), a fixed repo-relative
 	// path, not user- or network-supplied input.
 	file, err := os.ReadFile(libFilePath)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, string(file), "-lpact_ffi")
 }
 
@@ -102,7 +103,7 @@ func TestInstallerDownloader(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				src, err := tt.test.getDownloadURLForPackage(tt.pkg)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.want, src)
 			})
 		}
@@ -293,10 +294,10 @@ func TestDefaultDownloader_Download(t *testing.T) {
 		defer server.Close()
 
 		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
-		assert.NoError(t, (&defaultDownloader{}).download(server.URL, dst))
+		require.NoError(t, (&defaultDownloader{}).download(server.URL, dst))
 
 		info, err := os.Stat(dst)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, maxDecompressedLibSize, info.Size())
 	})
 
@@ -310,7 +311,7 @@ func TestDefaultDownloader_Download(t *testing.T) {
 		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
 		err := (&defaultDownloader{}).download(server.URL, dst)
 
-		assert.ErrorContains(t, err, "exceeds the 1024 byte safety limit")
+		require.ErrorContains(t, err, "exceeds the 1024 byte safety limit")
 
 		// The oversized partial download must not be left behind for
 		// CheckPackageInstall to mistake for a good library.

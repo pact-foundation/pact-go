@@ -16,6 +16,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -37,7 +38,7 @@ var (
 type Map = matchers.MapMatcher
 
 func TestConsumerV2(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("INFO"))
+	require.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2Consumer",
@@ -46,7 +47,7 @@ func TestConsumerV2(t *testing.T) {
 		TLS:      true,
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Set up our expected interactions.
 	err = mockProvider.
@@ -82,7 +83,7 @@ func TestConsumerV2(t *testing.T) {
 }
 
 func TestConsumerV2_Match(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("INFO"))
+	require.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerMatch",
@@ -91,7 +92,7 @@ func TestConsumerV2_Match(t *testing.T) {
 		TLS:      true,
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Set up our expected interactions.
 	err = mockProvider.
@@ -113,7 +114,7 @@ func TestConsumerV2_Match(t *testing.T) {
 }
 
 func TestConsumerV2AllInOne(t *testing.T) {
-	assert.NoError(t, log.SetLogLevel("INFO"))
+	require.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerAllInOne",
@@ -122,7 +123,7 @@ func TestConsumerV2AllInOne(t *testing.T) {
 		TLS:      true,
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Set up our expected interactions.
 	err = mockProvider.

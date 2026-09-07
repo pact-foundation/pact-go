@@ -16,10 +16,14 @@ linters:
     - godot
     - gosec
     - misspell
+    - musttag
     - nilerr
     - nilnesserr
     - noctx
     - noinlineerr
+    - testifylint
+    - thelper
+    - usetesting
     - whitespace
   settings:
     dupword:
