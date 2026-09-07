@@ -25,6 +25,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -92,7 +93,8 @@ func (s *routeGuideServer) SaveFeature(ctx context.Context, feature *pb.Feature)
 func (s *routeGuideServer) ListFeatures(rect *pb.Rectangle, stream pb.RouteGuide_ListFeaturesServer) error {
 	for _, feature := range s.savedFeatures {
 		if inRange(feature.Location, rect) {
-			if err := stream.Send(feature); err != nil {
+			err := stream.Send(feature)
+			if err != nil {
 				return err
 			}
 		}
@@ -111,7 +113,7 @@ func (s *routeGuideServer) RecordRoute(stream pb.RouteGuide_RecordRouteServer) e
 	startTime := time.Now()
 	for {
 		point, err := stream.Recv()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			endTime := time.Now()
 			return stream.SendAndClose(&pb.RouteSummary{
 				PointCount:   pointCount,
@@ -141,7 +143,7 @@ func (s *routeGuideServer) RecordRoute(stream pb.RouteGuide_RecordRouteServer) e
 func (s *routeGuideServer) RouteChat(stream pb.RouteGuide_RouteChatServer) error {
 	for {
 		in, err := stream.Recv()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return nil
 		}
 		if err != nil {
@@ -159,7 +161,8 @@ func (s *routeGuideServer) RouteChat(stream pb.RouteGuide_RouteChatServer) error
 		s.mu.Unlock()
 
 		for _, note := range rn {
-			if err := stream.Send(note); err != nil {
+			err := stream.Send(note)
+			if err != nil {
 				return err
 			}
 		}
@@ -178,7 +181,8 @@ func (s *routeGuideServer) loadFeatures(filePath string) {
 	} else {
 		data = exampleData
 	}
-	if err := json.Unmarshal(data, &s.savedFeatures); err != nil {
+	err := json.Unmarshal(data, &s.savedFeatures)
+	if err != nil {
 		log.Fatalf("Failed to load default features: %v", err)
 	}
 }
@@ -255,7 +259,8 @@ func main() {
 	}
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterRouteGuideServer(grpcServer, NewServer())
-	if err := grpcServer.Serve(lis); err != nil {
+	err = grpcServer.Serve(lis)
+	if err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }

@@ -119,7 +119,10 @@ func callMattServiceTCP(transport message.TransportConfig, message string) (stri
 		return "", err
 	}
 
-	conn.Write([]byte(generateMattMessage(message)))
+	_, err = conn.Write([]byte(generateMattMessage(message)))
+	if err != nil {
+		return "", err
+	}
 
 	str, err := bufio.NewReader(conn).ReadString('\n')
 	if err != nil {

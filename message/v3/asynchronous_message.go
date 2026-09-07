@@ -225,7 +225,7 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 		// }
 		err = json.Unmarshal(body, &messageToVerify.Type)
 		if err != nil {
-			return fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
+			return fmt.Errorf("unable to narrow type to %v: %w", t.Name(), err)
 		}
 
 		m.Content = messageToVerify.Type

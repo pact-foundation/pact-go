@@ -10,7 +10,8 @@ import (
 // and will attempt to download the files to the default or configured directory if
 // incorrect.
 func CheckVersion() {
-	if err := checker.CheckInstall(); err != nil {
+	err := checker.CheckInstall()
+	if err != nil {
 		log.Fatal("check version failed:", err)
 	}
 

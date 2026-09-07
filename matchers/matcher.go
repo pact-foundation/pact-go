@@ -394,21 +394,25 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 
 	switch kind := srcType.Kind(); kind {
 	case reflect.Bool:
-		if _, err := fmt.Sscanf(pactTag, "example=%t", &params.boolean.value); err != nil {
+		_, err := fmt.Sscanf(pactTag, "example=%t", &params.boolean.value)
+		if err != nil {
 			triggerInvalidPactTagPanic(pactTag, err)
 		}
 		params.boolean.defined = true
 	case reflect.Float32, reflect.Float64:
-		if _, err := fmt.Sscanf(pactTag, "example=%g", &params.number.float); err != nil {
+		_, err := fmt.Sscanf(pactTag, "example=%g", &params.number.float)
+		if err != nil {
 			triggerInvalidPactTagPanic(pactTag, err)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if _, err := fmt.Sscanf(pactTag, "example=%d", &params.number.integer); err != nil {
+		_, err := fmt.Sscanf(pactTag, "example=%d", &params.number.integer)
+		if err != nil {
 			triggerInvalidPactTagPanic(pactTag, err)
 		}
 	case reflect.Slice:
-		if _, err := fmt.Sscanf(pactTag, "min=%d", &params.slice.min); err != nil {
+		_, err := fmt.Sscanf(pactTag, "min=%d", &params.slice.min)
+		if err != nil {
 			triggerInvalidPactTagPanic(pactTag, err)
 		}
 	case reflect.String:
@@ -422,7 +426,8 @@ func pluckParams(srcType reflect.Type, pactTag string) params {
 				triggerInvalidPactTagPanic(pactTag, fmt.Errorf("invalid format: regex must not be empty"))
 			}
 
-			if _, err := fmt.Sscanf(components[0], "example=%s", &params.str.example); err != nil {
+			_, err := fmt.Sscanf(components[0], "example=%s", &params.str.example)
+			if err != nil {
 				triggerInvalidPactTagPanic(pactTag, err)
 			}
 			params.str.regEx = components[1]

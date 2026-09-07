@@ -114,11 +114,13 @@ func TestVerifyRequest(t *testing.T) {
 		const webhookURL, verificationUrl = "pact_changed_webhook_url", "http://localhost:1234/path/to/pact"
 		enablePactUrlFunc := func() func() {
 			const pactUrl = "PACT_URL"
-			if err := os.Setenv(pactUrl, webhookURL); err != nil {
+			err := os.Setenv(pactUrl, webhookURL)
+			if err != nil {
 				panic(err)
 			}
 			return func() {
-				if err := os.Unsetenv(pactUrl); err != nil {
+				err := os.Unsetenv(pactUrl)
+				if err != nil {
 					panic(err)
 				}
 			}

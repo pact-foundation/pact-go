@@ -161,7 +161,8 @@ func (i *V3RequestBuilder) Headers(headers matchers.HeadersMatcher) *V3RequestBu
 // JSONBody adds a JSON body to the expected request.
 func (i *V3RequestBuilder) JSONBody(body interface{}) *V3RequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 
@@ -264,7 +265,8 @@ func (i *V3ResponseBuilder) Headers(headers matchers.HeadersMatcher) *V3Response
 // JSONBody adds a JSON body to the expected response.
 func (i *V3ResponseBuilder) JSONBody(body interface{}) *V3ResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
-	if err := validateMatchers(i.interaction.specificationVersion, body); err != nil {
+	err := validateMatchers(i.interaction.specificationVersion, body)
+	if err != nil {
 		panic(err)
 	}
 

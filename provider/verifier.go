@@ -159,7 +159,7 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 		fmt.Sprintf(`Timed out waiting for http verification proxy on port %d - check for errors`, port))
 
 	if portErr != nil {
-		log.Fatal("Error:", err)
+		log.Println("[ERROR]", portErr)
 		return portErr
 	}
 

@@ -3,11 +3,18 @@ run:
   build-tags:
     - consumer
     - provider
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
 linters:
   enable:
     - dupword
+    - errorlint
     - godot
     - misspell
+    - nilerr
+    - nilnesserr
+    - noinlineerr
     - whitespace
   settings:
     dupword:

@@ -37,7 +37,7 @@ var (
 type Map = matchers.MapMatcher
 
 func TestConsumerV2(t *testing.T) {
-	log.SetLogLevel("INFO")
+	assert.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2Consumer",
@@ -49,7 +49,7 @@ func TestConsumerV2(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Set up our expected interactions.
-	mockProvider.
+	err = mockProvider.
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
@@ -77,11 +77,12 @@ func TestConsumerV2(t *testing.T) {
 			})
 		}).
 		ExecuteTest(t, test)
+
 	assert.NoError(t, err)
 }
 
 func TestConsumerV2_Match(t *testing.T) {
-	log.SetLogLevel("INFO")
+	assert.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerMatch",
@@ -93,7 +94,7 @@ func TestConsumerV2_Match(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Set up our expected interactions.
-	mockProvider.
+	err = mockProvider.
 		AddInteraction().
 		Given("User foo exists").
 		UponReceiving("A request to do a foo").
@@ -112,7 +113,7 @@ func TestConsumerV2_Match(t *testing.T) {
 }
 
 func TestConsumerV2AllInOne(t *testing.T) {
-	log.SetLogLevel("INFO")
+	assert.NoError(t, log.SetLogLevel("INFO"))
 
 	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "PactGoV2ConsumerAllInOne",

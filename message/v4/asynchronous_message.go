@@ -327,7 +327,7 @@ func getAsynchronousMessageWithReifiedContents(message *native.Message, reifiedT
 
 	m, err = getAsynchronousMessageWithContents(message)
 	if err != nil {
-		return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %v", err)
+		return m, fmt.Errorf("unexpected response from message server, this is a bug in the framework: %w", err)
 	}
 	log.Println("[DEBUG] reified body raw", string(m.Contents))
 
@@ -345,7 +345,7 @@ func getAsynchronousMessageWithReifiedContents(message *native.Message, reifiedT
 	if t != nil && t.Name() != "interface" {
 		err = json.Unmarshal(m.Contents, &reifiedType)
 		if err != nil {
-			return m, fmt.Errorf("unable to narrow type to %v: %v", t.Name(), err)
+			return m, fmt.Errorf("unable to narrow type to %v: %w", t.Name(), err)
 		}
 
 		m.Body = reifiedType

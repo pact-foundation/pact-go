@@ -56,8 +56,11 @@ func startHTTPProvider(port int) {
 
 	mux.HandleFunc("/matt", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Content-Type", "application/matt")
-		fmt.Fprintf(w, `MATTworldMATT`)
 		w.WriteHeader(200)
+		_, err := fmt.Fprintf(w, `MATTworldMATT`)
+		if err != nil {
+			log.Println("ERROR writing response body:", err)
+		}
 	})
 
 	log.Printf("started HTTP server on port: %d\n", port)
@@ -88,7 +91,7 @@ func startTCPServer(port int) {
 
 func handleConnection(conn net.Conn) {
 	log.Println("Handling TCP connection")
-	defer conn.Close()
+	defer func() { _ = conn.Close() }() // best-effort cleanup; error is not actionable in a test server
 
 	s := bufio.NewScanner(conn)
 
@@ -109,13 +112,19 @@ func handleRequest(req string, conn net.Conn) {
 
 	if !isValidMessage(req) {
 		log.Println("TCP Server received invalid request, erroring")
-		conn.Write([]byte("ERROR\n"))
+		_, err := conn.Write([]byte("ERROR\n"))
+		if err != nil {
+			log.Println("ERROR writing to connection:", err)
+		}
 	}
 	log.Println("TCP Server received valid request, responding")
 
 	// var expectedResponse = "badworld"
 	expectedResponse := "tcpworld"
-	conn.Write([]byte(generateMattMessage(expectedResponse)))
+	_, err := conn.Write([]byte(generateMattMessage(expectedResponse)))
+	if err != nil {
+		log.Println("ERROR writing to connection:", err)
+	}
 }
 
 func isValidMessage(str string) bool {

@@ -488,7 +488,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 				match, err := regexp.MatchString(uuid, v.(string))
 
 				if !match {
-					err = fmt.Errorf("want string, got '%v'. Err: %v", v, err)
+					err = fmt.Errorf("want string, got '%v'", v)
 				}
 				return
 			},
@@ -496,7 +496,8 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 	}
 	var err error
 	for k, v := range matchers {
-		if err = v.testCase(getMatcherValue(v.matcher)); err != nil {
+		err = v.testCase(getMatcherValue(v.matcher))
+		if err != nil {
 			t.Fatalf("error validating matcher '%s': %v", k, err)
 		}
 	}
