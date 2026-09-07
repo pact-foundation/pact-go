@@ -40,8 +40,8 @@ import (
 	"github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide/data"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
-    "google.golang.org/grpc/status"
-    "google.golang.org/protobuf/proto"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	pb "github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide"
 )
@@ -56,11 +56,11 @@ var (
 
 // Keep example flags/entrypoint available for standalone usage.
 var (
-    _ = tls
-    _ = certFile
-    _ = keyFile
-    _ = port
-    _ = main
+	_ = tls
+	_ = certFile
+	_ = keyFile
+	_ = port
+	_ = main
 )
 
 type routeGuideServer struct {
@@ -255,9 +255,9 @@ func main() {
 	}
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterRouteGuideServer(grpcServer, NewServer())
-    if err := grpcServer.Serve(lis); err != nil {
-        log.Fatalf("failed to serve: %v", err)
-    }
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }
 
 // exampleData is a copy of testdata/route_guide_db.json. It's to avoid
