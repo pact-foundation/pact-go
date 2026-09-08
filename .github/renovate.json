@@ -1,13 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    ":semanticCommits",
-    "helpers:pinGitHubActionDigests"
-  ],
+  "extends": ["config:best-practices", ":semanticCommits"],
   "timezone": "Australia/Melbourne",
   "schedule": ["before 6am on monday"],
-  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
   "postUpdateOptions": ["gomodTidy"],
   "customManagers": [
     {
@@ -63,38 +60,20 @@
   ],
   "packageRules": [
     {
-      "matchManagers": ["gomod"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "go modules (non-major)",
-      "semanticCommitType": "deps"
-    },
-    {
       "matchManagers": ["github-actions"],
-      "groupName": "github actions",
       "semanticCommitType": "ci",
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "description": "Automerge is deliberately off pending a maintainer decision; enabling it would land third-party action bumps on master with nobody reviewing them."
     },
     {
+      "matchManagers": ["mise"],
+      "semanticCommitType": "chore",
+      "description": "The [tools] section of mise.toml. Development tooling, not a released dependency."
+    },
+    {
       "matchPackageNames": ["golangci/golangci-lint", "golangci/golangci-lint-action"],
       "groupName": "golangci-lint",
-      "description": "Grouped so the linter and its action move together; a mismatch between the linter's build toolchain and the CI Go version panics the run."
-    },
-    {
-      "matchManagers": ["mise"],
-      "groupName": "mise dev tooling",
-      "semanticCommitType": "chore",
-      "description": "Java and protoc, from mise.toml's [tools] section. Development tooling, not a released dependency."
-    },
-    {
-      "matchDepNames": [
-        "pactflow/pact-protobuf-plugin",
-        "pact-foundation/pact-plugins",
-        "mefellows/pact-matt-plugin",
-        "austek/pact-avro-plugin"
-      ],
-      "groupName": "pact plugins",
-      "semanticCommitType": "deps"
+      "description": "The linter and its action must move together: a mismatch between the linter's build toolchain and the CI Go version panics the run. Ordered after the mise rule so the grouping also wins for the mise.toml [tools] pin."
     }
   ]
 }
