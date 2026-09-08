@@ -17,6 +17,7 @@ PACT_BROKER_BASE_URL = "http://127.0.0.1"
 PACT_BROKER_USERNAME = "pact_workshop"
 PACT_BROKER_PASSWORD = "pact_workshop"
 PACT_DOWNLOAD_DIR = "{{ env.TMP | default(value='/tmp') }}"
+PACT_DO_NOT_TRACK = "true"
 
 [tasks.build]
 description = "Build the pact-go CLI into build/"
