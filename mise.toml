@@ -159,8 +159,7 @@ run = """
 set -euo pipefail
 pact broker publish examples/pacts \\
   --consumer-app-version "$APP_SHA" \\
-  --tag "$APP_BRANCH" \\
-  --tag prod
+  --branch "$APP_BRANCH"
 """
 
 [tasks.docker-up]
