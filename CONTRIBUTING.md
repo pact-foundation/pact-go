@@ -14,7 +14,7 @@ Please provide the following information with your issue to enable us to respond
 You can run the E2E tests by:
 
 ```sh
-make fake_pact    # Run the Pact tests - consumer + provider
+mise run pact --fake    # Run the Pact tests - consumer + provider
 ```
 
 ## New features / changes
