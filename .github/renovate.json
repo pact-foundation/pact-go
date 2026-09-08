@@ -46,16 +46,6 @@
       "packageNameTemplate": "austek/pact-avro-plugin",
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.*)$"
-    },
-    {
-      "customType": "regex",
-      "description": "The golangci-lint binary version pinned via the golangci-lint-action's `with: version:` input, which the github-actions manager does not read.",
-      "managerFilePatterns": ["/^\\.github/workflows/golangci-lint\\.yml$/"],
-      "matchStrings": ["version:\\s*v(?<currentValue>[0-9.]+)"],
-      "depNameTemplate": "golangci/golangci-lint",
-      "packageNameTemplate": "golangci/golangci-lint",
-      "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ],
   "packageRules": [
@@ -69,11 +59,6 @@
       "matchManagers": ["mise"],
       "semanticCommitType": "chore",
       "description": "The [tools] section of mise.toml. Development tooling, not a released dependency."
-    },
-    {
-      "matchPackageNames": ["golangci/golangci-lint", "golangci/golangci-lint-action"],
-      "groupName": "golangci-lint",
-      "description": "The linter and its action must move together: a mismatch between the linter's build toolchain and the CI Go version panics the run. Ordered after the mise rule so the grouping also wins for the mise.toml [tools] pin."
     }
   ]
 }

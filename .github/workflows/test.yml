@@ -7,12 +7,6 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
-    inputs:
-      SKIP_ALPINE_PROVIDER_TESTS:
-        description: 'Skip alpine provider tests'
-        required: false
-        default: 'false'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,6 +32,7 @@ jobs:
 
     runs-on: ubuntu-latest
     needs:
+      - lint
       - verify
       - test
       - test-containers
@@ -48,6 +43,13 @@ jobs:
         if: |
           contains(needs.*.result, 'failure')
           || contains(needs.*.result, 'cancelled')
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
+      - run: mise run lint
 
   verify:
     runs-on: ubuntu-latest
