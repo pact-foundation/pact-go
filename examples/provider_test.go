@@ -55,13 +55,17 @@ func TestV3HTTPProvider(t *testing.T) {
 			ProviderBaseURL: "http://127.0.0.1:8111",
 			Provider:        "V3Provider",
 			ProviderVersion: os.Getenv("APP_SHA"),
+			ProviderBranch:  os.Getenv("APP_BRANCH"),
 			BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
 			ConsumerVersionSelectors: []provider.Selector{
 				&provider.ConsumerVersionSelector{
-					Tag: "master",
+					MainBranch: true,
 				},
 				&provider.ConsumerVersionSelector{
-					Tag: "prod",
+					MatchingBranch: true,
+				},
+				&provider.ConsumerVersionSelector{
+					DeployedOrReleased: true,
 				},
 			},
 			PublishVerificationResults: true,
@@ -181,6 +185,7 @@ func TestV3MessageProvider(t *testing.T) {
 			StateHandlers:   stateMappings,
 			Provider:        "V3MessageProvider",
 			ProviderVersion: os.Getenv("APP_SHA"),
+			ProviderBranch:  os.Getenv("APP_BRANCH"),
 			BrokerURL:       os.Getenv("PACT_BROKER_BASE_URL"),
 			MessageHandlers: functionMappings,
 		})
