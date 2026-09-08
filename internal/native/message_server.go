@@ -478,6 +478,7 @@ func (m *MessageServer) StartTransport(transport string, address string, port in
 	default:
 		if msPort > 0 {
 			log.Println("[DEBUG] mock server running on port:", msPort)
+			waitForTransport(address, msPort)
 			return msPort, nil
 		}
 		return msPort, fmt.Errorf("an unknown error (code: %v) occurred when starting a mock server for the test", msPort)
