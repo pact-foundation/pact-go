@@ -1,11 +1,18 @@
-ARG GO_VERSION=1.27
+ARG GO_VERSION=1.25
 FROM golang:${GO_VERSION}-alpine
 
-RUN apk add --no-cache curl gcc musl-dev gzip openjdk17-jre bash protoc protobuf-dev file
+RUN apk add --no-cache curl gcc musl-dev gzip openjdk21-jre bash protoc protobuf-dev file
 RUN curl https://mise.run | sh && ln -s /root/.local/bin/mise /usr/local/bin/mise
 
 COPY . /go/src/github.com/pact-foundation/pact-go
 
 WORKDIR /go/src/github.com/pact-foundation/pact-go
+
+# mise refuses to run an untrusted config, and baking the tools into the image
+# keeps the test run from downloading them. GO_VERSION is re-declared because an
+# ARG before FROM is not in scope inside the stage.
+ARG GO_VERSION
+ENV GO_VERSION=${GO_VERSION}
+RUN mise trust && mise install
 
 CMD ["mise", "run", "test"]

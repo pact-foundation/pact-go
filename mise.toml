@@ -1,6 +1,12 @@
 [tools]
-java = "temurin-17"
-protoc = "latest"
+# GO_VERSION lets CI drive the version matrix through mise; the default tracks
+# the `go` directive in go.mod.
+go = "{{ env.GO_VERSION | default(value='1.25') }}"
+golangci-lint = "2.13.2"
+java = "temurin-21"
+protoc = "36.1"
+# Provides the `pact` binary: plugin installation and broker publishing.
+"github:pact-foundation/pact-cli" = "0.10.7"
 
 [env]
 PLUGIN_PACT_PROTOBUF_VERSION = "0.5.4"
@@ -11,94 +17,120 @@ PACT_BROKER_BASE_URL = "http://127.0.0.1"
 PACT_BROKER_USERNAME = "pact_workshop"
 PACT_BROKER_PASSWORD = "pact_workshop"
 PACT_DOWNLOAD_DIR = "{{ env.TMP | default(value='/tmp') }}"
-_.path = ["{{config_root}}/pact/bin"]
 
 [tasks.build]
 description = "Build the pact-go CLI into build/"
-# wait_for (not depends): mise runs `depends` entries in parallel, and clean's
-# `rm -rf build` races with this task's output whenever both are scheduled
-# together (ci, pact, pact-local all list clean and build/install as
-# siblings). wait_for orders the two without making build always clean first
-# when it is run on its own.
-wait_for = ["clean"]
-run = "go build -o build/pact-go"
+sources = ["**/*.go", "go.mod", "go.sum"]
+outputs = ["build/pact-go"]
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+go build -o build/pact-go
+"""
 
 [tasks.clean]
 description = "Remove build output and generated pacts"
 run = """
-mkdir -p ./examples/pacts
+#!/usr/bin/env bash
+set -euo pipefail
 rm -rf build output dist examples/pacts
 """
 
 [tasks.deps]
-description = "Install the pact plugin CLI and the pinned plugins"
+description = "Install the pinned pact plugins"
+# The plugin versions are pinned in [env] above, so this only needs rerunning
+# when this file changes. The plugins land in ~/.pact, which is outside the
+# repo and so cannot be declared as outputs: clearing that directory by hand
+# also needs `mise run deps --force`.
+sources = ["mise.toml"]
 run = """
-set -e
-if [ -n "$SKIP_PLUGINS" ]; then echo "--- skipping plugins"; exit 0; fi
-if [ ! -f ~/.pact/bin/pact-plugin-cli ]; then ./scripts/install-cli.sh; fi
-install_plugin() {
-  if [ ! -e "$1" ]; then ~/.pact/bin/pact-plugin-cli -y install "$2"; fi
-}
-install_plugin ~/.pact/plugins/protobuf-$PLUGIN_PACT_PROTOBUF_VERSION/pact-protobuf-plugin \\
-  https://github.com/pactflow/pact-protobuf-plugin/releases/tag/v-$PLUGIN_PACT_PROTOBUF_VERSION
-install_plugin ~/.pact/plugins/csv-$PLUGIN_PACT_CSV_VERSION/pact-csv-plugin \\
-  https://github.com/pact-foundation/pact-plugins/releases/tag/csv-plugin-$PLUGIN_PACT_CSV_VERSION
-install_plugin ~/.pact/plugins/matt-$PLUGIN_PACT_MATT_VERSION/matt \\
-  https://github.com/mefellows/pact-matt-plugin/releases/tag/v$PLUGIN_PACT_MATT_VERSION
-install_plugin ~/.pact/plugins/avro-$PLUGIN_PACT_AVRO_VERSION/bin/pact-avro-plugin \\
-  https://github.com/austek/pact-avro-plugin/releases/tag/v$PLUGIN_PACT_AVRO_VERSION
+#!/usr/bin/env bash
+set -euo pipefail
+if [ -n "${SKIP_PLUGINS:-}" ]; then
+  echo "--- skipping plugins"
+  exit 0
+fi
+pact plugin install -y --skip-if-installed --version "$PLUGIN_PACT_PROTOBUF_VERSION" protobuf
+pact plugin install -y --skip-if-installed --version "$PLUGIN_PACT_CSV_VERSION" csv
+pact plugin install -y --skip-if-installed --version "$PLUGIN_PACT_AVRO_VERSION" avro
+# matt is absent from the CLI's known-plugin index, so it installs by release URL.
+pact plugin install -y --skip-if-installed \\
+  "https://github.com/mefellows/pact-matt-plugin/releases/tag/v$PLUGIN_PACT_MATT_VERSION"
 """
 
 [tasks.install]
 description = "Download the pact FFI library"
 depends = ["build"]
-run = "./build/pact-go -l DEBUG install --libDir $PACT_DOWNLOAD_DIR"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+./build/pact-go -l DEBUG install --libDir "$PACT_DOWNLOAD_DIR"
+"""
 
 [tasks.lint]
 description = "Run golangci-lint"
-run = "golangci-lint run"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+golangci-lint run
+"""
 
 [tasks.verify]
 description = "Check formatting and module tidiness"
-# golangci-lint fmt, not gofmt: .golangci.yml's formatter is gofumpt, so gofmt
-# accepts files that `mise run lint` then rejects.
+# golangci-lint fmt, not gofmt: it applies whichever formatters .golangci.yml
+# configures, so this checks the same formatting `mise run lint` enforces.
 run = """
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 golangci-lint fmt --diff
 go mod tidy -diff
 """
 
 [tasks.fmt]
 description = "Format all Go source"
-run = "golangci-lint fmt"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+golangci-lint fmt
+"""
 
 [tasks.test]
 description = "Run unit tests with coverage"
 depends = ["deps", "install"]
 run = """
-set +e
-RACE="-race"
-if [ "${SKIP_RACE:-}" = "true" ]; then RACE=""; fi
-TAGS="-tags=provider"
-if [ "${SKIP_PROVIDER_TESTS:-}" = "true" ]; then TAGS=""; fi
+#!/usr/bin/env bash
+set -uo pipefail
+if [ "${SKIP_RACE:-}" = "true" ]; then
+  race=()
+else
+  race=(-race)
+fi
+if [ "${SKIP_PROVIDER_TESTS:-}" = "true" ]; then
+  tags=()
+else
+  tags=(-tags=provider)
+fi
 rm -f coverage.txt
-echo "mode: count" > coverage.txt
+echo "mode: atomic" > coverage.txt
+# A plain string, not an array: mise renders this block as a Tera template
+# before bash sees it, and a bash array-length expansion opens a Tera comment
+# tag that is never closed.
 failed=""
 for d in $(go list ./... | grep -v vendor | grep -v examples); do
-  go test $RACE -coverprofile=profile.out $TAGS -covermode=atomic "$d"
-  status=$?
-  if [ -f profile.out ]; then tail -n +2 profile.out >> coverage.txt; rm profile.out; fi
-  if [ $status -ne 0 ]; then failed="$failed $d"; fi
+  if ! go test "${race[@]}" "${tags[@]}" -covermode=atomic -coverprofile=profile.out "$d"; then
+    failed="$failed $d"
+  fi
+  if [ -f profile.out ]; then
+    tail -n +2 profile.out >> coverage.txt
+    rm profile.out
+  fi
 done
-go tool cover -func coverage.txt
-covstat=$?
+if ! go tool cover -func coverage.txt; then
+  echo "coverage report failed"
+  exit 1
+fi
 if [ -n "$failed" ]; then
   echo "FAILED packages:$failed"
-fi
-if [ $covstat -ne 0 ]; then
-  echo "coverage report failed (go tool cover -func exited $covstat)"
-fi
-if [ -n "$failed" ] || [ $covstat -ne 0 ]; then
   exit 1
 fi
 """
@@ -107,11 +139,12 @@ fi
 description = "Run the tagged example tests, contributing to coverage"
 depends = ["deps", "install"]
 run = """
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 go test -tags=consumer -count=1 -covermode=atomic \\
   -coverpkg=github.com/pact-foundation/pact-go/v2/... \\
   -coverprofile=coverage-consumer.txt github.com/pact-foundation/pact-go/v2/examples/...
-if [ "$SKIP_PROVIDER_TESTS" != "true" ]; then
+if [ "${SKIP_PROVIDER_TESTS:-}" != "true" ]; then
   SKIP_PUBLISH=true go test -tags=provider -count=1 -timeout=30s -covermode=atomic \\
     -coverpkg=github.com/pact-foundation/pact-go/v2/... \\
     -coverprofile=coverage-provider.txt github.com/pact-foundation/pact-go/v2/examples/...
@@ -121,20 +154,39 @@ fi
 [tasks.publish]
 description = "Publish pacts to the broker"
 run = """
-docker run --rm -v $PWD:$PWD -e PACT_BROKER_BASE_URL=${DOCKER_HOST_HTTP:-http://host.docker.internal} \\
-  -e PACT_BROKER_USERNAME -e PACT_BROKER_PASSWORD pactfoundation/pact-cli \\
-  publish $PWD/examples/pacts --consumer-app-version $APP_SHA --tag $APP_BRANCH --tag prod
+#!/usr/bin/env bash
+set -euo pipefail
+pact broker publish examples/pacts \\
+  --consumer-app-version "$APP_SHA" \\
+  --tag "$APP_BRANCH" \\
+  --tag prod
 """
 
 [tasks.docker-up]
 description = "Start the local broker and test services"
-run = "docker compose -f docker/docker-compose.yml up -d"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+docker compose -f docker/docker-compose.yml up -d
+"""
 
 [tasks.pact]
 description = "Run the pact examples against the broker"
-depends = ["clean", "install", "docker-up"]
+depends = ["deps", "install", "docker-up"]
+# The examples and the unit tests both bind mock-server ports and share the
+# plugin log directory, so they cannot run at once. wait_for orders them only
+# when ci has scheduled both; running pact on its own does not pull in test.
+wait_for = ["test"]
+usage = 'flag "--fake" help="Derive APP_SHA and APP_BRANCH from git, for a local run outside CI"'
 run = """
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+if [ -n "${usage_fake:-}" ]; then
+  export CI=true
+  export APP_SHA="$(git rev-parse --short HEAD)+$(date +%s)"
+  export APP_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+fi
+rm -rf examples/pacts
 go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 mise run publish
 go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
@@ -142,11 +194,13 @@ go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/
 
 [tasks.pact-local]
 description = "Run the pact examples without publishing"
-depends = ["clean", "deps", "install"]
+depends = ["deps", "install"]
 run = """
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+rm -rf examples/pacts
 go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/...
-if [ "$SKIP_PROVIDER_TESTS" != "true" ]; then
+if [ "${SKIP_PROVIDER_TESTS:-}" != "true" ]; then
   SKIP_PUBLISH=true go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/...
 fi
 """
@@ -154,12 +208,26 @@ fi
 [tasks.protos]
 description = "Compile the route guide protobufs"
 dir = "examples/grpc/routeguide"
-run = "protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. ./route_guide.proto"
+# The generators are `tool` directives in go.mod, so they stay pinned alongside
+# the runtimes they generate against. protoc needs them as executables, and
+# `go tool -n` prints the path without running them.
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+protoc \\
+  --plugin=protoc-gen-go="$(go tool -n google.golang.org/protobuf/cmd/protoc-gen-go)" \\
+  --plugin=protoc-gen-go-grpc="$(go tool -n google.golang.org/grpc/cmd/protoc-gen-go-grpc)" \\
+  --go_out=paths=source_relative:. \\
+  --go-grpc_out=paths=source_relative:. \\
+  ./route_guide.proto
+"""
 
 [tasks.grpc-test]
 description = "Run only the gRPC example"
+depends = ["deps", "install"]
 run = """
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 rm -rf ./examples/pacts
 go test -tags=consumer -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
 go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/v2/examples/grpc
@@ -167,36 +235,43 @@ go test -timeout=30s -tags=provider -count=1 github.com/pact-foundation/pact-go/
 
 [tasks.docker-build]
 description = "Build the containerised test image"
-run = "docker build -f docker/Dockerfile.${IMAGE_VARIANT:-debian} --build-arg GO_VERSION=${GO_VERSION:-1.27} -t pactfoundation/pact-go-test-${IMAGE_VARIANT:-debian} ."
+usage = 'flag "--variant <variant>" help="Dockerfile variant to build: debian or alpine"'
+# Skip the rebuild when nothing the image contains has changed.
+sources = ["docker/Dockerfile.*", "mise.toml", "go.mod", "go.sum", "**/*.go"]
+outputs = { auto = true }
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+variant="${usage_variant:-${IMAGE_VARIANT:-debian}}"
+docker build -f "docker/Dockerfile.$variant" \\
+  --build-arg "GO_VERSION=${GO_VERSION:-1.25}" \\
+  -t "pactfoundation/pact-go-test-$variant" .
+"""
 
 [tasks.docker-test-all]
 description = "Run unit and pact tests inside the container"
-depends = ["docker-build"]
+usage = 'flag "--variant <variant>" help="Dockerfile variant to run: debian or alpine"'
 run = """
-docker run -e LOG_LEVEL=${LOG_LEVEL:-error} -e SKIP_PROVIDER_TESTS -e SKIP_RACE --rm \\
-  pactfoundation/pact-go-test-${IMAGE_VARIANT:-debian} \\
-  /bin/sh -c "mise run test && mise run pact-local"
+#!/usr/bin/env bash
+set -euo pipefail
+variant="${usage_variant:-${IMAGE_VARIANT:-debian}}"
+mise run docker-build --variant "$variant"
+# GO_VERSION is forwarded so mise inside the container resolves the same Go the
+# base image was built with, rather than falling back to the [tools] default.
+docker run --rm \\
+  -e LOG_LEVEL="${LOG_LEVEL:-error}" \\
+  -e GO_VERSION="${GO_VERSION:-1.25}" \\
+  -e SKIP_PROVIDER_TESTS \\
+  -e SKIP_RACE \\
+  "pactfoundation/pact-go-test-$variant" \\
+  /bin/bash -c "mise run test && mise run pact-local"
 """
 
 [tasks.ci]
-description = "The full CI sequence"
-depends = ["docker-up", "deps", "clean", "build", "test", "pact"]
-run = "echo 'ci complete'"
-
-[tasks.fake-ci]
-description = "Run the full CI sequence locally as if on CI, referenced by CONTRIBUTING.md"
-run = """
-CI=true \\
-APP_SHA=$(git rev-parse --short HEAD)+$(date +%s) \\
-APP_BRANCH=$(git rev-parse --abbrev-ref HEAD) \\
-mise run ci
-"""
-
-[tasks.fake-pact]
-description = "Run the pact examples locally as if on CI, referenced by CONTRIBUTING.md"
-run = """
-CI=true \\
-APP_SHA=$(git rev-parse --short HEAD)+$(date +%s) \\
-APP_BRANCH=$(git rev-parse --abbrev-ref HEAD) \\
-mise run pact
-"""
+description = "The full CI sequence: unit tests, then the pact examples"
+# Both tasks in one graph, so the prerequisites they share are scheduled once.
+# Shelling out to two `mise run` invocations installed the plugins and the FFI
+# twice over, the second time racing docker-up for the network. Ordering comes
+# from wait_for = ["test"] on pact, not from this list. For a fake run, see
+# `mise run pact --fake`.
+depends = ["test", "pact"]
