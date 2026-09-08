@@ -167,7 +167,7 @@ description = "Start the local broker and test services"
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d --wait
 """
 
 [tasks.pact]

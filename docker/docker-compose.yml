@@ -7,7 +7,11 @@ services:
   postgres:
     image: postgres
     healthcheck:
-      test: psql postgres --command "select 1" -U postgres
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "postgres", "-h", "127.0.0.1" ]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 30s
     ports:
       - "5432:5432"
     environment:
@@ -31,10 +35,13 @@ services:
     # The Pact Broker provides a healthcheck endpoint which we will use to wait
     # for it to become available before starting up
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--tries=1", "--spider", "http://pact_workshop:pact_workshop@localhost:9292/diagnostic/status/heartbeat" ]
-      interval: 1s
+      test: [ "CMD", "wget", "-q", "--tries=1", "--spider", "http://pact_workshop:pact_workshop@127.0.0.1:9292/diagnostic/status/heartbeat" ]
+      interval: 2s
       timeout: 2s
       retries: 5
+      # A cold boot takes the better part of a minute; without this the retries
+      # are exhausted long before the app can answer.
+      start_period: 90s
     depends_on:
       postgres:
         condition: service_healthy
