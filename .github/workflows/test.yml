@@ -31,6 +31,26 @@ env:
   LOG_LEVEL: error
 
 jobs:
+  complete:
+    name: Test completion check
+    if: always()
+
+    permissions:
+      contents: none
+
+    runs-on: ubuntu-latest
+    needs:
+      - verify
+      - test
+      - test-containers
+
+    steps:
+      - name: Failed
+        run: exit 1
+        if: |
+          contains(needs.*.result, 'failure')
+          || contains(needs.*.result, 'cancelled')
+
   verify:
     runs-on: ubuntu-latest
     steps:
