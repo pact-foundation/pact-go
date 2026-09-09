@@ -10,6 +10,7 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHttpV4TypeSystem(t *testing.T) {
@@ -17,7 +18,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 		Consumer: "consumer",
 		Provider: "provider",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = p.AddInteraction().
 		Given("some state").
@@ -49,7 +50,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 
 			return nil
 		})
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
@@ -89,7 +90,7 @@ func TestV4HTTPAddExternalReference(t *testing.T) {
 		Consumer: "consumer",
 		Provider: "provider",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = p.AddInteraction().
 		UponReceiving("a request with an external reference").

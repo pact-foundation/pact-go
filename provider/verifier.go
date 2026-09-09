@@ -191,6 +191,7 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 //     the verifier itself could not produce a result (infrastructure
 //     error, panic, etc.).
 func (v *Verifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
+	t.Helper()
 	err := v.verifyProviderRaw(request, t)
 
 	// TODO: granular test reporting
@@ -241,9 +242,9 @@ func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 
 // {"action":"teardown","id":"foo","state":"User foo exists"}.
 type stateHandlerAction struct {
-	Action string `json:"action"`
-	State  string `json:"state"`
-	Params map[string]interface{}
+	Action string                 `json:"action"`
+	State  string                 `json:"state"`
+	Params map[string]interface{} `json:"params"`
 }
 
 func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
