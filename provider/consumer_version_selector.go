@@ -26,7 +26,7 @@ type ConsumerVersionSelector struct {
 func (c *ConsumerVersionSelector) IsSelector() {
 }
 
-type UntypedConsumerVersionSelector map[string]interface{}
+type UntypedConsumerVersionSelector map[string]any
 
 // Type marker.
 func (c *UntypedConsumerVersionSelector) IsSelector() {

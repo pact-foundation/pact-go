@@ -1,5 +1,4 @@
 //go:build consumer
-// +build consumer
 
 package grpc
 
@@ -25,12 +24,12 @@ func TestGetFeatureSuccess(t *testing.T) {
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "grpcconsumer",
 		Provider: "grpcprovider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		PactDir:  filepath.ToSlash(dir + "/../pacts"),
 	})
 	require.NoError(t, log.SetLogLevel("DEBUG"))
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/routeguide/route_guide.proto"
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",
@@ -98,11 +97,11 @@ func TestGetFeatureError(t *testing.T) {
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "grpcconsumer",
 		Provider: "grpcprovider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		PactDir:  filepath.ToSlash(dir + "/../pacts"),
 	})
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/routeguide/route_guide.proto"
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",
@@ -162,12 +161,12 @@ func TestSaveFeature(t *testing.T) {
 	p, _ := message.NewSynchronousPact(message.Config{
 		Consumer: "grpcconsumer",
 		Provider: "grpcprovider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		PactDir:  filepath.ToSlash(dir + "/../pacts"),
 	})
 	require.NoError(t, log.SetLogLevel("INFO"))
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/routeguide/route_guide.proto"
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",

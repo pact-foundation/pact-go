@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -169,24 +170,23 @@ func (i *Installer) CheckPackageInstall() error {
 		// It is helpful because it will prevent issues where the FFI is manually updated without using the `pact-go install` command
 		if len(LibRegistry) == 0 {
 			log.Println("[DEBUG] skip checking ffi version() call because FFI not loaded. This is expected when running the 'pact-go' command.")
-		} else {
-			lib, ok := LibRegistry[pkg]
+			continue
+		}
 
-			if ok {
-				log.Println("[INFO] checking version", lib.Version(), "for lib", info.libName, "within semver range", info.semverRange)
-				err := checkVersion(info.libName, lib.Version(), info.semverRange)
-				if err != nil {
-					return err
-				}
-			} else {
-				log.Println("[DEBUG] unable to determine current version of package", pkg, "in LibRegistry", LibRegistry)
-			}
-
-			// Correct the configuration to reduce drift
-			err := i.updateConfiguration(dst, pkg, info)
+		if lib, ok := LibRegistry[pkg]; ok {
+			log.Println("[INFO] checking version", lib.Version(), "for lib", info.libName, "within semver range", info.semverRange)
+			err := checkVersion(info.libName, lib.Version(), info.semverRange)
 			if err != nil {
 				return err
 			}
+		} else {
+			log.Println("[DEBUG] unable to determine current version of package", pkg, "in LibRegistry", LibRegistry)
+		}
+
+		// Correct the configuration to reduce drift
+		err = i.updateConfiguration(dst, pkg, info)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -609,5 +609,5 @@ func (d *defaultHasher) hash(src string) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
+	return hex.EncodeToString(h.Sum(nil)), nil
 }

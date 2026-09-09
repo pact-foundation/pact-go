@@ -1,6 +1,6 @@
 package v4
 
-type Metadata map[string]interface{}
+type Metadata map[string]any
 
 // AsynchronousMessage is a representation of a single, unidirectional message
 // e.g. MQ, pub/sub, Websocket, Lambda
@@ -18,7 +18,7 @@ type MessageContents struct {
 
 	// Body is the attempt to reify the message body back into a specified type
 	// Not populated for synchronous  messages
-	Body interface{} `json:"contents"`
+	Body any `json:"contents"`
 
 	// Message metadata. Currently not populated for synchronous messages
 	// Metadata field (type Metadata): `json:"metadata"`

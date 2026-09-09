@@ -23,7 +23,7 @@ func interactionGiven(handle C.InteractionHandle, state string) {
 // reason as interactionGiven above. It handles the full params map in one call
 // so that the state C string is allocated only once, matching the performance
 // of the original inline implementation.
-func interactionGivenWithParams(handle C.InteractionHandle, state string, params map[string]interface{}) {
+func interactionGivenWithParams(handle C.InteractionHandle, state string, params map[string]any) {
 	cState := C.CString(state)
 	defer free(cState)
 

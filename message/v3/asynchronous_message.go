@@ -2,6 +2,7 @@ package v3
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -27,7 +28,7 @@ type AsynchronousMessageBuilder struct {
 
 	// Type to Marshal content into when sending back to the consumer
 	// Defaults to interface{}
-	Type interface{}
+	Type any
 
 	// The handler for this message
 	handler AsynchronousConsumer
@@ -94,7 +95,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string,
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed.
-func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interface{}) *AsynchronousMessageBuilderWithContents {
+func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content any) *AsynchronousMessageBuilderWithContents {
 	m.rootBuilder.messageHandle.WithRequestJSONContents(content)
 
 	return &AsynchronousMessageBuilderWithContents{
@@ -104,7 +105,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interfa
 
 // // AsType specifies that the content sent through to the
 // consumer handler should be sent as the given type.
-func (m *AsynchronousMessageBuilderWithContents) AsType(t interface{}) *AsynchronousMessageBuilderWithContents {
+func (m *AsynchronousMessageBuilderWithContents) AsType(t any) *AsynchronousMessageBuilderWithContents {
 	log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
 	m.rootBuilder.Type = t
 
@@ -170,6 +171,7 @@ func (p *AsynchronousPact) validateConfig() error {
 }
 
 // AddMessage creates a new asynchronous consumer expectation
+//
 // Deprecated: use AddAsynchronousMessage() instead.
 func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 	return p.AddAsynchronousMessage()
@@ -179,7 +181,7 @@ func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder {
 	log.Println("[DEBUG] add message")
 
-	message := p.messageserver.NewMessage()
+	message := p.messageserver.NewAsyncMessageInteraction("")
 
 	m := &AsynchronousMessageBuilder{
 		messageHandle: message,
@@ -203,7 +205,7 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 	body, err := messageToVerify.messageHandle.GetMessageRequestContents()
 	log.Println("[DEBUG] reified message raw", string(body))
 	if err != nil {
-		return fmt.Errorf("unexpected response from message server, this is a bug in the framework")
+		return errors.New("unexpected response from message server, this is a bug in the framework")
 	}
 
 	log.Println("[DEBUG] reified message raw", string(body))

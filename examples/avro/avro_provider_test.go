@@ -1,5 +1,4 @@
 //go:build provider
-// +build provider
 
 package avro
 
@@ -16,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var pactDir = fmt.Sprintf("%s/../pacts", dir)
+var pactDir = dir + "/../pacts"
 
 func TestAvroHTTPProvider(t *testing.T) {
 	httpPort, _ := utils.GetFreePort()
@@ -31,7 +30,7 @@ func TestAvroHTTPProvider(t *testing.T) {
 		ProviderBaseURL: fmt.Sprintf("http://127.0.0.1:%d", httpPort),
 		Provider:        "AvroProvider",
 		PactFiles: []string{
-			filepath.ToSlash(fmt.Sprintf("%s/AvroConsumer-AvroProvider.json", pactDir)),
+			filepath.ToSlash(pactDir + "/AvroConsumer-AvroProvider.json"),
 		},
 	})
 
@@ -51,15 +50,15 @@ func startHTTPProvider(port int) {
 		}
 
 		codec := getCodec()
-		binary, err := codec.BinaryFromNative(nil, map[string]interface{}{
+		binary, err := codec.BinaryFromNative(nil, map[string]any{
 			"id":       user.ID,
 			"username": user.Username,
 		})
 		if err != nil {
 			log.Println("ERROR: ", err)
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 		} else {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			_, writeErr := w.Write(binary)
 			if writeErr != nil {
 				log.Println("ERROR writing response body: ", writeErr)

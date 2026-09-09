@@ -1,10 +1,8 @@
 //go:build consumer
-// +build consumer
 
 package protobuf
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,11 +18,11 @@ func TestPluginMessageConsumer(t *testing.T) {
 	p, _ := message.NewAsynchronousPact(message.Config{
 		Consumer: "protobufmessageconsumer",
 		Provider: "protobufmessageprovider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		PactDir:  filepath.ToSlash(dir + "/../pacts"),
 	})
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/../grpc/routeguide/route_guide.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/../grpc/routeguide/route_guide.proto"
 
 	protoMessage := `{
 		"pact:proto": "` + path + `",

@@ -26,7 +26,7 @@ type AsynchronousMessageBuilder struct {
 
 	// Type to Marshal content into when sending back to the consumer
 	// Defaults to interface{}
-	Type interface{}
+	Type any
 
 	// The handler for this message
 	handler AsynchronousConsumer
@@ -120,8 +120,8 @@ func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integr
 	return s.rootBuilder.pact.messageserver.WritePactFile(s.rootBuilder.pact.config.PactDir, false)
 }
 
-func (s *AsynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]interface{}) *AsynchronousMessageWithTransport {
-	port, err := s.rootBuilder.pact.messageserver.StartTransport(transport, address, 0, make(map[string][]interface{}))
+func (s *AsynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]any) *AsynchronousMessageWithTransport {
+	port, err := s.rootBuilder.pact.messageserver.StartTransport(transport, address, 0, make(map[string][]any))
 	if err != nil {
 		log.Fatalln("unable to start plugin transport:", err)
 	}
@@ -186,7 +186,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithContent(contentType string,
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed.
-func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interface{}) *AsynchronousMessageWithContents {
+func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content any) *AsynchronousMessageWithContents {
 	m.rootBuilder.messageHandle.WithRequestJSONContents(content)
 
 	return &AsynchronousMessageWithContents{
@@ -196,7 +196,7 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithJSONContent(content interfa
 
 // AsType specifies that the content sent through to the
 // consumer handler should be sent as the given type.
-func (m *AsynchronousMessageWithContents) AsType(t interface{}) *AsynchronousMessageWithContents {
+func (m *AsynchronousMessageWithContents) AsType(t any) *AsynchronousMessageWithContents {
 	log.Println("[DEBUG] setting Message decoding to type:", reflect.TypeOf(t))
 	m.rootBuilder.Type = t
 
@@ -260,6 +260,7 @@ func (p *AsynchronousPact) validateConfig() error {
 }
 
 // AddMessage creates a new asynchronous consumer expectation
+//
 // Deprecated: use AddAsynchronousMessage() instead.
 func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 	return p.AddAsynchronousMessage()
@@ -269,7 +270,7 @@ func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder {
 	log.Println("[DEBUG] add message")
 
-	message := p.messageserver.NewMessage()
+	message := p.messageserver.NewAsyncMessageInteraction("")
 
 	return &AsynchronousMessageBuilder{
 		messageHandle: message,
@@ -325,7 +326,7 @@ func getAsynchronousMessageWithContents(message *native.Message) (AsynchronousMe
 	}, nil
 }
 
-func getAsynchronousMessageWithReifiedContents(message *native.Message, reifiedType interface{}) (AsynchronousMessage, error) {
+func getAsynchronousMessageWithReifiedContents(message *native.Message, reifiedType any) (AsynchronousMessage, error) {
 	var m AsynchronousMessage
 	var err error
 

@@ -185,7 +185,7 @@ func TestMatcher_EachLikeArray(t *testing.T) {
 }
 
 func TestMatcher_EachLikeGetValue(t *testing.T) {
-	expected := []interface{}{"42"}
+	expected := []any{"42"}
 	match := EachLike("42", 1).GetValue()
 
 	assert.Equal(t, expected, match)
@@ -342,7 +342,7 @@ func TestMatcher_NestAllTheThings(t *testing.T) {
 }
 
 // Format a JSON document to make comparison easier.
-func formatJSON(object interface{}) interface{} {
+func formatJSON(object any) any {
 	var out bytes.Buffer
 	switch content := object.(type) {
 	case string:
@@ -352,7 +352,7 @@ func formatJSON(object interface{}) interface{} {
 		if err != nil {
 			log.Println("[ERROR] unable to marshal json:", err)
 		}
-		_ = json.Indent(&out, []byte(jsonString), "", "\t")
+		_ = json.Indent(&out, jsonString, "", "\t")
 	}
 
 	return out.String()
@@ -360,7 +360,7 @@ func formatJSON(object interface{}) interface{} {
 
 // Instrument the StructMatcher type to be able to assert the
 // values and regexs contained within!
-func getMatcherValue(m interface{}) interface{} {
+func getMatcherValue(m any) any {
 	mString := objectToString(m)
 
 	// try like
@@ -383,12 +383,12 @@ func getMatcherValue(m interface{}) interface{} {
 func TestMatcher_SugarMatchers(t *testing.T) {
 	type matcherTestCase struct {
 		matcher  Matcher
-		testCase func(val interface{}) error
+		testCase func(val any) error
 	}
 	matchers := map[string]matcherTestCase{
 		"HexValue": {
 			matcher: HexValue(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				s, valid := v.(string)
 				if !valid || s != "3F" {
 					err = fmt.Errorf("want '3F', got '%v'", reflect.TypeOf(v))
@@ -398,7 +398,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"Identifier": {
 			matcher: Identifier(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
 				if !valid {
 					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
@@ -408,7 +408,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"Integer": {
 			matcher: Integer(1),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
 				if !valid {
 					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
@@ -418,7 +418,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"IPAddress": {
 			matcher: IPAddress(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				s, valid := v.(string)
 				if !valid || s != "127.0.0.1" {
 					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
@@ -428,7 +428,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"IPv4Address": {
 			matcher: IPv4Address(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				s, valid := v.(string)
 				if !valid || s != "127.0.0.1" {
 					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
@@ -438,7 +438,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"IPv6Address": {
 			matcher: IPv6Address(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				s, valid := v.(string)
 				if !valid || s != "::ffff:192.0.2.128" {
 					err = fmt.Errorf("want '::ffff:192.0.2.128', got '%v'", reflect.TypeOf(v))
@@ -448,7 +448,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"Decimal": {
 			matcher: Decimal(27.3),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				_, valid := v.(float64)
 				if !valid {
 					err = fmt.Errorf("want float64, got '%v'", reflect.TypeOf(v))
@@ -458,7 +458,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"Timestamp": {
 			matcher: Timestamp(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				_, valid := v.(string)
 				if !valid {
 					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
@@ -468,7 +468,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"Date": {
 			matcher: Date(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				_, valid := v.(string)
 				if !valid {
 					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
@@ -478,7 +478,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"Time": {
 			matcher: Time(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				_, valid := v.(string)
 				if !valid {
 					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
@@ -488,7 +488,7 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 		},
 		"UUID": {
 			matcher: UUID(),
-			testCase: func(v interface{}) (err error) {
+			testCase: func(v any) (err error) {
 				s, valid := v.(string)
 				if !valid {
 					return fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
@@ -595,7 +595,7 @@ func TestMatch(t *testing.T) {
 	}
 	str := "str"
 	type args struct {
-		src interface{}
+		src any
 	}
 	tests := []struct {
 		name      string
@@ -822,7 +822,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "expected use - slice tag",
 			args: args{
-				srcType: reflect.TypeOf([]string{}),
+				srcType: reflect.TypeFor[[]string](),
 				pactTag: "min=2",
 			},
 			want: params{
@@ -838,7 +838,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "empty slice tag",
 			args: args{
-				srcType: reflect.TypeOf([]string{}),
+				srcType: reflect.TypeFor[[]string](),
 				pactTag: "",
 			},
 			want: getDefaults(),
@@ -846,7 +846,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid slice tag - no min",
 			args: args{
-				srcType: reflect.TypeOf([]string{}),
+				srcType: reflect.TypeFor[[]string](),
 				pactTag: "min=",
 			},
 			wantPanic: true,
@@ -854,7 +854,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid slice tag - min typo capital letter",
 			args: args{
-				srcType: reflect.TypeOf([]string{}),
+				srcType: reflect.TypeFor[[]string](),
 				pactTag: "Min=2",
 			},
 			wantPanic: true,
@@ -862,7 +862,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid slice tag - min typo non-number",
 			args: args{
-				srcType: reflect.TypeOf([]string{}),
+				srcType: reflect.TypeFor[[]string](),
 				pactTag: "min=a",
 			},
 			wantPanic: true,
@@ -870,7 +870,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "expected use - string tag",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=aBcD123,regex=[A-Za-z0-9]",
 			},
 			want: params{
@@ -886,7 +886,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "expected use - string tag with backslash",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=33,regex=\\d{2}",
 			},
 			want: params{
@@ -902,7 +902,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "expected use - string tag with complex string",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=Jean-Marie de La Beaujardière😀😍",
 			},
 			want: params{
@@ -917,7 +917,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "expected use - example with no regex",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=aBcD123",
 			},
 			want: params{
@@ -933,7 +933,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "empty string tag",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "",
 			},
 			want: getDefaults(),
@@ -941,7 +941,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid string tag - no example value",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=,regex=[A-Za-z0-9]",
 			},
 			wantPanic: true,
@@ -949,7 +949,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid string tag - no example",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "regex=[A-Za-z0-9]",
 			},
 			wantPanic: true,
@@ -957,7 +957,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid string tag - empty example",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=",
 			},
 			wantPanic: true,
@@ -965,7 +965,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid string tag - example typo",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "exmple=aBcD123,regex=[A-Za-z0-9]",
 			},
 			wantPanic: true,
@@ -973,7 +973,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid string tag - no regex value",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=aBcD123,regex=",
 			},
 			wantPanic: true,
@@ -981,7 +981,7 @@ func Test_pluckParams(t *testing.T) {
 		{
 			name: "invalid string tag - space inserted",
 			args: args{
-				srcType: reflect.TypeOf(""),
+				srcType: reflect.TypeFor[string](),
 				pactTag: "example=aBcD123 regex=[A-Za-z0-9]",
 			},
 			wantPanic: true,
