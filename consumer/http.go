@@ -91,42 +91,6 @@ type MockServerConfig struct {
 	TLSConfig *tls.Config
 }
 
-// configure validates the configuration for the consumer test.
-func (p *httpMockProvider) configure() error {
-	log.Println("[DEBUG] pact setup")
-	dir, _ := os.Getwd()
-
-	if p.config.Host == "" {
-		p.config.Host = "127.0.0.1"
-	}
-
-	if p.config.LogDir == "" {
-		p.config.LogDir = filepath.Join(dir, "logs")
-	}
-
-	if p.config.PactDir == "" {
-		p.config.PactDir = filepath.Join(dir, "pacts")
-	}
-
-	if p.config.ClientTimeout == 0 {
-		p.config.ClientTimeout = 10 * time.Second
-	}
-
-	p.mockserver = native.NewHTTPPact(p.config.Consumer, p.config.Provider)
-	p.mockserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
-	switch p.specificationVersion {
-	case models.V2:
-		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)
-	case models.V3:
-		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V3)
-	case models.V4:
-		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
-	}
-	native.Init(string(logging.LogLevel()))
-
-	return nil
-}
-
 // ExecuteTest runs the current test case against a Mock Service.
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful.
@@ -176,6 +140,42 @@ func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockSe
 	p.mockserver.CleanupPlugins()
 
 	return p.writePact()
+}
+
+// configure validates the configuration for the consumer test.
+func (p *httpMockProvider) configure() error {
+	log.Println("[DEBUG] pact setup")
+	dir, _ := os.Getwd()
+
+	if p.config.Host == "" {
+		p.config.Host = "127.0.0.1"
+	}
+
+	if p.config.LogDir == "" {
+		p.config.LogDir = filepath.Join(dir, "logs")
+	}
+
+	if p.config.PactDir == "" {
+		p.config.PactDir = filepath.Join(dir, "pacts")
+	}
+
+	if p.config.ClientTimeout == 0 {
+		p.config.ClientTimeout = 10 * time.Second
+	}
+
+	p.mockserver = native.NewHTTPPact(p.config.Consumer, p.config.Provider)
+	p.mockserver.WithMetadata("pact-go", "version", strings.TrimPrefix(command.Version, "v"))
+	switch p.specificationVersion {
+	case models.V2:
+		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V2)
+	case models.V3:
+		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V3)
+	case models.V4:
+		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
+	}
+	native.Init(string(logging.LogLevel()))
+
+	return nil
 }
 
 // Clear state between tests.

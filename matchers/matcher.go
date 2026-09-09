@@ -35,16 +35,15 @@ func (m eachLike) GetValue() any {
 	return m.Value
 }
 
-func (m eachLike) isMatcher() {
+func (m eachLike) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type  string `json:"pact:matcher:type"`
+		Value any    `json:"value"`
+		Min   int    `json:"min"`
+	}{"type", m.Value, m.Min})
 }
 
-func (m eachLike) MarshalJSON() ([]byte, error) {
-	type marshaler eachLike
-
-	return json.Marshal(struct {
-		Type string `json:"pact:matcher:type"`
-		marshaler
-	}{"type", marshaler(m)})
+func (m eachLike) isMatcher() {
 }
 
 type like struct {
@@ -70,16 +69,15 @@ func (m term) GetValue() any {
 	return m.Value
 }
 
-func (m term) isMatcher() {
+func (m term) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type  string `json:"pact:matcher:type"`
+		Value string `json:"value"`
+		Regex string `json:"regex"`
+	}{"regex", m.Value, m.Regex})
 }
 
-func (m term) MarshalJSON() ([]byte, error) {
-	type marshaler term
-
-	return json.Marshal(struct {
-		Type string `json:"pact:matcher:type"`
-		marshaler
-	}{"regex", marshaler(m)})
+func (m term) isMatcher() {
 }
 
 // EachLike specifies that a given element in a JSON body can be repeated
@@ -189,27 +187,25 @@ type Matcher interface {
 // we aren't using an alias here.
 type S string
 
-func (s S) isMatcher() {}
-
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context.
 func (s S) GetValue() any {
 	return s
 }
 
-func (s S) string() string {
-	return string(s)
-}
-
 func (s S) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.string())
+}
+
+func (s S) isMatcher() {}
+
+func (s S) string() string {
+	return string(s)
 }
 
 // String is the longer named form of the string primitive wrapper,
 // it allows plain strings to be matched.
 type String string
-
-func (s String) isMatcher() {}
 
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context.
@@ -217,25 +213,27 @@ func (s String) GetValue() any {
 	return s
 }
 
-func (s String) string() string {
-	return string(s)
-}
-
 func (s String) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.string())
+}
+
+func (s String) isMatcher() {}
+
+func (s String) string() string {
+	return string(s)
 }
 
 // StructMatcher matches a complex object structure, which may itself
 // contain nested Matchers.
 type StructMatcher map[string]any
 
-func (m StructMatcher) isMatcher() {}
-
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context.
 func (m StructMatcher) GetValue() any {
 	return nil
 }
+
+func (m StructMatcher) isMatcher() {}
 
 // MapMatcher allows a map[string]string-like object
 // to also contain complex matchers.
@@ -246,11 +244,11 @@ type (
 
 // UnmarshalJSON is a custom JSON parser for MapMatcher
 // It treats the matchers as strings.
-func (m *MapMatcher) UnmarshalJSON(bytes []byte) (err error) {
+func (m *MapMatcher) UnmarshalJSON(bytes []byte) error {
 	sk := make(map[string]string)
-	err = json.Unmarshal(bytes, &sk)
+	err := json.Unmarshal(bytes, &sk)
 	if err != nil {
-		return
+		return err
 	}
 
 	*m = make(map[string]Matcher)
@@ -258,7 +256,7 @@ func (m *MapMatcher) UnmarshalJSON(bytes []byte) (err error) {
 		(*m)[k] = String(v)
 	}
 
-	return
+	return nil
 }
 
 type (

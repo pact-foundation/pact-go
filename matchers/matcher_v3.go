@@ -32,17 +32,14 @@ func (n Null) GetValue() any {
 	return nil
 }
 
-func (n Null) isMatcher() {}
-
 func (n Null) MarshalJSON() ([]byte, error) {
-	type marshaler Null
-
 	return json.Marshal(struct {
 		Specification models.SpecificationVersion `json:"pact:specification"`
 		Type          string                      `json:"pact:matcher:type"`
-		marshaler
-	}{models.V3, "null", marshaler(n)})
+	}{models.V3, "null"})
 }
+
+func (n Null) isMatcher() {}
 
 // equality resets matching cascades back to equality
 // see https://github.com/pact-foundation/pact-specification/tree/version-3#add-an-equality-matcher
