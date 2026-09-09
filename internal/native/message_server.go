@@ -13,17 +13,22 @@ import (
 	"unsafe"
 )
 
+// MessagePact is a Go representation of the message-based PactHandle struct.
 type MessagePact struct {
 	handle C.PactHandle
 }
 
 type messageType int
 
+// Whether a Message was created as an asynchronous or synchronous
+// (request/response) message interaction.
 const (
 	MESSAGE_TYPE_ASYNC messageType = iota
 	MESSAGE_TYPE_SYNC
 )
 
+// Message is a single message interaction on a MessageServer, either
+// asynchronous (one body) or synchronous (a request/response pair).
 type Message struct {
 	handle      C.InteractionHandle
 	messageType messageType
@@ -38,7 +43,8 @@ type MessageServer struct {
 	messages    []*Message
 }
 
-// NewMessage initialises a new message for the current contract.
+// NewMessageServer creates a new message-based Pact for a given
+// consumer/provider.
 func NewMessageServer(consumer string, provider string) *MessageServer {
 	cConsumer := C.CString(consumer)
 	cProvider := C.CString(provider)
@@ -48,7 +54,9 @@ func NewMessageServer(consumer string, provider string) *MessageServer {
 	return &MessageServer{messagePact: &MessagePact{handle: C.pactffi_new_message_pact(cConsumer, cProvider)}}
 }
 
-// Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version.
+// WithMetadata sets additional metadata on the Pact file, grouped under
+// namespace. Common uses are to add client library details such as the
+// name and version.
 func (m *MessageServer) WithMetadata(namespace, k, v string) *MessageServer {
 	cNamespace := C.CString(namespace)
 	defer free(cNamespace)
@@ -104,16 +112,21 @@ func (m *MessageServer) NewAsyncMessageInteraction(description string) *Message 
 	return i
 }
 
+// WithSpecificationVersion sets the Pact specification version this
+// message pact is written and verified against.
 func (m *MessageServer) WithSpecificationVersion(version specificationVersion) {
 	C.pactffi_with_specification(m.messagePact.handle, C.int(version))
 }
 
+// Given adds a provider state that must hold for this message.
 func (m *Message) Given(state string) *Message {
 	interactionGiven(m.handle, state)
 
 	return m
 }
 
+// GivenWithParameter adds a provider state, parameterised by params, that
+// must hold for this message.
 func (m *Message) GivenWithParameter(state string, params map[string]any) *Message {
 	if len(params) == 0 {
 		interactionGiven(m.handle, state)
@@ -124,6 +137,7 @@ func (m *Message) GivenWithParameter(state string, params map[string]any) *Messa
 	return m
 }
 
+// ExpectsToReceive sets the description of this message interaction.
 func (m *Message) ExpectsToReceive(description string) *Message {
 	cDescription := C.CString(description)
 	defer free(cDescription)
@@ -133,6 +147,8 @@ func (m *Message) ExpectsToReceive(description string) *Message {
 	return m
 }
 
+// WithMetadata sets metadata key/value pairs to expect alongside this
+// message's contents.
 func (m *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 	for k, v := range valueOrMatcher {
 		cName := C.CString(k)
@@ -152,6 +168,8 @@ func (m *Message) WithMetadata(valueOrMatcher map[string]string) *Message {
 	return m
 }
 
+// WithRequestMetadata sets metadata key/value pairs to expect on the
+// request half of this synchronous message.
 func (m *Message) WithRequestMetadata(valueOrMatcher map[string]string) *Message {
 	for k, v := range valueOrMatcher {
 		cName := C.CString(k)
@@ -166,6 +184,8 @@ func (m *Message) WithRequestMetadata(valueOrMatcher map[string]string) *Message
 	return m
 }
 
+// WithResponseMetadata sets metadata key/value pairs to expect on the
+// response half of this synchronous message.
 func (m *Message) WithResponseMetadata(valueOrMatcher map[string]string) *Message {
 	for k, v := range valueOrMatcher {
 		cName := C.CString(k)
@@ -180,6 +200,8 @@ func (m *Message) WithResponseMetadata(valueOrMatcher map[string]string) *Messag
 	return m
 }
 
+// WithRequestBinaryContents sets the request contents of this message to
+// body, with an application/octet-stream content type.
 func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 	cHeader := C.CString("application/octet-stream")
 	defer free(cHeader)
@@ -192,6 +214,8 @@ func (m *Message) WithRequestBinaryContents(body []byte) *Message {
 	return m
 }
 
+// WithRequestBinaryContentType sets the request contents of this message
+// to body, with the given content type.
 func (m *Message) WithRequestBinaryContentType(contentType string, body []byte) *Message {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
@@ -204,6 +228,8 @@ func (m *Message) WithRequestBinaryContentType(contentType string, body []byte) 
 	return m
 }
 
+// WithRequestJSONContents JSON-encodes body (which may contain matchers)
+// as the request contents of this message.
 func (m *Message) WithRequestJSONContents(body any) *Message {
 	value := stringFromInterface(body)
 
@@ -212,6 +238,9 @@ func (m *Message) WithRequestJSONContents(body any) *Message {
 	return m.WithContents(INTERACTION_PART_REQUEST, "application/json", []byte(value))
 }
 
+// WithResponseBinaryContents sets the response contents of this
+// synchronous message to body, with an application/octet-stream content
+// type.
 func (m *Message) WithResponseBinaryContents(body []byte) *Message {
 	cHeader := C.CString("application/octet-stream")
 	defer free(cHeader)
@@ -222,6 +251,8 @@ func (m *Message) WithResponseBinaryContents(body []byte) *Message {
 	return m
 }
 
+// WithResponseJSONContents JSON-encodes body (which may contain matchers)
+// as the response contents of this synchronous message.
 func (m *Message) WithResponseJSONContents(body any) *Message {
 	value := stringFromInterface(body)
 
@@ -230,7 +261,9 @@ func (m *Message) WithResponseJSONContents(body any) *Message {
 	return m.WithContents(INTERACTION_PART_RESPONSE, "application/json", []byte(value))
 }
 
-// Note that string values here must be NUL terminated.
+// WithContents sets the request or response contents of this message to
+// body with the given content type. Note that string values here must be
+// NUL terminated.
 func (m *Message) WithContents(part interactionPart, contentType string, body []byte) *Message {
 	cHeader := C.CString(contentType)
 	defer free(cHeader)
@@ -246,7 +279,9 @@ func (m *Message) WithContents(part interactionPart, contentType string, body []
 
 // TODO: migrate plugin code to shared struct/code?
 
-// NewInteraction initialises a new interaction for the current contract.
+// UsingPlugin loads a pact_ffi plugin by name and version so subsequent
+// messages on this pact can use plugin-provided matchers and content
+// types (e.g. protobuf, gRPC).
 func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) error {
 	cPluginName := C.CString(pluginName)
 	defer free(cPluginName)
@@ -275,7 +310,9 @@ func (m *MessageServer) UsingPlugin(pluginName string, pluginVersion string) err
 	return nil
 }
 
-// NewInteraction initialises a new interaction for the current contract.
+// WithPluginInteractionContents sets the request or response contents of
+// this message from a plugin-provided contentType (e.g. a protobuf
+// message type), delegating the encoding to the loaded plugin.
 func (m *Message) WithPluginInteractionContents(part interactionPart, contentType string, contents string) error {
 	cContentType := C.CString(contentType)
 	defer free(cContentType)
@@ -301,7 +338,7 @@ func (m *Message) WithPluginInteractionContents(part interactionPart, contentTyp
 	case 4:
 		return ErrPluginInvalidContentType
 	case 5:
-		return ErrPluginInvalidJson
+		return ErrPluginInvalidJSON
 	case 6:
 		return ErrPluginSpecificError
 	default:
@@ -313,10 +350,10 @@ func (m *Message) WithPluginInteractionContents(part interactionPart, contentTyp
 	return nil
 }
 
-// GetMessageContents retreives the binary contents of the request for a given message
-// any matchers are stripped away if given
-// if the contents is from a plugin, the byte[] representation of the parsed
-// plugin data is returned, again, with any matchers etc. removed.
+// GetMessageRequestContents retrieves the binary contents of the request
+// for a given message; any matchers are stripped away if given. If the
+// contents are from a plugin, the byte[] representation of the parsed
+// plugin data is returned, again with any matchers etc. removed.
 func (m *Message) GetMessageRequestContents() ([]byte, error) {
 	log.Println("[DEBUG] GetMessageRequestContents")
 	if m.messageType == MESSAGE_TYPE_ASYNC {
@@ -347,14 +384,14 @@ func (m *Message) GetMessageResponseContents() ([][]byte, error) {
 		}
 
 		// Get Response body
-		len := C.pactffi_sync_message_get_response_contents_length(message, C.size_t(i))
-		if len != 0 {
+		contentsLen := C.pactffi_sync_message_get_response_contents_length(message, C.size_t(i))
+		if contentsLen != 0 {
 			data := C.pactffi_sync_message_get_response_contents_bin(message, C.size_t(i))
 			if data == nil {
 				return nil, errors.New("retrieved an empty pointer to the message contents")
 			}
 			ptr := unsafe.Pointer(data)
-			bytes := C.GoBytes(ptr, C.int(len))
+			bytes := C.GoBytes(ptr, C.int(contentsLen))
 			responses[i] = bytes
 		}
 	}
@@ -376,8 +413,8 @@ func (m *MessageServer) StartTransport(transport string, address string, port in
 	cTransport := C.CString(transport)
 	defer free(cTransport)
 
-	configJson := stringFromInterface(config)
-	cConfig := C.CString(configJson)
+	configJSON := stringFromInterface(config)
+	cConfig := C.CString(configJSON)
 	defer free(cConfig)
 
 	p := C.pactffi_create_mock_server_for_transport(m.messagePact.handle, cAddress, C.ushort(port), cTransport, cConfig)
@@ -411,7 +448,7 @@ func (m *MessageServer) StartTransport(transport string, address string, port in
 	}
 }
 
-// NewInteraction initialises a new interaction for the current contract.
+// CleanupPlugins releases the plugins loaded on this pact via UsingPlugin.
 func (m *MessageServer) CleanupPlugins() {
 	C.pactffi_cleanup_plugins(m.messagePact.handle)
 }
@@ -451,8 +488,8 @@ func (m *MessageServer) MockServerMismatchedRequests(port int) []MismatchedReque
 	return res
 }
 
-// MockServerMismatchedRequests returns a JSON object containing any mismatches from
-// the last set of interactions.
+// MockServerMatched reports whether every interaction registered against
+// the mock server on port was matched by an actual request.
 func (m *MessageServer) MockServerMatched(port int) bool {
 	log.Println("[DEBUG] mock server determining mismatches:", port)
 
@@ -491,7 +528,8 @@ func (m *MessageServer) WritePactFile(dir string, overwrite bool) error {
 	}
 }
 
-// WritePactFile writes the Pact to file.
+// WritePactFileForServer writes the Pact for the mock server running on
+// port to dir, optionally overwriting an existing file.
 func (m *MessageServer) WritePactFileForServer(port int, dir string, overwrite bool) error {
 	log.Println("[DEBUG] writing pact file for message pact at dir:", dir)
 	cDir := C.CString(dir)
@@ -565,9 +603,9 @@ func (m *Message) getAsyncMessageRequestContents() ([]byte, error) {
 			return nil, errors.New("retrieved a null message pointer")
 		}
 
-		len := C.pactffi_message_get_contents_length(message)
-		log.Println("[DEBUG] pactffi_message_get_contents_length - len", len)
-		if len == 0 {
+		contentsLen := C.pactffi_message_get_contents_length(message)
+		log.Println("[DEBUG] pactffi_message_get_contents_length - len", contentsLen)
+		if contentsLen == 0 {
 			// You can have empty bodies
 			log.Println("[DEBUG] message body is empty")
 			return nil, nil
@@ -580,7 +618,7 @@ func (m *Message) getAsyncMessageRequestContents() ([]byte, error) {
 			return nil, nil
 		}
 		ptr := unsafe.Pointer(data)
-		bytes := C.GoBytes(ptr, C.int(len))
+		bytes := C.GoBytes(ptr, C.int(contentsLen))
 
 		return bytes, nil
 	}
@@ -607,8 +645,8 @@ func (m *Message) getSyncMessageRequestContents() ([]byte, error) {
 			return nil, errors.New("retrieved a null message pointer")
 		}
 
-		len := C.pactffi_sync_message_get_request_contents_length(message)
-		if len == 0 {
+		contentsLen := C.pactffi_sync_message_get_request_contents_length(message)
+		if contentsLen == 0 {
 			log.Println("[DEBUG] message body is empty")
 			return nil, nil
 		}
@@ -618,7 +656,7 @@ func (m *Message) getSyncMessageRequestContents() ([]byte, error) {
 			return nil, nil
 		}
 		ptr := unsafe.Pointer(data)
-		bytes := C.GoBytes(ptr, C.int(len))
+		bytes := C.GoBytes(ptr, C.int(contentsLen))
 
 		return bytes, nil
 	}

@@ -47,6 +47,9 @@ func (p *V2HTTPMockProvider) AddInteraction() *V2UnconfiguredInteraction {
 	return i
 }
 
+// V2UnconfiguredInteraction is a V2 interaction with none of its provider
+// state, description or request configured yet, started from
+// V2HTTPMockProvider.AddInteraction.
 type V2UnconfiguredInteraction struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
@@ -59,13 +62,20 @@ func (i *V2UnconfiguredInteraction) Given(state string) *V2UnconfiguredInteracti
 	return i
 }
 
+// V2InteractionWithRequest is a V2 interaction with its request
+// configured, ready to set the expected response status via
+// WillRespondWith.
 type V2InteractionWithRequest struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
 }
 
+// V2RequestBuilderFunc configures the expected request of a V2
+// interaction, as passed to V2UnconfiguredInteraction.WithRequest.
 type V2RequestBuilderFunc func(*V2RequestBuilder)
 
+// V2RequestBuilder configures the query, headers and body of the request
+// a V2 interaction expects.
 type V2RequestBuilder struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
@@ -79,7 +89,8 @@ func (i *V2UnconfiguredInteraction) UponReceiving(description string) *V2Unconfi
 	return i
 }
 
-// WithRequest provides a builder for the expected request.
+// WithCompleteRequest sets the entire expected request from a pre-built
+// Request, as an alternative to the builder-style WithRequest.
 func (i *V2UnconfiguredInteraction) WithCompleteRequest(request Request) *V2InteractionWithCompleteRequest {
 	i.interaction.WithCompleteRequest(request)
 
@@ -89,12 +100,17 @@ func (i *V2UnconfiguredInteraction) WithCompleteRequest(request Request) *V2Inte
 	}
 }
 
+// V2InteractionWithCompleteRequest is a V2 interaction whose request was
+// set via WithCompleteRequest, ready to set the expected response via
+// WithCompleteResponse.
 type V2InteractionWithCompleteRequest struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
 }
 
-// WithRequest provides a builder for the expected request.
+// WithCompleteResponse sets the entire expected response from a
+// pre-built Response, as an alternative to the builder-style
+// WillRespondWith.
 func (i *V2InteractionWithCompleteRequest) WithCompleteResponse(response Response) *V2InteractionWithResponse {
 	i.interaction.WithCompleteResponse(response)
 
@@ -225,13 +241,19 @@ func (i *V2InteractionWithRequest) WillRespondWith(status int, builders ...V2Res
 	}
 }
 
+// V2ResponseBuilderFunc configures the expected response of a V2
+// interaction, as passed to V2InteractionWithRequest.WillRespondWith.
 type V2ResponseBuilderFunc func(*V2ResponseBuilder)
 
+// V2ResponseBuilder configures the headers and body of the response a V2
+// interaction returns.
 type V2ResponseBuilder struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider
 }
 
+// V2InteractionWithResponse is a fully configured V2 interaction, ready
+// to run via ExecuteTest.
 type V2InteractionWithResponse struct {
 	interaction *Interaction
 	provider    *V2HTTPMockProvider

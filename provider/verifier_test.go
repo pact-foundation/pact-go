@@ -19,7 +19,7 @@ import (
 // touch the response and must delegate straight to next.
 func TestStateHandlerMiddleware_PassThrough(t *testing.T) {
 	nextCalled := false
-	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		nextCalled = true
 		w.WriteHeader(http.StatusTeapot)
 	})
@@ -53,7 +53,7 @@ func TestStateHandlerMiddleware_InvalidPayload(t *testing.T) {
 func TestStateHandlerMiddleware_StateNotFound(t *testing.T) {
 	handlerCalled := false
 	handlers := models.StateHandlers{
-		"a different state": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"a different state": func(_ bool, _ models.ProviderState) (models.ProviderStateResponse, error) {
 			handlerCalled = true
 			return nil, nil
 		},
@@ -105,7 +105,7 @@ func TestStateHandlerMiddleware_TeardownNoAfterEach(t *testing.T) {
 	var gotSetup bool
 	handlerCalled := false
 	handlers := models.StateHandlers{
-		"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"User foo exists": func(setup bool, _ models.ProviderState) (models.ProviderStateResponse, error) {
 			handlerCalled = true
 			gotSetup = setup
 			return nil, nil
@@ -129,7 +129,7 @@ func TestStateHandlerMiddleware_TeardownNoAfterEach(t *testing.T) {
 func TestStateHandlerMiddleware_TeardownAfterEachSucceeds(t *testing.T) {
 	afterEachCalled := false
 	handlers := models.StateHandlers{
-		"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"User foo exists": func(_ bool, _ models.ProviderState) (models.ProviderStateResponse, error) {
 			return nil, nil
 		},
 	}
@@ -153,7 +153,7 @@ func TestStateHandlerMiddleware_TeardownAfterEachSucceeds(t *testing.T) {
 // respond 500 and must not fall through to the trailing 200.
 func TestStateHandlerMiddleware_TeardownAfterEachErrors(t *testing.T) {
 	handlers := models.StateHandlers{
-		"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"User foo exists": func(_ bool, _ models.ProviderState) (models.ProviderStateResponse, error) {
 			return nil, nil
 		},
 	}
@@ -174,7 +174,7 @@ func TestStateHandlerMiddleware_TeardownAfterEachErrors(t *testing.T) {
 // state handler itself returns an error: the middleware must respond 500.
 func TestStateHandlerMiddleware_HandlerErrors(t *testing.T) {
 	handlers := models.StateHandlers{
-		"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"User foo exists": func(_ bool, _ models.ProviderState) (models.ProviderStateResponse, error) {
 			return nil, errors.New("state handler boom")
 		},
 	}
@@ -196,7 +196,7 @@ func TestStateHandlerMiddleware_HandlerErrors(t *testing.T) {
 // w.WriteHeader(http.StatusOK) used by the other success paths.
 func TestStateHandlerMiddleware_ReturnsProviderStateValues(t *testing.T) {
 	handlers := models.StateHandlers{
-		"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"User foo exists": func(_ bool, _ models.ProviderState) (models.ProviderStateResponse, error) {
 			return models.ProviderStateResponse{"uuid": "1234"}, nil
 		},
 	}
@@ -222,7 +222,7 @@ func TestStateHandlerMiddleware_ReturnsProviderStateValues(t *testing.T) {
 func TestStateHandlerMiddleware_ParamsExtracted(t *testing.T) {
 	var gotState models.ProviderState
 	handlers := models.StateHandlers{
-		"User foo exists": func(setup bool, s models.ProviderState) (models.ProviderStateResponse, error) {
+		"User foo exists": func(_ bool, s models.ProviderState) (models.ProviderStateResponse, error) {
 			gotState = s
 			return nil, nil
 		},

@@ -45,7 +45,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 					"itemsMin": ArrayMinLike("thereshouldbe3ofthese", 3),
 				})
 		}).
-		ExecuteTest(t, func(msc MockServerConfig) error {
+		ExecuteTest(t, func(_ MockServerConfig) error {
 			// <- normally run the actually test here.
 
 			return nil
@@ -77,7 +77,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 					}
 				`)
 		}).
-		ExecuteTest(t, func(msc MockServerConfig) error {
+		ExecuteTest(t, func(_ MockServerConfig) error {
 			// <- normally run the actually test here.
 
 			return nil
@@ -95,8 +95,8 @@ func TestV4HTTPAddExternalReference(t *testing.T) {
 	err = p.AddInteraction().
 		UponReceiving("a request with an external reference").
 		AddExternalReference("Jira", "TICKET-123", "https://jira.example.com/browse/TICKET-123").
-		WithRequest("GET", "/", func(b *V4RequestBuilder) {}).
-		WillRespondWith(200, func(b *V4ResponseBuilder) {}).
+		WithRequest("GET", "/", func(_ *V4RequestBuilder) {}).
+		WillRespondWith(200, func(_ *V4ResponseBuilder) {}).
 		ExecuteTest(t, func(msc MockServerConfig) error {
 			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("http://%s:%d/", msc.Host, msc.Port), nil)
 			if err != nil {

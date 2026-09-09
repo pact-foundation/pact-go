@@ -47,6 +47,9 @@ func (p *V3HTTPMockProvider) AddInteraction() *V3UnconfiguredInteraction {
 	return i
 }
 
+// V3UnconfiguredInteraction is a V3 interaction with none of its provider
+// states, description or request configured yet, started from
+// V3HTTPMockProvider.AddInteraction.
 type V3UnconfiguredInteraction struct {
 	interaction *Interaction
 	provider    *V3HTTPMockProvider
@@ -70,13 +73,20 @@ func (i *V3UnconfiguredInteraction) GivenWithParameter(state models.ProviderStat
 	return i
 }
 
+// V3InteractionWithRequest is a V3 interaction with its request
+// configured, ready to set the expected response status via
+// WillRespondWith.
 type V3InteractionWithRequest struct {
 	interaction *Interaction
 	provider    *V3HTTPMockProvider
 }
 
+// V3RequestBuilderFunc configures the expected request of a V3
+// interaction, as passed to V3UnconfiguredInteraction.WithRequest.
 type V3RequestBuilderFunc func(*V3RequestBuilder)
 
+// V3RequestBuilder configures the query, headers and body of the request
+// a V3 interaction expects.
 type V3RequestBuilder struct {
 	interaction *Interaction
 	provider    *V3HTTPMockProvider
@@ -90,7 +100,8 @@ func (i *V3UnconfiguredInteraction) UponReceiving(description string) *V3Unconfi
 	return i
 }
 
-// WithRequest provides a builder for the expected request.
+// WithCompleteRequest sets the entire expected request from a pre-built
+// Request, as an alternative to the builder-style WithRequest.
 func (i *V3UnconfiguredInteraction) WithCompleteRequest(request Request) *V3InteractionWithCompleteRequest {
 	i.interaction.WithCompleteRequest(request)
 
@@ -100,12 +111,17 @@ func (i *V3UnconfiguredInteraction) WithCompleteRequest(request Request) *V3Inte
 	}
 }
 
+// V3InteractionWithCompleteRequest is a V3 interaction whose request was
+// set via WithCompleteRequest, ready to set the expected response via
+// WithCompleteResponse.
 type V3InteractionWithCompleteRequest struct {
 	interaction *Interaction
 	provider    *V3HTTPMockProvider
 }
 
-// WithRequest provides a builder for the expected request.
+// WithCompleteResponse sets the entire expected response from a
+// pre-built Response, as an alternative to the builder-style
+// WillRespondWith.
 func (i *V3InteractionWithCompleteRequest) WithCompleteResponse(response Response) *V3InteractionWithResponse {
 	i.interaction.WithCompleteResponse(response)
 
@@ -236,13 +252,19 @@ func (i *V3InteractionWithRequest) WillRespondWith(status int, builders ...V3Res
 	}
 }
 
+// V3ResponseBuilderFunc configures the expected response of a V3
+// interaction, as passed to V3InteractionWithRequest.WillRespondWith.
 type V3ResponseBuilderFunc func(*V3ResponseBuilder)
 
+// V3ResponseBuilder configures the headers and body of the response a V3
+// interaction returns.
 type V3ResponseBuilder struct {
 	interaction *Interaction
 	provider    *V3HTTPMockProvider
 }
 
+// V3InteractionWithResponse is a fully configured V3 interaction, ready
+// to run via ExecuteTest.
 type V3InteractionWithResponse struct {
 	interaction *Interaction
 	provider    *V3HTTPMockProvider

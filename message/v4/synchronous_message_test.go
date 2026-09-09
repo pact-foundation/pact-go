@@ -27,7 +27,7 @@ func TestSyncTypeSystem_NoPlugin(t *testing.T) {
 			r.WithJSONContent(map[string]string{"foo": "bar"})
 			r.WithMetadata(map[string]string{"meta_response": "meta_response_data"})
 		}).
-		ExecuteTest(t, func(m SynchronousMessage) error {
+		ExecuteTest(t, func(_ SynchronousMessage) error {
 			// In this scenario, we have no real transport, so we need to mock/handle both directions
 
 			// e.g. MQ use case -> write to a queue, get a response from another queue
@@ -58,7 +58,7 @@ func TestSyncAddExternalReference(t *testing.T) {
 		WithResponse(func(r *SynchronousMessageWithResponseBuilder) {
 			r.WithJSONContent(map[string]string{"response": "pong"})
 		}).
-		ExecuteTest(t, func(m SynchronousMessage) error {
+		ExecuteTest(t, func(_ SynchronousMessage) error {
 			return nil
 		})
 
@@ -92,7 +92,7 @@ func TestSyncTypeSystem_CsvPlugin_Matcher(t *testing.T) {
 			Version: "0.0.6",
 		}).
 		WithContents(csvInteraction, "text/csv").
-		ExecuteTest(t, func(m SynchronousMessage) error {
+		ExecuteTest(t, func(_ SynchronousMessage) error {
 			fmt.Println("Executing the CSV test")
 			return nil
 		})
@@ -137,7 +137,7 @@ func TestSyncTypeSystem_ProtobufPlugin_Matcher_Transport(t *testing.T) {
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
-		ExecuteTest(t, func(t TransportConfig, m SynchronousMessage) error {
+		ExecuteTest(t, func(_ TransportConfig, _ SynchronousMessage) error {
 			fmt.Println("Executing a test - this is where you would normally make the gRPC call")
 
 			return nil
@@ -194,7 +194,7 @@ func TestSyncTypeSystem_ProtobufPlugin_Matcher_Transport_Fail(t *testing.T) {
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
-		ExecuteTest(t, func(t TransportConfig, m SynchronousMessage) error {
+		ExecuteTest(t, func(_ TransportConfig, _ SynchronousMessage) error {
 			fmt.Println("Executing a test - this is where you would normally make the gRPC call")
 
 			return errors.New("bad thing")

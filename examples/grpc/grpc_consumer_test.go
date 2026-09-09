@@ -56,7 +56,7 @@ func TestGetFeatureSuccess(t *testing.T) {
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
-		ExecuteTest(t, func(transport message.TransportConfig, m message.SynchronousMessage) error {
+		ExecuteTest(t, func(transport message.TransportConfig, _ message.SynchronousMessage) error {
 			fmt.Println("gRPC transport running on", transport)
 
 			// Establish the gRPC connection
@@ -125,7 +125,7 @@ func TestGetFeatureError(t *testing.T) {
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
-		ExecuteTest(t, func(transport message.TransportConfig, m message.SynchronousMessage) error {
+		ExecuteTest(t, func(transport message.TransportConfig, _ message.SynchronousMessage) error {
 			fmt.Println("gRPC transport running on", transport)
 
 			// Establish the gRPC connection
@@ -196,7 +196,7 @@ func TestSaveFeature(t *testing.T) {
 		}).
 		WithContents(grpcInteraction, "application/protobuf").
 		StartTransport("grpc", "127.0.0.1", nil). // For plugin tests, we can't assume if a transport is needed, so this is optional
-		ExecuteTest(t, func(transport message.TransportConfig, m message.SynchronousMessage) error {
+		ExecuteTest(t, func(transport message.TransportConfig, _ message.SynchronousMessage) error {
 			fmt.Println("gRPC transport running on", transport)
 
 			// Establish the gRPC connection

@@ -1,3 +1,7 @@
+// Package proxy implements the reverse HTTP proxy that sits in front of a
+// provider under verification, letting Middleware inspect or rewrite each
+// request/response (e.g. to inject auth headers or serve message
+// verification requests) before it reaches the provider.
 package proxy
 
 import (

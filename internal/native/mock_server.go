@@ -21,11 +21,14 @@ import (
 
 type interactionPart int
 
+// Which half of an interaction pactffi_interaction_contents (and the
+// C.int(part) calls throughout this file) applies to.
 const (
 	INTERACTION_PART_REQUEST interactionPart = iota
 	INTERACTION_PART_RESPONSE
 )
 
+// Generic pass/fail result codes; currently unused in this package.
 const (
 	RESULT_OK interactionPart = iota
 	RESULT_FAILED
@@ -33,6 +36,7 @@ const (
 
 type specificationVersion int
 
+// Pact specification versions accepted by pactffi_with_specification.
 const (
 	SPECIFICATION_VERSION_UNKNOWN specificationVersion = iota
 	SPECIFICATION_VERSION_V1
@@ -44,6 +48,8 @@ const (
 
 type logLevel int
 
+// Log levels accepted by the pact_ffi logging functions, from least to
+// most verbose.
 const (
 	LOG_LEVEL_OFF logLevel = iota
 	LOG_LEVEL_ERROR
@@ -135,6 +141,8 @@ func (m *MockServer) Version() string {
 	return Version()
 }
 
+// WithSpecificationVersion sets the Pact specification version the mock
+// server writes and verifies interactions against.
 func (m *MockServer) WithSpecificationVersion(version specificationVersion) {
 	C.pactffi_with_specification(m.pact.handle, C.int(version))
 }
@@ -313,8 +321,8 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 	cTransport := C.CString(transport)
 	defer free(cTransport)
 
-	configJson := stringFromInterface(config)
-	cConfig := C.CString(configJson)
+	configJSON := stringFromInterface(config)
+	cConfig := C.CString(configJSON)
 	defer free(cConfig)
 
 	p := C.pactffi_create_mock_server_for_transport(m.pact.handle, cAddress, C.ushort(port), cTransport, cConfig)
@@ -348,7 +356,9 @@ func (m *MockServer) StartTransport(transport string, address string, port int, 
 	}
 }
 
-// Sets the additional metadata on the Pact file. Common uses are to add the client library details such as the name and version.
+// WithMetadata sets additional metadata on the Pact file, grouped under
+// namespace. Common uses are to add client library details such as the
+// name and version.
 func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
 	cNamespace := C.CString(namespace)
 	defer free(cNamespace)
@@ -362,7 +372,9 @@ func (m *MockServer) WithMetadata(namespace, k, v string) *MockServer {
 	return m
 }
 
-// NewInteraction initialises a new interaction for the current contract.
+// UsingPlugin loads a pact_ffi plugin by name and version so subsequent
+// interactions on this pact can use plugin-provided matchers and content
+// types (e.g. protobuf, gRPC).
 func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error {
 	cPluginName := C.CString(pluginName)
 	defer free(cPluginName)
@@ -391,7 +403,7 @@ func (m *MockServer) UsingPlugin(pluginName string, pluginVersion string) error 
 	return nil
 }
 
-// NewInteraction initialises a new interaction for the current contract.
+// CleanupPlugins releases the plugins loaded on this pact via UsingPlugin.
 func (m *MockServer) CleanupPlugins() {
 	C.pactffi_cleanup_plugins(m.pact.handle)
 }
@@ -409,7 +421,9 @@ func (m *MockServer) NewInteraction(description string) *Interaction {
 	return i
 }
 
-// NewInteraction initialises a new interaction for the current contract.
+// WithPluginInteractionContents sets the request or response contents of
+// this interaction from a plugin-provided contentType (e.g. a protobuf
+// message type), delegating the encoding to the loaded plugin.
 func (i *Interaction) WithPluginInteractionContents(part interactionPart, contentType string, contents string) error {
 	cContentType := C.CString(contentType)
 	defer free(cContentType)
@@ -435,7 +449,7 @@ func (i *Interaction) WithPluginInteractionContents(part interactionPart, conten
 	case 4:
 		return ErrPluginInvalidContentType
 	case 5:
-		return ErrPluginInvalidJson
+		return ErrPluginInvalidJSON
 	case 6:
 		return ErrPluginSpecificError
 	default:
@@ -447,6 +461,8 @@ func (i *Interaction) WithPluginInteractionContents(part interactionPart, conten
 	return nil
 }
 
+// UponReceiving sets the description of the request that triggers this
+// interaction.
 func (i *Interaction) UponReceiving(description string) *Interaction {
 	cDescription := C.CString(description)
 	defer free(cDescription)
@@ -456,18 +472,23 @@ func (i *Interaction) UponReceiving(description string) *Interaction {
 	return i
 }
 
+// Given adds a provider state that must hold for this interaction.
 func (i *Interaction) Given(state string) *Interaction {
 	interactionGiven(i.handle, state)
 
 	return i
 }
 
+// GivenWithParameter adds a provider state, parameterised by params, that
+// must hold for this interaction.
 func (i *Interaction) GivenWithParameter(state string, params map[string]any) *Interaction {
 	interactionGivenWithParams(i.handle, state, params)
 
 	return i
 }
 
+// WithRequest sets the request method and path (or path matcher) that
+// this interaction expects.
 func (i *Interaction) WithRequest(method string, pathOrMatcher any) *Interaction {
 	cMethod := C.CString(method)
 	defer free(cMethod)
@@ -481,14 +502,20 @@ func (i *Interaction) WithRequest(method string, pathOrMatcher any) *Interaction
 	return i
 }
 
+// WithRequestHeaders sets the request headers this interaction expects,
+// keyed by header name, with each value optionally a matcher.
 func (i *Interaction) WithRequestHeaders(valueOrMatcher map[string][]any) *Interaction {
 	return i.withHeaders(INTERACTION_PART_REQUEST, valueOrMatcher)
 }
 
+// WithResponseHeaders sets the response headers this interaction returns,
+// keyed by header name, with each value optionally a matcher.
 func (i *Interaction) WithResponseHeaders(valueOrMatcher map[string][]any) *Interaction {
 	return i.withHeaders(INTERACTION_PART_RESPONSE, valueOrMatcher)
 }
 
+// WithQuery sets the request query parameters this interaction expects,
+// keyed by parameter name, with each value optionally a matcher.
 func (i *Interaction) WithQuery(valueOrMatcher map[string][]any) *Interaction {
 	for k, values := range valueOrMatcher {
 		cName := C.CString(k)
@@ -508,39 +535,53 @@ func (i *Interaction) WithQuery(valueOrMatcher map[string][]any) *Interaction {
 	return i
 }
 
+// WithJSONRequestBody sets the request body, JSON-encoding body (which may
+// contain matchers).
 func (i *Interaction) WithJSONRequestBody(body any) *Interaction {
 	return i.withJSONBody(body, INTERACTION_PART_REQUEST)
 }
 
+// WithJSONResponseBody sets the response body, JSON-encoding body (which
+// may contain matchers).
 func (i *Interaction) WithJSONResponseBody(body any) *Interaction {
 	return i.withJSONBody(body, INTERACTION_PART_RESPONSE)
 }
 
+// WithRequestBody sets the raw request body and its content type.
 func (i *Interaction) WithRequestBody(contentType string, body []byte) *Interaction {
 	return i.withBody(contentType, body, 0)
 }
 
+// WithResponseBody sets the raw response body and its content type.
 func (i *Interaction) WithResponseBody(contentType string, body []byte) *Interaction {
 	return i.withBody(contentType, body, 1)
 }
 
+// WithBinaryRequestBody sets the request body to the given bytes, with an
+// application/octet-stream content type.
 func (i *Interaction) WithBinaryRequestBody(body []byte) *Interaction {
 	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_REQUEST)
 }
 
+// WithBinaryResponseBody sets the response body to the given bytes, with
+// an application/octet-stream content type.
 func (i *Interaction) WithBinaryResponseBody(body []byte) *Interaction {
 	return i.withBinaryBody("application/octet-stream", body, INTERACTION_PART_RESPONSE)
 }
 
+// WithRequestMultipartFile sets the request body to a multipart file
+// upload, reading filename under mimePartName.
 func (i *Interaction) WithRequestMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
 	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_REQUEST)
 }
 
+// WithResponseMultipartFile sets the response body to a multipart file
+// upload, reading filename under mimePartName.
 func (i *Interaction) WithResponseMultipartFile(contentType string, filename string, mimePartName string) *Interaction {
 	return i.withMultipartFile(contentType, filename, mimePartName, INTERACTION_PART_RESPONSE)
 }
 
-// Set the expected HTTTP response status.
+// WithStatus sets the expected HTTP response status.
 func (i *Interaction) WithStatus(status int) *Interaction {
 	C.pactffi_response_status(i.handle, C.ushort(status))
 
