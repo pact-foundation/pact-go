@@ -6,6 +6,15 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.7.2](https://github.com/pact-foundation/pact-go/compare/v2.7.1...v2.7.2) (2026-09-09)
+
+
+### Bug Fixes
+
+* check, propagate, or deliberately discard error returns; fix two nilnesserr bugs ([a90ecf3](https://github.com/pact-foundation/pact-go/commit/a90ecf394e227a5f084afdf8af03768ca6bb4c9f))
+* **ci:** pin lint toolchain to go.mod and drop deprecated DualStack ([c480099](https://github.com/pact-foundation/pact-go/commit/c48009974a8e363f582d05a451c7b11da0b466c2))
+* wait for a plugin transport to accept before returning its port ([6fcc07f](https://github.com/pact-foundation/pact-go/commit/6fcc07f0fddcf213ec0cda6ddd1b135c295004bf))
+
 ## [2.7.1](https://github.com/pact-foundation/pact-go/compare/v2.7.0...v2.7.1) (2026-08-26)
 
 
