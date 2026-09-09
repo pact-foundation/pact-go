@@ -63,7 +63,7 @@ This readme offers an basic introduction to the library. The full documentation 
 - [Consumer Testing](./docs/consumer.md)
 - [Provider Testing](./docs/provider.md)
 - [Event Driven Systems](./docs/messages.md)
-- [Migration guide](./MIGRATION.md)
+- [Migration guide](./docs/migration.md)
 - [Troubleshooting](./docs/troubleshooting.md)
 
 ### Tutorial (60 minutes)
@@ -313,7 +313,7 @@ Detail on the native Go implementation can be found [here](https://github.com/pa
 
 ## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md). Maintainers cutting a release should see [RELEASING](RELEASING.md).
+See [CONTRIBUTING](https://github.com/pact-foundation/pact-go/blob/master/.github/CONTRIBUTING.md). Maintainers cutting a release should see [RELEASING](https://github.com/pact-foundation/pact-go/blob/master/docs/contributing/releasing.md).
 
 <a href="https://github.com/pact-foundation/pact-go/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=pact-foundation/pact-go" />

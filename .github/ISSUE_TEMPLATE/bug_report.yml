@@ -1,0 +1,69 @@
+name: Bug report
+description: Report a problem with pact-go
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before raising an issue, please check the open and closed issues, and
+        [Stack Overflow](https://stackoverflow.com/questions/tagged/pact).
+  - type: input
+    id: pact-go-version
+    attributes:
+      label: pact-go version
+      placeholder: "v2.7.1"
+    validations:
+      required: true
+  - type: input
+    id: provider-pact-version
+    attributes:
+      label: Provider Pact library version
+      description: The Pact library used by the provider, if different from pact-go.
+      placeholder: "e.g. pact-jvm-provider-maven_2.13 v4.6.7"
+  - type: input
+    id: go-version
+    attributes:
+      label: Go version
+      description: Output of `go version`
+    validations:
+      required: true
+  - type: textarea
+    id: go-env
+    attributes:
+      label: Go environment
+      description: Output of `go env`
+      render: shell
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and architecture
+      placeholder: "macOS 15.2, arm64"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: >
+        A repository, gist, or runnable snippet. Adapting one of the
+        repository's examples is often the quickest route.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Set `LOG_LEVEL=DEBUG` and attach the relevant output.
+      render: shell
