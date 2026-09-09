@@ -4,6 +4,7 @@
 package grpc
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -42,7 +43,7 @@ func TestGrpcProvider(t *testing.T) {
 }
 
 func startProvider() {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", 8222))
+	lis, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", fmt.Sprintf("localhost:%d", 8222))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

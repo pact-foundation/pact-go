@@ -1,15 +1,20 @@
 package native
 
 import (
+	"context"
 	"log"
 	"net"
 	"strconv"
 	"time"
 )
 
-// transportAcceptTimeout bounds how long waitForTransport waits for a mock
-// server to accept connections.
-const transportAcceptTimeout = 10 * time.Second
+const (
+	// transportAcceptTimeout bounds how long waitForTransport waits for a mock
+	// server to accept connections.
+	transportAcceptTimeout = 10 * time.Second
+	// transportPollInterval is how long waitForTransport waits between attempts.
+	transportPollInterval = 10 * time.Millisecond
+)
 
 // waitForTransport blocks until the mock server on port accepts a connection,
 // or transportAcceptTimeout elapses.
@@ -25,24 +30,29 @@ const transportAcceptTimeout = 10 * time.Second
 // would turn a slow start into a hard failure.
 func waitForTransport(address string, port int) {
 	target := net.JoinHostPort(address, strconv.Itoa(port))
-	deadline := time.Now().Add(transportAcceptTimeout)
+
+	ctx, cancel := context.WithTimeout(context.Background(), transportAcceptTimeout)
+	defer cancel()
+
+	dialer := &net.Dialer{}
 
 	for attempt := 0; ; attempt++ {
-		remaining := time.Until(deadline)
-		if remaining <= 0 {
-			log.Println("[WARN] mock server on", target, "did not accept a connection within", transportAcceptTimeout)
-			return
-		}
-
-		conn, err := net.DialTimeout("tcp", target, remaining)
+		conn, err := dialer.DialContext(ctx, "tcp", target)
 		if err == nil {
 			_ = conn.Close()
 			if attempt > 0 {
 				log.Println("[DEBUG] mock server on", target, "accepted a connection after", attempt, "retries")
 			}
+
 			return
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		if ctx.Err() != nil {
+			log.Println("[WARN] mock server on", target, "did not accept a connection within", transportAcceptTimeout)
+
+			return
+		}
+
+		time.Sleep(transportPollInterval)
 	}
 }

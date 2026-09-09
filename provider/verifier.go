@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -62,7 +63,12 @@ func (v *Verifier) validateConfig() error {
 func (v *Verifier) startDefaultHTTPServer(port int) {
 	mux := http.NewServeMux()
 
-	_ = http.ListenAndServe(fmt.Sprintf("%s:%d", v.Hostname, port), mux)
+	server := &http.Server{
+		Addr:              fmt.Sprintf("%s:%d", v.Hostname, port),
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	_ = server.ListenAndServe()
 }
 
 // VerifyProviderRaw reads the provided pact files and runs verification against
@@ -137,7 +143,10 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 		request.Transports = append(request.Transports, Transport{
 			Path:     MESSAGE_PATH,
 			Protocol: "message",
-			Port:     uint16(port),
+			//nolint:gosec // G115: port is returned by proxy.HTTPReverseProxy. The Options
+			// passed to it here never set ProxyPort, so port is always utils.GetFreePort(),
+			// an OS-assigned net.TCPAddr.Port, always 0-65535.
+			Port: uint16(port),
 		})
 	}
 
@@ -357,7 +366,7 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 				return
 			}
 
-			log.Println("[TRACE] skipping state handler for request", r.RequestURI)
+			log.Println("[TRACE] skipping state handler for request", strconv.Quote(r.RequestURI))
 
 			// Pass through to application
 			next.ServeHTTP(w, r)
@@ -369,16 +378,21 @@ func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) 
 // to running tests.
 func WaitForPort(port int, network string, address string, timeoutDuration time.Duration, message string) error {
 	log.Println("[DEBUG] waiting for port", port, "to become available")
-	timeout := time.After(timeoutDuration)
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
+	defer cancel()
 
 	for {
 		select {
-		case <-timeout:
+		case <-ctx.Done():
 			log.Printf("[ERROR] expected server to start < %s. %s", timeoutDuration, message)
 			return fmt.Errorf("expected server to start < %s. %s", timeoutDuration, message)
 		case <-time.After(50 * time.Millisecond):
-			_, err := net.Dial(network, net.JoinHostPort(address, strconv.Itoa(port)))
+			// The dial shares the overall deadline, so a connection that hangs
+			// rather than refusing cannot hold the loop past timeoutDuration.
+			conn, err := (&net.Dialer{}).DialContext(ctx, network, net.JoinHostPort(address, strconv.Itoa(port)))
 			if err == nil {
+				_ = conn.Close()
 				return nil
 			}
 		}
