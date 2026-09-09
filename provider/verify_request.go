@@ -18,6 +18,10 @@ import (
 	"github.com/pact-foundation/pact-go/v2/proxy"
 )
 
+// defaultRequestTimeout is how long the verifier waits for each individual
+// request to the provider when VerifyRequest.RequestTimeout is left unset.
+const defaultRequestTimeout = 10 * time.Second
+
 // Hook functions are used to tap into the lifecycle of a Consumer or Provider test.
 type Hook func() error
 
@@ -224,9 +228,11 @@ func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) err
 	}
 
 	defer handle.Shutdown()
-	res := handle.Execute()
-
-	return res
+	//nolint:wrapcheck // Verifier.Execute reports the verification outcome through
+	// internal/native's sentinels (ErrVerifierFailed, ErrVerifierFailedToRun),
+	// selected by the pact_ffi return code; the mismatch detail goes to the output
+	// writer, so the sentinel's own wording is all the user's test failure prints.
+	return handle.Execute()
 }
 
 // Validate checks that the minimum fields are provided.
@@ -236,7 +242,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	} else {
 		url, err := url.Parse(v.ProviderBaseURL)
 		if err != nil {
-			return err
+			return fmt.Errorf("parsing ProviderBaseURL %q: %w", v.ProviderBaseURL, err)
 		}
 
 		port := getPort(v.ProviderBaseURL)
@@ -266,7 +272,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	}
 
 	if v.RequestTimeout == 0 {
-		v.RequestTimeout = time.Second * 10
+		v.RequestTimeout = defaultRequestTimeout
 	}
 
 	handle.SetVerificationOptions(v.DisableSSLVerification, v.RequestTimeout.Milliseconds())
@@ -344,6 +350,16 @@ const (
 	portOutOfRange = -2
 )
 
+// defaultHTTPSPort and defaultHTTPPort are the well-known ports assumed
+// when a provider URL has no explicit port.
+const (
+	defaultHTTPSPort = 443
+	defaultHTTPPort  = 80
+)
+
+// maxPort is the highest port number representable as a uint16.
+const maxPort = 65535
+
 // getPort returns the port of a URL, falling back to the default port for the
 // scheme when the URL carries none. Only http and https have a default port.
 func getPort(rawURL string) int {
@@ -356,7 +372,7 @@ func getPort(rawURL string) int {
 	// brackets from an IPv6 host.
 	if rawPort := parsedURL.Port(); rawPort != "" {
 		port, err := strconv.Atoi(rawPort)
-		if err != nil || port < 0 || port > 65535 {
+		if err != nil || port < 0 || port > maxPort {
 			return portOutOfRange
 		}
 		return port
@@ -364,9 +380,9 @@ func getPort(rawURL string) int {
 
 	switch parsedURL.Scheme {
 	case "https":
-		return 443
+		return defaultHTTPSPort
 	case "http":
-		return 80
+		return defaultHTTPPort
 	default:
 		return portUnknownScheme
 	}

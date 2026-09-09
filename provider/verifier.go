@@ -33,6 +33,18 @@ import (
 // requests to the message handlers configured on this VerifyRequest.
 const MESSAGE_PATH = "/__messages" //nolint:revive // renaming would break the public API
 
+const (
+	// defaultClientTimeout is how long the verifier waits for the provider
+	// to start when Verifier.ClientTimeout is left unset.
+	defaultClientTimeout = 10 * time.Second
+	// defaultReadHeaderTimeout bounds how long the verifier's own default
+	// state-change HTTP server waits for a request's headers.
+	defaultReadHeaderTimeout = 10 * time.Second
+	// portPollInterval is how often WaitForPort re-checks whether the
+	// target port has become available.
+	portPollInterval = 50 * time.Millisecond
+)
+
 // Verifier is used to verify the provider side of an HTTP API contract.
 type Verifier struct {
 	// ClientTimeout specifies how long to wait for the provider to start
@@ -99,7 +111,7 @@ func (v *Verifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
 
 func (v *Verifier) validateConfig() error {
 	if v.ClientTimeout == 0 {
-		v.ClientTimeout = 10 * time.Second
+		v.ClientTimeout = defaultClientTimeout
 	}
 	if v.Hostname == "" {
 		v.Hostname = "localhost"
@@ -116,7 +128,7 @@ func (v *Verifier) startDefaultHTTPServer(port int) {
 	server := &http.Server{
 		Addr:              fmt.Sprintf("%s:%d", v.Hostname, port),
 		Handler:           mux,
-		ReadHeaderTimeout: 10 * time.Second,
+		ReadHeaderTimeout: defaultReadHeaderTimeout,
 	}
 	_ = server.ListenAndServe()
 }
@@ -185,7 +197,7 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 	// and error. The object will be marshalled to JSON for comparison.
 	port, err := proxy.HTTPReverseProxy(opts)
 	if err != nil {
-		return err
+		return fmt.Errorf("starting the provider state reverse proxy: %w", err)
 	}
 
 	// Add any message targets
@@ -265,7 +277,7 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 	_, err := io.ReadAll(tr)
 	if err != nil {
 		log.Println("[ERROR] getStateFromRequest unable to read request body:", err)
-		return stateHandlerAction{}, err
+		return stateHandlerAction{}, fmt.Errorf("reading the state change request body: %w", err)
 	}
 
 	// Body is consumed above, need to put it back after ;P
@@ -277,7 +289,7 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 
 	if err != nil {
 		log.Println("[ERROR] getStateFromRequest unable to decode incoming state change payload", err)
-		return stateHandlerAction{}, err
+		return stateHandlerAction{}, fmt.Errorf("decoding the state change payload: %w", err)
 	}
 
 	return state, nil
@@ -400,7 +412,7 @@ func WaitForPort(port int, network string, address string, timeoutDuration time.
 		case <-ctx.Done():
 			log.Printf("[ERROR] expected server to start < %s. %s", timeoutDuration, message)
 			return fmt.Errorf("expected server to start < %s. %s", timeoutDuration, message)
-		case <-time.After(50 * time.Millisecond):
+		case <-time.After(portPollInterval):
 			// The dial shares the overall deadline, so a connection that hangs
 			// rather than refusing cannot hold the loop past timeoutDuration.
 			conn, err := (&net.Dialer{}).DialContext(ctx, network, net.JoinHostPort(address, strconv.Itoa(port)))

@@ -20,6 +20,27 @@ import (
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
+const (
+	// defaultReadHeaderTimeout bounds how long the reverse proxy's HTTP
+	// server waits for a request's headers.
+	defaultReadHeaderTimeout = 10 * time.Second
+	// defaultDialTimeout bounds how long the outbound transport waits to
+	// establish a TCP connection to the provider.
+	defaultDialTimeout = 30 * time.Second
+	// defaultKeepAlive is the interval between TCP keep-alive probes on
+	// the outbound connection to the provider.
+	defaultKeepAlive = 30 * time.Second
+	// defaultMaxIdleConns caps idle connections kept open across all hosts
+	// in the outbound transport's connection pool.
+	defaultMaxIdleConns = 100
+	// defaultIdleConnTimeout is how long an idle outbound connection is
+	// kept in the pool before being closed.
+	defaultIdleConnTimeout = 90 * time.Second
+	// defaultTLSHandshakeTimeout bounds how long the outbound transport
+	// waits for a TLS handshake to complete.
+	defaultTLSHandshakeTimeout = 10 * time.Second
+)
+
 // Middleware is a way to use composition to add functionality
 // by intercepting the req/response cycle of the Reverse Proxy.
 // Each handler must accept an http.Handler and also return an
@@ -95,7 +116,7 @@ func HTTPReverseProxy(options Options) (int, error) {
 		port, err = utils.GetFreePort()
 		if err != nil {
 			log.Println("[ERROR] unable to start reverse proxy server:", err)
-			return 0, err
+			return 0, fmt.Errorf("finding a free port for the reverse proxy: %w", err)
 		}
 	}
 
@@ -106,7 +127,7 @@ func HTTPReverseProxy(options Options) (int, error) {
 		server := &http.Server{
 			Addr:              fmt.Sprintf(":%d", port),
 			Handler:           wrapper(proxy),
-			ReadHeaderTimeout: 10 * time.Second,
+			ReadHeaderTimeout: defaultReadHeaderTimeout,
 		}
 		err := server.ListenAndServe()
 		if err != nil {
@@ -128,19 +149,19 @@ type customTransport struct {
 func (c customTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	b, err := httputil.DumpRequestOut(r, false)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("dumping the outgoing proxied request: %w", err)
 	}
 	log.Println("[TRACE] proxy outgoing request\n", string(b))
 
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
+			Timeout:   defaultDialTimeout,
+			KeepAlive: defaultKeepAlive,
 		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
+		MaxIdleConns:          defaultMaxIdleConns,
+		IdleConnTimeout:       defaultIdleConnTimeout,
+		TLSHandshakeTimeout:   defaultTLSHandshakeTimeout,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 
@@ -153,12 +174,22 @@ func (c customTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	res, err := DefaultTransport.RoundTrip(r)
 	if err != nil {
 		log.Println("[ERROR]", err)
+		//nolint:wrapcheck // net/http wraps a RoundTrip error in a *url.Error naming the
+		// operation and URL, and callers match the transport's own errors (net.Error,
+		// x509 and tls failures) through it; a prefix here would sit inside that.
 		return nil, err
 	}
-	b, err = httputil.DumpResponse(res, true)
-	log.Println("[TRACE] proxied server response\n", string(b))
 
-	return res, err
+	// A failed dump is trace output only. http.RoundTripper requires a nil error
+	// whenever a response is returned, so it must not travel with res.
+	b, err = httputil.DumpResponse(res, true)
+	if err != nil {
+		log.Println("[ERROR] unable to dump the proxied server response:", err)
+	} else {
+		log.Println("[TRACE] proxied server response\n", string(b))
+	}
+
+	return res, nil
 }
 
 // Adapted from https://github.com/golang/go/blob/master/src/net/http/httputil/reverseproxy.go

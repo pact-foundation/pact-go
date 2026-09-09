@@ -29,6 +29,10 @@ import (
 	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
+// defaultClientTimeout is how long the mock server client waits for the
+// native library when MockHTTPProviderConfig.ClientTimeout is left unset.
+const defaultClientTimeout = 10 * time.Second
+
 // MockHTTPProviderConfig provides the configuration options for an HTTP mock server
 // consumer test.
 type MockHTTPProviderConfig struct {
@@ -112,6 +116,9 @@ func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockSe
 	p.config.Port, err = p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)
 	defer p.reset()
 	if err != nil {
+		//nolint:wrapcheck // MockServer.Start returns the internal/native sentinels
+		// (ErrNoInteractions, ErrInvalidMockServerConfig, ...) whose text mirrors the
+		// pact_ffi return code; ExecuteTest hands it straight to the user's test output.
 		return err
 	}
 
@@ -142,8 +149,8 @@ func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockSe
 	return p.writePact()
 }
 
-// configure validates the configuration for the consumer test.
-func (p *httpMockProvider) configure() error {
+// configure applies the defaults for any unset consumer test configuration.
+func (p *httpMockProvider) configure() {
 	log.Println("[DEBUG] pact setup")
 	dir, _ := os.Getwd()
 
@@ -160,7 +167,7 @@ func (p *httpMockProvider) configure() error {
 	}
 
 	if p.config.ClientTimeout == 0 {
-		p.config.ClientTimeout = 10 * time.Second
+		p.config.ClientTimeout = defaultClientTimeout
 	}
 
 	p.mockserver = native.NewHTTPPact(p.config.Consumer, p.config.Provider)
@@ -174,8 +181,6 @@ func (p *httpMockProvider) configure() error {
 		p.mockserver.WithSpecificationVersion(native.SPECIFICATION_VERSION_V4)
 	}
 	native.Init(string(logging.LogLevel()))
-
-	return nil
 }
 
 // Clear state between tests.
@@ -183,10 +188,7 @@ func (p *httpMockProvider) reset() {
 	p.mockserver.CleanupMockServer(p.config.Port)
 	p.mockserver.CleanupPlugins()
 	p.config.Port = 0
-	err := p.configure()
-	if err != nil {
-		log.Println("[ERROR] failed to configure the mock server")
-	}
+	p.configure()
 }
 
 // TODO: improve / pretty print this to make it really easy to understand the problems
@@ -310,6 +312,9 @@ func isTest(name, prefix string) bool {
 func (p *httpMockProvider) writePact() error {
 	log.Println("[DEBUG] write pact file")
 	if p.config.Port != 0 {
+		//nolint:wrapcheck // WritePactFile returns the internal/native sentinels
+		// (ErrUnableToWritePactFile, ErrMockServerNotfound, ...) whose text mirrors the
+		// pact_ffi return code.
 		return p.mockserver.WritePactFile(p.config.Port, p.config.PactDir)
 	}
 	return errors.New("pact server not yet started")

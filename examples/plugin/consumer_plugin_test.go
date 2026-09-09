@@ -104,33 +104,33 @@ func callMattServiceHTTP(msc consumer.MockServerConfig, message string) (string,
 
 	res, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("calling the matt service over http: %w", err)
 	}
 	defer func() { _ = res.Body.Close() }()
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("reading the matt service response: %w", err)
 	}
 
-	return parseMattMessage(string(bytes)), err
+	return parseMattMessage(string(bytes)), nil
 }
 
 func callMattServiceTCP(transport message.TransportConfig, message string) (string, error) {
 	conn, err := (&net.Dialer{}).DialContext(context.Background(), "tcp", net.JoinHostPort(transport.Address, strconv.Itoa(transport.Port)))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("dialling the matt service over tcp: %w", err)
 	}
 	defer func() { _ = conn.Close() }()
 
 	_, err = conn.Write([]byte(generateMattMessage(message)))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("writing the matt message: %w", err)
 	}
 
 	str, err := bufio.NewReader(conn).ReadString('\n')
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("reading the matt service response: %w", err)
 	}
 
 	return parseMattMessage(str), nil

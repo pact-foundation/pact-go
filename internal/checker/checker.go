@@ -15,8 +15,13 @@ func CheckInstall() error {
 
 	i, err := installer.NewInstaller()
 	if err != nil {
+		//nolint:wrapcheck // version.CheckVersion log.Fatals this error verbatim, so the
+		// installer's own diagnostic ("darwin is not a supported OS", ...) is what users
+		// read; a wrapper prefix here would only bury it.
 		return err
 	}
 
+	//nolint:wrapcheck // as above: CheckInstallation's messages are the installer's
+	// user-facing diagnostics, surfaced verbatim by version.CheckVersion.
 	return i.CheckInstallation()
 }
