@@ -1,7 +1,7 @@
 [tools]
 # GO_VERSION lets CI drive the version matrix through mise; the default tracks
 # the `go` directive in go.mod.
-go = "{{ env.GO_VERSION | default(value='1.25') }}"
+go = "1.27.1"
 golangci-lint = "2.13.2"
 java = "temurin-21"
 protoc = "36.1"
