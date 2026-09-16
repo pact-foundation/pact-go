@@ -3,7 +3,7 @@
 # the `go` directive in go.mod.
 go = "{{ env.GO_VERSION | default(value='1.25') }}"
 golangci-lint = "2.13.2"
-java = "temurin-21"
+java = "temurin-25"
 protoc = "36.1"
 # Provides the `pact` binary: plugin installation and broker publishing.
 "github:pact-foundation/pact-cli" = "0.10.7"
