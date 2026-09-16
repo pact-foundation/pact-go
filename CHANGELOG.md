@@ -6,6 +6,21 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.8.0](https://github.com/pact-foundation/pact-go/compare/v2.7.1...v2.8.0) (2026-09-16)
+
+
+### Features
+
+* bump pact-ffi to 0.5.8 ([a1e8386](https://github.com/pact-foundation/pact-go/commit/a1e838688ac1f9a35b08e8eb5baa63b5e5ec1792))
+
+
+### Bug Fixes
+
+* check, propagate, or deliberately discard error returns; fix two nilnesserr bugs ([a90ecf3](https://github.com/pact-foundation/pact-go/commit/a90ecf394e227a5f084afdf8af03768ca6bb4c9f))
+* **ci:** pin lint toolchain to go.mod and drop deprecated DualStack ([c480099](https://github.com/pact-foundation/pact-go/commit/c48009974a8e363f582d05a451c7b11da0b466c2))
+* **deps:** update module github.com/stretchr/testify to v1.12.1 ([459dd96](https://github.com/pact-foundation/pact-go/commit/459dd96daab129ef680c2a8fdb5dc08888d58f52))
+* wait for a plugin transport to accept before returning its port ([6fcc07f](https://github.com/pact-foundation/pact-go/commit/6fcc07f0fddcf213ec0cda6ddd1b135c295004bf))
+
 ## [2.7.1](https://github.com/pact-foundation/pact-go/compare/v2.7.0...v2.7.1) (2026-08-26)
 
 
