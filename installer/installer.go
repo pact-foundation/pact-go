@@ -382,14 +382,14 @@ const (
 var packages = map[string]packageInfo{
 	FFIPackage: {
 		libName: "libpact_ffi",
-		version: "0.5.6",
+		version: "0.5.8",
 		// Pin to the shipped FFI minor. The bindings in this release reference
 		// symbols specific to this libpact_ffi minor, and past minors have both
 		// added and removed symbols, so a wider range lets a mismatched-but-in-range
 		// library already on disk pass CheckPackageInstall and skip reinstalling,
 		// which then fails at link/load time with undefined FFI symbols. Bump this
 		// in lockstep with version above.
-		semverRange: ">= 0.5.6, < 0.6.0",
+		semverRange: ">= 0.5.8, < 0.6.0",
 	},
 }
 
