@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -62,8 +63,8 @@ func chainHandlers(mw ...Middleware) Middleware {
 	return func(final http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			last := final
-			for i := len(mw) - 1; i >= 0; i-- {
-				last = mw[i](last)
+			for _, m := range slices.Backward(mw) {
+				last = m(last)
 			}
 			last.ServeHTTP(w, r)
 		})

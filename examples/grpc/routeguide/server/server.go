@@ -75,7 +75,7 @@ type routeGuideServer struct {
 // GetFeature returns the feature at the given point.
 func (s *routeGuideServer) GetFeature(ctx context.Context, point *pb.Point) (*pb.Feature, error) {
 	for _, feature := range s.savedFeatures {
-		if proto.Equal(feature.Location, point) {
+		if proto.Equal(feature.GetLocation(), point) {
 			return feature, nil
 		}
 	}
@@ -92,7 +92,7 @@ func (s *routeGuideServer) SaveFeature(ctx context.Context, feature *pb.Feature)
 // ListFeatures lists all features contained within the given bounding Rectangle.
 func (s *routeGuideServer) ListFeatures(rect *pb.Rectangle, stream pb.RouteGuide_ListFeaturesServer) error {
 	for _, feature := range s.savedFeatures {
-		if inRange(feature.Location, rect) {
+		if inRange(feature.GetLocation(), rect) {
 			err := stream.Send(feature)
 			if err != nil {
 				return err
@@ -127,7 +127,7 @@ func (s *routeGuideServer) RecordRoute(stream pb.RouteGuide_RecordRouteServer) e
 		}
 		pointCount++
 		for _, feature := range s.savedFeatures {
-			if proto.Equal(feature.Location, point) {
+			if proto.Equal(feature.GetLocation(), point) {
 				featureCount++
 			}
 		}
@@ -149,7 +149,7 @@ func (s *routeGuideServer) RouteChat(stream pb.RouteGuide_RouteChatServer) error
 		if err != nil {
 			return err
 		}
-		key := serialize(in.Location)
+		key := serialize(in.GetLocation())
 
 		s.mu.Lock()
 		s.routeNotes[key] = append(s.routeNotes[key], in)
@@ -198,10 +198,10 @@ func toRadians(num float64) float64 {
 func calcDistance(p1 *pb.Point, p2 *pb.Point) int32 {
 	const CordFactor float64 = 1e7
 	const R = float64(6371000) // earth radius in metres
-	lat1 := toRadians(float64(p1.Latitude) / CordFactor)
-	lat2 := toRadians(float64(p2.Latitude) / CordFactor)
-	lng1 := toRadians(float64(p1.Longitude) / CordFactor)
-	lng2 := toRadians(float64(p2.Longitude) / CordFactor)
+	lat1 := toRadians(float64(p1.GetLatitude()) / CordFactor)
+	lat2 := toRadians(float64(p2.GetLatitude()) / CordFactor)
+	lng1 := toRadians(float64(p1.GetLongitude()) / CordFactor)
+	lng2 := toRadians(float64(p2.GetLongitude()) / CordFactor)
 	dlat := lat2 - lat1
 	dlng := lng2 - lng1
 
@@ -215,22 +215,22 @@ func calcDistance(p1 *pb.Point, p2 *pb.Point) int32 {
 }
 
 func inRange(point *pb.Point, rect *pb.Rectangle) bool {
-	left := math.Min(float64(rect.Lo.Longitude), float64(rect.Hi.Longitude))
-	right := math.Max(float64(rect.Lo.Longitude), float64(rect.Hi.Longitude))
-	top := math.Max(float64(rect.Lo.Latitude), float64(rect.Hi.Latitude))
-	bottom := math.Min(float64(rect.Lo.Latitude), float64(rect.Hi.Latitude))
+	left := math.Min(float64(rect.GetLo().GetLongitude()), float64(rect.GetHi().GetLongitude()))
+	right := math.Max(float64(rect.GetLo().GetLongitude()), float64(rect.GetHi().GetLongitude()))
+	top := math.Max(float64(rect.GetLo().GetLatitude()), float64(rect.GetHi().GetLatitude()))
+	bottom := math.Min(float64(rect.GetLo().GetLatitude()), float64(rect.GetHi().GetLatitude()))
 
-	if float64(point.Longitude) >= left &&
-		float64(point.Longitude) <= right &&
-		float64(point.Latitude) >= bottom &&
-		float64(point.Latitude) <= top {
+	if float64(point.GetLongitude()) >= left &&
+		float64(point.GetLongitude()) <= right &&
+		float64(point.GetLatitude()) >= bottom &&
+		float64(point.GetLatitude()) <= top {
 		return true
 	}
 	return false
 }
 
 func serialize(point *pb.Point) string {
-	return fmt.Sprintf("%d %d", point.Latitude, point.Longitude)
+	return fmt.Sprintf("%d %d", point.GetLatitude(), point.GetLongitude())
 }
 
 func NewServer() *routeGuideServer {

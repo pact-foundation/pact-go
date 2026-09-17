@@ -13,16 +13,25 @@ linters:
     - errorlint
     - exhaustive
     - forcetypeassert
+    - gocritic
     - godot
     - gosec
+    - intrange
+    - mirror
     - misspell
+    - modernize
     - musttag
+    - nestif
     - nilerr
     - nilnesserr
     - noctx
     - noinlineerr
+    - perfsprint
+    - protogetter
     - testifylint
     - thelper
+    - unconvert
+    - usestdlibvars
     - usetesting
     - whitespace
   settings:

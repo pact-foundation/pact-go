@@ -142,7 +142,7 @@ func (p *httpMockProvider) ExecuteTest(t *testing.T, integrationTest func(MockSe
 	}
 
 	if err != nil {
-		return fmt.Errorf("error: unable to find free port, mock server will fail to start")
+		return errors.New("error: unable to find free port, mock server will fail to start")
 	}
 
 	p.config.Port, err = p.mockserver.Start(fmt.Sprintf("%s:%d", p.config.Host, p.config.Port), p.config.TLS)

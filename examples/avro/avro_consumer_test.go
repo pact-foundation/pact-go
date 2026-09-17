@@ -1,5 +1,4 @@
 //go:build consumer
-// +build consumer
 
 package avro
 
@@ -23,12 +22,12 @@ func TestAvroHTTP(t *testing.T) {
 	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "AvroConsumer",
 		Provider: "AvroProvider",
-		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
+		PactDir:  filepath.ToSlash(dir + "/../pacts"),
 	})
 	require.NoError(t, err)
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/user.avsc", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/user.avsc"
 
 	avroResponse := `{
 		"pact:avro": "` + path + `",
@@ -64,7 +63,7 @@ func TestAvroHTTP(t *testing.T) {
 func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 	client := &http.Client{}
 	req := &http.Request{
-		Method: "GET",
+		Method: http.MethodGet,
 		URL: &url.URL{
 			Host:   fmt.Sprintf("%s:%d", msc.Host, msc.Port),
 			Scheme: "http",
@@ -92,7 +91,7 @@ func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 		return nil, err
 	}
 
-	fields, ok := native.(map[string]interface{})
+	fields, ok := native.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("expected avro record to decode to map[string]interface{}, got %T", native)
 	}

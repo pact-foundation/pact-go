@@ -137,7 +137,7 @@ func (m *SynchronousMessageWithRequestBuilder) WithContent(contentType string, b
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed.
-func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithRequestBuilder {
+func (m *SynchronousMessageWithRequestBuilder) WithJSONContent(content any) *SynchronousMessageWithRequestBuilder {
 	m.messageHandle.WithRequestJSONContents(content)
 
 	return m
@@ -186,7 +186,7 @@ func (m *SynchronousMessageWithResponseBuilder) WithContent(contentType string, 
 
 // WithJSONContent specifies the payload as an object (to be marshalled to WithJSONContent) that
 // is expected to be consumed.
-func (m *SynchronousMessageWithResponseBuilder) WithJSONContent(content interface{}) *SynchronousMessageWithResponseBuilder {
+func (m *SynchronousMessageWithResponseBuilder) WithJSONContent(content any) *SynchronousMessageWithResponseBuilder {
 	m.messageHandle.WithResponseJSONContents(content)
 
 	return m
@@ -230,8 +230,8 @@ func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integra
 	return m.pact.mockserver.WritePactFile(m.pact.config.PactDir, false)
 }
 
-func (s *SynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]interface{}) *SynchronousMessageWithTransport {
-	port, err := s.pact.mockserver.StartTransport(transport, address, 0, make(map[string][]interface{}))
+func (s *SynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]any) *SynchronousMessageWithTransport {
+	port, err := s.pact.mockserver.StartTransport(transport, address, 0, make(map[string][]any))
 	if err != nil {
 		log.Fatalln("unable to start plugin transport:", err)
 	}

@@ -23,7 +23,7 @@ func DummyMiddleware(header string) Middleware {
 }
 
 func TestLoggingMiddleware(t *testing.T) {
-	req, err := http.NewRequestWithContext(context.Background(), "GET", "/x", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/x", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestLoggingMiddleware(t *testing.T) {
 }
 
 func TestChainHandlers(t *testing.T) {
-	req, err := http.NewRequestWithContext(context.Background(), "GET", "/health-check", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health-check", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -159,7 +159,7 @@ func (i *V3RequestBuilder) Headers(headers matchers.HeadersMatcher) *V3RequestBu
 }
 
 // JSONBody adds a JSON body to the expected request.
-func (i *V3RequestBuilder) JSONBody(body interface{}) *V3RequestBuilder {
+func (i *V3RequestBuilder) JSONBody(body any) *V3RequestBuilder {
 	// TODO: Don't like panic, but not sure if there is a better builder experience?
 	err := validateMatchers(i.interaction.specificationVersion, body)
 	if err != nil {
@@ -170,7 +170,7 @@ func (i *V3RequestBuilder) JSONBody(body interface{}) *V3RequestBuilder {
 		// Check if someone tried to add an object as a string representation
 		// as per original allowed implementation, e.g.
 		// { "foo": "bar", "baz": like("bat") }
-		if utils.IsJSONFormattedObject(string(s)) {
+		if utils.IsJSONFormattedObject(s) {
 			log.Println("[WARN] request body appears to be a JSON formatted object, " +
 				"no matching will occur. Support for structured strings has been" +
 				"deprecated as of 0.13.0. Please use the JSON() method instead")
@@ -213,7 +213,7 @@ func (i *V3RequestBuilder) Body(contentType string, body []byte) *V3RequestBuild
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct.
-func (i *V3RequestBuilder) BodyMatch(body interface{}) *V3RequestBuilder {
+func (i *V3RequestBuilder) BodyMatch(body any) *V3RequestBuilder {
 	i.interaction.interaction.WithJSONRequestBody(matchers.MatchV2(body))
 
 	return i
@@ -263,7 +263,7 @@ func (i *V3ResponseBuilder) Headers(headers matchers.HeadersMatcher) *V3Response
 }
 
 // JSONBody adds a JSON body to the expected response.
-func (i *V3ResponseBuilder) JSONBody(body interface{}) *V3ResponseBuilder {
+func (i *V3ResponseBuilder) JSONBody(body any) *V3ResponseBuilder {
 	// TODO: Don't like panic, how to build a better builder here - nil return + log?
 	err := validateMatchers(i.interaction.specificationVersion, body)
 	if err != nil {
@@ -274,7 +274,7 @@ func (i *V3ResponseBuilder) JSONBody(body interface{}) *V3ResponseBuilder {
 		// Check if someone tried to add an object as a string representation
 		// as per original allowed implementation, e.g.
 		// { "foo": "bar", "baz": like("bat") }
-		if utils.IsJSONFormattedObject(string(s)) {
+		if utils.IsJSONFormattedObject(s) {
 			log.Println("[WARN] response body appears to be a JSON formatted object, " +
 				"no matching will occur. Support for structured strings has been" +
 				"deprecated as of 0.13.0. Please use the JSON() method instead")
@@ -307,7 +307,7 @@ func (i *V3ResponseBuilder) Body(contentType string, body []byte) *V3ResponseBui
 }
 
 // BodyMatch uses struct tags to automatically determine matchers from the given struct.
-func (i *V3ResponseBuilder) BodyMatch(body interface{}) *V3ResponseBuilder {
+func (i *V3ResponseBuilder) BodyMatch(body any) *V3ResponseBuilder {
 	i.interaction.interaction.WithJSONResponseBody(matchers.MatchV2(body))
 
 	return i

@@ -1,5 +1,4 @@
 //go:build provider
-// +build provider
 
 package grpc
 
@@ -36,7 +35,7 @@ func TestGrpcProvider(t *testing.T) {
 		},
 		Provider: "grpcprovider",
 		PactFiles: []string{
-			filepath.ToSlash(fmt.Sprintf("%s/../pacts/grpcconsumer-grpcprovider.json", dir)),
+			filepath.ToSlash(dir + "/../pacts/grpcconsumer-grpcprovider.json"),
 		},
 	})
 

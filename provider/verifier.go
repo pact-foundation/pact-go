@@ -219,7 +219,7 @@ func (v *Verifier) VerifyProvider(t *testing.T, request VerifyRequest) error {
 
 // beforeEachMiddleware is invoked before any other, only on the __setup
 // request (to avoid duplication).
-func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
+func beforeEachMiddleware(beforeEach Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == providerStatesSetupPath {
@@ -228,7 +228,7 @@ func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 				// Before each should only fire on the "setup" phase
 				if err == nil && state.Action == "setup" {
 					log.Println("[DEBUG] executing before hook")
-					err := BeforeEach()
+					err := beforeEach()
 					if err != nil {
 						log.Println("[ERROR] error executing before hook:", err)
 						w.WriteHeader(http.StatusInternalServerError)
@@ -242,9 +242,9 @@ func beforeEachMiddleware(BeforeEach Hook) proxy.Middleware {
 
 // {"action":"teardown","id":"foo","state":"User foo exists"}.
 type stateHandlerAction struct {
-	Action string                 `json:"action"`
-	State  string                 `json:"state"`
-	Params map[string]interface{} `json:"params"`
+	Action string         `json:"action"`
+	State  string         `json:"state"`
+	Params map[string]any `json:"params"`
 }
 
 func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
@@ -282,95 +282,96 @@ func getStateFromRequest(r *http.Request) (stateHandlerAction, error) {
 func stateHandlerMiddleware(stateHandlers models.StateHandlers, afterEach Hook) proxy.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == providerStatesSetupPath {
-				log.Println("[INFO] executing state handler middleware")
-				var state stateHandlerAction
-				buf := new(strings.Builder)
-				tr := io.TeeReader(r.Body, buf)
-				// TODO: should return an error if unable to read ?
-				_, _ = io.ReadAll(tr)
+			if r.URL.Path != providerStatesSetupPath {
+				log.Println("[TRACE] skipping state handler for request", strconv.Quote(r.RequestURI))
 
-				// Body is consumed above, need to put it back after ;P
-				r.Body = io.NopCloser(strings.NewReader(buf.String()))
-				log.Println("[TRACE] state handler received raw input", buf.String())
+				// Pass through to application
+				next.ServeHTTP(w, r)
+				return
+			}
 
-				err := json.Unmarshal([]byte(buf.String()), &state)
-				log.Println("[TRACE] state handler parsed input (without params)", state)
+			log.Println("[INFO] executing state handler middleware")
+			var state stateHandlerAction
+			buf := new(strings.Builder)
+			tr := io.TeeReader(r.Body, buf)
+			// TODO: should return an error if unable to read ?
+			_, _ = io.ReadAll(tr)
 
-				if err != nil {
-					log.Println("[ERROR] unable to decode incoming state change payload", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
+			// Body is consumed above, need to put it back after ;P
+			r.Body = io.NopCloser(strings.NewReader(buf.String()))
+			log.Println("[TRACE] state handler received raw input", buf.String())
 
-				// Extract the params from the payload. They are in the root, so we need to do some more work to achieve this
-				var params models.ProviderStateResponse
-				err = json.Unmarshal([]byte(buf.String()), &params)
-				if err != nil {
-					log.Println("[ERROR] unable to decode incoming state change payload", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
+			err := json.Unmarshal([]byte(buf.String()), &state)
+			log.Println("[TRACE] state handler parsed input (without params)", state)
 
-				// TODO: update rust code - params should be in a sub-property, to avoid top-level key conflicts
-				// i.e. it's possible action/state are actually something a users wants to supply
-				delete(params, "action")
-				delete(params, "state")
-				state.Params = params
-				log.Println("[TRACE] state handler completed parsing input (with params)", state)
+			if err != nil {
+				log.Println("[ERROR] unable to decode incoming state change payload", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 
-				// Find the provider state handler
-				sf, stateFound := stateHandlers[state.State]
+			// Extract the params from the payload. They are in the root, so we need to do some more work to achieve this
+			var params models.ProviderStateResponse
+			err = json.Unmarshal([]byte(buf.String()), &params)
+			if err != nil {
+				log.Println("[ERROR] unable to decode incoming state change payload", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 
-				if !stateFound {
-					log.Printf("[WARN] no state handler found for state: %v", state.State)
-				} else {
-					// Execute state handler
-					res, err := sf(state.Action == "setup", models.ProviderState{Name: state.State, Parameters: state.Params})
-					if err != nil {
-						log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
+			// TODO: update rust code - params should be in a sub-property, to avoid top-level key conflicts
+			// i.e. it's possible action/state are actually something a users wants to supply
+			delete(params, "action")
+			delete(params, "state")
+			state.Params = params
+			log.Println("[TRACE] state handler completed parsing input (with params)", state)
 
-					if state.Action == "teardown" && afterEach != nil {
-						err := afterEach()
-						if err != nil {
-							log.Printf("[ERROR] after each hook for test errored: %v", err)
-							w.WriteHeader(http.StatusInternalServerError)
-							return
-						}
-					}
+			// Find the provider state handler
+			sf, stateFound := stateHandlers[state.State]
 
-					// Return provider state values for generator
-					if res != nil {
-						log.Println("[TRACE] returning values from provider state (raw)", res)
-						resBody, err := json.Marshal(res)
-						log.Println("[TRACE] returning values from provider state (JSON)", string(resBody))
-
-						if err != nil {
-							log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
-							w.WriteHeader(http.StatusInternalServerError)
-
-							return
-						}
-
-						w.Header().Add("content-type", "application/json")
-						w.WriteHeader(http.StatusOK)
-						// TODO: return interal server error if unable to write ?
-						_, _ = w.Write(resBody)
-						return
-					}
-				}
-
+			if !stateFound {
+				log.Printf("[WARN] no state handler found for state: %v", state.State)
 				w.WriteHeader(http.StatusOK)
 				return
 			}
 
-			log.Println("[TRACE] skipping state handler for request", strconv.Quote(r.RequestURI))
+			// Execute state handler
+			res, err := sf(state.Action == "setup", models.ProviderState{Name: state.State, Parameters: state.Params})
+			if err != nil {
+				log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 
-			// Pass through to application
-			next.ServeHTTP(w, r)
+			if state.Action == "teardown" && afterEach != nil {
+				err := afterEach()
+				if err != nil {
+					log.Printf("[ERROR] after each hook for test errored: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+			}
+
+			// Return provider state values for generator
+			if res == nil {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			log.Println("[TRACE] returning values from provider state (raw)", res)
+			resBody, err := json.Marshal(res)
+			log.Println("[TRACE] returning values from provider state (JSON)", string(resBody))
+
+			if err != nil {
+				log.Printf("[ERROR] state handler for '%v' errored: %v", state.State, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Add("content-type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			// TODO: return interal server error if unable to write ?
+			_, _ = w.Write(resBody)
 		})
 	}
 }
