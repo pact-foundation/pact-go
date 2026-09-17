@@ -16,6 +16,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/provider"
 	pactversion "github.com/pact-foundation/pact-go/v2/version"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -24,7 +25,7 @@ func TestPluginMessageProvider(t *testing.T) {
 	pactDir := fmt.Sprintf("%s/../pacts", dir)
 
 	err := pactlog.SetLogLevel("INFO")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pactversion.CheckVersion()
 

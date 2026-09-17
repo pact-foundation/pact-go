@@ -10,6 +10,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/consumer"
 	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type S = matchers.S
@@ -21,7 +22,7 @@ func TestProductAPIClient(t *testing.T) {
 		Consumer: "PactGoProductAPIConsumer",
 		Provider: "PactGoProductAPI",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Arrange: Setup our expected interactions
 	err = mockProvider.
@@ -41,7 +42,7 @@ func TestProductAPIClient(t *testing.T) {
 			product, err := client.GetProduct("10")
 
 			// Assert: check the result
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, 10, product.ID)
 
 			return err

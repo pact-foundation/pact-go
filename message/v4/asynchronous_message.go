@@ -104,6 +104,7 @@ type AsynchronousMessageWithPluginContents struct {
 }
 
 func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m AsynchronousMessage) error) error {
+	t.Helper()
 	defer s.rootBuilder.pact.messageserver.CleanupPlugins()
 	message, err := getAsynchronousMessageWithReifiedContents(s.rootBuilder.messageHandle, s.rootBuilder.Type)
 	if err != nil {
@@ -140,6 +141,7 @@ type AsynchronousMessageWithTransport struct {
 }
 
 func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m AsynchronousMessage) error) error {
+	t.Helper()
 	defer s.rootBuilder.pact.messageserver.CleanupMockServer(s.transport.Port)
 	defer s.rootBuilder.pact.messageserver.CleanupPlugins()
 	message, err := getAsynchronousMessageWithReifiedContents(s.rootBuilder.messageHandle, s.rootBuilder.Type)
@@ -216,6 +218,7 @@ type AsynchronousMessageWithConsumer struct {
 
 // The function that will consume the message.
 func (m *AsynchronousMessageWithConsumer) Verify(t *testing.T) error {
+	t.Helper()
 	return m.rootBuilder.pact.Verify(t, m.rootBuilder, m.rootBuilder.handler)
 }
 
@@ -300,6 +303,7 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 // VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
 // accepting an instance of `*testing.T`.
 func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
+	t.Helper()
 	err := p.verifyMessageConsumerRaw(message, handler)
 	if err != nil {
 		t.Errorf("VerifyMessageConsumer failed: %v", err)

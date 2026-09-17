@@ -325,6 +325,7 @@ func (i *V4ResponseBuilder) BodyMatch(body interface{}) *V4ResponseBuilder {
 
 // ExecuteTest runs the current test case against a Mock Service.
 func (m *V4InteractionWithResponse) ExecuteTest(t *testing.T, integrationTest func(MockServerConfig) error) error {
+	t.Helper()
 	return m.provider.ExecuteTest(t, integrationTest)
 }
 
@@ -441,6 +442,7 @@ type V4InteractionWithPluginResponse struct {
 
 // ExecuteTest runs the current test case against a Mock Service.
 func (m *V4InteractionWithPluginResponse) ExecuteTest(t *testing.T, integrationTest func(MockServerConfig) error) error {
+	t.Helper()
 	return m.provider.ExecuteTest(t, integrationTest)
 }
 

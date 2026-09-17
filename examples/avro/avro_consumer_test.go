@@ -16,6 +16,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/consumer"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAvroHTTP(t *testing.T) {
@@ -24,7 +25,7 @@ func TestAvroHTTP(t *testing.T) {
 		Provider: "AvroProvider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	dir, _ := os.Getwd()
 	path := fmt.Sprintf("%s/user.avsc", strings.ReplaceAll(dir, "\\", "/"))
