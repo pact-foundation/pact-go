@@ -1,6 +1,7 @@
 package native
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,8 +11,19 @@ import (
 
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
+
+// httpGet is a context-aware GET helper for the tests below, which only
+// ever hit a mock server started in the same test.
+func httpGet(url string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return http.DefaultClient.Do(req)
+}
 
 func init() {
 	Init("")
@@ -56,10 +68,11 @@ func TestMockServer_MismatchesSuccess(t *testing.T) {
 	m, port := newSimpleMockServer(t)
 	defer m.CleanupMockServer(port)
 
-	res, err := http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	res, err := httpGet(fmt.Sprintf("http://localhost:%d/foobar", port))
 	if err != nil {
 		t.Fatalf("Error sending request: %v", err)
 	}
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != 200 {
 		t.Fatalf("want '200', got '%d'", res.StatusCode)
@@ -88,10 +101,11 @@ func TestMockServer_VerifySuccess(t *testing.T) {
 	m, port := newSimpleMockServer(t)
 	defer m.CleanupMockServer(port)
 
-	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	res, err := httpGet(fmt.Sprintf("http://localhost:%d/foobar", port))
 	if err != nil {
 		t.Fatalf("Error sending request: %v", err)
 	}
+	defer func() { _ = res.Body.Close() }()
 
 	success, mismatches := m.Verify(port, tmpPactFolder)
 	if !success {
@@ -125,10 +139,11 @@ func TestMockServer_WritePactfile(t *testing.T) {
 	m, port := newSimpleMockServer(t)
 	defer m.CleanupMockServer(port)
 
-	_, err = http.Get(fmt.Sprintf("http://localhost:%d/foobar", port))
+	res, err := httpGet(fmt.Sprintf("http://localhost:%d/foobar", port))
 	if err != nil {
 		t.Fatalf("Error sending request: %v", err)
 	}
+	defer func() { _ = res.Body.Close() }()
 	err = m.WritePactFile(port, tmpPactFolder)
 	if err != nil {
 		t.Fatal("error: ", err)
@@ -172,8 +187,9 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	assert.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
-	_, err = http.Get(fmt.Sprintf("http://0.0.0.0:%d/products", port))
-	assert.NoError(t, err)
+	res, err := httpGet(fmt.Sprintf("http://0.0.0.0:%d/products", port))
+	require.NoError(t, err)
+	defer func() { _ = res.Body.Close() }()
 	mismatches := m.MockServerMismatchedRequests(port)
 	if len(mismatches) != 0 {
 		t.Fatalf("want 0 mismatches, got '%d'", len(mismatches))
@@ -219,8 +235,9 @@ func TestPluginInteraction(t *testing.T) {
 	assert.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
-	res, err := http.Get(fmt.Sprintf("http://0.0.0.0:%d/protobuf", port))
-	assert.NoError(t, err)
+	res, err := httpGet(fmt.Sprintf("http://0.0.0.0:%d/protobuf", port))
+	require.NoError(t, err)
+	defer func() { _ = res.Body.Close() }()
 
 	bytes, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)

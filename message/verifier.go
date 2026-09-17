@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/proxy"
@@ -37,18 +38,32 @@ func appendMetadataToResponseHeaders(metadata Metadata, w http.ResponseWriter) {
 		w.Header().Add(PACT_MESSAGE_METADATA_HEADER2, encoded)
 
 		// Content-Type must match the body content type in the pact.
-		if metadata["contentType"] != nil {
-			w.Header().Set("Content-Type", metadata["contentType"].(string))
-		} else if metadata["content-type"] != nil {
-			w.Header().Set("Content-Type", metadata["content-type"].(string))
-		} else if metadata["Content-Type"] != nil {
-			w.Header().Set("Content-Type", metadata["Content-Type"].(string))
-		} else {
-			defaultContentType := "application/json; charset=utf-8"
-			log.Println("[WARN] no content type (key 'contentType') found in message metadata. Defaulting to", defaultContentType)
-			w.Header().Set("Content-Type", defaultContentType)
+		contentType, ok := stringMetadataValue(metadata, "contentType", "content-type", "Content-Type")
+		if !ok {
+			contentType = "application/json; charset=utf-8"
+			log.Println("[WARN] no content type (key 'contentType') found in message metadata. Defaulting to", contentType)
 		}
+		w.Header().Set("Content-Type", contentType)
 	}
+}
+
+// stringMetadataValue returns the first string value found in metadata for
+// the given keys, in order. The second return value is false if none of the
+// keys are present or the value found is not a string.
+func stringMetadataValue(metadata Metadata, keys ...string) (string, bool) {
+	for _, key := range keys {
+		v, present := metadata[key]
+		if !present || v == nil {
+			continue
+		}
+		s, ok := v.(string)
+		if !ok {
+			log.Printf("[WARN] message metadata key %q is not a string (got %T), ignoring", key, v)
+			continue
+		}
+		return s, true
+	}
+	return "", false
 }
 
 func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
@@ -64,7 +79,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 				if closeErr != nil {
 					log.Println("[WARN] failed to close request body:", closeErr)
 				}
-				log.Printf("[TRACE] message verification handler received request: %+s, %s", body, r.URL.Path)
+				log.Printf("[TRACE] message verification handler received request: %s, %s", strconv.Quote(string(body)), strconv.Quote(r.URL.Path))
 
 				if err != nil {
 					log.Printf("[ERROR] unable to parse message verification request: %s", err)
@@ -121,7 +136,7 @@ func CreateMessageHandler(messageHandlers Handlers) proxy.Middleware {
 
 				return
 			}
-			log.Println("[TRACE] skipping message handler for request", r.RequestURI)
+			log.Println("[TRACE] skipping message handler for request", strconv.Quote(r.RequestURI))
 
 			// Pass through to application
 			next.ServeHTTP(w, r)

@@ -4,7 +4,8 @@ package installer
 
 import (
 	"compress/gzip"
-	"crypto/md5"
+	"context"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"log"
@@ -16,6 +17,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	goversion "github.com/hashicorp/go-version"
 	"gopkg.in/yaml.v3"
@@ -209,6 +211,11 @@ func (i *Installer) downloadDependencies() error {
 			return err
 		}
 
+		//nolint:gosec // G302: the documented default install path is the system-wide
+		// /usr/local/lib, installed via `sudo pact-go install` (README.md); the library must
+		// stay world-readable so the non-root process that later dlopen's it (go test, the
+		// compiled binary) can load it. A 0600 mode here would leave the file readable only
+		// by the root user that ran the installer.
 		err = os.Chmod(dst, 0o755)
 		if err != nil {
 			log.Println("[WARN] unable to set permissions on file", dst, "due to error:", err)
@@ -290,6 +297,11 @@ func (i *Installer) updateConfiguration(dst string, pkg string, info packageInfo
 }
 
 var setMacOSInstallName = func(file string) error {
+	//nolint:gosec // G204: file is the local install destination built from getLibDstForPackage
+	// (getLibDir + internal osToLibName/osToExtension maps). getLibDir can be overridden via
+	// SetLibDir or PACT_GO_LIB_DOWNLOAD_PATH, so file is not purely internal, but exec.Command
+	// here takes a fixed binary name with a fixed argv (no shell), so there is no injection
+	// vector regardless of what file's value is.
 	cmd := exec.Command("install_name_tool", "-id", file, file)
 	log.Println("[DEBUG] running command:", cmd)
 	stdoutStderr, err := cmd.CombinedOutput()
@@ -330,7 +342,9 @@ func checkMusl() bool {
 		return false
 	}
 
-	cmd := exec.Command(lddPath, "/bin/echo")
+	//nolint:gosec // G204: lddPath is resolved via exec.LookPath("ldd"), a fixed binary name;
+	// the second argument is a hardcoded literal. Neither is user- or network-supplied input.
+	cmd := exec.CommandContext(context.Background(), lddPath, "/bin/echo")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return false
@@ -409,20 +423,41 @@ func (d *defaultDownloader) download(src string, dst string) error {
 	log.Println("[INFO] downloading library from", src, "to", dst)
 
 	baseDir := path.Dir(dst)
+	//nolint:gosec // G301: the documented default install path is the system-wide
+	// /usr/local/lib, installed via `sudo pact-go install` (README.md); this directory
+	// (already present by default, only actually created here for a custom --libDir) must
+	// stay world-readable/-executable so a non-root process can stat and dlopen the library
+	// inside it. A 0750 mode here would leave a freshly created directory inaccessible to
+	// anyone but the root user that ran the installer.
 	err := os.MkdirAll(baseDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to create %s; %w", baseDir, err)
 	}
 
+	//nolint:gosec // G304: dst is the local install destination built from getLibDstForPackage
+	// (getLibDir + internal osToLibName/osToExtension maps). getLibDir can be overridden via
+	// SetLibDir or PACT_GO_LIB_DOWNLOAD_PATH, so dst is not purely internal, but this is the
+	// installer choosing where to write the file it is downloading, not an attacker directing
+	// a read of an arbitrary existing file — the caller who sets libDir already controls the
+	// filesystem the installer runs against.
 	f, err := os.Create(dst)
 	if err != nil {
 		return fmt.Errorf("failed to create output file; %w", err)
 	}
 	defer func() {
+		// No-op when the oversize path below has already closed it.
 		_ = f.Close()
 	}()
 
-	resp, err := http.Get(src)
+	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for %s; %w", src, err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed http call to %s; %w", src, err)
 	}
@@ -435,13 +470,42 @@ func (d *defaultDownloader) download(src string, dst string) error {
 		return fmt.Errorf("failed to create new gzip reader; %w", err)
 	}
 
-	_, err = io.Copy(f, archive)
+	written, err := io.Copy(f, io.LimitReader(archive, maxDecompressedLibSize+1))
 	if err != nil {
 		return fmt.Errorf("failed to copy archive to file; %w", err)
+	}
+	if written > maxDecompressedLibSize {
+		// Close before removing: Windows refuses to unlink an open file, which
+		// would otherwise leave the oversized partial library on disk for
+		// CheckPackageInstall to find.
+		closeErr := f.Close()
+		if closeErr != nil {
+			return fmt.Errorf("decompressed library exceeds the %d byte safety limit, and closing the partial file at %s failed; %w", maxDecompressedLibSize, dst, closeErr)
+		}
+
+		removeErr := os.Remove(dst)
+		if removeErr != nil {
+			return fmt.Errorf("decompressed library exceeds the %d byte safety limit, and removing the partial file at %s failed; %w", maxDecompressedLibSize, dst, removeErr)
+		}
+
+		return fmt.Errorf("decompressed library exceeds the %d byte safety limit; aborting", maxDecompressedLibSize)
 	}
 
 	return nil
 }
+
+// downloadTimeout bounds a single library download end to end, so a stalled
+// connection fails the install instead of hanging it. The largest FFI asset is
+// ~6.6MB compressed, so this leaves room for a slow link without leaving
+// `pact-go install` waiting forever.
+const downloadTimeout = 5 * time.Minute
+
+// maxDecompressedLibSize bounds decompression of the downloaded FFI archive.
+// The largest FFI asset pact-reference currently publishes (libpact_ffi-linux-aarch64-musl.so.gz)
+// compresses to ~6.6MB; genuine machine code rarely compresses beyond ~5x, so 150MB gives roughly
+// 20x headroom for the library to grow while still bounding a pathological decompression bomb.
+// A var so tests can lower it rather than materialising 150MB.
+var maxDecompressedLibSize int64 = 150 * 1024 * 1024
 
 type packageMetadata struct {
 	LibName string
@@ -482,6 +546,8 @@ func (configuration) readConfig() pactConfig {
 		Libraries: map[string]packageMetadata{},
 	}
 
+	//nolint:gosec // G304: pactConfigPath is derived from the current OS user's home directory
+	// (getConfigPath), not user- or network-supplied input.
 	bytes, err := os.ReadFile(pactConfigPath)
 	if err != nil {
 		log.Println("[DEBUG] error reading file", pactConfigPath, "error: ", err)
@@ -499,7 +565,7 @@ func (configuration) writeConfig(c pactConfig) error {
 	log.Println("[DEBUG] writing config", c)
 	pactConfigPath := getConfigPath()
 
-	err := os.MkdirAll(filepath.Dir(pactConfigPath), 0o755)
+	err := os.MkdirAll(filepath.Dir(pactConfigPath), 0o750)
 	if err != nil {
 		log.Println("[DEBUG] error creating pact config directory")
 		return err
@@ -512,7 +578,7 @@ func (configuration) writeConfig(c pactConfig) error {
 	}
 	log.Println("[DEBUG] writing yaml config to file", string(bytes))
 
-	return os.WriteFile(pactConfigPath, bytes, 0o644)
+	return os.WriteFile(pactConfigPath, bytes, 0o600)
 }
 
 type hasher interface {
@@ -524,6 +590,11 @@ type defaultHasher struct{}
 func (d *defaultHasher) hash(src string) (string, error) {
 	log.Println("[DEBUG] obtaining hash for file", src)
 
+	//nolint:gosec // G304: src is the local install destination built from getLibDstForPackage
+	// (getLibDir + internal osToLibName/osToExtension maps). getLibDir can be overridden via
+	// SetLibDir or PACT_GO_LIB_DOWNLOAD_PATH, so src is not purely internal, but this reads
+	// back the exact file the installer itself just downloaded to that same path — the caller
+	// who sets libDir already controls the filesystem the installer runs against.
 	f, err := os.Open(src)
 	if err != nil {
 		return "", err
@@ -532,7 +603,7 @@ func (d *defaultHasher) hash(src string) (string, error) {
 		_ = f.Close()
 	}()
 
-	h := md5.New()
+	h := sha256.New()
 	_, err = io.Copy(h, f)
 	if err != nil {
 		return "", err

@@ -6,6 +6,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/consumer"
@@ -94,7 +95,7 @@ func TestConsumerV3(t *testing.T) {
 func TestMessagePact(t *testing.T) {
 	assert.NoError(t, log.SetLogLevel("INFO"))
 
-	provider, err := message.NewMessagePact(message.Config{
+	provider, err := message.NewAsynchronousPact(message.Config{
 		Consumer: "PactGoV3MessageConsumer",
 		Provider: "V3MessageProvider", // must be different to the HTTP one, can't mix both interaction styles
 	})
@@ -126,7 +127,11 @@ func TestMessagePact(t *testing.T) {
 
 // Message Pact - wrapped handler extracts the message.
 var userHandlerWrapper = func(m message.MessageContents) error {
-	return userHandler(*m.Content.(*User))
+	user, ok := m.Content.(*User)
+	if !ok {
+		return fmt.Errorf("expected message content to be *User, got %T", m.Content)
+	}
+	return userHandler(*user)
 }
 
 // Message Pact - actual handler.
