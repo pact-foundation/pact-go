@@ -1,3 +1,6 @@
+// Package models holds types shared across the consumer, provider and
+// message packages: the Pact specification version and provider state
+// types used when building and verifying a pact.
 package models
 
 // SpecificationVersion is used to determine the current specification version.

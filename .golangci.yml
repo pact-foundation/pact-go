@@ -17,6 +17,7 @@ linters:
     - forcetypeassert
     - funcorder
     - gocritic
+    - godoclint
     - godot
     - gosec
     - inamedparam
@@ -33,6 +34,7 @@ linters:
     - nonamedreturns
     - perfsprint
     - protogetter
+    - revive
     - tagalign
     - testifylint
     - thelper
@@ -46,6 +48,47 @@ linters:
         # utils/datetime.go documents a Java DateTimeFormatter symbol table where the
         # Meaning and Presentation columns both read "year" for the `u` symbol.
         - year
+    # golangci-lint's revive settings replace revive's default rule set
+    # rather than adding to it, so disabling one rule here means listing
+    # every rule revive enables by default (per revive's own
+    # config.defaultRules, github.com/mgechev/revive/config/config.go)
+    # and disabling only the one we don't want. Leaving this list
+    # incomplete silently turns revive off.
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: var-declaration
+        - name: var-naming
+        # A named parameter is documentation on a public API: pkg.go.dev
+        # renders it as part of the signature (e.g. `Verify(handle
+        # *native.Verifier, writer outputWriter)`), even where the body
+        # never reads it. Blanking it to `_` to satisfy this rule makes
+        # the published signature worse, not better, so the rule is
+        # disabled outright rather than fought function-by-function;
+        # revive has no way to scope it to exported declarations only.
+        # Unexported functions still get `_` renames by hand where a
+        # parameter is genuinely unused and un-named.
+        - name: unused-parameter
+          disabled: true
   exclusions:
     paths:
       # lib.go only contains cgo annotations
@@ -59,6 +102,16 @@ linters:
       - path: matchers/matcher\.go
         linters:
           - exhaustive
+      # internal/native's ALL_CAPS constants (INTERACTION_PART_REQUEST,
+      # LOG_LEVEL_*, MESSAGE_TYPE_*, ...) mirror the identifiers in the
+      # pact_ffi C header they bind to, so a reader can audit the binding
+      # against the FFI enum values. Scoped to var-naming only, and to this
+      # package, since it isn't exported outside the module and the reason
+      # doesn't apply anywhere else.
+      - path: internal/native/
+        linters:
+          - revive
+        text: "var-naming"
 formatters:
   enable:
     - gofumpt

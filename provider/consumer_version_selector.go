@@ -22,16 +22,22 @@ type ConsumerVersionSelector struct {
 	Branch             string `json:"branch,omitempty"`
 }
 
-// Type marker.
+// IsSelector marks ConsumerVersionSelector as implementing Selector.
 func (c *ConsumerVersionSelector) IsSelector() {
 }
 
+// UntypedConsumerVersionSelector passes an arbitrary selector as raw
+// key/values, for a selector supported by the broker but not yet by
+// ConsumerVersionSelector.
 type UntypedConsumerVersionSelector map[string]any
 
-// Type marker.
+// IsSelector marks UntypedConsumerVersionSelector as implementing Selector.
 func (c *UntypedConsumerVersionSelector) IsSelector() {
 }
 
+// Selector is implemented by ConsumerVersionSelector and
+// UntypedConsumerVersionSelector, and used as the element type of
+// VerifyRequest.ConsumerVersionSelectors.
 type Selector interface {
 	IsSelector()
 }

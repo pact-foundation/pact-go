@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-// Format a JSON document to make comparison easier.
+// FormatJSONString formats a JSON document to make comparison easier.
 func FormatJSONString(object string) string {
 	var out bytes.Buffer
 	err := json.Indent(&out, []byte(object), "", "\t")
@@ -17,7 +17,7 @@ func FormatJSONString(object string) string {
 	return out.String()
 }
 
-// Format a JSON document for creating Pact files.
+// FormatJSONObject formats a JSON document for creating Pact files.
 func FormatJSONObject(object any) string {
 	out, err := json.Marshal(object)
 	if err != nil {
@@ -27,8 +27,8 @@ func FormatJSONObject(object any) string {
 	return FormatJSONString(string(out))
 }
 
-// Checks to see if someone has tried to submit a JSON string
-// for an object, which is no longer supported.
+// IsJSONFormattedObject checks to see if someone has tried to submit a
+// JSON string for an object, which is no longer supported.
 func IsJSONFormattedObject(stringOrObject any) bool {
 	switch content := stringOrObject.(type) {
 	case []byte:
