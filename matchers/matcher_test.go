@@ -388,117 +388,120 @@ func TestMatcher_SugarMatchers(t *testing.T) {
 	matchers := map[string]matcherTestCase{
 		"HexValue": {
 			matcher: HexValue(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				s, valid := v.(string)
 				if !valid || s != "3F" {
-					err = fmt.Errorf("want '3F', got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want '3F', got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"Identifier": {
 			matcher: Identifier(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
 				if !valid {
-					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"Integer": {
 			matcher: Integer(1),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				_, valid := v.(float64) // JSON converts numbers to float64 in anonymous structs
 				if !valid {
-					err = fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want int, got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"IPAddress": {
 			matcher: IPAddress(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				s, valid := v.(string)
 				if !valid || s != "127.0.0.1" {
-					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"IPv4Address": {
 			matcher: IPv4Address(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				s, valid := v.(string)
 				if !valid || s != "127.0.0.1" {
-					err = fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want '127.0.0.1', got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"IPv6Address": {
 			matcher: IPv6Address(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				s, valid := v.(string)
 				if !valid || s != "::ffff:192.0.2.128" {
-					err = fmt.Errorf("want '::ffff:192.0.2.128', got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want '::ffff:192.0.2.128', got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"Decimal": {
 			matcher: Decimal(27.3),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				_, valid := v.(float64)
 				if !valid {
-					err = fmt.Errorf("want float64, got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want float64, got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"Timestamp": {
 			matcher: Timestamp(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				_, valid := v.(string)
 				if !valid {
-					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"Date": {
 			matcher: Date(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				_, valid := v.(string)
 				if !valid {
-					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"Time": {
 			matcher: Time(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				_, valid := v.(string)
 				if !valid {
-					err = fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
+					return fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
 				}
-				return
+				return nil
 			},
 		},
 		"UUID": {
 			matcher: UUID(),
-			testCase: func(v any) (err error) {
+			testCase: func(v any) error {
 				s, valid := v.(string)
 				if !valid {
 					return fmt.Errorf("want string, got '%v'", reflect.TypeOf(v))
 				}
 
 				match, err := regexp.MatchString(uuid, s)
-				if !match {
-					err = fmt.Errorf("want string, got '%v'", v)
+				if err != nil {
+					return err
 				}
-				return
+				if !match {
+					return fmt.Errorf("want string, got '%v'", v)
+				}
+				return nil
 			},
 		},
 	}
@@ -591,7 +594,7 @@ func TestMatch(t *testing.T) {
 	}
 	type numberDTO struct {
 		Integer int     `json:"integer" pact:"example=42"`
-		Float   float32 `json:"float" pact:"example=6.66"`
+		Float   float32 `json:"float"   pact:"example=6.66"`
 	}
 	str := "str"
 	type args struct {

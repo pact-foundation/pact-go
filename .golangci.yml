@@ -9,13 +9,17 @@ issues:
 linters:
   enable:
     - bodyclose
+    - dogsled
     - dupword
+    - embeddedstructfieldcheck
     - errorlint
     - exhaustive
     - forcetypeassert
+    - funcorder
     - gocritic
     - godot
     - gosec
+    - inamedparam
     - intrange
     - mirror
     - misspell
@@ -26,8 +30,10 @@ linters:
     - nilnesserr
     - noctx
     - noinlineerr
+    - nonamedreturns
     - perfsprint
     - protogetter
+    - tagalign
     - testifylint
     - thelper
     - unconvert
