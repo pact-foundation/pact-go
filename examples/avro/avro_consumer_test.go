@@ -78,6 +78,7 @@ func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = res.Body.Close() }()
 
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -90,9 +91,24 @@ func callServiceHTTP(msc consumer.MockServerConfig) (*User, error) {
 		return nil, err
 	}
 
+	fields, ok := native.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("expected avro record to decode to map[string]interface{}, got %T", native)
+	}
+
+	id, ok := fields["id"].(int64)
+	if !ok {
+		return nil, fmt.Errorf("expected field \"id\" to be int64, got %T", fields["id"])
+	}
+
+	username, ok := fields["username"].(string)
+	if !ok {
+		return nil, fmt.Errorf("expected field \"username\" to be string, got %T", fields["username"])
+	}
+
 	user := &User{
-		ID:       native.(map[string]interface{})["id"].(int64),
-		Username: native.(map[string]interface{})["username"].(string),
+		ID:       id,
+		Username: username,
 	}
 
 	return user, err

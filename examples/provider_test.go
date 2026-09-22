@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/message"
@@ -244,5 +245,10 @@ func startServer() {
 		}
 	})
 
-	l.Fatal(http.ListenAndServe("127.0.0.1:8111", mux))
+	server := &http.Server{
+		Addr:              "127.0.0.1:8111",
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	l.Fatal(server.ListenAndServe())
 }

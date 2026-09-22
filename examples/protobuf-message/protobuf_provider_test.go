@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/pact-foundation/pact-go/v2/examples/grpc/routeguide"
 	pactlog "github.com/pact-foundation/pact-go/v2/log"
 	"github.com/pact-foundation/pact-go/v2/message"
@@ -17,6 +16,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/provider"
 	pactversion "github.com/pact-foundation/pact-go/v2/version"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestPluginMessageProvider(t *testing.T) {
