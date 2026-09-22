@@ -108,7 +108,7 @@ func TestSyncTypeSystem_ProtobufPlugin_Matcher_Transport(t *testing.T) {
 		PactDir:  "/tmp/",
 	})
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/../../internal/native/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/../../internal/native/pact_plugin.proto"
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",
@@ -166,7 +166,7 @@ func TestSyncTypeSystem_ProtobufPlugin_Matcher_Transport_Fail(t *testing.T) {
 	})
 	_ = log.SetLogLevel("INFO")
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/../../internal/native/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/../../internal/native/pact_plugin.proto"
 
 	grpcInteraction := `{
 		"pact:proto": "` + path + `",

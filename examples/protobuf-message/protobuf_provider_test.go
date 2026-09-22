@@ -1,5 +1,4 @@
 //go:build provider
-// +build provider
 
 package protobuf
 
@@ -22,7 +21,7 @@ import (
 
 func TestPluginMessageProvider(t *testing.T) {
 	dir, _ := os.Getwd()
-	pactDir := fmt.Sprintf("%s/../pacts", dir)
+	pactDir := dir + "/../pacts"
 
 	err := pactlog.SetLogLevel("INFO")
 	require.NoError(t, err)
@@ -49,7 +48,7 @@ func TestPluginMessageProvider(t *testing.T) {
 
 	err = verifier.VerifyProvider(t, provider.VerifyRequest{
 		PactFiles: []string{
-			filepath.ToSlash(fmt.Sprintf("%s/protobufmessageconsumer-protobufmessageprovider.json", pactDir)),
+			filepath.ToSlash(pactDir + "/protobufmessageconsumer-protobufmessageprovider.json"),
 		},
 		Provider:        "protobufmessageprovider",
 		MessageHandlers: functionMappings,

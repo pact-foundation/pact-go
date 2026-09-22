@@ -21,7 +21,7 @@ type Interaction struct {
 // confirm that the Provider provides an API listening on the given interface.
 // Mandatory.
 func (i *Interaction) WithCompleteRequest(request Request) *Interaction {
-	i.interaction.WithRequest(string(request.Method), request.Path)
+	i.interaction.WithRequest(request.Method, request.Path)
 
 	if request.Body != nil {
 		i.interaction.WithJSONRequestBody(request.Body)
@@ -53,7 +53,7 @@ func (i *Interaction) WithCompleteResponse(response Response) *Interaction {
 	return i
 }
 
-func validateMatchers(version models.SpecificationVersion, obj interface{}) error {
+func validateMatchers(version models.SpecificationVersion, obj any) error {
 	if obj == nil {
 		return nil
 	}
@@ -63,13 +63,13 @@ func validateMatchers(version models.SpecificationVersion, obj interface{}) erro
 		return err
 	}
 
-	var raw interface{}
+	var raw any
 	err = json.Unmarshal(str, &raw)
 	if err != nil {
 		return err
 	}
 
-	maybeMatchers, ok := raw.(map[string]interface{})
+	maybeMatchers, ok := raw.(map[string]any)
 	if !ok {
 		// Not a JSON object (e.g. a string, number, or array) - nothing to validate.
 		return nil
@@ -84,7 +84,7 @@ func validateMatchers(version models.SpecificationVersion, obj interface{}) erro
 	return nil
 }
 
-func hasMatcherGreaterThanSpec(version models.SpecificationVersion, obj map[string]interface{}) []string {
+func hasMatcherGreaterThanSpec(version models.SpecificationVersion, obj map[string]any) []string {
 	results := make([]string, 0)
 
 	for k, v := range obj {
@@ -99,7 +99,7 @@ func hasMatcherGreaterThanSpec(version models.SpecificationVersion, obj map[stri
 			results = append(results, matcherType)
 		}
 
-		m, ok := v.(map[string]interface{})
+		m, ok := v.(map[string]any)
 		if ok {
 			results = append(results, hasMatcherGreaterThanSpec(version, m)...)
 		}
@@ -108,8 +108,8 @@ func hasMatcherGreaterThanSpec(version models.SpecificationVersion, obj map[stri
 	return results
 }
 
-func keyValuesToMapStringArrayInterface(key string, values ...matchers.Matcher) map[string][]interface{} {
-	q := make(map[string][]interface{})
+func keyValuesToMapStringArrayInterface(key string, values ...matchers.Matcher) map[string][]any {
+	q := make(map[string][]any)
 	for _, v := range values {
 		q[key] = append(q[key], v)
 	}
@@ -117,11 +117,11 @@ func keyValuesToMapStringArrayInterface(key string, values ...matchers.Matcher) 
 	return q
 }
 
-func headersMatcherToNativeHeaders(headers matchers.HeadersMatcher) map[string][]interface{} {
-	h := make(map[string][]interface{})
+func headersMatcherToNativeHeaders(headers matchers.HeadersMatcher) map[string][]any {
+	h := make(map[string][]any)
 
 	for k, v := range headers {
-		h[k] = make([]interface{}, len(v))
+		h[k] = make([]any, len(v))
 		for i, vv := range v {
 			h[k][i] = vv
 		}
@@ -130,11 +130,11 @@ func headersMatcherToNativeHeaders(headers matchers.HeadersMatcher) map[string][
 	return h
 }
 
-func headersMapMatcherToNativeHeaders(headers matchers.MapMatcher) map[string][]interface{} {
-	h := make(map[string][]interface{})
+func headersMapMatcherToNativeHeaders(headers matchers.MapMatcher) map[string][]any {
+	h := make(map[string][]any)
 
 	for k, v := range headers {
-		h[k] = []interface{}{
+		h[k] = []any{
 			v,
 		}
 	}

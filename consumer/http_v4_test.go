@@ -53,7 +53,7 @@ func TestHttpV4TypeSystem(t *testing.T) {
 	require.Error(t, err)
 
 	dir, _ := os.Getwd()
-	path := fmt.Sprintf("%s/pact_plugin.proto", strings.ReplaceAll(dir, "\\", "/"))
+	path := strings.ReplaceAll(dir, "\\", "/") + "/pact_plugin.proto"
 
 	err = p.AddInteraction().
 		Given("some state").

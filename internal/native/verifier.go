@@ -6,6 +6,7 @@ package native
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"unsafe"
@@ -22,18 +23,18 @@ func (v *Verifier) Version() string {
 
 var (
 	// ErrVerifierPanic indicates a panic occurred when invoking the verifier.
-	ErrVerifierPanic = fmt.Errorf("a general panic occurred when starting/invoking verifier (this indicates a defect in the framework)")
+	ErrVerifierPanic = errors.New("a general panic occurred when starting/invoking verifier (this indicates a defect in the framework)")
 
 	// ErrInvalidVerifierConfig indicates an issue configuring the verifier.
-	ErrInvalidVerifierConfig = fmt.Errorf("configuration for the verifier was invalid and an unknown error occurred (this is most likely a defect in the framework)")
+	ErrInvalidVerifierConfig = errors.New("configuration for the verifier was invalid and an unknown error occurred (this is most likely a defect in the framework)")
 
 	// ErrVerifierFailed and ErrVerifierFailedToRun are mutually exclusive: a
 	// single Verifier call returns one or the other, never both.
 	//
-	//ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful).
-	ErrVerifierFailed = fmt.Errorf("the verifier failed to successfully verify the pacts, this indicates an issue with the provider API")
+	// ErrVerifierFailed is the standard error if a verification failed (e.g. beacause the pact verification was not successful).
+	ErrVerifierFailed = errors.New("the verifier failed to successfully verify the pacts, this indicates an issue with the provider API")
 	// ErrVerifierFailedToRun indicates the verification process was unable to run.
-	ErrVerifierFailedToRun = fmt.Errorf("the verifier failed to execute (this is most likely a defect in the framework)")
+	ErrVerifierFailedToRun = errors.New("the verifier failed to execute (this is most likely a defect in the framework)")
 )
 
 func NewVerifier(name string, version string) *Verifier {

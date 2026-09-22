@@ -8,6 +8,6 @@ type Request struct {
 	Path    matchers.Matcher    `json:"path"`
 	Query   matchers.MapMatcher `json:"query,omitempty"`
 	Headers matchers.MapMatcher `json:"headers,omitempty"`
-	Body    interface{}         `json:"body,omitempty"`
+	Body    any                 `json:"body,omitempty"`
 }
 type Method string

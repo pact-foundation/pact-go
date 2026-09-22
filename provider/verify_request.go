@@ -85,6 +85,7 @@ type VerifyRequest struct {
 
 	// ProviderStatesSetupURL is the endpoint to post current provider state
 	// to on the Provider API.
+	//
 	// Deprecated: For backward compatibility ProviderStatesSetupURL is
 	// still supported. Use StateHandlers instead.
 	ProviderStatesSetupURL string
@@ -191,7 +192,7 @@ type VerifyRequest struct {
 // Validate checks that the minimum fields are provided.
 func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	if v.ProviderBaseURL == "" {
-		logging.PactCrash(fmt.Errorf("ProviderBaseURL is a required field"))
+		logging.PactCrash(errors.New("ProviderBaseURL is a required field"))
 	} else {
 		url, err := url.Parse(v.ProviderBaseURL)
 		if err != nil {
@@ -218,7 +219,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 
 	filterDescription := valueOrFromEnvironment(v.FilterDescription, "PACT_DESCRIPTION")
 	filterState := valueOrFromEnvironment(v.FilterState, "PACT_PROVIDER_STATE")
-	filterNoState := valueOrFromEnvironment(fmt.Sprintf("%t", v.FilterNoState), "PACT_PROVIDER_NO_STATE") == "true"
+	filterNoState := valueOrFromEnvironment(strconv.FormatBool(v.FilterNoState), "PACT_PROVIDER_NO_STATE") == "true"
 
 	if filterDescription != "" || filterState != "" || os.Getenv("PACT_PROVIDER_NO_STATE") != "" {
 		handle.SetFilterInfo(filterDescription, filterState, filterNoState)
@@ -254,7 +255,7 @@ func (v *VerifyRequest) validate(handle *native.Verifier) error {
 	}
 
 	if len(v.PactURLs) == 0 && len(v.PactFiles) == 0 && len(v.PactDirs) == 0 && v.BrokerURL == "" {
-		return fmt.Errorf("one of 'PactURLs', 'PactFiles', 'PactDIRs' or 'BrokerURL' must be specified")
+		return errors.New("one of 'PactURLs', 'PactFiles', 'PactDIRs' or 'BrokerURL' must be specified")
 	}
 
 	selectors := make([]string, len(v.ConsumerVersionSelectors))
@@ -311,7 +312,7 @@ func valueOrFromEnvironment(value string, envKey string) string {
 }
 
 type outputWriter interface {
-	Log(args ...interface{})
+	Log(args ...any)
 }
 
 func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) error {
