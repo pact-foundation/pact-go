@@ -1,17 +1,29 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices", ":semanticCommits"],
-  "timezone": "Australia/Melbourne",
-  "schedule": ["before 6am on monday"],
+  "extends": [
+    "config:best-practices"
+  ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
-  "postUpdateOptions": ["gomodTidy"],
+  "rebaseWhen": "conflicted",
+  "automerge": true,
+  "timezone": "Australia/Melbourne",
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "postUpdateOptions": [
+    "gomodTidy"
+  ],
   "customManagers": [
     {
       "customType": "regex",
       "description": "The pact-protobuf-plugin pin in mise.toml's [env] section; mise's own manager only reads [tools].",
-      "managerFilePatterns": ["/^mise\\.toml$/"],
-      "matchStrings": ["PLUGIN_PACT_PROTOBUF_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "managerFilePatterns": [
+        "/^mise\\.toml$/"
+      ],
+      "matchStrings": [
+        "PLUGIN_PACT_PROTOBUF_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
       "depNameTemplate": "pactflow/pact-protobuf-plugin",
       "packageNameTemplate": "pactflow/pact-protobuf-plugin",
       "datasourceTemplate": "github-releases",
@@ -20,8 +32,12 @@
     {
       "customType": "regex",
       "description": "The pact-csv-plugin pin in mise.toml's [env] section; the csv plugin ships from the shared pact-plugins monorepo under a csv-plugin- tag prefix.",
-      "managerFilePatterns": ["/^mise\\.toml$/"],
-      "matchStrings": ["PLUGIN_PACT_CSV_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "managerFilePatterns": [
+        "/^mise\\.toml$/"
+      ],
+      "matchStrings": [
+        "PLUGIN_PACT_CSV_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
       "depNameTemplate": "pact-foundation/pact-plugins",
       "packageNameTemplate": "pact-foundation/pact-plugins",
       "datasourceTemplate": "github-releases",
@@ -30,8 +46,12 @@
     {
       "customType": "regex",
       "description": "The pact-matt-plugin pin in mise.toml's [env] section.",
-      "managerFilePatterns": ["/^mise\\.toml$/"],
-      "matchStrings": ["PLUGIN_PACT_MATT_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "managerFilePatterns": [
+        "/^mise\\.toml$/"
+      ],
+      "matchStrings": [
+        "PLUGIN_PACT_MATT_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
       "depNameTemplate": "mefellows/pact-matt-plugin",
       "packageNameTemplate": "mefellows/pact-matt-plugin",
       "datasourceTemplate": "github-releases",
@@ -40,8 +60,12 @@
     {
       "customType": "regex",
       "description": "The pact-avro-plugin pin in mise.toml's [env] section.",
-      "managerFilePatterns": ["/^mise\\.toml$/"],
-      "matchStrings": ["PLUGIN_PACT_AVRO_VERSION = \"(?<currentValue>[^\"]+)\""],
+      "managerFilePatterns": [
+        "/^mise\\.toml$/"
+      ],
+      "matchStrings": [
+        "PLUGIN_PACT_AVRO_VERSION = \"(?<currentValue>[^\"]+)\""
+      ],
       "depNameTemplate": "austek/pact-avro-plugin",
       "packageNameTemplate": "austek/pact-avro-plugin",
       "datasourceTemplate": "github-releases",
@@ -50,13 +74,21 @@
   ],
   "packageRules": [
     {
-      "matchManagers": ["github-actions"],
+      "matchManagers": [
+        "github-actions"
+      ],
       "semanticCommitType": "ci",
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "description": "Automerge is deliberately off pending a maintainer decision; enabling it would land third-party action bumps on master with nobody reviewing them."
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ],
+      "description": "GitHub Actions bumps use the ci commit type."
     },
     {
-      "matchManagers": ["mise"],
+      "matchManagers": [
+        "mise"
+      ],
       "semanticCommitType": "chore",
       "description": "The [tools] section of mise.toml. Development tooling, not a released dependency."
     }
