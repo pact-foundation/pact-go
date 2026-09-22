@@ -53,8 +53,8 @@ func TestProductAPIClient(t *testing.T) {
 
 // Product domain model.
 type Product struct {
-	ID    int    `json:"id" pact:"example=10"`
-	Name  string `json:"name" pact:"example=Billy"`
+	ID    int    `json:"id"    pact:"example=10"`
+	Name  string `json:"name"  pact:"example=Billy"`
 	Price string `json:"price" pact:"example=23.33"`
 }
 

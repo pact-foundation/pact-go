@@ -28,7 +28,10 @@ import (
 var basepath string
 
 func init() {
-	_, currentFile, _, _ := runtime.Caller(0)
+	_, currentFile, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("runtime.Caller failed to resolve data.go path")
+	}
 	basepath = filepath.Dir(currentFile)
 }
 
