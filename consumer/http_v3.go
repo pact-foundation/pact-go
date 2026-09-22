@@ -315,5 +315,6 @@ func (i *V3ResponseBuilder) BodyMatch(body interface{}) *V3ResponseBuilder {
 
 // ExecuteTest runs the current test case against a Mock Service.
 func (m *V3InteractionWithResponse) ExecuteTest(t *testing.T, integrationTest func(MockServerConfig) error) error {
+	t.Helper()
 	return m.provider.ExecuteTest(t, integrationTest)
 }

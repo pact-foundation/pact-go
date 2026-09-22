@@ -126,6 +126,7 @@ func (m *AsynchronousMessageBuilderWithContents) ConsumedBy(handler Asynchronous
 
 // The function that will consume the message.
 func (m *AsynchronousMessageBuilderWithConsumer) Verify(t *testing.T) error {
+	t.Helper()
 	return m.rootBuilder.messagePactV3.Verify(t, m.rootBuilder, m.rootBuilder.handler)
 }
 
@@ -246,6 +247,7 @@ func (p *AsynchronousPact) verifyMessageConsumerRaw(messageToVerify *Asynchronou
 // VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
 // accepting an instance of `*testing.T`.
 func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
+	t.Helper()
 	err := p.verifyMessageConsumerRaw(message, handler)
 	if err != nil {
 		t.Errorf("VerifyMessageConsumer failed: %v", err)

@@ -215,6 +215,7 @@ type SynchronousMessageWithPluginContents struct {
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful.
 func (m *SynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m SynchronousMessage) error) error {
+	t.Helper()
 	defer m.pact.mockserver.CleanupPlugins()
 	message, err := getSynchronousMessageWithContents(m.messageHandle)
 	if err != nil {
@@ -252,6 +253,7 @@ type SynchronousMessageWithTransport struct {
 }
 
 func (s *SynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m SynchronousMessage) error) error {
+	t.Helper()
 	defer s.pact.mockserver.CleanupMockServer(s.transport.Port)
 	defer s.pact.mockserver.CleanupPlugins()
 	message, err := getSynchronousMessageWithContents(s.messageHandle)
@@ -326,6 +328,7 @@ func (m *SynchronousPact) AddSynchronousMessage(description string) *Unconfigure
 // Will cleanup interactions between tests within a suite
 // and write the pact file if successful.
 func (m *SynchronousMessageWithResponse) ExecuteTest(t *testing.T, integrationTest func(md SynchronousMessage) error) error {
+	t.Helper()
 	message, err := getSynchronousMessageWithContents(m.messageHandle)
 	if err != nil {
 		return err

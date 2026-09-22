@@ -19,6 +19,7 @@ import (
 	"github.com/pact-foundation/pact-go/v2/consumer"
 	message "github.com/pact-foundation/pact-go/v2/message/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHTTPPlugin(t *testing.T) {
@@ -27,7 +28,7 @@ func TestHTTPPlugin(t *testing.T) {
 		Provider: "MattProvider",
 		PactDir:  filepath.ToSlash(fmt.Sprintf("%s/../pacts", dir)),
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// MATT is a protocol, where all message start and end with a MATT
 	mattRequest := `{"request": {"body": "hello"}}`

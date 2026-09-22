@@ -95,8 +95,7 @@ func TestMockServer_MismatchesFail(t *testing.T) {
 }
 
 func TestMockServer_VerifySuccess(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 
 	m, port := newSimpleMockServer(t)
 	defer m.CleanupMockServer(port)
@@ -118,8 +117,7 @@ func TestMockServer_VerifySuccess(t *testing.T) {
 }
 
 func TestMockServer_VerifyFail(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 	m, port := newSimpleMockServer(t)
 
 	success, mismatches := m.Verify(port, tmpPactFolder)
@@ -133,8 +131,7 @@ func TestMockServer_VerifyFail(t *testing.T) {
 }
 
 func TestMockServer_WritePactfile(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 
 	m, port := newSimpleMockServer(t)
 	defer m.CleanupMockServer(port)
@@ -161,8 +158,7 @@ func TestVersion(t *testing.T) {
 }
 
 func TestHandleBasedHTTPTests(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 
 	m := NewHTTPPact("test-http-consumer", "test-http-provider")
 
@@ -184,7 +180,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	// // Start the mock service
 	// const host = "127.0.0.1"
 	port, err := m.Start("0.0.0.0:0", false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
 	res, err := httpGet(fmt.Sprintf("http://0.0.0.0:%d/products", port))
@@ -200,8 +196,7 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 }
 
 func TestPluginInteraction(t *testing.T) {
-	tmpPactFolder, err := os.MkdirTemp("", "pact-go")
-	assert.NoError(t, err)
+	tmpPactFolder := t.TempDir()
 	_ = log.SetLogLevel("info")
 
 	m := NewHTTPPact("test-plugin-consumer", "test-plugin-provider")
@@ -224,15 +219,15 @@ func TestPluginInteraction(t *testing.T) {
 			"version": "matching(semver, '0.0.0')"
 		}`
 
-	err = i.UponReceiving("some interaction").
+	err := i.UponReceiving("some interaction").
 		Given("plugin state").
 		WithRequest("GET", "/protobuf").
 		WithStatus(200).
 		WithPluginInteractionContents(INTERACTION_PART_RESPONSE, "application/protobuf", protobufInteraction)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	port, err := m.Start("0.0.0.0:0", false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer m.CleanupMockServer(port)
 
 	res, err := httpGet(fmt.Sprintf("http://0.0.0.0:%d/protobuf", port))
@@ -240,18 +235,18 @@ func TestPluginInteraction(t *testing.T) {
 	defer func() { _ = res.Body.Close() }()
 
 	bytes, err := io.ReadAll(res.Body)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	initPluginRequest := &InitPluginRequest{}
 	err = proto.Unmarshal(bytes, initPluginRequest)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, "pact-go-driver", initPluginRequest.Implementation)
 	assert.Equal(t, "0.0.0", initPluginRequest.Version)
 
 	mismatches := m.MockServerMismatchedRequests(port)
 	if len(mismatches) != 0 {
-		assert.Len(t, mismatches, 0)
+		assert.Empty(t, mismatches)
 		t.Log(mismatches)
 	}
 
