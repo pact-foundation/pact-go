@@ -40,7 +40,7 @@ func TestAvroHTTPProvider(t *testing.T) {
 func startHTTPProvider(port int) {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/avro", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/avro", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add("Content-Type", "avro/binary;record=User")
 
 		user := &User{

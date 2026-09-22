@@ -193,8 +193,8 @@ type VerifyRequest struct {
 // see https://docs.pact.io/pact_broker/webhooks/template_library#bitbucket---trigger-pipeline-run
 // a generalized feature request added here https://github.com/pact-foundation/pact-reference/issues/250
 func addPactUrlsFromEnvironment(v *VerifyRequest) {
-	if pactUrl := os.Getenv("PACT_URL"); pactUrl != "" {
-		v.PactURLs = append(v.PactURLs, pactUrl)
+	if pactURL := os.Getenv("PACT_URL"); pactURL != "" {
+		v.PactURLs = append(v.PactURLs, pactURL)
 	}
 }
 
@@ -210,6 +210,9 @@ type outputWriter interface {
 	Log(args ...any)
 }
 
+// Verify configures handle from v's transports and provider state setup
+// URL, then runs the verification. It shuts handle down before
+// returning, so handle must not be reused afterwards.
 func (v *VerifyRequest) Verify(handle *native.Verifier, writer outputWriter) error {
 	for _, transport := range v.Transports {
 		log.Println("[DEBUG] adding transport to verification", transport)

@@ -57,7 +57,7 @@ func TestPluginProvider(t *testing.T) {
 func startHTTPProvider(port int) {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/matt", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/matt", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Add("Content-Type", "application/matt")
 		w.WriteHeader(http.StatusOK)
 		_, err := fmt.Fprintf(w, `MATTworldMATT`)

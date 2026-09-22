@@ -303,11 +303,11 @@ func TestGetPluginSyncMessageContentsAsBytes_EmptyResponse(t *testing.T) {
 	assert.Equal(t, "0.0.0", p.GetVersion())
 
 	// Should be able to convert response into a protobuf
-	response_bytes, err := i.GetMessageResponseContents()
+	responseBytes, err := i.GetMessageResponseContents()
 	require.NoError(t, err)
-	assert.NotNil(t, response_bytes)
-	assert.Len(t, response_bytes, 1)
-	assert.Empty(t, response_bytes[0])
+	assert.NotNil(t, responseBytes)
+	assert.Len(t, responseBytes, 1)
+	assert.Empty(t, responseBytes[0])
 }
 
 func TestGetPluginAsyncMessageContentsAsBytes(t *testing.T) {

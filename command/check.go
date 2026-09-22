@@ -13,7 +13,7 @@ var checkCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Check required libraries",
 	Long:  "Check the correct version of required libraries",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		setLogLevel(verbose, logLevel)
 
 		// Run the installer

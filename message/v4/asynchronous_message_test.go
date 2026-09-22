@@ -53,7 +53,7 @@ func TestAsyncAddExternalReference(t *testing.T) {
 		AddExternalReference("GitHub", "PR-456", "https://github.com/org/repo/pull/456").
 		ExpectsToReceive("a message with an external reference").
 		WithJSONContent(map[string]string{"event": "user.created"}).
-		ConsumedBy(func(mc AsynchronousMessage) error {
+		ConsumedBy(func(_ AsynchronousMessage) error {
 			return nil
 		}).
 		Verify(t)

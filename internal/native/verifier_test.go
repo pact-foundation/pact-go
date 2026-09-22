@@ -13,7 +13,7 @@ func init() {
 	Init("INFO")
 }
 
-func TestVerifier_Version(t *testing.T) {
+func TestVerifier_Version(_ *testing.T) {
 	fmt.Println("version: ", Version())
 }
 
@@ -30,17 +30,17 @@ func TestVerifier_Execute(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestVerifier_Shutdown(t *testing.T) {
+func TestVerifier_Shutdown(_ *testing.T) {
 	v := NewVerifier("pact-go", "test")
 	v.Shutdown()
 }
 
-func TestVerifier_SetProviderInfo(t *testing.T) {
+func TestVerifier_SetProviderInfo(_ *testing.T) {
 	v := NewVerifier("pact-go", "test")
 	v.SetProviderInfo("name", "http", "localhost", 1234, "/")
 }
 
-func TestVerifier_SetConsumerFilters(t *testing.T) {
+func TestVerifier_SetConsumerFilters(_ *testing.T) {
 	v := NewVerifier("pact-go", "test")
 	v.SetConsumerFilters([]string{"consumer1", "consumer2"})
 }

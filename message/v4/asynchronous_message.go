@@ -20,6 +20,8 @@ import (
 // Builder 2: Async with plugin content no transport
 // Builder 3: Async with plugin content + transport
 
+// AsynchronousMessageBuilder builds a single, one-way message interaction,
+// starting from AddAsynchronousMessage.
 type AsynchronousMessageBuilder struct {
 	messageHandle *native.Message
 	pact          *AsynchronousPact
@@ -39,7 +41,8 @@ func (m *AsynchronousMessageBuilder) Given(state string) *AsynchronousMessageBui
 	return m
 }
 
-// Given specifies a provider state. Optional.
+// GivenWithParameter specifies a provider state along with parameters
+// used to set it up. Optional.
 func (m *AsynchronousMessageBuilder) GivenWithParameter(state models.ProviderState) *AsynchronousMessageBuilder {
 	m.messageHandle.GivenWithParameter(state.Name, state.Parameters)
 
@@ -66,6 +69,9 @@ func (m *AsynchronousMessageBuilder) ExpectsToReceive(description string) *Uncon
 	}
 }
 
+// UnconfiguredAsynchronousMessageBuilder is a message interaction with its
+// expected description set, ready to configure content directly or via a
+// plugin.
 type UnconfiguredAsynchronousMessageBuilder struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
@@ -83,10 +89,15 @@ func (m *UnconfiguredAsynchronousMessageBuilder) UsingPlugin(config PluginConfig
 	}
 }
 
+// AsynchronousMessageWithPlugin is a message interaction with a plugin
+// loaded via UsingPlugin, ready to have its contents set by that plugin.
 type AsynchronousMessageWithPlugin struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
+// WithContents sets the contents of this message from contents,
+// interpreted by the loaded plugin according to contentType (e.g. a
+// protobuf message type).
 func (s *AsynchronousMessageWithPlugin) WithContents(contents string, contentType string) *AsynchronousMessageWithPluginContents {
 	err := s.rootBuilder.messageHandle.WithPluginInteractionContents(native.INTERACTION_PART_REQUEST, contentType, contents)
 	if err != nil {
@@ -99,10 +110,15 @@ func (s *AsynchronousMessageWithPlugin) WithContents(contents string, contentTyp
 	}
 }
 
+// AsynchronousMessageWithPluginContents is a plugin-backed message
+// interaction with its contents set, ready to run directly via
+// ExecuteTest or to start a transport first via StartTransport.
 type AsynchronousMessageWithPluginContents struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
+// ExecuteTest runs integrationTest against the reified message, then
+// writes the pact file if successful.
 func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integrationTest func(m AsynchronousMessage) error) error {
 	t.Helper()
 	defer s.rootBuilder.pact.messageserver.CleanupPlugins()
@@ -120,6 +136,9 @@ func (s *AsynchronousMessageWithPluginContents) ExecuteTest(t *testing.T, integr
 	return s.rootBuilder.pact.messageserver.WritePactFile(s.rootBuilder.pact.config.PactDir, false)
 }
 
+// StartTransport starts a plugin-provided mock server for transport on
+// address, for tests that need a live connection rather than reading the
+// message contents directly.
 func (s *AsynchronousMessageWithPluginContents) StartTransport(transport string, address string, config map[string][]any) *AsynchronousMessageWithTransport {
 	port, err := s.rootBuilder.pact.messageserver.StartTransport(transport, address, 0, make(map[string][]any))
 	if err != nil {
@@ -135,11 +154,16 @@ func (s *AsynchronousMessageWithPluginContents) StartTransport(transport string,
 	}
 }
 
+// AsynchronousMessageWithTransport is a plugin-backed message interaction
+// with a live transport running, ready to run via ExecuteTest.
 type AsynchronousMessageWithTransport struct {
 	rootBuilder *AsynchronousMessageBuilder
 	transport   TransportConfig
 }
 
+// ExecuteTest runs integrationTest against the transport started by
+// StartTransport, then verifies the interaction and writes the pact file
+// if successful.
 func (s *AsynchronousMessageWithTransport) ExecuteTest(t *testing.T, integrationTest func(tc TransportConfig, m AsynchronousMessage) error) error {
 	t.Helper()
 	defer s.rootBuilder.pact.messageserver.CleanupMockServer(s.transport.Port)
@@ -171,6 +195,9 @@ func (m *UnconfiguredAsynchronousMessageBuilder) WithMetadata(metadata map[strin
 	return m
 }
 
+// AsynchronousMessageWithContents is a message interaction with its
+// contents set, ready to optionally narrow the decoded type via AsType
+// and attach a consumer handler via ConsumedBy.
 type AsynchronousMessageWithContents struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
@@ -203,7 +230,7 @@ func (m *AsynchronousMessageWithContents) AsType(t any) *AsynchronousMessageWith
 	return m
 }
 
-// The function that will consume the message.
+// ConsumedBy sets the function that will consume the message.
 func (m *AsynchronousMessageWithContents) ConsumedBy(handler AsynchronousConsumer) *AsynchronousMessageWithConsumer {
 	m.rootBuilder.handler = handler
 
@@ -212,16 +239,21 @@ func (m *AsynchronousMessageWithContents) ConsumedBy(handler AsynchronousConsume
 	}
 }
 
+// AsynchronousMessageWithConsumer is a fully configured message
+// interaction, ready to run via Verify.
 type AsynchronousMessageWithConsumer struct {
 	rootBuilder *AsynchronousMessageBuilder
 }
 
-// The function that will consume the message.
+// Verify runs the configured consumer handler against the message and
+// writes the pact file if successful.
 func (m *AsynchronousMessageWithConsumer) Verify(t *testing.T) error {
 	t.Helper()
 	return m.rootBuilder.pact.Verify(t, m.rootBuilder, m.rootBuilder.handler)
 }
 
+// AsynchronousPact is a one-way message pact between a consumer and
+// provider, built via AddAsynchronousMessage.
 type AsynchronousPact struct {
 	config Config
 
@@ -229,6 +261,8 @@ type AsynchronousPact struct {
 	messageserver *native.MessageServer
 }
 
+// NewAsynchronousPact creates a new asynchronous (one-way) message pact
+// for the consumer/provider pair described by config.
 func NewAsynchronousPact(config Config) (*AsynchronousPact, error) {
 	provider := &AsynchronousPact{
 		config: config,
@@ -250,7 +284,7 @@ func (p *AsynchronousPact) AddMessage() *AsynchronousMessageBuilder {
 	return p.AddAsynchronousMessage()
 }
 
-// AddMessage creates a new asynchronous consumer expectation.
+// AddAsynchronousMessage creates a new asynchronous consumer expectation.
 func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder {
 	log.Println("[DEBUG] add message")
 
@@ -262,7 +296,7 @@ func (p *AsynchronousPact) AddAsynchronousMessage() *AsynchronousMessageBuilder 
 	}
 }
 
-// VerifyMessageConsumer is a test convience function for VerifyMessageConsumerRaw,
+// Verify is a test convenience function for verifyMessageConsumerRaw,
 // accepting an instance of `*testing.T`.
 func (p *AsynchronousPact) Verify(t *testing.T, message *AsynchronousMessageBuilder, handler AsynchronousConsumer) error {
 	t.Helper()

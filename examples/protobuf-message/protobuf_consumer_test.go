@@ -44,7 +44,7 @@ func TestPluginMessageConsumer(t *testing.T) {
 			Version: "0.5.4",
 		}).
 		WithContents(protoMessage, "application/protobuf").
-		ExecuteTest(t, func(m message.AsynchronousMessage) error {
+		ExecuteTest(t, func(_ message.AsynchronousMessage) error {
 			// TODO: normally would actually read/consume the message
 			return nil
 		})

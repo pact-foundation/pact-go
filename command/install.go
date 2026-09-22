@@ -16,7 +16,7 @@ var (
 		Use:   "install",
 		Short: "Install required libraries",
 		Long:  "Install the correct version of required libraries",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			setLogLevel(verbose, logLevel)
 
 			// Run the installer
