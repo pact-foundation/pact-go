@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMatcher_TermString(t *testing.T) {
@@ -33,6 +34,18 @@ func TestMatcher_TermGetValue(t *testing.T) {
 	if expected != match {
 		t.Fatalf("Expected Term Value to match. '%s' != '%s'", expected, match)
 	}
+}
+
+func TestMatcher_TermInvalidRegex(t *testing.T) {
+	require.Panics(t, func() {
+		_ = Term("test", `(`)
+	}, "Term should panic when provided with an invalid regex")
+}
+
+func TestMatcher_TermMismatch(t *testing.T) {
+    require.Panics(t, func() {
+        _ = Term("notanumber", `\d+`)
+    }, "Term should panic when example value does not match regex")
 }
 
 func TestMatcher_LikeBasicString(t *testing.T) {
