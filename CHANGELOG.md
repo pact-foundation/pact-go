@@ -6,6 +6,14 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.8.1](https://github.com/pact-foundation/pact-go/compare/v2.8.0...v2.8.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **deps:** update module google.golang.org/grpc to v1.84.0 ([24a895e](https://github.com/pact-foundation/pact-go/commit/24a895ef96cd185ea82024090339439ea77cd5ce))
+* **deps:** update module google.golang.org/protobuf to v1.36.12 ([714e831](https://github.com/pact-foundation/pact-go/commit/714e831f3b7451d53746c0dc69762645bc849a6e))
+
 ## [2.8.0](https://github.com/pact-foundation/pact-go/compare/v2.7.1...v2.8.0) (2026-09-16)
 
 
