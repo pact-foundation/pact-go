@@ -3,7 +3,7 @@
 # the `go` directive in go.mod.
 go = "1.27.1"
 golangci-lint = "2.13.2"
-java = "temurin-21"
+java = "temurin-25"
 protoc = "36.2"
 # Provides the `pact` binary: plugin installation and broker publishing.
 "github:pact-foundation/pact-cli" = "0.10.8"
