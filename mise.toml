@@ -2,7 +2,7 @@
 # GO_VERSION lets CI drive the version matrix through mise; the default tracks
 # the `go` directive in go.mod.
 go = "1.27.1"
-golangci-lint = "2.13.2"
+golangci-lint = "2.14.0"
 java = "temurin-25"
 protoc = "36.2"
 # Provides the `pact` binary: plugin installation and broker publishing.
