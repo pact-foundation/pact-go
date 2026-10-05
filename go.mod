@@ -3,7 +3,6 @@ module github.com/pact-foundation/pact-go/v2
 go 1.25.0
 
 require (
-	github.com/golang/protobuf v1.5.4
 	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/linkedin/goavro/v2 v2.15.0

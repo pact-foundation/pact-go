@@ -30,7 +30,10 @@ func TestAsyncTypeSystem(t *testing.T) {
 		}).
 		AsType(&foo{}).
 		ConsumedBy(func(mc AsynchronousMessage) error {
-			fooMessage := mc.Body.(*foo)
+			fooMessage, ok := mc.Body.(*foo)
+			if !ok {
+				t.Fatalf("expected message body to be *foo, got %T", mc.Body)
+			}
 			assert.Equal(t, "bar", fooMessage.Foo)
 			return nil
 		}).
