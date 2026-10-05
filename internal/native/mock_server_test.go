@@ -201,6 +201,32 @@ func TestHandleBasedHTTPTests(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestHeadersWithMultipleValues(t *testing.T) {
+	m := NewHTTPPact("test-headers-consumer", "test-headers-provider")
+	m.NewInteraction("multi-value headers").
+		UponReceiving("multi-value headers").
+		WithRequest("GET", "/headers").
+		WithRequestHeaders(map[string][]any{"X-Request": {"a", "b"}}).
+		WithResponseHeaders(map[string][]any{"X-Response": {"1", "2"}}).
+		WithStatus(200)
+
+	port, err := m.Start("127.0.0.1:0", false)
+	require.NoError(t, err)
+	defer m.CleanupMockServer(port)
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/headers", port), nil)
+	require.NoError(t, err)
+	req.Header.Add("X-Request", "a")
+	req.Header.Add("X-Request", "b")
+
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = res.Body.Close() }()
+
+	assert.Empty(t, m.MockServerMismatchedRequests(port))
+	assert.Equal(t, []string{"1", "2"}, res.Header.Values("X-Response"))
+}
+
 func TestPluginInteraction(t *testing.T) {
 	tmpPactFolder := t.TempDir()
 	_ = log.SetLogLevel("info")

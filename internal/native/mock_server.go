@@ -608,11 +608,11 @@ func (i *Interaction) withHeaders(part interactionPart, valueOrMatcher map[strin
 	for k, v := range valueOrMatcher {
 		cName := C.CString(k)
 
-		for _, header := range v {
+		for idx, header := range v {
 			value := stringFromInterface(header)
 			cValue := C.CString(value)
 
-			C.pactffi_with_header_v2(i.handle, C.int(part), cName, CUlong(0), cValue)
+			C.pactffi_with_header_v2(i.handle, C.int(part), cName, CUlong(idx), cValue)
 
 			free(cValue)
 		}
