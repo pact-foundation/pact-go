@@ -34,6 +34,7 @@ jobs:
     needs:
       - lint
       - verify
+      - compatibility
       - test
       - test-containers
 
@@ -57,6 +58,22 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5
       - run: mise run verify
+
+  compatibility:
+    runs-on: ubuntu-latest
+    env:
+      GO_VERSION: "1.27"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5
+      # The runner context is not available in job-level env, so the JUnit
+      # path is set on the step from the RUNNER_TEMP shell variable.
+      - run: COMPAT_JUNIT="$RUNNER_TEMP/compatibility-junit.xml" mise run compat
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: ${{ always() }}
+        with:
+          name: compatibility-junit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/compatibility-junit.xml
 
   test:
     strategy:

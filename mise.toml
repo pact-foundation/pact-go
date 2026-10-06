@@ -74,6 +74,9 @@ run = """
 #!/usr/bin/env bash
 set -euo pipefail
 golangci-lint run
+# The compatibility suite is a nested module, which golangci-lint skips from
+# the root.
+(cd compatibility-suite && golangci-lint run --config ../.golangci.yml)
 """
 
 [tasks.verify]
@@ -85,6 +88,7 @@ run = """
 set -euo pipefail
 golangci-lint fmt --diff
 go mod tidy -diff
+(cd compatibility-suite && go mod tidy -diff)
 """
 
 [tasks.fmt]
@@ -149,6 +153,25 @@ if [ "${SKIP_PROVIDER_TESTS:-}" != "true" ]; then
   SKIP_PUBLISH=true go test -tags=provider -count=1 -timeout=30s -covermode=atomic \\
     -coverpkg=github.com/pact-foundation/pact-go/v2/... \\
     -coverprofile=coverage-provider.txt github.com/pact-foundation/pact-go/v2/examples/...
+fi
+"""
+
+[tasks.compat]
+description = "Run the Pact compatibility suite against its baseline"
+# The FFI is not exercised until step definitions land, but every later PR
+# needs it, so the dependency is declared once here.
+depends = ["install"]
+dir = "compatibility-suite"
+usage = 'flag "--update-baseline" help="Rewrite baseline.yaml from this run instead of checking it"'
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+if [ -n "${usage_update_baseline:-}" ]; then
+  # Only the root package defines the flag; passing it to ./... would fail
+  # the other packages with "flag provided but not defined".
+  go test -count=1 -run TestCompatibility . -update-baseline
+else
+  go test -count=1 ./...
 fi
 """
 
