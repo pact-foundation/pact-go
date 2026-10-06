@@ -17,6 +17,9 @@ import (
 	"github.com/pact-foundation/pact-go/v2/compatibility-suite/baseline"
 )
 
+// errSkipped records a scenario that a step skipped without failing.
+var errSkipped = errors.New("scenario was skipped, so nothing was checked")
+
 // godog.TestSuite.Run returns 2 when its options are invalid.
 const invalidOptionsStatus = 2
 
@@ -49,7 +52,24 @@ func Run(opts Options) (map[baseline.Key]baseline.Result, error) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(sc *godog.ScenarioContext) {
 			opts.Initializer(sc)
+
+			// godog reports a scenario whose step returned godog.ErrSkip as
+			// passing. A skipped scenario checked nothing, so it must not count
+			// as a pass; steps that cannot express a scenario use
+			// adapter.ErrUnsupported instead.
+			skipped := false
+			sc.StepContext().After(
+				func(ctx context.Context, _ *godog.Step, status godog.StepResultStatus, _ error) (context.Context, error) {
+					if status == godog.StepSkipped {
+						skipped = true
+					}
+					return ctx, nil
+				})
+
 			sc.After(func(ctx context.Context, s *godog.Scenario, err error) (context.Context, error) {
+				if err == nil && skipped {
+					err = errSkipped
+				}
 				key, kerr := scenarioKey(opts.FeaturesDir, s)
 				mu.Lock()
 				defer mu.Unlock()
@@ -61,7 +81,9 @@ func Run(opts Options) (map[baseline.Key]baseline.Result, error) {
 				default:
 					results[key] = classify(err)
 				}
-				return ctx, err
+				// godog keeps the step error as the scenario's result; returning
+				// it here would be reported a second time as a hook failure.
+				return ctx, nil
 			})
 		},
 		Options: &godog.Options{

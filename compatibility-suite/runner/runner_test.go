@@ -23,6 +23,7 @@ func sampleSteps(sc *godog.ScenarioContext) {
 		return fmt.Errorf("matching via public API: %w", adapter.ErrUnsupported)
 	})
 	sc.Step(`^it panics$`, func() error { panic("kaboom") })
+	sc.Step(`^it skips$`, func() error { return godog.ErrSkip })
 }
 
 func run(t *testing.T, dir string) (map[baseline.Key]baseline.Result, error) {
@@ -45,6 +46,7 @@ func TestRunClassifiesEveryScenario(t *testing.T) {
 		{Feature: "sample.feature", Scenario: "undefined"}:        baseline.Failed,
 		{Feature: "sample.feature", Scenario: "unsupported"}:      baseline.Unsupported,
 		{Feature: "sample.feature", Scenario: "panics"}:           baseline.Failed,
+		{Feature: "sample.feature", Scenario: "skipped"}:          baseline.Failed,
 		{Feature: "V1/nested.feature", Scenario: "nested passes"}: baseline.Passed,
 	}
 	if len(got) != len(want) {
@@ -67,6 +69,7 @@ func TestRunRecordsFailureMessages(t *testing.T) {
 		"undefined":   "undefined",
 		"unsupported": "matching via public API",
 		"panics":      "kaboom",
+		"skipped":     "skipped",
 	} {
 		msg := got[baseline.Key{Feature: "sample.feature", Scenario: scenario}].Message
 		if !strings.Contains(msg, want) {
@@ -111,5 +114,16 @@ func TestRunWritesJUnit(t *testing.T) {
 	}
 	if !strings.Contains(string(data), "<testsuites") {
 		t.Fatalf("not a JUnit report:\n%s", data)
+	}
+}
+
+func TestRunReportsStepErrorsOnce(t *testing.T) {
+	var out strings.Builder
+	_, err := runner.Run(runner.Options{FeaturesDir: "testdata/features", Initializer: sampleSteps, Output: &out})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out.String(), "after scenario hook failed") {
+		t.Fatalf("step failures should not be reported as hook failures:\n%s", out.String())
 	}
 }

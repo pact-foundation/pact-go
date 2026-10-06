@@ -16,3 +16,7 @@ Feature: Sample
 
   Scenario: panics
     Then it panics
+
+  Scenario: skipped
+    Given it skips
+    Then it fails
