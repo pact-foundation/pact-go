@@ -29,7 +29,7 @@ not as an undifferentiated "suite is red".
 
 ## Upstream suite (pinned at `dd08122`, 2026-09-23)
 
-20 feature files, ~186 scenarios:
+20 feature files, 190 scenarios (no Scenario Outlines; scenario names are unique within each file):
 
 | Area | Files | Scenarios |
 |---|---|---|
@@ -132,8 +132,7 @@ versa) also fails CI, so the two categories stay honest.
 `go test -run TestCompatibility -update-baseline` rewrites the file. Changes are
 reviewed like any other diff.
 
-Scenario Outlines are keyed per example row (godog expands them with a
-row-specific name).
+The runner fails fast if two scenarios ever resolve to the same key.
 
 ## External dependencies
 
@@ -179,9 +178,10 @@ Each step is a PR stacked on the previous one using GitHub's stacked PRs
 `gh extension install github/gh-stack`). Each PR is green on its own because the
 baseline moves with it.
 
-1. **Scaffold**: nested module, subtree import, adapter interfaces, godog
+1. **Scaffold**: nested module, subtree import, `adapter.ErrUnsupported`, godog
    runner, ratchet, mise task, CI job, contributing doc. Every scenario is
-   seeded into `baseline.yaml` as `failing`.
+   seeded into `baseline.yaml` as `failing`. Each adapter interface (and the
+   `-adapter` flag) arrives in the first PR whose steps use it.
 2. **V1 HTTP**: consumer + provider steps, provider stub, fake broker.
 3. **V2 + V3 HTTP**: including `http_matching` and `http_generators`.
 4. **Messages**: V3/V4 async consumer/provider, V4 sync, `v4.feature`.
