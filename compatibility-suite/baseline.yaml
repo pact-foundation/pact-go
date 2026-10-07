@@ -1,0 +1,763 @@
+# Compatibility scenarios that are not expected to pass.
+# Edit reasons freely; regenerate entries with: mise run compat --update-baseline
+# See docs/contributing/compatibility-suite.md.
+- feature: V1/http_consumer.feature
+  scenario: Request with JSON body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with JSON body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with XML body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with XML body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with a binary body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with a binary body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with a form post body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with a form post body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with a multipart body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with a multipart body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with body
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with headers
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with invalid body
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with invalid headers
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with invalid method
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with invalid path
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with invalid query parameters
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with plain text body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with plain text body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with query parameters
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: Request with the incorrect type of body contents
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: When all requests are made to the mock server
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: When an unexpected request is made to the mock server
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_consumer.feature
+  scenario: When not all requests are made to the mock server
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Incorrect request is made to provider
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Incorrect request is made to provider via a Pact broker
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with JSON body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with JSON body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with XML body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with XML body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with binary body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with binary body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with form post body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with form post body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with multipart body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with multipart body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with plain text body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Response with plain text body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifies the response headers
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifies the response status code
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying a HTTP request with a request filter configured
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying a simple HTTP request
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying a simple HTTP request via a Pact broker
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying a simple HTTP request via a Pact broker with publishing results enabled
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying an interaction where a provider state callback is not configured
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying an interaction where the provider state callback fails
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying an interaction with a defined provider state
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying an interaction with no defined provider state
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying multiple Pact files
+  status: failing
+  reason: not yet triaged
+- feature: V1/http_provider.feature
+  scenario: Verifying multiple Pact files via a Pact broker
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports a matcher for request paths
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports a regex matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports a regex matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports a type matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports a type matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports matchers for repeated request headers (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports matchers for repeated request headers (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports matchers for repeated request query parameters (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports matchers for repeated request query parameters (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports matchers for request bodies
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports matchers for request headers
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Supports matchers for request query parameters
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Type matchers cascade to children (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_consumer.feature
+  scenario: Type matchers cascade to children (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_provider.feature
+  scenario: Supports matching rules for the response headers (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_provider.feature
+  scenario: Supports matching rules for the response headers (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_provider.feature
+  scenario: Verifies the response body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V2/http_provider.feature
+  scenario: Verifies the response body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a UUID generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a boolean generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a date generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a date-time generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a random decimal generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a random hexadecimal generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a random integer generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a random string generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a regex generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/generators.feature
+  scenario: Supports a time generator
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_consumer.feature
+  scenario: Supports data for provider states
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_consumer.feature
+  scenario: Supports specifying multiple provider states
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_generators.feature
+  scenario: Supports using a generator with the request body
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_generators.feature
+  scenario: Supports using a generator with the request headers
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_generators.feature
+  scenario: Supports using a generator with the request path
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_generators.feature
+  scenario: Supports using a generator with the request query parameters
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_generators.feature
+  scenario: Supports using a generator with the response body
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_generators.feature
+  scenario: Supports using a generator with the response headers
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_generators.feature
+  scenario: Supports using a generator with the response status
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_matching.feature
+  scenario: Comparing accept headers where the actual has additional parameters
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_matching.feature
+  scenario: Comparing accept headers where the actual has is missing a value
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_matching.feature
+  scenario: Comparing content type headers where the actual has a charset
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_matching.feature
+  scenario: Comparing content type headers where the actual has a different charset
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_matching.feature
+  scenario: Comparing content type headers where the actual is missing a charset
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_matching.feature
+  scenario: Comparing content type headers where they have the same charset
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_matching.feature
+  scenario: Comparing content type headers which are equal
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_provider.feature
+  scenario: Verifying an interaction with a provider state with parameters
+  status: failing
+  reason: not yet triaged
+- feature: V3/http_provider.feature
+  scenario: Verifying an interaction with multiple defined provider states
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a Boolean matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a Boolean matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a ContentType matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a ContentType matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a Date and Time matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a Date and Time matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a Values matcher (negative case, final type is wrong)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a Values matcher (positive case, ignores missing and additional keys)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a decimal type matcher where it is acceptable to coerce values from string form
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a decimal type matcher, must have significant digits after the decimal point (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a integer type matcher, no digits after the decimal point (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a minmax type matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a minmax type matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a null matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a number type matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a number type matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports a number type matcher where it is acceptable to coerce values from string form
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports an decimal type matcher, must have significant digits after the decimal point (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports an equality matcher to reset cascading rules
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports an include matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports an include matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports an integer type matcher where it is acceptable to coerce values from string form
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports an integer type matcher, no digits after the decimal point (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/matching_rules.feature
+  scenario: Supports an null matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_consumer.feature
+  scenario: Supports arbitrary message metadata
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_consumer.feature
+  scenario: Supports data for provider states
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_consumer.feature
+  scenario: Supports specifying provider states
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_consumer.feature
+  scenario: Supports the use of generators with message metadata
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_consumer.feature
+  scenario: Supports the use of generators with the message body
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_consumer.feature
+  scenario: When all messages are successfully processed
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_consumer.feature
+  scenario: When not all messages are successfully processed
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Incorrect message is generated by the provider
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with JSON body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with JSON body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with XML body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with XML body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with binary body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with binary body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with plain text body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Message with plain text body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Supports matching rules for the message body (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Supports matching rules for the message body (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Supports matching rules for the message metadata (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Supports matching rules for the message metadata (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Supports messages with body formatted for the Kafka schema registry
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Verifies the message metadata
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Verifying a simple message
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Verifying an interaction with a defined provider state
+  status: failing
+  reason: not yet triaged
+- feature: V3/message_provider.feature
+  scenario: Verifying multiple Pact files
+  status: failing
+  reason: not yet triaged
+- feature: V4/generators.feature
+  scenario: Supports a Mock server URL generator
+  status: failing
+  reason: not yet triaged
+- feature: V4/generators.feature
+  scenario: Supports a Provider State generator
+  status: failing
+  reason: not yet triaged
+- feature: V4/generators.feature
+  scenario: Supports a URN UUID generator
+  status: failing
+  reason: not yet triaged
+- feature: V4/generators.feature
+  scenario: Supports a lower-case-hyphenated UUID generator
+  status: failing
+  reason: not yet triaged
+- feature: V4/generators.feature
+  scenario: Supports a simple UUID generator
+  status: failing
+  reason: not yet triaged
+- feature: V4/generators.feature
+  scenario: Supports a upper-case-hyphenated UUID generator
+  status: failing
+  reason: not yet triaged
+- feature: V4/http_consumer.feature
+  scenario: Sets the type for the interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/http_consumer.feature
+  scenario: Supports adding comments
+  status: failing
+  reason: not yet triaged
+- feature: V4/http_consumer.feature
+  scenario: Supports specifying a key for the interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/http_consumer.feature
+  scenario: Supports specifying the interaction is pending
+  status: failing
+  reason: not yet triaged
+- feature: V4/http_provider.feature
+  scenario: Verifying a HTTP interaction with comments
+  status: failing
+  reason: not yet triaged
+- feature: V4/http_provider.feature
+  scenario: Verifying a pending HTTP interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a ArrayContains matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a EachValue matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a not empty matcher (negative case 2, types are different)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a not empty matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a not empty matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a not empty matcher with binary data (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a not empty matcher with binary data (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a semver matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a semver matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a status code matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports a status code matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports an ArrayContains matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports an EachKey matcher (negative case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports an EachKey matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/matching_rules.feature
+  scenario: Supports an EachValue matcher (positive case)
+  status: failing
+  reason: not yet triaged
+- feature: V4/message_consumer.feature
+  scenario: Sets the type for the interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/message_consumer.feature
+  scenario: Supports adding comments
+  status: failing
+  reason: not yet triaged
+- feature: V4/message_consumer.feature
+  scenario: Supports specifying a key for the interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/message_consumer.feature
+  scenario: Supports specifying the interaction is pending
+  status: failing
+  reason: not yet triaged
+- feature: V4/message_provider.feature
+  scenario: Verifying a message interaction with comments
+  status: failing
+  reason: not yet triaged
+- feature: V4/message_provider.feature
+  scenario: Verifying a pending message interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Sets the type for the interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports adding comments
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports arbitrary message metadata
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports data for provider states
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports multiple responses to a request message
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports specifying a key for the interaction
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports specifying provider states
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports specifying the interaction is pending
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports the use of generators with message metadata
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: Supports the use of generators with the message bodies
+  status: failing
+  reason: not yet triaged
+- feature: V4/synchronous_message_consumer.feature
+  scenario: When all messages are successfully processed
+  status: failing
+  reason: not yet triaged
+- feature: V4/v4.feature
+  scenario: Supports different types of interactions in the Pact file
+  status: failing
+  reason: not yet triaged

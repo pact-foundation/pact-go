@@ -157,6 +157,12 @@ linters:
       - path: examples/grpc/routeguide/server/server\.go
         linters:
           - wrapcheck
+      # The compatibility suite is a nested module that must test this
+      # checkout of pact-go, not a published version, so it replaces the root
+      # module with ../ by design. Scoped to that go.mod only.
+      - path: compatibility-suite/go\.mod
+        linters:
+          - gomoddirectives
       # Repeated literals in tests usually read better inline than behind a
       # shared constant name - a test asserting "application/json" states
       # its expectation literally rather than through an indirection.
