@@ -6,6 +6,22 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.9.0](https://github.com/pact-foundation/pact-go/compare/v2.8.0...v2.9.0) (2026-10-07)
+
+
+### Features
+
+* add the Pact compatibility suite with a ratchet baseline (1/5) ([#644](https://github.com/pact-foundation/pact-go/issues/644)) ([9f83c84](https://github.com/pact-foundation/pact-go/commit/9f83c844f6ddf4b90d33f7ccdc968f070ae0f0bb))
+
+
+### Bug Fixes
+
+* **deps:** update module google.golang.org/grpc to v1.84.0 ([24a895e](https://github.com/pact-foundation/pact-go/commit/24a895ef96cd185ea82024090339439ea77cd5ce))
+* **deps:** update module google.golang.org/protobuf to v1.36.12 ([714e831](https://github.com/pact-foundation/pact-go/commit/714e831f3b7451d53746c0dc69762645bc849a6e))
+* enable resource, type safety and gosec linters ([#613](https://github.com/pact-foundation/pact-go/issues/613)) ([6229cf7](https://github.com/pact-foundation/pact-go/commit/6229cf7dfd5d1e3dfd1cba647b8533a068593c5d))
+* **errors:** wrap boundary errors and enable the full linter set ([00004ab](https://github.com/pact-foundation/pact-go/commit/00004abd1ec44ffc1595246f373f91de503d5ee6))
+* keep every value of a multi-value header ([5634512](https://github.com/pact-foundation/pact-go/commit/56345124fb9facad522d61609fc1859c86bc42b1))
+
 ## [2.8.0](https://github.com/pact-foundation/pact-go/compare/v2.7.1...v2.8.0) (2026-09-16)
 
 
