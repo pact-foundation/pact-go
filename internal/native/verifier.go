@@ -210,12 +210,22 @@ func (v *Verifier) SetPublishOptions(providerVersion string, buildURL string, pr
 	C.pactffi_verifier_set_publish_options(v.handle, cProviderVersion, cBuildURL, stringArrayToCStringArray(providerTags), C.ushort(len(providerTags)), cProviderBranch)
 }
 
+// ResultObserver receives each verification's result as pact_ffi reports it
+// (pactffi_verifier_json), right after Execute runs, when it is set. It exists
+// so the compatibility suite can check results that pact-go returns only as a
+// sentinel error, and is nil in normal use. It must not be changed while a
+// verification runs.
+var ResultObserver func(resultJSON string)
+
 // Execute runs the verification against every source and option
 // configured on v, returning an error if verification failed or could
 // not run.
 func (v *Verifier) Execute() error {
 	// TODO: Validate
 	result := C.pactffi_verifier_execute(v.handle)
+	if ResultObserver != nil {
+		ResultObserver(v.resultJSON())
+	}
 
 	/// | Error | Description |
 	/// |-------|-------------|
@@ -242,6 +252,17 @@ func (v *Verifier) SetNoPactsIsError(isError bool) {
 // output; colour is enabled by default.
 func (v *Verifier) SetColoredOutput(isColoredOutput bool) {
 	C.pactffi_verifier_set_coloured_output(v.handle, boolToCUchar(isColoredOutput))
+}
+
+// resultJSON returns the verification result of v as JSON.
+func (v *Verifier) resultJSON() string {
+	out := C.pactffi_verifier_json(v.handle)
+	if out == nil {
+		return ""
+	}
+	defer C.pactffi_free_string(out)
+
+	return C.GoString(out)
 }
 
 func stringArrayToCStringArray(inputs []string) **C.char {
