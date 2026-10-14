@@ -11,12 +11,12 @@
   reason: 'starting the mock server: interaction 7 has a binary image/jpeg body, which pact-go can set only as application/octet-stream (BinaryBody) or cut short at its first NUL byte (Body): not supported by the API under test'
 - feature: V1/http_provider.feature
   scenario: Response with binary body (negative case)
-  status: unsupported
-  reason: 'interaction 8 response: a binary image/jpeg body cannot be written to a V2 pact file: not supported by the API under test'
+  status: failing
+  reason: the suite's V2 pact writer cannot hold a binary body
 - feature: V1/http_provider.feature
   scenario: Response with binary body (positive case)
-  status: unsupported
-  reason: 'interaction 8 response: a binary image/jpeg body cannot be written to a V2 pact file: not supported by the API under test'
+  status: failing
+  reason: the suite's V2 pact writer cannot hold a binary body
 - feature: V2/http_consumer.feature
   scenario: Supports a matcher for request paths
   status: failing
@@ -58,6 +58,10 @@
   status: failing
   reason: not yet triaged
 - feature: V2/http_consumer.feature
+  scenario: Supports matchers for request headers
+  status: failing
+  reason: the steps do not yet apply the "matching rules" interaction column
+- feature: V2/http_consumer.feature
   scenario: Supports matchers for request query parameters
   status: failing
   reason: not yet triaged
@@ -70,9 +74,17 @@
   status: failing
   reason: not yet triaged
 - feature: V2/http_provider.feature
+  scenario: Supports matching rules for the response headers (negative case)
+  status: failing
+  reason: the steps do not yet apply the "matching rules" interaction column
+- feature: V2/http_provider.feature
   scenario: Supports matching rules for the response headers (positive case)
   status: failing
   reason: not yet triaged
+- feature: V2/http_provider.feature
+  scenario: Verifies the response body (negative case)
+  status: failing
+  reason: the steps do not yet apply the "matching rules" interaction column
 - feature: V2/http_provider.feature
   scenario: Verifies the response body (positive case)
   status: failing
