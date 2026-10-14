@@ -179,6 +179,20 @@ func (m *MockServer) MockServerMismatchedRequests(port int) []MismatchedRequest 
 	return res
 }
 
+// MockServerMismatchesJSON returns pact_ffi's mismatch report for the mock
+// server on port, unparsed, or "" when there is none. Unlike
+// MockServerMismatchedRequests it keeps every field, such as the body path
+// of a mismatch. It exists so the compatibility suite can check results that
+// pact-go does not return as data.
+func MockServerMismatchesJSON(port int) string {
+	mismatches := C.pactffi_mock_server_mismatches(C.int(port))
+	if mismatches == nil {
+		return ""
+	}
+
+	return C.GoString(mismatches)
+}
+
 // CleanupMockServer frees the memory from the previous mock server.
 func (m *MockServer) CleanupMockServer(port int) bool {
 	if len(m.interactions) == 0 {

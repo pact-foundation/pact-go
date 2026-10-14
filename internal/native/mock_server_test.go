@@ -285,3 +285,25 @@ func TestPluginInteraction(t *testing.T) {
 	err = m.WritePactFile(port, tmpPactFolder)
 	assert.NoError(t, err)
 }
+
+func TestMockServerMismatchesJSONKeepsBodyPath(t *testing.T) {
+	m := NewHTTPPact("consumer", "provider")
+	m.NewInteraction("json body").
+		UponReceiving("json body").
+		WithRequest("PUT", "/basic").
+		WithJSONRequestBody(map[string]string{"one": "a", "two": "b"}).
+		WithStatus(200)
+	port, err := m.Start("0.0.0.0:0", false)
+	require.NoError(t, err)
+	defer m.CleanupMockServer(port)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut,
+		fmt.Sprintf("http://localhost:%d/basic", port), strings.NewReader(`{"one":"a","two":"c"}`))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.NoError(t, res.Body.Close())
+
+	assert.Contains(t, MockServerMismatchesJSON(port), `"path":"$.two"`)
+}

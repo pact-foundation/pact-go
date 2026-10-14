@@ -11,6 +11,11 @@ Pact Go users.
 mise run compat
 ```
 
+To run the Go tests in `compatibility-suite/` directly, use
+`go test -p 1 ./...`. The packages must run one at a time: pact-go's verifier
+proxy picks a free port and binds it later, so parallel test binaries can
+collide on it.
+
 The run is checked against `compatibility-suite/baseline.yaml`, which lists
 every scenario that is **not** expected to pass:
 
@@ -27,6 +32,25 @@ The suite fails when:
 | A listed scenario no longer exists upstream | `stale` | Remove it from the baseline. |
 | A scenario ended differently from its listed status | `misclassified` | Update its status. |
 
+## How scenarios run against Pact Go
+
+Step definitions (`compatibility-suite/steps`) never call Pact Go directly.
+They go through an adapter (`compatibility-suite/adapter`), selected with
+`-adapter` (default `v2`).
+
+The v2 adapter drives every scenario through pact-go's public API
+(`consumer.NewV2Pact`, `provider.NewVerifier`). pact-go has no V1
+specification, so V1 features run as V2 pacts. Where pact-go does not return
+a result as data, the adapter reads it back through `internal/native` to
+check it:
+
+- `native.MockServerMismatchesJSON`: the mock server's full mismatch report.
+- `native.ResultObserver`: the verifier's JSON result.
+
+Something pact-go's public API cannot express, such as a binary body with its
+own content type, is recorded as `unsupported`, so the baseline also lists
+pact-go's public API gaps.
+
 ## Updating the baseline
 
 ```sh
@@ -41,13 +65,17 @@ needs a reason.
 
 ## Updating the upstream suite
 
-The upstream features are vendored with `git subtree`. Never edit them in
-place.
+The upstream features are vendored into
+`compatibility-suite/pact-compatibility-suite/`, and the commit they came
+from is recorded in `compatibility-suite/pact-compatibility-suite.ref`. Never
+edit the vendored files in place.
 
 ```sh
-git subtree pull --prefix=compatibility-suite/pact-compatibility-suite \
-  https://github.com/pact-foundation/pact-compatibility-suite.git main --squash
+mise run compat-sync                 # latest upstream main
+mise run compat-sync --ref <sha>     # or a specific branch, tag or commit
 mise run compat --update-baseline
 ```
+
+A commit `--ref` must be the full 40-character SHA, not an abbreviation.
 
 Do this in its own PR so the baseline diff shows exactly what upstream changed.

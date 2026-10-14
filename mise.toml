@@ -158,8 +158,10 @@ fi
 
 [tasks.compat]
 description = "Run the Pact compatibility suite against its baseline"
-# The FFI is not exercised until step definitions land, but every later PR
-# needs it, so the dependency is declared once here.
+# The suite loads the pact_ffi library, so the install task runs first. Its
+# packages run one at a time (-p 1): pact-go's verifier proxy picks a free
+# port and binds it later, so parallel test binaries can be handed the same
+# port and collide.
 depends = ["install"]
 dir = "compatibility-suite"
 usage = 'flag "--update-baseline" help="Rewrite baseline.yaml from this run instead of checking it"'
@@ -171,8 +173,33 @@ if [ -n "${usage_update_baseline:-}" ]; then
   # the other packages with "flag provided but not defined".
   go test -count=1 -run TestCompatibility . -update-baseline
 else
-  go test -count=1 ./...
+  # One package at a time: pact-go picks a free port and binds it later, so
+  # concurrent test binaries can be handed the same port.
+  go test -count=1 -p 1 ./...
 fi
+"""
+
+[tasks.compat-sync]
+description = "Vendor the upstream compatibility suite at a branch, tag or commit"
+dir = "compatibility-suite"
+usage = 'flag "--ref <ref>" default="main" help="Upstream branch, tag or commit to vendor"'
+# Replaces the vendored tree wholesale and records the commit it came from.
+# This works whatever merge strategy the PR uses, unlike git subtree, whose
+# metadata a squash merge drops.
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+repo=https://github.com/pact-foundation/pact-compatibility-suite.git
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+git -C "$tmp" init -q
+git -C "$tmp" fetch -q --depth 1 "$repo" "$usage_ref"
+sha=$(git -C "$tmp" rev-parse FETCH_HEAD)
+rm -rf pact-compatibility-suite
+mkdir pact-compatibility-suite
+git -C "$tmp" archive FETCH_HEAD | tar -x -C pact-compatibility-suite
+echo "$sha" > pact-compatibility-suite.ref
+echo "vendored pact-compatibility-suite at $sha"
 """
 
 [tasks.publish]
