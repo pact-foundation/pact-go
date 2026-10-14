@@ -31,6 +31,7 @@ func NewBroker(provider string) *Broker {
 	b := &Broker{provider: provider, pacts: map[string][]byte{}}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", b.index)
+	mux.HandleFunc("GET /pacts/provider/{provider}/for-verification", b.pactsForVerificationLink)
 	mux.HandleFunc("POST /pacts/provider/{provider}/for-verification", b.pactsForVerification)
 	mux.HandleFunc("GET /pacts/provider/{provider}/consumer/{consumer}", b.pact)
 	mux.HandleFunc("POST /pacts/provider/{provider}/consumer/{consumer}/verification-results", b.publish)
@@ -72,6 +73,7 @@ func (b *Broker) pactURL(consumer string) string {
 const (
 	halLinks = "_links"
 	halHref  = "href"
+	halSelf  = "self"
 )
 
 func (b *Broker) index(w http.ResponseWriter, _ *http.Request) {
@@ -81,6 +83,22 @@ func (b *Broker) index(w http.ResponseWriter, _ *http.Request) {
 			"templated": true,
 		},
 	}})
+}
+
+// pactsForVerificationLink answers the verifier's GET of the for-verification
+// URL with just a self link, as the reference implementation's broker fixture
+// does; the pacts themselves come from the POST.
+func (b *Broker) pactsForVerificationLink(w http.ResponseWriter, r *http.Request) {
+	if r.PathValue("provider") != b.provider {
+		http.NotFound(w, r)
+
+		return
+	}
+
+	writeHAL(w, http.StatusOK, map[string]any{halLinks: map[string]any{halSelf: map[string]any{
+		halHref: b.URL() + "/pacts/provider/" + b.provider + "/for-verification",
+		"title": "Pacts to be verified",
+	}}})
 }
 
 func (b *Broker) pactsForVerification(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +117,7 @@ func (b *Broker) pactsForVerification(w http.ResponseWriter, r *http.Request) {
 		pacts = append(pacts, map[string]any{
 			"shortDescription":       "latest",
 			"verificationProperties": map[string]any{"pending": false, "notices": []any{}},
-			halLinks: map[string]any{"self": map[string]any{
+			halLinks: map[string]any{halSelf: map[string]any{
 				halHref: b.pactURL(consumer),
 				"name":  "Pact between " + consumer + " and " + b.provider,
 			}},
@@ -107,7 +125,7 @@ func (b *Broker) pactsForVerification(w http.ResponseWriter, r *http.Request) {
 	}
 	writeHAL(w, http.StatusOK, map[string]any{
 		"_embedded": map[string]any{"pacts": pacts},
-		halLinks: map[string]any{"self": map[string]any{
+		halLinks: map[string]any{halSelf: map[string]any{
 			halHref: b.URL() + "/pacts/provider/" + b.provider + "/for-verification",
 		}},
 	})

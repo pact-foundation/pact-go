@@ -104,3 +104,16 @@ func TestBrokerRejectsUnknownPacts(t *testing.T) {
 		t.Fatalf("want 404, got %d", res.StatusCode)
 	}
 }
+
+func TestBrokerServesProviderPactsLinkOnGet(t *testing.T) {
+	b := fakes.NewBroker("p")
+	t.Cleanup(b.Close)
+
+	status, doc := fetchJSON(t, http.MethodGet, b.URL()+"/pacts/provider/p/for-verification", "")
+	if status != http.StatusOK {
+		t.Fatalf("status %d", status)
+	}
+	if got, want := link(t, doc, "self"), b.URL()+"/pacts/provider/p/for-verification"; got != want {
+		t.Fatalf("self link %q, want %q", got, want)
+	}
+}
