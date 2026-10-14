@@ -7,5 +7,5 @@ import "github.com/pact-foundation/pact-go/v2/compatibility-suite/adapter"
 
 // New returns the adapter for pact-go v2.
 func New() adapter.Adapter {
-	return adapter.Adapter{Consumer: consumerAdapter{}}
+	return adapter.Adapter{Consumer: consumerAdapter{}, Verifier: verifierAdapter{}}
 }

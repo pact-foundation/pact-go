@@ -4,6 +4,7 @@ package adapter
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/pact-foundation/pact-go/v2/compatibility-suite/model"
 )
@@ -16,6 +17,7 @@ var ErrUnsupported = errors.New("not supported by the API under test")
 // Adapter is the API under test, as the steps drive it.
 type Adapter struct {
 	Consumer HTTPConsumer
+	Verifier HTTPVerifier
 }
 
 // ConsumerPact names the pact a consumer test records.
@@ -52,4 +54,46 @@ type Outcome struct {
 	Err error
 	// Mismatches are the mock server's mismatches when the test ended.
 	Mismatches []model.Mismatch
+}
+
+// HTTPVerifier verifies HTTP providers.
+type HTTPVerifier interface {
+	// Verify runs one verification. The error is for a verification that
+	// could not be run or read back; a failing verification is a result.
+	Verify(request VerifyRequest) (VerifyResult, error)
+}
+
+// VerifyRequest describes one provider verification.
+type VerifyRequest struct {
+	// ProviderURL is the base URL of the provider under test.
+	ProviderURL string
+	// PactFiles are local pact files to verify.
+	PactFiles []string
+	// Broker, when set, is a Pact Broker to fetch pacts from as well.
+	Broker *BrokerSource
+	// ProviderVersion identifies the provider to the broker.
+	ProviderVersion string
+	// Publish sends verification results back to the broker.
+	Publish bool
+	// StateCallback, when set, is called to set up and tear down each of
+	// States.
+	StateCallback func(setup bool, state string) error
+	States        []string
+	// Headers are added to every request made to the provider.
+	Headers http.Header
+}
+
+// BrokerSource is a Pact Broker holding pacts for Provider.
+type BrokerSource struct {
+	URL      string
+	Provider string
+}
+
+// VerifyResult is how a verification ended.
+type VerifyResult struct {
+	// Err is the failure the API under test reported; nil means the
+	// verification passed.
+	Err error
+	// Errors are the failures the verifier reported, per interaction.
+	Errors []model.VerificationError
 }
