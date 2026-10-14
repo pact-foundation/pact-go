@@ -188,22 +188,32 @@ func TestVerifierClearsObserver(t *testing.T) {
 func TestCrossCheckVerifyOutcome(t *testing.T) {
 	boom := errors.New("boom")
 
-	if err := crossCheck(false, nil); err != nil {
+	err := crossCheck(false, nil)
+	if err != nil {
 		t.Fatalf("agreeing success: %v", err)
 	}
-	if err := crossCheck(true, boom); err != nil {
+
+	err = crossCheck(true, boom)
+	if err != nil {
 		t.Fatalf("agreeing failure: %v", err)
 	}
-	if err := crossCheck(true, nil); err == nil {
+
+	err = crossCheck(true, nil)
+	if err == nil {
 		t.Fatal("want an error when t failed but pact-go returned nil")
 	}
-	if err := crossCheck(false, boom); err == nil {
+
+	err = crossCheck(false, boom)
+	if err == nil {
 		t.Fatal("want an error when pact-go returned an error but t did not fail")
 	}
 }
 
 func TestSandboxReportsFailure(t *testing.T) {
-	if !sandbox("fails", func(t *testing.T) { t.Error("expected") }) {
+	if !sandbox("fails", func(t *testing.T) {
+		t.Helper()
+		t.Error("expected")
+	}) {
 		t.Fatal("want sandbox to report the failure")
 	}
 	if sandbox("passes", func(_ *testing.T) {}) {

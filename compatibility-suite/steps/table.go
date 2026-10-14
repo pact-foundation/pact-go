@@ -55,10 +55,20 @@ func changes(rows [][]string) (map[string]string, error) {
 	return out, nil
 }
 
+// Interaction-table column names.
+const (
+	methodColumn          = "method"
+	pathColumn            = "path"
+	queryColumn           = "query"
+	responseHeadersColumn = "response headers"
+	bodyColumn            = "body"
+	responseBodyColumn    = "response body"
+)
+
 // knownInteractionColumns are the interaction-table columns the steps handle.
 var knownInteractionColumns = map[string]bool{
-	"No": true, "method": true, "path": true, "query": true, headersCell: true, "body": true,
-	responseColumn: true, "response headers": true, "response content": true, "response body": true,
+	"No": true, methodColumn: true, pathColumn: true, queryColumn: true, headersCell: true, bodyColumn: true,
+	responseColumn: true, responseHeadersColumn: true, "response content": true, responseBodyColumn: true,
 }
 
 // interactionsFromTable builds the interactions of a "the following HTTP
@@ -92,19 +102,19 @@ func interactionsFromTable(rows [][]string, fx fixtures.Loader) ([]model.Interac
 			Number: i + 1,
 			// The reference implementation numbers descriptions from 0.
 			Description: fmt.Sprintf("Interaction %d", i),
-			Request:     model.Request{Method: cells["method"], Path: cells["path"]},
+			Request:     model.Request{Method: cells[methodColumn], Path: cells[pathColumn]},
 			Response:    model.Response{Status: http.StatusOK},
 		}
 
 		err := applyRequestChanges(&in.Request, map[string]string{
-			"query": cells["query"], "headers": cells[headersCell], "body": cells["body"],
+			queryColumn: cells[queryColumn], "headers": cells[headersCell], bodyColumn: cells[bodyColumn],
 		}, fx)
 		if err != nil {
 			return nil, fmt.Errorf("interaction %d: %w", in.Number, err)
 		}
 
 		err = applyResponseChanges(&in.Response, map[string]string{
-			responseColumn: cells[responseColumn], "response headers": cells["response headers"], "response body": cells["response body"],
+			responseColumn: cells[responseColumn], responseHeadersColumn: cells[responseHeadersColumn], responseBodyColumn: cells[responseBodyColumn],
 		}, fx, false)
 		if err != nil {
 			return nil, fmt.Errorf("interaction %d: %w", in.Number, err)
@@ -124,15 +134,15 @@ func applyRequestChanges(req *model.Request, cells map[string]string, fx fixture
 		var err error
 
 		switch name {
-		case "method":
+		case methodColumn:
 			req.Method = value
-		case "path":
+		case pathColumn:
 			req.Path = value
-		case "query":
+		case queryColumn:
 			req.Query, err = parseQueryCell(value)
 		case headersCell:
 			req.Headers, err = parseHeaders(value)
-		case "body":
+		case bodyColumn:
 			req.Body, err = bodyCell(value, req.Body, fx)
 		default:
 			return fmt.Errorf("unsupported request change %q", name)
@@ -158,9 +168,9 @@ func applyResponseChanges(res *model.Response, cells map[string]string, fx fixtu
 			if value != "" {
 				res.Status, err = strconv.Atoi(value)
 			}
-		case "response headers":
+		case responseHeadersColumn:
 			err = setResponseHeaders(res, value, mergeHeaders)
-		case "response body":
+		case responseBodyColumn:
 			res.Body, err = bodyCell(value, res.Body, fx)
 		default:
 			return fmt.Errorf("unsupported response change %q", name)
