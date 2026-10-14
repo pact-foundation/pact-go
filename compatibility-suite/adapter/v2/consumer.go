@@ -16,6 +16,8 @@ import (
 	"github.com/pact-foundation/pact-go/v2/compatibility-suite/model"
 )
 
+var errMockServerNotStarted = errors.New("the mock server did not start and reported no error")
+
 type consumerAdapter struct{}
 
 // Start builds a V2 pact, the oldest specification pact-go supports, and
@@ -52,6 +54,10 @@ func (consumerAdapter) Start(pact adapter.ConsumerPact, interactions []model.Int
 	case server.config = <-server.ready:
 		return server, nil
 	case <-server.finished:
+		if server.outcome.Err == nil {
+			return nil, errMockServerNotStarted
+		}
+
 		return nil, fmt.Errorf("the mock server did not start: %w", server.outcome.Err)
 	}
 }
