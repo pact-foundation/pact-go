@@ -2,205 +2,21 @@
 # Edit reasons freely; regenerate entries with: mise run compat --update-baseline
 # See docs/contributing/compatibility-suite.md.
 - feature: V1/http_consumer.feature
-  scenario: Request with JSON body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with JSON body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with XML body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with XML body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
   scenario: Request with a binary body (negative case)
-  status: failing
-  reason: not yet triaged
+  status: unsupported
+  reason: 'starting the mock server: interaction 7 has a binary image/jpeg body, which pact-go can set only as application/octet-stream (BinaryBody) or cut short at its first NUL byte (Body): not supported by the API under test'
 - feature: V1/http_consumer.feature
   scenario: Request with a binary body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with a form post body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with a form post body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with a multipart body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with a multipart body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with body
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with headers
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with invalid body
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with invalid headers
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with invalid method
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with invalid path
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with invalid query parameters
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with plain text body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with plain text body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with query parameters
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: Request with the incorrect type of body contents
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: When all requests are made to the mock server
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: When an unexpected request is made to the mock server
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_consumer.feature
-  scenario: When not all requests are made to the mock server
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Incorrect request is made to provider
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Incorrect request is made to provider via a Pact broker
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with JSON body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with JSON body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with XML body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with XML body (positive case)
-  status: failing
-  reason: not yet triaged
+  status: unsupported
+  reason: 'starting the mock server: interaction 7 has a binary image/jpeg body, which pact-go can set only as application/octet-stream (BinaryBody) or cut short at its first NUL byte (Body): not supported by the API under test'
 - feature: V1/http_provider.feature
   scenario: Response with binary body (negative case)
-  status: failing
-  reason: not yet triaged
+  status: unsupported
+  reason: 'interaction 8 response: a binary image/jpeg body cannot be written to a V2 pact file: not supported by the API under test'
 - feature: V1/http_provider.feature
   scenario: Response with binary body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with form post body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with form post body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with multipart body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with multipart body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with plain text body (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Response with plain text body (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifies the response headers
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifies the response status code
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying a HTTP request with a request filter configured
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying a simple HTTP request
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying a simple HTTP request via a Pact broker
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying a simple HTTP request via a Pact broker with publishing results enabled
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying an interaction where a provider state callback is not configured
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying an interaction where the provider state callback fails
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying an interaction with a defined provider state
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying an interaction with no defined provider state
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying multiple Pact files
-  status: failing
-  reason: not yet triaged
-- feature: V1/http_provider.feature
-  scenario: Verifying multiple Pact files via a Pact broker
-  status: failing
-  reason: not yet triaged
+  status: unsupported
+  reason: 'interaction 8 response: a binary image/jpeg body cannot be written to a V2 pact file: not supported by the API under test'
 - feature: V2/http_consumer.feature
   scenario: Supports a matcher for request paths
   status: failing
@@ -242,10 +58,6 @@
   status: failing
   reason: not yet triaged
 - feature: V2/http_consumer.feature
-  scenario: Supports matchers for request headers
-  status: failing
-  reason: not yet triaged
-- feature: V2/http_consumer.feature
   scenario: Supports matchers for request query parameters
   status: failing
   reason: not yet triaged
@@ -258,15 +70,7 @@
   status: failing
   reason: not yet triaged
 - feature: V2/http_provider.feature
-  scenario: Supports matching rules for the response headers (negative case)
-  status: failing
-  reason: not yet triaged
-- feature: V2/http_provider.feature
   scenario: Supports matching rules for the response headers (positive case)
-  status: failing
-  reason: not yet triaged
-- feature: V2/http_provider.feature
-  scenario: Verifies the response body (negative case)
   status: failing
   reason: not yet triaged
 - feature: V2/http_provider.feature

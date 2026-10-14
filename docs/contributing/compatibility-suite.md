@@ -27,6 +27,25 @@ The suite fails when:
 | A listed scenario no longer exists upstream | `stale` | Remove it from the baseline. |
 | A scenario ended differently from its listed status | `misclassified` | Update its status. |
 
+## How scenarios run against Pact Go
+
+Step definitions (`compatibility-suite/steps`) never call Pact Go directly.
+They go through an adapter (`compatibility-suite/adapter`), selected with
+`-adapter` (default `v2`).
+
+The v2 adapter drives every scenario through pact-go's public API
+(`consumer.NewV2Pact`, `provider.NewVerifier`). pact-go has no V1
+specification, so V1 features run as V2 pacts. Where pact-go does not return
+a result as data, the adapter reads it back through `internal/native` to
+check it:
+
+- `native.MockServerMismatchesJSON`: the mock server's full mismatch report.
+- `native.ResultObserver`: the verifier's JSON result.
+
+Something pact-go's public API cannot express, such as a binary body with its
+own content type, is recorded as `unsupported`, so the baseline also lists
+pact-go's public API gaps.
+
 ## Updating the baseline
 
 ```sh
