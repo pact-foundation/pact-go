@@ -35,7 +35,7 @@ func TestInteractionsFromConsumerTable(t *testing.T) {
 	if got[1].Request.Query.Get("a") != "1" || got[1].Request.Query.Get("b") != "2" {
 		t.Fatalf("interaction 2 query: %v", got[1].Request.Query)
 	}
-	if got[2].Request.Headers.Get("X-Test") != "Compatibility" {
+	if !reflect.DeepEqual(headerValues(got[2].Request.Headers, "X-Test"), []string{"Compatibility"}) {
 		t.Fatalf("interaction 3 headers: %v", got[2].Request.Headers)
 	}
 	if got[3].Request.Body.ContentType != "application/x-www-form-urlencoded" {
@@ -51,7 +51,7 @@ func TestInteractionsFromProviderTableReadsResponseHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got[0].Response.Headers.Get("X-Test") != "Something" {
+	if !reflect.DeepEqual(headerValues(got[0].Response.Headers, "X-Test"), []string{"Something"}) {
 		t.Fatalf("response headers: %v", got[0].Response.Headers)
 	}
 }
@@ -73,7 +73,7 @@ func TestRequestChangesReplaceHeadersAndQuery(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if req.Headers.Get("X-Test") != "" || req.Headers.Get("X-Other") != "Something" {
+	if len(headerValues(req.Headers, "x-test")) != 0 || !reflect.DeepEqual(headerValues(req.Headers, "x-other"), []string{"Something"}) {
 		t.Fatalf("headers: %v", req.Headers)
 	}
 	if req.Query.Get("c") != "3" || req.Method != http.MethodHead || req.Path != "/path" {
@@ -95,7 +95,7 @@ func TestResponseChangesMergeHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(res.Headers.Values("X-Test"), []string{"Something", "Compatibility"}) || res.Status != 400 {
+	if !reflect.DeepEqual(res.Headers["X-Test"], []string{"Something", "Compatibility"}) || res.Status != 400 {
 		t.Fatalf("response: %+v", res)
 	}
 }
@@ -119,12 +119,22 @@ func TestChangesNeedsOneRowOfValues(t *testing.T) {
 	}
 }
 
+func TestParseHeadersKeepsNamesAsWritten(t *testing.T) {
+	got, err := parseHeaders("'X-TEST: Compatibility'")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(map[string][]string(got), map[string][]string{"X-TEST": {"Compatibility"}}) {
+		t.Fatalf("want the name X-TEST kept as written, got %v", got)
+	}
+}
+
 func TestParseHeaders(t *testing.T) {
 	got, err := parseHeaders("'A: 1', 'B: 2'")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Get("A") != "1" || got.Get("B") != "2" {
+	if got["A"][0] != "1" || got["B"][0] != "2" {
 		t.Fatalf("got %v", got)
 	}
 	_, err = parseHeaders("'no colon'")

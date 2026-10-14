@@ -64,7 +64,7 @@ func addPactBody(part map[string]any, headers http.Header, body *model.Body) err
 	}
 
 	if body != nil {
-		if _, ok := h["Content-Type"]; !ok && body.ContentType != "" {
+		if len(headerValues(headers, "Content-Type")) == 0 && body.ContentType != "" {
 			h["Content-Type"] = body.ContentType
 		}
 		value, err := pactBody(*body)

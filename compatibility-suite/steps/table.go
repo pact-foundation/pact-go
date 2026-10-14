@@ -161,6 +161,24 @@ func applyResponseChanges(res *model.Response, cells map[string]string, fx fixtu
 	return nil
 }
 
+// headerKey returns the key under which headers holds name, ignoring case,
+// or name itself if headers has none. Header names are kept as written in the
+// feature, so lookups cannot rely on http.Header's canonical form.
+func headerKey(headers http.Header, name string) string {
+	for key := range headers {
+		if strings.EqualFold(key, name) {
+			return key
+		}
+	}
+
+	return name
+}
+
+// headerValues returns the values of the header called name, ignoring case.
+func headerValues(headers http.Header, name string) []string {
+	return headers[headerKey(headers, name)]
+}
+
 func setResponseHeaders(res *model.Response, value string, merge bool) error {
 	headers, err := parseHeaders(value)
 	if err != nil {
@@ -175,7 +193,8 @@ func setResponseHeaders(res *model.Response, value string, merge bool) error {
 
 	for name, values := range headers {
 		for _, v := range values {
-			res.Headers.Add(name, v)
+			key := headerKey(res.Headers, name)
+			res.Headers[key] = append(res.Headers[key], v)
 		}
 	}
 
@@ -215,7 +234,8 @@ func parseQueryCell(value string) (url.Values, error) {
 }
 
 // parseHeaders reads a headers cell such as 'X-TEST: Compatibility', with
-// several headers separated by commas.
+// several headers separated by commas. Names keep the case they are written
+// in.
 func parseHeaders(value string) (http.Header, error) {
 	if strings.TrimSpace(value) == "" {
 		return nil, nil
@@ -228,7 +248,10 @@ func parseHeaders(value string) (http.Header, error) {
 		if !ok {
 			return nil, fmt.Errorf("header %q has no ':'", part)
 		}
-		headers.Add(strings.TrimSpace(name), strings.TrimSpace(v))
+		// Not headers.Add: that would canonicalise the name, and pact-go
+		// passes names through as given.
+		name = strings.TrimSpace(name)
+		headers[name] = append(headers[name], strings.TrimSpace(v))
 	}
 
 	return headers, nil

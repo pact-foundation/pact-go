@@ -119,3 +119,16 @@ func TestPactPartHeadersAndQuery(t *testing.T) {
 		t.Fatal("want no value for a missing header")
 	}
 }
+
+func TestAddPactBodyKeepsAContentTypeHeaderWhateverItsCase(t *testing.T) {
+	part := map[string]any{}
+	body := &model.Body{ContentType: "application/json", Contents: []byte(`{}`)}
+	err := addPactBody(part, http.Header{"content-type": {"text/plain"}}, body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, _ := part["headers"].(map[string]string)
+	if len(got) != 1 || got["content-type"] != "text/plain" {
+		t.Fatalf("want only the content-type given, got %v", got)
+	}
+}
