@@ -56,6 +56,16 @@ func TestInteractionsFromProviderTableReadsResponseHeaders(t *testing.T) {
 	}
 }
 
+func TestInteractionsFromTableRejectsUnknownColumns(t *testing.T) {
+	_, err := interactionsFromTable([][]string{
+		{"No", "method", "path", "matching rules"},
+		{"1", "GET", "/basic", "matching-rules.json"},
+	}, fx)
+	if err == nil || !strings.Contains(err.Error(), "matching rules") {
+		t.Fatalf("want an error naming the unknown column, got %v", err)
+	}
+}
+
 func TestRequestChangesKeepContentTypeForText(t *testing.T) {
 	req := model.Request{Body: &model.Body{ContentType: "application/x-www-form-urlencoded", Contents: []byte("a=1")}}
 	err := applyRequestChanges(&req, map[string]string{"body": "a=1&b=2&c=33&d=4"}, fx)

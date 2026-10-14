@@ -55,17 +55,30 @@ func changes(rows [][]string) (map[string]string, error) {
 	return out, nil
 }
 
+// knownInteractionColumns are the interaction-table columns the steps handle.
+var knownInteractionColumns = map[string]bool{
+	"No": true, "method": true, "path": true, "query": true, headersCell: true, "body": true,
+	responseColumn: true, "response headers": true, "response content": true, "response body": true,
+}
+
 // interactionsFromTable builds the interactions of a "the following HTTP
 // interactions have been defined" table, numbered from 1 in row order.
-// Columns other than those read here (such as "No") are ignored, as is
-// "response content": the reference implementation also takes a body's
-// content type from its body cell.
+// "No" and "response content" are accepted but not read: the reference
+// implementation also takes a body's content type from its body cell. Any
+// other column is an error, so a column this suite does not apply (such as
+// "matching rules") cannot be silently ignored.
 func interactionsFromTable(rows [][]string, fx fixtures.Loader) ([]model.Interaction, error) {
 	if len(rows) == 0 {
 		return nil, errors.New("the interactions table is empty")
 	}
 
 	header := rows[0]
+	for _, name := range header {
+		if !knownInteractionColumns[strings.TrimSpace(name)] {
+			return nil, fmt.Errorf("the interactions table has a %q column, which the steps do not yet apply", strings.TrimSpace(name))
+		}
+	}
+
 	out := make([]model.Interaction, 0, len(rows)-1)
 	for i, row := range rows[1:] {
 		cells := make(map[string]string, len(header))
