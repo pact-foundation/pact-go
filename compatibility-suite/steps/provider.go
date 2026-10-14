@@ -281,7 +281,7 @@ func (w *world) verificationErrorIs(name string) error {
 
 func (w *world) nothingPublished() error {
 	if w.broker == nil {
-		return nil
+		return errors.New("no broker was used")
 	}
 	if published := w.broker.Publications(); len(published) > 0 {
 		return fmt.Errorf("want nothing published, got %+v", published)
