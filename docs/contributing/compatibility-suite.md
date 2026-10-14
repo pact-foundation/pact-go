@@ -11,6 +11,11 @@ Pact Go users.
 mise run compat
 ```
 
+To run the Go tests in `compatibility-suite/` directly, use
+`go test -p 1 ./...`. The packages must run one at a time: pact-go's verifier
+proxy picks a free port and binds it later, so parallel test binaries can
+collide on it.
+
 The run is checked against `compatibility-suite/baseline.yaml`, which lists
 every scenario that is **not** expected to pass:
 
@@ -70,5 +75,7 @@ mise run compat-sync                 # latest upstream main
 mise run compat-sync --ref <sha>     # or a specific branch, tag or commit
 mise run compat --update-baseline
 ```
+
+A commit `--ref` must be the full 40-character SHA, not an abbreviation.
 
 Do this in its own PR so the baseline diff shows exactly what upstream changed.

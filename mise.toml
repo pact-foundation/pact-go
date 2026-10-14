@@ -158,8 +158,10 @@ fi
 
 [tasks.compat]
 description = "Run the Pact compatibility suite against its baseline"
-# The FFI is not exercised until step definitions land, but every later PR
-# needs it, so the dependency is declared once here.
+# The suite loads the pact_ffi library, so the install task runs first. Its
+# packages run one at a time (-p 1): pact-go's verifier proxy picks a free
+# port and binds it later, so parallel test binaries can be handed the same
+# port and collide.
 depends = ["install"]
 dir = "compatibility-suite"
 usage = 'flag "--update-baseline" help="Rewrite baseline.yaml from this run instead of checking it"'
