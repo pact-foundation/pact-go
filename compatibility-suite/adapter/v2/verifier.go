@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -41,13 +42,22 @@ func (verifierAdapter) Verify(req adapter.VerifyRequest) (adapter.VerifyResult, 
 	defer func() { native.ResultObserver = nil }()
 
 	var verifyErr error
-	sandbox("provider", func(t *testing.T) {
+	failed := sandbox("provider", func(t *testing.T) {
 		t.Helper()
 		verifyErr = provider.NewVerifier().VerifyProvider(t, request)
 	})
 
 	if resultJSON == "" {
+		if verifyErr == nil {
+			return adapter.VerifyResult{}, errors.New("the verifier reported no result (pact-go returned no error)")
+		}
+
 		return adapter.VerifyResult{}, fmt.Errorf("the verifier reported no result (pact-go returned: %w)", verifyErr)
+	}
+
+	err := crossCheck(failed, verifyErr)
+	if err != nil {
+		return adapter.VerifyResult{}, err
 	}
 
 	errs, err := parseVerifierResult([]byte(resultJSON))
@@ -56,6 +66,21 @@ func (verifierAdapter) Verify(req adapter.VerifyRequest) (adapter.VerifyResult, 
 	}
 
 	return adapter.VerifyResult{Err: verifyErr, Errors: errs}, nil
+}
+
+// crossCheck compares the sandboxed test's outcome with the error pact-go
+// returned. pact-go reports a failed verification both ways, so a
+// disagreement means the adapter cannot trust what it read.
+func crossCheck(testFailed bool, verifyErr error) error {
+	if testFailed == (verifyErr != nil) {
+		return nil
+	}
+
+	if testFailed {
+		return errors.New("pact-go failed the sandboxed test but returned no error")
+	}
+
+	return fmt.Errorf("pact-go returned an error but did not fail the sandboxed test: %w", verifyErr)
 }
 
 // stateHandlers registers callback for each state. pact-go looks handlers up

@@ -2,6 +2,7 @@ package v2
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -181,5 +182,31 @@ func TestVerifierClearsObserver(t *testing.T) {
 	}
 	if native.ResultObserver != nil {
 		t.Fatal("want ResultObserver cleared after a verification")
+	}
+}
+
+func TestCrossCheckVerifyOutcome(t *testing.T) {
+	boom := errors.New("boom")
+
+	if err := crossCheck(false, nil); err != nil {
+		t.Fatalf("agreeing success: %v", err)
+	}
+	if err := crossCheck(true, boom); err != nil {
+		t.Fatalf("agreeing failure: %v", err)
+	}
+	if err := crossCheck(true, nil); err == nil {
+		t.Fatal("want an error when t failed but pact-go returned nil")
+	}
+	if err := crossCheck(false, boom); err == nil {
+		t.Fatal("want an error when pact-go returned an error but t did not fail")
+	}
+}
+
+func TestSandboxReportsFailure(t *testing.T) {
+	if !sandbox("fails", func(t *testing.T) { t.Error("expected") }) {
+		t.Fatal("want sandbox to report the failure")
+	}
+	if sandbox("passes", func(_ *testing.T) {}) {
+		t.Fatal("want sandbox to report success")
 	}
 }

@@ -25,18 +25,29 @@ var neutralFlags = map[string]string{
 // guards fn so it runs at most once, which also covers -cpu (that list is
 // parsed before any test runs, so it cannot be overridden here).
 //
+// sandbox reports whether fn failed its *testing.T.
+//
 // sandbox changes process-wide flags, so it is not safe for concurrent use.
-func sandbox(name string, fn func(t *testing.T)) {
+func sandbox(name string, fn func(t *testing.T)) bool {
 	defer overrideFlags(neutralFlags)()
 
-	var once sync.Once
+	var (
+		once   sync.Once
+		failed bool
+	)
 
 	testing.RunTests(func(_, _ string) (bool, error) { return true, nil },
 		[]testing.InternalTest{{Name: name, F: func(t *testing.T) {
 			t.Helper()
 
-			once.Do(func() { fn(t) })
+			once.Do(func() {
+				defer func() { failed = t.Failed() }()
+
+				fn(t)
+			})
 		}}})
+
+	return failed
 }
 
 // overrideFlags sets flags in flag.CommandLine and returns a function that
