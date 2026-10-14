@@ -171,7 +171,9 @@ if [ -n "${usage_update_baseline:-}" ]; then
   # the other packages with "flag provided but not defined".
   go test -count=1 -run TestCompatibility . -update-baseline
 else
-  go test -count=1 ./...
+  # One package at a time: pact-go picks a free port and binds it later, so
+  # concurrent test binaries can be handed the same port.
+  go test -count=1 -p 1 ./...
 fi
 """
 
