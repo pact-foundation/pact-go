@@ -18,9 +18,10 @@ import (
 // several steps read.
 const responseColumn = "response"
 
+// headersCell is the "headers" cell of an interactions or changes table.
+const headersCell = "headers"
+
 // rows returns a godog table's cell values.
-//
-//nolint:unused // used by the step definitions in the next task
 func rows(table *godog.Table) [][]string {
 	out := make([][]string, 0, len(table.Rows))
 	for _, row := range table.Rows {
@@ -83,7 +84,7 @@ func interactionsFromTable(rows [][]string, fx fixtures.Loader) ([]model.Interac
 		}
 
 		err := applyRequestChanges(&in.Request, map[string]string{
-			"query": cells["query"], "headers": cells["headers"], "body": cells["body"],
+			"query": cells["query"], "headers": cells[headersCell], "body": cells["body"],
 		}, fx)
 		if err != nil {
 			return nil, fmt.Errorf("interaction %d: %w", in.Number, err)
@@ -116,7 +117,7 @@ func applyRequestChanges(req *model.Request, cells map[string]string, fx fixture
 			req.Path = value
 		case "query":
 			req.Query, err = parseQueryCell(value)
-		case "headers":
+		case headersCell:
 			req.Headers, err = parseHeaders(value)
 		case "body":
 			req.Body, err = bodyCell(value, req.Body, fx)

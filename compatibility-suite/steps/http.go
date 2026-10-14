@@ -1,5 +1,3 @@
-// Package steps holds the compatibility suite's step definitions and the
-// helpers they share.
 package steps
 
 import (

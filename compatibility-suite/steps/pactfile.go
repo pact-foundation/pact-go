@@ -16,6 +16,8 @@ import (
 
 // pactJSON renders interactions as a pact file between consumer and
 // provider, in the V2 format: the oldest specification pact-go supports.
+//
+//nolint:unparam // provider is a real parameter; the V1 scenarios happen to share one provider.
 func pactJSON(consumer, provider string, interactions []model.Interaction) ([]byte, error) {
 	list := make([]map[string]any, 0, len(interactions))
 	for _, in := range interactions {
