@@ -175,6 +175,29 @@ else
 fi
 """
 
+[tasks.compat-sync]
+description = "Vendor the upstream compatibility suite at a branch, tag or commit"
+dir = "compatibility-suite"
+usage = 'flag "--ref <ref>" default="main" help="Upstream branch, tag or commit to vendor"'
+# Replaces the vendored tree wholesale and records the commit it came from.
+# This works whatever merge strategy the PR uses, unlike git subtree, whose
+# metadata a squash merge drops.
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+repo=https://github.com/pact-foundation/pact-compatibility-suite.git
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+git -C "$tmp" init -q
+git -C "$tmp" fetch -q --depth 1 "$repo" "$usage_ref"
+sha=$(git -C "$tmp" rev-parse FETCH_HEAD)
+rm -rf pact-compatibility-suite
+mkdir pact-compatibility-suite
+git -C "$tmp" archive FETCH_HEAD | tar -x -C pact-compatibility-suite
+echo "$sha" > pact-compatibility-suite.ref
+echo "vendored pact-compatibility-suite at $sha"
+"""
+
 [tasks.publish]
 description = "Publish pacts to the broker"
 run = """

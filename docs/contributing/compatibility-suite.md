@@ -41,12 +41,14 @@ needs a reason.
 
 ## Updating the upstream suite
 
-The upstream features are vendored with `git subtree`. Never edit them in
-place.
+The upstream features are vendored into
+`compatibility-suite/pact-compatibility-suite/`, and the commit they came
+from is recorded in `compatibility-suite/pact-compatibility-suite.ref`. Never
+edit the vendored files in place.
 
 ```sh
-git subtree pull --prefix=compatibility-suite/pact-compatibility-suite \
-  https://github.com/pact-foundation/pact-compatibility-suite.git main --squash
+mise run compat-sync                 # latest upstream main
+mise run compat-sync --ref <sha>     # or a specific branch, tag or commit
 mise run compat --update-baseline
 ```
 
