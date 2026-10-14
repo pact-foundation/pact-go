@@ -10,7 +10,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/pact-foundation/pact-go/v2/compatibility-suite/adapter"
 	"github.com/pact-foundation/pact-go/v2/compatibility-suite/model"
 )
 
@@ -82,14 +81,15 @@ func addPactBody(part map[string]any, headers http.Header, body *model.Body) err
 }
 
 // pactBody is a body as V2 holds it: JSON documents inline, anything else
-// as a string. V2 has no encoding for binary bodies.
+// as a string. V2 has no encoding for binary bodies, which is a limit of this
+// suite's V2 pact writer, not of pact-go, so the error is not ErrUnsupported.
 func pactBody(b model.Body) (any, error) {
 	if isJSON(b.ContentType) && json.Valid(b.Contents) {
 		return json.RawMessage(b.Contents), nil
 	}
 
 	if !utf8.Valid(b.Contents) || bytes.IndexByte(b.Contents, 0) >= 0 {
-		return nil, fmt.Errorf("a binary %s body cannot be written to a V2 pact file: %w", b.ContentType, adapter.ErrUnsupported)
+		return nil, fmt.Errorf("the suite's V2 pact writer cannot hold a binary %s body", b.ContentType)
 	}
 
 	return string(b.Contents), nil

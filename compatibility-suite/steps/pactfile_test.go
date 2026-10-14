@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/v2/compatibility-suite/adapter"
@@ -89,8 +90,8 @@ func TestPactJSONRejectsBinaryBodies(t *testing.T) {
 		Response: model.Response{Status: 200, Body: &model.Body{ContentType: "image/jpeg", Contents: []byte{0xff, 0xd8, 0x00}}},
 	}
 	_, err := pactJSON("c", "p", []model.Interaction{in})
-	if !errors.Is(err, adapter.ErrUnsupported) {
-		t.Fatalf("want ErrUnsupported, got %v", err)
+	if err == nil || errors.Is(err, adapter.ErrUnsupported) || !strings.Contains(err.Error(), "V2 pact writer") {
+		t.Fatalf("want a plain error naming the suite's V2 pact writer, got %v", err)
 	}
 }
 
