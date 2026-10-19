@@ -1,0 +1,307 @@
+package steps
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/cucumber/godog"
+
+	"github.com/pact-foundation/pact-go/v2/compatibility-suite/fixtures"
+	"github.com/pact-foundation/pact-go/v2/compatibility-suite/model"
+)
+
+// responseColumn is the "response" column of an interactions table, which
+// several steps read.
+const responseColumn = "response"
+
+// headersCell is the "headers" cell of an interactions or changes table.
+const headersCell = "headers"
+
+// rows returns a godog table's cell values.
+func rows(table *godog.Table) [][]string {
+	out := make([][]string, 0, len(table.Rows))
+	for _, row := range table.Rows {
+		cells := make([]string, 0, len(row.Cells))
+		for _, cell := range row.Cells {
+			cells = append(cells, cell.Value)
+		}
+		out = append(out, cells)
+	}
+
+	return out
+}
+
+// changes reads a "with the following changes" table: a header row and one
+// row of values, keyed by column name.
+func changes(rows [][]string) (map[string]string, error) {
+	const headerAndValues = 2
+	if len(rows) != headerAndValues {
+		return nil, fmt.Errorf("a changes table needs a header and one row of values, got %d rows", len(rows))
+	}
+
+	header, values := rows[0], rows[1]
+	out := make(map[string]string, len(header))
+	for i, name := range header {
+		if i >= len(values) {
+			break
+		}
+		out[strings.TrimSpace(name)] = strings.TrimSpace(values[i])
+	}
+
+	return out, nil
+}
+
+// Interaction-table column names.
+const (
+	methodColumn          = "method"
+	pathColumn            = "path"
+	queryColumn           = "query"
+	responseHeadersColumn = "response headers"
+	bodyColumn            = "body"
+	responseBodyColumn    = "response body"
+)
+
+// knownInteractionColumns are the interaction-table columns the steps handle.
+var knownInteractionColumns = map[string]bool{
+	"No": true, methodColumn: true, pathColumn: true, queryColumn: true, headersCell: true, bodyColumn: true,
+	responseColumn: true, responseHeadersColumn: true, "response content": true, responseBodyColumn: true,
+}
+
+// interactionsFromTable builds the interactions of a "the following HTTP
+// interactions have been defined" table, numbered from 1 in row order.
+// "No" and "response content" are accepted but not read: the reference
+// implementation also takes a body's content type from its body cell. Any
+// other column is an error, so a column this suite does not apply (such as
+// "matching rules") cannot be silently ignored.
+func interactionsFromTable(rows [][]string, fx fixtures.Loader) ([]model.Interaction, error) {
+	if len(rows) == 0 {
+		return nil, errors.New("the interactions table is empty")
+	}
+
+	header := rows[0]
+	for _, name := range header {
+		if !knownInteractionColumns[strings.TrimSpace(name)] {
+			return nil, fmt.Errorf("the interactions table has a %q column, which the steps do not yet apply", strings.TrimSpace(name))
+		}
+	}
+
+	out := make([]model.Interaction, 0, len(rows)-1)
+	for i, row := range rows[1:] {
+		cells := make(map[string]string, len(header))
+		for c, name := range header {
+			if c < len(row) {
+				cells[strings.TrimSpace(name)] = strings.TrimSpace(row[c])
+			}
+		}
+
+		in := model.Interaction{
+			Number: i + 1,
+			// The reference implementation numbers descriptions from 0.
+			Description: fmt.Sprintf("Interaction %d", i),
+			Request:     model.Request{Method: cells[methodColumn], Path: cells[pathColumn]},
+			Response:    model.Response{Status: http.StatusOK},
+		}
+
+		err := applyRequestChanges(&in.Request, map[string]string{
+			queryColumn: cells[queryColumn], "headers": cells[headersCell], bodyColumn: cells[bodyColumn],
+		}, fx)
+		if err != nil {
+			return nil, fmt.Errorf("interaction %d: %w", in.Number, err)
+		}
+
+		err = applyResponseChanges(&in.Response, map[string]string{
+			responseColumn: cells[responseColumn], responseHeadersColumn: cells[responseHeadersColumn], responseBodyColumn: cells[responseBodyColumn],
+		}, fx, false)
+		if err != nil {
+			return nil, fmt.Errorf("interaction %d: %w", in.Number, err)
+		}
+
+		out = append(out, in)
+	}
+
+	return out, nil
+}
+
+// applyRequestChanges sets the request fields named by cells; an empty
+// value clears a field. A text body keeps the content type of the body it
+// replaces, as the reference implementation does.
+func applyRequestChanges(req *model.Request, cells map[string]string, fx fixtures.Loader) error {
+	for name, value := range cells {
+		var err error
+
+		switch name {
+		case methodColumn:
+			req.Method = value
+		case pathColumn:
+			req.Path = value
+		case queryColumn:
+			req.Query, err = parseQueryCell(value)
+		case headersCell:
+			req.Headers, err = parseHeaders(value)
+		case bodyColumn:
+			req.Body, err = bodyCell(value, req.Body, fx)
+		default:
+			return fmt.Errorf("unsupported request change %q", name)
+		}
+
+		if err != nil {
+			return fmt.Errorf("request %s: %w", name, err)
+		}
+	}
+
+	return nil
+}
+
+// applyResponseChanges sets the response fields named by cells. With
+// mergeHeaders, new header values are added to existing ones rather than
+// replacing them, as the reference implementation's provider steps do.
+func applyResponseChanges(res *model.Response, cells map[string]string, fx fixtures.Loader, mergeHeaders bool) error {
+	for name, value := range cells {
+		var err error
+
+		switch name {
+		case responseColumn:
+			if value != "" {
+				res.Status, err = strconv.Atoi(value)
+			}
+		case responseHeadersColumn:
+			err = setResponseHeaders(res, value, mergeHeaders)
+		case responseBodyColumn:
+			res.Body, err = bodyCell(value, res.Body, fx)
+		default:
+			return fmt.Errorf("unsupported response change %q", name)
+		}
+
+		if err != nil {
+			return fmt.Errorf("%s: %w", name, err)
+		}
+	}
+
+	return nil
+}
+
+// headerKey returns the key under which headers holds name, ignoring case,
+// or name itself if headers has none. Header names are kept as written in the
+// feature, so lookups cannot rely on http.Header's canonical form.
+func headerKey(headers http.Header, name string) string {
+	for key := range headers {
+		if strings.EqualFold(key, name) {
+			return key
+		}
+	}
+
+	return name
+}
+
+// headerValues returns the values of the header called name, ignoring case.
+func headerValues(headers http.Header, name string) []string {
+	return headers[headerKey(headers, name)]
+}
+
+func setResponseHeaders(res *model.Response, value string, merge bool) error {
+	headers, err := parseHeaders(value)
+	if err != nil {
+		return err
+	}
+
+	if !merge || res.Headers == nil {
+		res.Headers = headers
+
+		return nil
+	}
+
+	for name, values := range headers {
+		for _, v := range values {
+			key := headerKey(res.Headers, name)
+			res.Headers[key] = append(res.Headers[key], v)
+		}
+	}
+
+	return nil
+}
+
+// bodyCell parses a body cell, with an empty cell meaning no body.
+func bodyCell(value string, current *model.Body, fx fixtures.Loader) (*model.Body, error) {
+	if value == "" {
+		return nil, nil //nolint:nilnil // an empty cell is a valid "no body"
+	}
+
+	fallback := ""
+	if current != nil {
+		fallback = current.ContentType
+	}
+
+	body, err := fx.Body(value, fallback)
+	if err != nil {
+		return nil, fmt.Errorf("parsing body: %w", err)
+	}
+
+	return body, nil
+}
+
+func parseQueryCell(value string) (url.Values, error) {
+	if value == "" {
+		return nil, nil
+	}
+
+	query, err := url.ParseQuery(value)
+	if err != nil {
+		return nil, fmt.Errorf("parsing query %q: %w", value, err)
+	}
+
+	return query, nil
+}
+
+// parseHeaders reads a headers cell such as 'X-TEST: Compatibility', with
+// several headers separated by commas. Names keep the case they are written
+// in.
+func parseHeaders(value string) (http.Header, error) {
+	if strings.TrimSpace(value) == "" {
+		return nil, nil
+	}
+
+	headers := http.Header{}
+	for part := range strings.SplitSeq(value, ",") {
+		part = strings.Trim(strings.TrimSpace(part), "'")
+		name, v, ok := strings.Cut(part, ":")
+		if !ok {
+			return nil, fmt.Errorf("header %q has no ':'", part)
+		}
+		// Not headers.Add: that would canonicalise the name, and pact-go
+		// passes names through as given.
+		name = strings.TrimSpace(name)
+		headers[name] = append(headers[name], strings.TrimSpace(v))
+	}
+
+	return headers, nil
+}
+
+// parseNumbers reads a list of interaction numbers such as "1, 2".
+func parseNumbers(list string) ([]int, error) {
+	parts := strings.Split(list, ",")
+	out := make([]int, 0, len(parts))
+	for _, part := range parts {
+		n, err := strconv.Atoi(strings.TrimSpace(part))
+		if err != nil {
+			return nil, fmt.Errorf("interaction list %q: %w", list, err)
+		}
+		out = append(out, n)
+	}
+
+	return out, nil
+}
+
+// ordinal turns "first", "second" or "third" into an index.
+func ordinal(word string) (int, error) {
+	for i, known := range []string{"first", "second", "third"} {
+		if word == known {
+			return i, nil
+		}
+	}
+
+	return 0, fmt.Errorf("unknown ordinal %q", word)
+}

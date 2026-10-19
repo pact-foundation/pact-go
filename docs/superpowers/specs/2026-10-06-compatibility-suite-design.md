@@ -20,6 +20,11 @@ not as an undifferentiated "suite is red".
 - Scenarios that fail today are tracked in a **ratchet file**.
 - CI runs the suite on **Linux, latest supported Go**, as a **required** check.
 - Work lands as a **stack of GitHub stacked PRs**.
+- Scenarios are **driven only through pact-go's public API**. Where pact-go
+  does not return a result as data, the adapter may **read it back** through
+  `internal/native` to check it (decided 2026-10-08, PR 2).
+- Upstream is vendored by a **pinned fetch script**, not `git subtree`
+  (decided 2026-10-08: PR 1's squash merge dropped the subtree metadata).
 
 ### Assumptions
 
@@ -64,7 +69,8 @@ Rejected alternatives:
 compatibility-suite/
   go.mod                      # module github.com/pact-foundation/pact-go/v2/compatibility-suite
                               # replace github.com/pact-foundation/pact-go/v2 => ../
-  pact-compatibility-suite/   # git subtree of upstream, squashed, pinned SHA
+  pact-compatibility-suite/   # vendored upstream tree (mise run compat-sync)
+  pact-compatibility-suite.ref  # upstream commit SHA the tree was vendored from
   baseline.yaml               # the ratchet
   suite_test.go               # godog runner + ratchet enforcement
   steps/                      # step definitions, one file per feature area
@@ -94,6 +100,26 @@ The nested `go.mod` means the directory is excluded from the published
 Any method may return `adapter.ErrUnsupported`. `adapter/v2` is the only package
 importing pact-go. A future architecture gets `adapter/v3` and is run against the
 same baseline; the diff between the two runs is the regression report.
+
+### How `adapter/v2` drives and checks
+
+- **Driving** uses the public API only: `consumer.NewV2Pact` and
+  `ExecuteTest`, `provider.NewVerifier().VerifyProvider`. pact-go has no V1
+  specification, so V1 features run as V2 pacts, the oldest pact-go supports.
+- Both entry points require a `*testing.T`. The adapter runs them under one
+  of their own via `testing.RunTests`, so a failure pact-go reports there does
+  not fail the suite's test; the adapter reads the result pact-go returns.
+- `ExecuteTest` runs in a goroutine so steps can make requests between
+  "started" and "done".
+- **Checking** may read through `internal/native`, but only results that
+  pact-go does not return as data:
+  - `native.MockServerMismatchesJSON(port)`: the mock server's full mismatch
+    report (pact-go's own parse drops fields such as the body path).
+  - `native.ResultObserver`: receives `pactffi_verifier_json` after each
+    verification (pact-go returns only a sentinel error). Nil in normal use.
+- Something the public API cannot *express* (for example a binary body with
+  its own content type) is `ErrUnsupported`, and doubles as a list of public
+  API gaps.
 
 The adapter is selected by a test flag (`-adapter=v2`, default `v2`).
 
@@ -165,10 +191,14 @@ No Docker, no network.
 
 ## Upstream sync
 
-- Initial import: `git subtree add --prefix compatibility-suite/pact-compatibility-suite <upstream> <sha> --squash`.
-- Updates: `git subtree pull ... --squash` in a dedicated PR. New upstream
-  scenarios fail as "unlisted"; run `-update-baseline` to record them, then
-  work them down.
+- PR 1 imported the tree with `git subtree add --squash`; the squash merge of
+  PR 1 dropped the subtree trailers, so `git subtree pull` no longer works.
+- `mise run compat-sync [--ref <branch|tag|sha>]` replaces
+  `pact-compatibility-suite/` with the upstream tree at that ref and records
+  the resolved SHA in `pact-compatibility-suite.ref`. It works whatever the
+  merge strategy.
+- Updates land in a dedicated PR. New upstream scenarios fail as "unlisted";
+  run `-update-baseline` to record them, then work them down.
 - Documented in `docs/contributing/compatibility-suite.md`.
 
 ## Delivery: stacked PRs
