@@ -127,7 +127,9 @@ func (v *Verifier) SetVerificationOptions(disableSSLVerification bool, requestTi
 func (v *Verifier) SetConsumerFilters(consumers []string) {
 	// TODO: check if this actually works! It is untested and its effect
 	// on the underlying pact_ffi call has not been confirmed.
-	C.pactffi_verifier_set_consumer_filters(v.handle, stringArrayToCStringArray(consumers), C.ushort(len(consumers)))
+	cConsumers, freeConsumers := stringArrayToCStringArray(consumers)
+	defer freeConsumers()
+	C.pactffi_verifier_set_consumer_filters(v.handle, cConsumers, C.ushort(len(consumers)))
 }
 
 // AddCustomHeader adds a header to be sent with every request made to the
@@ -192,8 +194,14 @@ func (v *Verifier) BrokerSourceWithSelectors(url string, username string, passwo
 	defer free(cIncludeWipPactsSince)
 	cProviderBranch := C.CString(providerBranch)
 	defer free(cProviderBranch)
+	cProviderTags, freeProviderTags := stringArrayToCStringArray(providerTags)
+	defer freeProviderTags()
+	cSelectors, freeSelectors := stringArrayToCStringArray(selectors)
+	defer freeSelectors()
+	cConsumerVersionTags, freeConsumerVersionTags := stringArrayToCStringArray(consumerVersionTags)
+	defer freeConsumerVersionTags()
 
-	C.pactffi_verifier_broker_source_with_selectors(v.handle, cURL, cUsername, cPassword, cToken, boolToCUchar(enablePending), cIncludeWipPactsSince, stringArrayToCStringArray(providerTags), C.ushort(len(providerTags)), cProviderBranch, stringArrayToCStringArray(selectors), C.ushort(len(selectors)), stringArrayToCStringArray(consumerVersionTags), C.ushort(len(consumerVersionTags)))
+	C.pactffi_verifier_broker_source_with_selectors(v.handle, cURL, cUsername, cPassword, cToken, boolToCUchar(enablePending), cIncludeWipPactsSince, cProviderTags, C.ushort(len(providerTags)), cProviderBranch, cSelectors, C.ushort(len(selectors)), cConsumerVersionTags, C.ushort(len(consumerVersionTags)))
 }
 
 // SetPublishOptions sets the values needed to publish verification
@@ -206,8 +214,10 @@ func (v *Verifier) SetPublishOptions(providerVersion string, buildURL string, pr
 	defer free(cBuildURL)
 	cProviderBranch := C.CString(providerBranch)
 	defer free(cProviderBranch)
+	cProviderTags, freeProviderTags := stringArrayToCStringArray(providerTags)
+	defer freeProviderTags()
 
-	C.pactffi_verifier_set_publish_options(v.handle, cProviderVersion, cBuildURL, stringArrayToCStringArray(providerTags), C.ushort(len(providerTags)), cProviderBranch)
+	C.pactffi_verifier_set_publish_options(v.handle, cProviderVersion, cBuildURL, cProviderTags, C.ushort(len(providerTags)), cProviderBranch)
 }
 
 // Execute runs the verification against every source and option
@@ -244,9 +254,9 @@ func (v *Verifier) SetColoredOutput(isColoredOutput bool) {
 	C.pactffi_verifier_set_coloured_output(v.handle, boolToCUchar(isColoredOutput))
 }
 
-func stringArrayToCStringArray(inputs []string) **C.char {
+func stringArrayToCStringArray(inputs []string) (**C.char, func()) {
 	if len(inputs) == 0 {
-		return nil
+		return nil, func() {}
 	}
 
 	output := make([]*C.char, len(inputs))
@@ -255,7 +265,13 @@ func stringArrayToCStringArray(inputs []string) **C.char {
 		output[i] = C.CString(consumer)
 	}
 
-	return (**C.char)(unsafe.Pointer(&output[0]))
+	freeOutput := func() {
+		for _, consumer := range output {
+			free(consumer)
+		}
+	}
+
+	return (**C.char)(unsafe.Pointer(&output[0])), freeOutput
 }
 
 func boolToCUchar(val bool) C.uchar {
