@@ -470,7 +470,7 @@ type defaultDownloader struct{}
 func (d *defaultDownloader) download(src string, dst string, member string) error {
 	log.Println("[INFO] downloading library from", src, "to", dst)
 
-	baseDir := path.Dir(dst)
+	baseDir := filepath.Dir(dst)
 	//nolint:gosec // G301: the documented default install path is the system-wide
 	// /usr/local/lib, installed via `sudo pact-go install` (README.md); this directory
 	// (already present by default, only actually created here for a custom --libDir) must
@@ -680,7 +680,7 @@ func (c *cappedReader) Read(p []byte) (int, error) {
 // directory, so a failed or oversized extraction leaves no partial library at
 // dst for CheckPackageInstall to find.
 func installFile(src io.Reader, dst string) error {
-	tmp, err := os.CreateTemp(path.Dir(dst), "."+path.Base(dst)+"-*")
+	tmp, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+"-*")
 	if err != nil {
 		return fmt.Errorf("failed to create output file; %w", err)
 	}
