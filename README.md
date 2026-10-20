@@ -153,18 +153,20 @@ An alternative is to install to `/tmp` via `pact-go -l DEBUG install --libDir /t
 
 ### Manual
 
-Download the latest `Pact FFI Library` [library] for your OS, and install onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux):
+Download the `Pact FFI Library` [library] archive for your platform from the `pact_ffi-v<version>` release, and install the shared library onto a standard library search path (we suggest: `/usr/local/lib` on MacOS/Linux).
 
-Ensure you have the correct extension for your OS:
+Each archive is named after a Rust target triple:
 
-- For Mac OS: `.dylib` (For M1 users, you need the `aarch64` version) - ( Called `aarch64-apple-darwin` in version prior to v0.4.21 )
-- For Linux: `.so`
-- For Windows: `.dll`
+- For Mac OS: `pact_ffi-aarch64-apple-darwin.tar.xz` (Apple Silicon) or `pact_ffi-x86_64-apple-darwin.tar.xz`, containing `libpact_ffi.dylib`
+- For Linux: `pact_ffi-<arch>-unknown-linux-gnu.tar.xz`, or `pact_ffi-<arch>-unknown-linux-musl.tar.xz` on musl distributions such as Alpine, containing `libpact_ffi.so`
+- For Windows: `pact_ffi-<arch>-pc-windows-msvc.zip`, containing `pact_ffi.dll`. Install only the DLL: the archive's `pact_ffi.lib` is a static library.
 
 ```sh
-wget https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v0.4.21/libpact_ffi-macos-x86_64.dylib.gz
-gunzip libpact_ffi-macos-x86_64.dylib.gz
-mv libpact_ffi-macos-x86_64.dylib /usr/local/lib/libpact_ffi.dylib
+wget https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v0.5.12/pact_ffi-aarch64-apple-darwin.tar.xz
+wget https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v0.5.12/pact_ffi-aarch64-apple-darwin.tar.xz.sha256
+shasum -a 256 -c pact_ffi-aarch64-apple-darwin.tar.xz.sha256
+tar -xJf pact_ffi-aarch64-apple-darwin.tar.xz
+mv pact_ffi-aarch64-apple-darwin/libpact_ffi.dylib /usr/local/lib/libpact_ffi.dylib
 ```
 
 Test the installation:

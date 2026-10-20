@@ -3,10 +3,13 @@
 package installer
 
 import (
-	"compress/gzip"
+	"archive/tar"
+	"archive/zip"
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -21,6 +24,7 @@ import (
 	"time"
 
 	goversion "github.com/hashicorp/go-version"
+	"github.com/ulikunitz/xz"
 	"gopkg.in/yaml.v3"
 
 	"github.com/spf13/afero"
@@ -205,7 +209,7 @@ func (i *Installer) downloadDependencies() error {
 			return err
 		}
 
-		err = i.downloader.download(src, dst)
+		err = i.downloader.download(src, dst, i.getLibFileName())
 		if err != nil {
 			return err
 		}
@@ -256,10 +260,29 @@ func (i *Installer) getDownloadURLForPackage(pkg string) (string, error) {
 		return "", fmt.Errorf("unable to find package details for package: %s", pkg)
 	}
 
-	if checkMusl() && i.os == linux {
-		return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch+"-musl", osToExtension[i.os]), nil
+	target := rustTarget(i.os, i.arch, i.os == linux && checkMusl())
+	return fmt.Sprintf(downloadTemplate, pkgInfo.releaseName, pkgInfo.version, pkgInfo.releaseName, target, osToArchiveExtension[i.os]), nil
+}
+
+// rustTarget returns the Rust target triple that names a release archive.
+func rustTarget(osName, arch string, musl bool) string {
+	switch osName {
+	case macos:
+		return arch + "-apple-darwin"
+	case windows:
+		return arch + "-pc-windows-msvc"
+	default:
+		if musl {
+			return arch + "-unknown-linux-musl"
+		}
+		return arch + "-unknown-linux-gnu"
 	}
-	return fmt.Sprintf(downloadTemplate, pkg, pkgInfo.version, osToLibName[i.os], i.os, i.arch, osToExtension[i.os]), nil
+}
+
+// getLibFileName returns the shared library's file name, both inside the
+// release archive and at its install destination.
+func (i *Installer) getLibFileName() string {
+	return osToLibName[i.os] + "." + osToExtension[i.os]
 }
 
 func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
@@ -268,7 +291,7 @@ func (i *Installer) getLibDstForPackage(pkg string) (string, error) {
 		return "", fmt.Errorf("unable to find package details for package: %s", pkg)
 	}
 
-	return path.Join(i.getLibDir(), osToLibName[i.os]) + "." + osToExtension[i.os], nil
+	return path.Join(i.getLibDir(), i.getLibFileName()), nil
 }
 
 // Write the metadata to reduce drift.
@@ -354,8 +377,8 @@ func checkMusl() bool {
 	return false
 }
 
-// download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/PACKAGE-vVERSION/LIBNAME-OS-ARCH.EXTENSION.gz"
-var downloadTemplate = "https://github.com/pact-foundation/pact-reference/releases/download/%s-v%s/%s-%s-%s.%s.gz"
+// download template structure: "https://github.com/pact-foundation/pact-reference/releases/download/RELEASE-vVERSION/RELEASE-TARGET.ARCHIVE_EXTENSION"
+var downloadTemplate = "https://github.com/pact-foundation/pact-reference/releases/download/%s-v%s/%s-%s.%s"
 
 var supportedOSes = map[string]string{
 	"darwin": macos,
@@ -369,6 +392,15 @@ var osToExtension = map[string]string{
 	macos:   "dylib",
 }
 
+var osToArchiveExtension = map[string]string{
+	windows: "zip",
+	linux:   "tar.xz",
+	macos:   "tar.xz",
+}
+
+// osToLibName names the shared library. On Windows only pact_ffi.dll is
+// extracted: the archive's pact_ffi.lib is a static library, and MinGW's ld
+// would pick it over the DLL for -lpact_ffi.
 var osToLibName = map[string]string{
 	windows: "pact_ffi",
 	linux:   ffiLibBaseName,
@@ -376,7 +408,9 @@ var osToLibName = map[string]string{
 }
 
 type packageInfo struct {
-	libName     string
+	libName string
+	// releaseName prefixes both the pact-reference release tag and its archive names.
+	releaseName string
 	version     string
 	semverRange string
 }
@@ -399,15 +433,16 @@ const (
 
 var packages = map[string]packageInfo{
 	FFIPackage: {
-		libName: ffiLibBaseName,
-		version: "0.5.8",
+		libName:     ffiLibBaseName,
+		releaseName: "pact_ffi",
+		version:     "0.5.12",
 		// Pin to the shipped FFI minor. The bindings in this release reference
 		// symbols specific to this libpact_ffi minor, and past minors have both
 		// added and removed symbols, so a wider range lets a mismatched-but-in-range
 		// library already on disk pass CheckPackageInstall and skip reinstalling,
 		// which then fails at link/load time with undefined FFI symbols. Bump this
 		// in lockstep with version above.
-		semverRange: ">= 0.5.8, < 0.6.0",
+		semverRange: ">= 0.5.12, < 0.6.0",
 	},
 }
 
@@ -424,12 +459,15 @@ type Versioner interface {
 var LibRegistry = map[string]Versioner{}
 
 type downloader interface {
-	download(src string, dst string) error
+	// download fetches the release archive at src, verifies it against the
+	// checksum published at src + ".sha256", and installs the archive entry
+	// named member at dst.
+	download(src string, dst string, member string) error
 }
 
 type defaultDownloader struct{}
 
-func (d *defaultDownloader) download(src string, dst string) error {
+func (d *defaultDownloader) download(src string, dst string, member string) error {
 	log.Println("[INFO] downloading library from", src, "to", dst)
 
 	baseDir := path.Dir(dst)
@@ -444,78 +482,261 @@ func (d *defaultDownloader) download(src string, dst string) error {
 		return fmt.Errorf("failed to create %s; %w", baseDir, err)
 	}
 
-	//nolint:gosec // G304: dst is the local install destination built from getLibDstForPackage
-	// (getLibDir + internal osToLibName/osToExtension maps). getLibDir can be overridden via
-	// SetLibDir or PACT_GO_LIB_DOWNLOAD_PATH, so dst is not purely internal, but this is the
-	// installer choosing where to write the file it is downloading, not an attacker directing
-	// a read of an arbitrary existing file — the caller who sets libDir already controls the
-	// filesystem the installer runs against.
-	f, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("failed to create output file; %w", err)
-	}
-	defer func() {
-		// No-op when the oversize path below has already closed it.
-		_ = f.Close()
-	}()
-
 	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
 	defer cancel()
 
+	want, err := fetchChecksum(ctx, src)
+	if err != nil {
+		return err
+	}
+
+	archive, err := os.CreateTemp("", "pact-ffi-archive-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary archive file; %w", err)
+	}
+	defer func() {
+		_ = archive.Close()
+		_ = os.Remove(archive.Name())
+	}()
+
+	got, size, err := fetchArchive(ctx, src, archive)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(got, want) {
+		return fmt.Errorf("checksum mismatch for %s: expected %x, got %x", src, want, got)
+	}
+
+	entry, err := openArchiveMember(archive, size, src, member)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = entry.Close()
+	}()
+
+	return installFile(entry, dst)
+}
+
+func httpGet(ctx context.Context, src string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
 	if err != nil {
-		return fmt.Errorf("failed to create request for %s; %w", src, err)
+		return nil, fmt.Errorf("failed to create request for %s; %w", src, err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed http call to %s; %w", src, err)
+		return nil, fmt.Errorf("failed http call to %s; %w", src, err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		_ = resp.Body.Close()
+		return nil, fmt.Errorf("failed http call to %s; unexpected status %s", src, resp.Status)
+	}
+
+	return resp, nil
+}
+
+// fetchChecksum reads the SHA-256 digest of src from src + ".sha256", whose
+// content is `<hex digest> *<archive name>`.
+func fetchChecksum(ctx context.Context, src string) ([]byte, error) {
+	checksumURL := src + ".sha256"
+	resp, err := httpGet(ctx, checksumURL)
+	if err != nil {
+		return nil, err
 	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
-	archive, err := gzip.NewReader(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxChecksumFileSize))
 	if err != nil {
-		return fmt.Errorf("failed to create new gzip reader; %w", err)
+		return nil, fmt.Errorf("failed to read checksum from %s; %w", checksumURL, err)
 	}
 
-	written, err := io.Copy(f, io.LimitReader(archive, maxDecompressedLibSize+1))
+	fields := strings.Fields(string(body))
+	if len(fields) == 0 {
+		return nil, fmt.Errorf("empty checksum file at %s", checksumURL)
+	}
+	if len(fields) > 1 && strings.TrimPrefix(fields[1], "*") != path.Base(src) {
+		return nil, fmt.Errorf("checksum file at %s names %s, expected %s", checksumURL, fields[1], path.Base(src))
+	}
+
+	sum, err := hex.DecodeString(fields[0])
+	if err != nil || len(sum) != sha256.Size {
+		return nil, fmt.Errorf("malformed SHA-256 digest %q in %s", fields[0], checksumURL)
+	}
+
+	return sum, nil
+}
+
+// fetchArchive writes the archive at src into dst, returning its SHA-256
+// digest and size.
+func fetchArchive(ctx context.Context, src string, dst io.Writer) ([]byte, int64, error) {
+	resp, err := httpGet(ctx, src)
 	if err != nil {
-		return fmt.Errorf("failed to copy archive to file; %w", err)
+		return nil, 0, err
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	h := sha256.New()
+	size, err := io.Copy(io.MultiWriter(dst, h), io.LimitReader(resp.Body, maxArchiveSize+1))
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to download %s; %w", src, err)
+	}
+	if size > maxArchiveSize {
+		return nil, 0, fmt.Errorf("archive at %s exceeds the %d byte safety limit; aborting", src, maxArchiveSize)
+	}
+
+	return h.Sum(nil), size, nil
+}
+
+// openArchiveMember opens the regular file named member inside the archive,
+// choosing the format from the extension of src. The member's path inside the
+// archive never reaches the filesystem, since the caller writes it to a fixed
+// destination.
+func openArchiveMember(archive io.ReaderAt, size int64, src string, member string) (io.ReadCloser, error) {
+	switch {
+	case strings.HasSuffix(src, ".zip"):
+		return openZipMember(archive, size, member)
+	case strings.HasSuffix(src, ".tar.xz"):
+		return openTarXzMember(io.NewSectionReader(archive, 0, size), member)
+	default:
+		return nil, fmt.Errorf("unsupported archive format for %s", src)
+	}
+}
+
+func openZipMember(archive io.ReaderAt, size int64, member string) (io.ReadCloser, error) {
+	zr, err := zip.NewReader(archive, size)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read zip archive; %w", err)
+	}
+
+	for _, f := range zr.File {
+		if f.Name != member || !f.Mode().IsRegular() {
+			continue
+		}
+		rc, err := f.Open()
+		if err != nil {
+			return nil, fmt.Errorf("failed to open %s in zip archive; %w", member, err)
+		}
+		return rc, nil
+	}
+
+	return nil, fmt.Errorf("%s not found in zip archive", member)
+}
+
+func openTarXzMember(archive io.Reader, member string) (io.ReadCloser, error) {
+	xr, err := xz.NewReader(archive)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create xz reader; %w", err)
+	}
+
+	tr := tar.NewReader(&cappedReader{r: xr, remaining: maxExpandedArchiveSize})
+	for {
+		hdr, err := tr.Next()
+		if errors.Is(err, io.EOF) {
+			return nil, fmt.Errorf("%s not found in tar archive", member)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to read tar archive; %w", err)
+		}
+
+		// The archive nests its files under a `pact_ffi-<target>/` directory.
+		if path.Base(hdr.Name) != member || hdr.Typeflag != tar.TypeReg {
+			continue
+		}
+		if hdr.Size > maxDecompressedLibSize {
+			return nil, fmt.Errorf("decompressed library exceeds the %d byte safety limit; aborting", maxDecompressedLibSize)
+		}
+
+		return io.NopCloser(tr), nil
+	}
+}
+
+// cappedReader fails once it has read more than remaining bytes, bounding the
+// work spent skipping over tar entries the installer does not extract.
+type cappedReader struct {
+	r         io.Reader
+	remaining int64
+}
+
+func (c *cappedReader) Read(p []byte) (int, error) {
+	if c.remaining <= 0 {
+		return 0, fmt.Errorf("decompressed archive exceeds the %d byte safety limit; aborting", maxExpandedArchiveSize)
+	}
+	if int64(len(p)) > c.remaining {
+		p = p[:c.remaining]
+	}
+
+	n, err := c.r.Read(p)
+	c.remaining -= int64(n)
+	//nolint:wrapcheck // io.Reader callers compare against io.EOF, which wrapping would hide.
+	return n, err
+}
+
+// installFile writes src to dst through a temporary file in the same
+// directory, so a failed or oversized extraction leaves no partial library at
+// dst for CheckPackageInstall to find.
+func installFile(src io.Reader, dst string) error {
+	tmp, err := os.CreateTemp(path.Dir(dst), "."+path.Base(dst)+"-*")
+	if err != nil {
+		return fmt.Errorf("failed to create output file; %w", err)
+	}
+	// Removing an already-renamed temporary file is a no-op error.
+	defer func() {
+		_ = tmp.Close()
+		_ = os.Remove(tmp.Name())
+	}()
+
+	written, err := io.Copy(tmp, io.LimitReader(src, maxDecompressedLibSize+1))
+	if err != nil {
+		return fmt.Errorf("failed to extract library; %w", err)
 	}
 	if written > maxDecompressedLibSize {
-		// Close before removing: Windows refuses to unlink an open file, which
-		// would otherwise leave the oversized partial library on disk for
-		// CheckPackageInstall to find.
-		closeErr := f.Close()
-		if closeErr != nil {
-			return fmt.Errorf("decompressed library exceeds the %d byte safety limit, and closing the partial file at %s failed; %w", maxDecompressedLibSize, dst, closeErr)
-		}
-
-		removeErr := os.Remove(dst)
-		if removeErr != nil {
-			return fmt.Errorf("decompressed library exceeds the %d byte safety limit, and removing the partial file at %s failed; %w", maxDecompressedLibSize, dst, removeErr)
-		}
-
 		return fmt.Errorf("decompressed library exceeds the %d byte safety limit; aborting", maxDecompressedLibSize)
+	}
+
+	// Close before renaming: Windows refuses to move an open file.
+	err = tmp.Close()
+	if err != nil {
+		return fmt.Errorf("failed to write library to %s; %w", tmp.Name(), err)
+	}
+
+	err = os.Rename(tmp.Name(), dst)
+	if err != nil {
+		return fmt.Errorf("failed to move library into place at %s; %w", dst, err)
 	}
 
 	return nil
 }
 
 // downloadTimeout bounds a single library download end to end, so a stalled
-// connection fails the install instead of hanging it. The largest FFI asset is
-// ~6.6MB compressed, so this leaves room for a slow link without leaving
+// connection fails the install instead of hanging it. The largest FFI archive
+// is ~33MB, so this leaves room for a slow link without leaving
 // `pact-go install` waiting forever.
-const downloadTimeout = 5 * time.Minute
+const downloadTimeout = 10 * time.Minute
 
-// maxDecompressedLibSize bounds decompression of the downloaded FFI archive.
-// The largest FFI asset pact-reference currently publishes (libpact_ffi-linux-aarch64-musl.so.gz)
-// compresses to ~6.6MB; genuine machine code rarely compresses beyond ~5x, so 150MB gives roughly
-// 20x headroom for the library to grow while still bounding a pathological decompression bomb.
-// A var so tests can lower it rather than materialising 150MB.
+// maxChecksumFileSize bounds the downloaded `.sha256` file, which holds one
+// digest line.
+const maxChecksumFileSize = 1024
+
+// maxArchiveSize bounds the downloaded FFI archive. The largest archive
+// pact-reference publishes (pact_ffi-x86_64-pc-windows-msvc.zip) is ~33MB,
+// because each archive also carries the static library.
+// The limits below are vars so tests can lower them.
+var maxArchiveSize int64 = 128 * 1024 * 1024
+
+// maxDecompressedLibSize bounds the extracted shared library. The largest one
+// pact-reference publishes (libpact_ffi.so for aarch64 musl) is ~16MB, so
+// 150MB leaves ample room for growth while still bounding a decompression bomb.
 var maxDecompressedLibSize int64 = 150 * 1024 * 1024
+
+// maxExpandedArchiveSize bounds the decompressed tar stream read while
+// searching for the shared library. The static library dominates it, at
+// ~130MB for the largest target.
+var maxExpandedArchiveSize int64 = 1024 * 1024 * 1024
 
 type packageMetadata struct {
 	LibName string `yaml:"libname"`
