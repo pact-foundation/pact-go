@@ -1,18 +1,23 @@
 package installer
 
 import (
+	"archive/tar"
+	"archive/zip"
 	"bytes"
-	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/ulikunitz/xz"
 )
 
 func TestNativeLibPath(t *testing.T) {
@@ -44,9 +49,9 @@ func TestInstallerDownloader(t *testing.T) {
 				pkg:  FFIPackage,
 				want: func() string {
 					if checkMusl() {
-						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64-musl.so.gz", packages[FFIPackage].version)
+						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-x86_64-unknown-linux-musl.tar.xz", packages[FFIPackage].version)
 					}
-					return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-x86_64.so.gz", packages[FFIPackage].version)
+					return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-x86_64-unknown-linux-gnu.tar.xz", packages[FFIPackage].version)
 				}(),
 				test: Installer{
 					os:   linux,
@@ -58,9 +63,9 @@ func TestInstallerDownloader(t *testing.T) {
 				pkg:  FFIPackage,
 				want: func() string {
 					if checkMusl() {
-						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-aarch64-musl.so.gz", packages[FFIPackage].version)
+						return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-aarch64-unknown-linux-musl.tar.xz", packages[FFIPackage].version)
 					}
-					return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-linux-aarch64.so.gz", packages[FFIPackage].version)
+					return fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-aarch64-unknown-linux-gnu.tar.xz", packages[FFIPackage].version)
 				}(),
 				test: Installer{
 					os:   linux,
@@ -70,7 +75,7 @@ func TestInstallerDownloader(t *testing.T) {
 			{
 				name: "ffi lib - macos x86_64",
 				pkg:  FFIPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-macos-x86_64.dylib.gz", packages[FFIPackage].version),
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-x86_64-apple-darwin.tar.xz", packages[FFIPackage].version),
 				test: Installer{
 					os:   macos,
 					arch: x86_64,
@@ -79,16 +84,25 @@ func TestInstallerDownloader(t *testing.T) {
 			{
 				name: "ffi lib - macos arm64",
 				pkg:  FFIPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/libpact_ffi-macos-aarch64.dylib.gz", packages[FFIPackage].version),
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-aarch64-apple-darwin.tar.xz", packages[FFIPackage].version),
 				test: Installer{
 					os:   macos,
 					arch: aarch64,
 				},
 			},
 			{
+				name: "ffi lib - windows aarch64",
+				pkg:  FFIPackage,
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-aarch64-pc-windows-msvc.zip", packages[FFIPackage].version),
+				test: Installer{
+					os:   windows,
+					arch: aarch64,
+				},
+			},
+			{
 				name: "ffi lib - windows x86_64",
 				pkg:  FFIPackage,
-				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/libpact_ffi-v%s/pact_ffi-windows-x86_64.dll.gz", packages[FFIPackage].version),
+				want: fmt.Sprintf("https://github.com/pact-foundation/pact-reference/releases/download/pact_ffi-v%s/pact_ffi-x86_64-pc-windows-msvc.zip", packages[FFIPackage].version),
 				test: Installer{
 					os:   windows,
 					arch: x86_64,
@@ -205,13 +219,15 @@ func TestInstallerCheckPackageInstall(t *testing.T) {
 type mockDownloader struct {
 	src      string
 	dst      string
+	member   string
 	called   bool
 	callFunc func()
 }
 
-func (m *mockDownloader) download(src, dst string) error {
+func (m *mockDownloader) download(src, dst, member string) error {
 	m.src = src
 	m.dst = dst
+	m.member = member
 	m.called = true
 	if m.callFunc != nil {
 		m.callFunc()
@@ -264,54 +280,199 @@ func TestPackagesVersionSatisfiesOwnSemverRange(t *testing.T) {
 	}
 }
 
-// gzipped returns n bytes of zeroes, gzip compressed.
-func gzipped(t *testing.T, n int) []byte {
+type archiveEntry struct {
+	name    string
+	body    []byte
+	symlink bool
+}
+
+func tarXz(t *testing.T, entries ...archiveEntry) []byte {
 	t.Helper()
 
 	var buf bytes.Buffer
-	w := gzip.NewWriter(&buf)
-	_, err := w.Write(make([]byte, n))
-	assert.NoError(t, err)
-	assert.NoError(t, w.Close())
+	xw, err := xz.NewWriter(&buf)
+	require.NoError(t, err)
+	tw := tar.NewWriter(xw)
+	for _, e := range entries {
+		hdr := &tar.Header{Name: e.name, Mode: 0o755, Size: int64(len(e.body)), Typeflag: tar.TypeReg}
+		if e.symlink {
+			hdr = &tar.Header{Name: e.name, Linkname: "/etc/passwd", Typeflag: tar.TypeSymlink}
+		}
+		require.NoError(t, tw.WriteHeader(hdr))
+		if !e.symlink {
+			_, err = tw.Write(e.body)
+			require.NoError(t, err)
+		}
+	}
+	require.NoError(t, tw.Close())
+	require.NoError(t, xw.Close())
 
 	return buf.Bytes()
 }
 
-func TestDefaultDownloader_Download(t *testing.T) {
-	original := maxDecompressedLibSize
-	defer func() { maxDecompressedLibSize = original }()
-	maxDecompressedLibSize = 1024
+func zipped(t *testing.T, entries ...archiveEntry) []byte {
+	t.Helper()
 
-	t.Run("within the size limit", func(t *testing.T) {
-		body := gzipped(t, int(maxDecompressedLibSize))
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			_, _ = w.Write(body)
-		}))
-		defer server.Close()
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	for _, e := range entries {
+		w, err := zw.Create(e.name)
+		require.NoError(t, err)
+		_, err = w.Write(e.body)
+		require.NoError(t, err)
+	}
+	require.NoError(t, zw.Close())
+
+	return buf.Bytes()
+}
+
+// serveRelease serves archive under name, with a `.sha256` file in the
+// format pact-reference publishes, including its trailing blank line.
+func serveRelease(t *testing.T, name string, archive []byte, checksum string) string {
+	t.Helper()
+
+	if checksum == "" {
+		sum := sha256.Sum256(archive)
+		checksum = hex.EncodeToString(sum[:])
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/" + name:
+			_, _ = w.Write(archive)
+		case "/" + name + ".sha256":
+			_, _ = fmt.Fprintf(w, "%s *%s\n\n", checksum, name)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	return server.URL + "/" + name
+}
+
+func assertNotExist(t *testing.T, dst string) {
+	t.Helper()
+
+	_, err := os.Stat(dst)
+	assert.True(t, os.IsNotExist(err), "expected %s to be absent, got %v", dst, err)
+}
+
+func TestDefaultDownloader_Download(t *testing.T) {
+	originalLib, originalArchive, originalExpanded := maxDecompressedLibSize, maxArchiveSize, maxExpandedArchiveSize
+	defer func() {
+		maxDecompressedLibSize, maxArchiveSize, maxExpandedArchiveSize = originalLib, originalArchive, originalExpanded
+	}()
+	maxDecompressedLibSize = 1024
+	maxArchiveSize = 64 * 1024
+	maxExpandedArchiveSize = 16 * 1024
+
+	lib := bytes.Repeat([]byte{0x7f}, int(maxDecompressedLibSize))
+
+	t.Run("extracts the library from a tar.xz archive", func(t *testing.T) {
+		src := serveRelease(t, "pact_ffi-x86_64-unknown-linux-gnu.tar.xz", tarXz(t,
+			archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/README.md", body: []byte("readme")},
+			archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/libpact_ffi.so", body: lib},
+			archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/libpact_ffi.a", body: []byte("static")},
+		), "")
 
 		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
-		require.NoError(t, (&defaultDownloader{}).download(server.URL, dst))
+		require.NoError(t, (&defaultDownloader{}).download(src, dst, "libpact_ffi.so"))
 
-		info, err := os.Stat(dst)
+		//nolint:gosec // G304: dst is a test temp path.
+		got, err := os.ReadFile(dst)
 		require.NoError(t, err)
-		assert.Equal(t, maxDecompressedLibSize, info.Size())
+		assert.Equal(t, lib, got)
 	})
 
-	t.Run("beyond the size limit", func(t *testing.T) {
-		body := gzipped(t, int(maxDecompressedLibSize)+1)
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			_, _ = w.Write(body)
-		}))
-		defer server.Close()
+	t.Run("extracts the library from the root of a zip archive", func(t *testing.T) {
+		src := serveRelease(t, "pact_ffi-x86_64-pc-windows-msvc.zip", zipped(t,
+			archiveEntry{name: "pact_ffi.lib", body: []byte("static")},
+			archiveEntry{name: "pact_ffi.dll", body: lib},
+			archiveEntry{name: "pact_ffi.dll.lib", body: []byte("import")},
+		), "")
+
+		dst := filepath.Join(t.TempDir(), "pact_ffi.dll")
+		require.NoError(t, (&defaultDownloader{}).download(src, dst, "pact_ffi.dll"))
+
+		//nolint:gosec // G304: dst is a test temp path.
+		got, err := os.ReadFile(dst)
+		require.NoError(t, err)
+		assert.Equal(t, lib, got)
+	})
+
+	t.Run("rejects an archive that does not match its checksum", func(t *testing.T) {
+		src := serveRelease(t, "pact_ffi-x86_64-unknown-linux-gnu.tar.xz", tarXz(t,
+			archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/libpact_ffi.so", body: lib},
+		), strings.Repeat("00", sha256.Size))
 
 		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
-		err := (&defaultDownloader{}).download(server.URL, dst)
+		err := (&defaultDownloader{}).download(src, dst, "libpact_ffi.so")
 
-		require.ErrorContains(t, err, "exceeds the 1024 byte safety limit")
+		require.ErrorContains(t, err, "checksum mismatch")
+		assertNotExist(t, dst)
+	})
 
-		// The oversized partial download must not be left behind for
-		// CheckPackageInstall to mistake for a good library.
-		_, statErr := os.Stat(dst)
-		assert.True(t, os.IsNotExist(statErr), "expected %s to be removed, got %v", dst, statErr)
+	t.Run("fails when the checksum file is missing", func(t *testing.T) {
+		src := serveRelease(t, "pact_ffi-x86_64-unknown-linux-gnu.tar.xz", nil, "")
+
+		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
+		err := (&defaultDownloader{}).download(src+"-missing", dst, "libpact_ffi.so")
+
+		require.ErrorContains(t, err, "404")
+		assertNotExist(t, dst)
+	})
+
+	t.Run("ignores a symlink with the library's name", func(t *testing.T) {
+		src := serveRelease(t, "pact_ffi-x86_64-unknown-linux-gnu.tar.xz", tarXz(t,
+			archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/libpact_ffi.so", symlink: true},
+		), "")
+
+		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
+		err := (&defaultDownloader{}).download(src, dst, "libpact_ffi.so")
+
+		require.ErrorContains(t, err, "libpact_ffi.so not found in tar archive")
+		assertNotExist(t, dst)
+	})
+
+	t.Run("rejects a library beyond the size limit", func(t *testing.T) {
+		big := bytes.Repeat([]byte{0x7f}, int(maxDecompressedLibSize)+1)
+		for name, archive := range map[string][]byte{
+			"pact_ffi-x86_64-unknown-linux-gnu.tar.xz": tarXz(t, archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/libpact_ffi.so", body: big}),
+			"pact_ffi-x86_64-pc-windows-msvc.zip":      zipped(t, archiveEntry{name: "libpact_ffi.so", body: big}),
+		} {
+			t.Run(name, func(t *testing.T) {
+				src := serveRelease(t, name, archive, "")
+
+				dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
+				err := (&defaultDownloader{}).download(src, dst, "libpact_ffi.so")
+
+				require.ErrorContains(t, err, "exceeds the 1024 byte safety limit")
+				assertNotExist(t, dst)
+			})
+		}
+	})
+
+	t.Run("rejects a tar stream beyond the expanded size limit", func(t *testing.T) {
+		src := serveRelease(t, "pact_ffi-x86_64-unknown-linux-gnu.tar.xz", tarXz(t,
+			archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/libpact_ffi.a", body: make([]byte, maxExpandedArchiveSize)},
+			archiveEntry{name: "pact_ffi-x86_64-unknown-linux-gnu/libpact_ffi.so", body: lib},
+		), "")
+
+		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
+		err := (&defaultDownloader{}).download(src, dst, "libpact_ffi.so")
+
+		require.ErrorContains(t, err, "decompressed archive exceeds the 16384 byte safety limit")
+		assertNotExist(t, dst)
+	})
+
+	t.Run("rejects an archive beyond the download size limit", func(t *testing.T) {
+		src := serveRelease(t, "pact_ffi-x86_64-unknown-linux-gnu.tar.xz", make([]byte, maxArchiveSize+1), "")
+
+		dst := filepath.Join(t.TempDir(), "libpact_ffi.so")
+		err := (&defaultDownloader{}).download(src, dst, "libpact_ffi.so")
+
+		require.ErrorContains(t, err, "exceeds the 65536 byte safety limit")
+		assertNotExist(t, dst)
 	})
 }
