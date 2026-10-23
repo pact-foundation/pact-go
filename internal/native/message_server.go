@@ -375,6 +375,7 @@ func (m *Message) GetMessageResponseContents() ([][]byte, error) {
 	if iter == nil {
 		return nil, errors.New("unable to get a message iterator")
 	}
+	defer C.pactffi_pact_sync_message_iter_delete(iter)
 
 	for i := range len(m.server.messages) {
 		message := C.pactffi_pact_sync_message_iter_next(iter)
@@ -581,6 +582,7 @@ func (m *Message) getAsyncMessageRequestContents() ([]byte, error) {
 	if iter == nil {
 		return nil, errors.New("unable to get a message iterator")
 	}
+	defer C.pactffi_pact_message_iter_delete(iter)
 	log.Println("[DEBUG] pactffi_pact_handle_get_message_iter - OK")
 
 	///////
@@ -633,6 +635,7 @@ func (m *Message) getSyncMessageRequestContents() ([]byte, error) {
 	if iter == nil {
 		return nil, errors.New("unable to get a message iterator")
 	}
+	defer C.pactffi_pact_sync_message_iter_delete(iter)
 
 	for i := range len(m.server.messages) {
 		message := C.pactffi_pact_sync_message_iter_next(iter)
