@@ -4,9 +4,12 @@ package native
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func init() {
@@ -59,4 +62,22 @@ func TestStringArrayToCStringArray(t *testing.T) {
 		assert.NotNil(t, release)
 		release()
 	})
+}
+
+func TestVerifier_Execute_URLSourceFailsToLoad(t *testing.T) {
+	pactServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("this is not a pact"))
+	}))
+	defer pactServer.Close()
+
+	v := NewVerifier("pact-go", "test")
+	defer v.Shutdown()
+	v.SetProviderInfo("provider", "http", "localhost", 1234, "/")
+	v.AddURLSource(pactServer.URL+"/pacts/provider/provider/consumer/consumer/latest", "", "", "")
+
+	err := v.Execute()
+
+	require.ErrorIs(t, err, ErrVerifierFailedToRun)
+	require.NotErrorIs(t, err, ErrVerifierFailed)
+	assert.ErrorContains(t, err, "Failed to load pact")
 }
