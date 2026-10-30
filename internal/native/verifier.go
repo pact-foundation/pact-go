@@ -6,9 +6,11 @@ package native
 import "C"
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"unsafe"
 )
 
@@ -234,7 +236,9 @@ func (v *Verifier) Execute() error {
 	case 0:
 		return nil
 	case 1:
-		return ErrVerifierFailed
+		// The FFI also returns 1 when a pact could not be loaded or an
+		// interaction could not be evaluated, so the result decides.
+		return classifyVerifierFailure(v.resultJSON())
 	case 2:
 		return ErrVerifierFailedToRun
 	default:
@@ -252,6 +256,57 @@ func (v *Verifier) SetNoPactsIsError(isError bool) {
 // output; colour is enabled by default.
 func (v *Verifier) SetColoredOutput(isColoredOutput bool) {
 	C.pactffi_verifier_set_coloured_output(v.handle, boolToCUchar(isColoredOutput))
+}
+
+// resultJSON returns the verification result of the last Execute as JSON,
+// or "" if the FFI could not produce it.
+func (v *Verifier) resultJSON() string {
+	cJSON := C.pactffi_verifier_json(v.handle)
+	if cJSON == nil {
+		return ""
+	}
+	defer libRustFree(cJSON)
+
+	return C.GoString(cJSON)
+}
+
+// verificationResult is the part of the pactffi_verifier_json document
+// needed to classify a failed verification.
+type verificationResult struct {
+	Errors []struct {
+		Interaction string `json:"interaction"`
+		Mismatch    struct {
+			Type    string `json:"type"`
+			Message string `json:"message"`
+		} `json:"mismatch"`
+	} `json:"errors"`
+}
+
+// classifyVerifierFailure decides what a failed verification means, given
+// its pactffi_verifier_json result. It returns ErrVerifierFailed only when
+// every error is a mismatch, i.e. the provider answered and the answer did
+// not satisfy the pact. Any other error (a pact that failed to load, an
+// interaction that could not be evaluated) means the verifier produced no
+// verdict for it, so it returns ErrVerifierFailedToRun, as it does when
+// the result cannot be read.
+func classifyVerifierFailure(resultJSON string) error {
+	var result verificationResult
+	err := json.Unmarshal([]byte(resultJSON), &result)
+	if err != nil {
+		return fmt.Errorf("%w: could not read the verification result: %w", ErrVerifierFailedToRun, err)
+	}
+
+	var notRun []string
+	for _, e := range result.Errors {
+		if e.Mismatch.Type != "mismatches" {
+			notRun = append(notRun, fmt.Sprintf("%s - %s", e.Interaction, e.Mismatch.Message))
+		}
+	}
+	if len(notRun) > 0 {
+		return fmt.Errorf("%w: %s", ErrVerifierFailedToRun, strings.Join(notRun, "; "))
+	}
+
+	return ErrVerifierFailed
 }
 
 func stringArrayToCStringArray(inputs []string) (**C.char, func()) {
