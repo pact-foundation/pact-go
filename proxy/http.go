@@ -5,6 +5,7 @@
 package proxy
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"log"
@@ -16,8 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
 const (
@@ -100,8 +99,6 @@ func chainHandlers(mw ...Middleware) Middleware {
 // internal components within the framework.
 func HTTPReverseProxy(options Options) (int, error) {
 	log.Println("[DEBUG] starting new proxy with opts", options)
-	port := options.ProxyPort
-	var err error
 
 	url := &url.URL{
 		Scheme: options.TargetScheme,
@@ -112,13 +109,19 @@ func HTTPReverseProxy(options Options) (int, error) {
 	proxy := createProxy(url, options.InternalRequestPathPrefix)
 	proxy.Transport = customTransport{tlsConfig: options.CustomTLSConfig}
 
-	if port == 0 {
-		port, err = utils.GetFreePort()
-		if err != nil {
-			log.Println("[ERROR] unable to start reverse proxy server:", err)
-			return 0, fmt.Errorf("finding a free port for the reverse proxy: %w", err)
-		}
+	var lc net.ListenConfig
+	listener, err := lc.Listen(context.Background(), "tcp", fmt.Sprintf(":%d", options.ProxyPort))
+	if err != nil {
+		log.Println("[ERROR] unable to start reverse proxy server:", err)
+		return 0, fmt.Errorf("starting the reverse proxy listener: %w", err)
 	}
+
+	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
+	if !ok {
+		_ = listener.Close()
+		return 0, fmt.Errorf("expected a *net.TCPAddr from net.Listen, got %T", listener.Addr())
+	}
+	port := tcpAddr.Port
 
 	wrapper := chainHandlers(append(options.Middleware, loggingMiddleware)...)
 
@@ -129,7 +132,7 @@ func HTTPReverseProxy(options Options) (int, error) {
 			Handler:           wrapper(proxy),
 			ReadHeaderTimeout: defaultReadHeaderTimeout,
 		}
-		err := server.ListenAndServe()
+		err := server.Serve(listener)
 		if err != nil {
 			log.Println("[ERROR] error when starting reverse proxy server:", err)
 			panic(err)

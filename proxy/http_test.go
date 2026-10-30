@@ -2,9 +2,14 @@ package proxy
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/pact-foundation/pact-go/v2/utils"
 )
 
 func dummyHandler(header string) http.HandlerFunc {
@@ -85,5 +90,77 @@ func TestHTTPReverseProxy(t *testing.T) {
 
 	if port == 0 {
 		t.Errorf("want non-zero port, got %v", port)
+	}
+}
+
+func TestHTTPReverseProxy_PortInUseReturnsError(t *testing.T) {
+	var lc net.ListenConfig
+	l, err := lc.Listen(context.Background(), "tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = l.Close()
+	}()
+
+	tcpAddr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		t.Fatalf("expected *net.TCPAddr, got %T", l.Addr())
+	}
+
+	proxyPort, proxyErr := HTTPReverseProxy(Options{
+		ProxyPort:     tcpAddr.Port,
+		TargetScheme:  "http",
+		TargetAddress: "127.0.0.1:1234",
+	})
+	if proxyErr == nil {
+		t.Errorf("expected error when port %d is already in use, got nil", tcpAddr.Port)
+	}
+	if proxyPort != 0 {
+		t.Errorf("expected port 0 on failure, got %d", proxyPort)
+	}
+}
+
+func TestHTTPReverseProxy_ListeningWhenReturned(t *testing.T) {
+	var dialer net.Dialer
+	for i := range 200 {
+		port, proxyErr := HTTPReverseProxy(Options{
+			ProxyPort:     0,
+			TargetScheme:  "http",
+			TargetAddress: "127.0.0.1:1234",
+		})
+		if proxyErr != nil {
+			t.Fatalf("iteration %d: unexpected error: %v", i, proxyErr)
+		}
+		if port == 0 {
+			t.Fatalf("iteration %d: expected non-zero port", i)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		conn, dialErr := dialer.DialContext(ctx, "tcp", fmt.Sprintf("127.0.0.1:%d", port))
+		cancel()
+		if dialErr != nil {
+			t.Fatalf("iteration %d: dial failed: %v", i, dialErr)
+		}
+		_ = conn.Close()
+	}
+}
+
+func TestHTTPReverseProxy_ExplicitPort(t *testing.T) {
+	freePort, err := utils.GetFreePort()
+	if err != nil {
+		t.Fatalf("getting free port: %v", err)
+	}
+
+	port, proxyErr := HTTPReverseProxy(Options{
+		ProxyPort:     freePort,
+		TargetScheme:  "http",
+		TargetAddress: "127.0.0.1:1234",
+	})
+	if proxyErr != nil {
+		t.Fatalf("unexpected error: %v", proxyErr)
+	}
+	if port != freePort {
+		t.Errorf("expected port %d, got %d", freePort, port)
 	}
 }
