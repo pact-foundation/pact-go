@@ -266,7 +266,18 @@ type StructMatcher map[string]any
 // GetValue returns the raw generated value for the matcher
 // without any of the matching detail context.
 func (m StructMatcher) GetValue() any {
-	return nil
+	values := make(map[string]any, len(m))
+	for k, v := range m {
+		for {
+			matcher, ok := v.(Matcher)
+			if !ok {
+				break
+			}
+			v = matcher.GetValue()
+		}
+		values[k] = v
+	}
+	return values
 }
 
 func (m StructMatcher) isMatcher() {}
