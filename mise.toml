@@ -17,6 +17,12 @@ PACT_BROKER_BASE_URL = "http://127.0.0.1"
 PACT_BROKER_USERNAME = "pact_workshop"
 PACT_BROKER_PASSWORD = "pact_workshop"
 PACT_DOWNLOAD_DIR = "{{ env.TMP | default(value='/tmp') }}"
+# The cgo directives in internal/native only search /usr/local/lib and
+# /opt/pact/lib, so a library installed to PACT_DOWNLOAD_DIR is found through
+# CGO_LDFLAGS. Go 1.27.4+ rejects a world-writable -L dir such as /tmp in a
+# #cgo directive (it holds Go's own build files), but not in CGO_LDFLAGS.
+# The rpath lets the built test binaries load the library; Windows uses PATH.
+CGO_LDFLAGS = "-L{{ env.TMP | default(value='/tmp') }}{% if os() != 'windows' %} -Wl,-rpath,{{ env.TMP | default(value='/tmp') }}{% endif %}"
 PACT_DO_NOT_TRACK = "true"
 
 [tasks.build]

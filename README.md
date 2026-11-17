@@ -100,7 +100,7 @@ export PATH=$PATH:$GOPATH/bin
 
 You can also keep the library versions up to date by running the `version.CheckVersion()` function.
 
-Set `PACT_GO_LIB_DOWNLOAD_PATH` env var if you have installed the library in a non-standard location.
+Set `PACT_GO_LIB_DOWNLOAD_PATH` env var if you have installed the library in a non-standard location. You will also need to point the linker at it with `CGO_LDFLAGS`, see [Installing to a custom location](#installing-to-a-custom-location).
 
 <details>
 
@@ -124,7 +124,20 @@ By default, pact-go install will attempt to install in `/usr/local/lib`.
 
 Note this is not user-writable, so `pact-go install` must be run with `sudo`.
 
-An alternative is to install to `/tmp` via `pact-go -l DEBUG install --libDir /tmp`
+#### Installing to a custom location
+
+pact-go searches `/usr/local/lib` (and `/opt/pact/lib` on Linux) for the library. To install it elsewhere, for example a user-writable directory, pass `--libDir` and tell cgo where to find the library at build time with `CGO_LDFLAGS`:
+
+```shell
+export PACT_GO_LIB_DOWNLOAD_PATH="$HOME/.pact/lib"
+pact-go -l DEBUG install --libDir "$PACT_GO_LIB_DOWNLOAD_PATH"
+export CGO_LDFLAGS="-L$PACT_GO_LIB_DOWNLOAD_PATH -Wl,-rpath,$PACT_GO_LIB_DOWNLOAD_PATH"
+```
+
+`-L` lets the linker find the library, and `-rpath` lets the built binaries load it at run time (alternatively, set `LD_LIBRARY_PATH` on Linux or `DYLD_LIBRARY_PATH` on macOS when running them).
+
+> [!NOTE]
+> pact-go v2.9.0 and earlier also searched `/tmp`. That was removed because Go 1.27.4 and later reject `/tmp` as a library directory in a `#cgo` directive, which made every package importing pact-go fail to build on Linux ([#678](https://github.com/pact-foundation/pact-go/issues/678)). If you install the library to `/tmp`, set `CGO_LDFLAGS="-L/tmp -Wl,-rpath,/tmp"`.
 
 #### Windows
 
