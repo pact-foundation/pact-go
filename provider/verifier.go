@@ -206,8 +206,8 @@ func (v *Verifier) verifyProviderRaw(request VerifyRequest, writer outputWriter)
 			Path:     MESSAGE_PATH,
 			Protocol: "message",
 			//nolint:gosec // G115: port is returned by proxy.HTTPReverseProxy. The Options
-			// passed to it here never set ProxyPort, so port is always utils.GetFreePort(),
-			// an OS-assigned net.TCPAddr.Port, always 0-65535.
+			// passed to it here never set ProxyPort, so the port comes from the proxy
+			// listener's OS-assigned net.TCPAddr.Port, always 0-65535.
 			Port: uint16(port),
 		})
 	}
