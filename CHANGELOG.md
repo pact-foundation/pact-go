@@ -6,6 +6,16 @@ Releases from here on are generated automatically by [release-please](https://gi
 
 _Entries below this point were generated manually before the release-please migration._
 
+## [2.9.1](https://github.com/pact-foundation/pact-go/compare/v2.9.0...v2.9.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* **matchers:** return example values from StructMatcher.GetValue ([#669](https://github.com/pact-foundation/pact-go/issues/669)) ([1f4131b](https://github.com/pact-foundation/pact-go/commit/1f4131b9a8a586e4fe1784d2239a206ca7eabc11)), closes [#667](https://github.com/pact-foundation/pact-go/issues/667)
+* **native:** stop searching /tmp for the FFI library in cgo directives ([#679](https://github.com/pact-foundation/pact-go/issues/679)) ([ae393c7](https://github.com/pact-foundation/pact-go/commit/ae393c7a5bb014436b933277b1a0728c9f2719a8))
+* **proxy:** bind the reverse proxy listener before returning its port ([#668](https://github.com/pact-foundation/pact-go/issues/668)) ([dc753e5](https://github.com/pact-foundation/pact-go/commit/dc753e5ad3c712539c0f3bd3d61e6afbd54defc3))
+* replace proxy Director with Rewrite + update grpc dependency ([#673](https://github.com/pact-foundation/pact-go/issues/673)) ([b05ed7b](https://github.com/pact-foundation/pact-go/commit/b05ed7b984a8fd962d781f65a936e50a3750259b))
+
 ## [2.9.0](https://github.com/pact-foundation/pact-go/compare/v2.8.0...v2.9.0) (2026-10-30)
 
 
