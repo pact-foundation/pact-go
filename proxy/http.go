@@ -198,7 +198,8 @@ func (c customTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 // Adapted from https://github.com/golang/go/blob/master/src/net/http/httputil/reverseproxy.go
 func createProxy(target *url.URL, ignorePrefix string) *httputil.ReverseProxy {
 	targetQuery := target.RawQuery
-	director := func(req *http.Request) {
+	rewrite := func(pr *httputil.ProxyRequest) {
+		req := pr.Out
 		if !strings.HasPrefix(req.URL.Path, ignorePrefix) {
 			log.Println("[DEBUG] setting proxy to target")
 			log.Println("[DEBUG] incoming request", strconv.Quote(req.URL.String()))
@@ -223,7 +224,7 @@ func createProxy(target *url.URL, ignorePrefix string) *httputil.ReverseProxy {
 			req.Host = "localhost"
 		}
 	}
-	return &httputil.ReverseProxy{Director: director}
+	return &httputil.ReverseProxy{Rewrite: rewrite}
 }
 
 // From httputil package

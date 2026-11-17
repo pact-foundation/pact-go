@@ -366,8 +366,7 @@ func match(srcType reflect.Type, params params) Matcher {
 	case reflect.Struct:
 		result := StructMatcher{}
 
-		for i := range srcType.NumField() {
-			field := srcType.Field(i)
+		for field := range srcType.Fields() {
 			result[strings.Split(field.Tag.Get("json"), ",")[0]] = match(field.Type, pluckParams(field.Type, field.Tag.Get("pact")))
 		}
 		return result
