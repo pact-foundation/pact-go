@@ -191,6 +191,38 @@ func TestMatcher_EachLikeGetValue(t *testing.T) {
 	assert.Equal(t, expected, match)
 }
 
+func TestMatcher_StructMatcherGetValue(t *testing.T) {
+	expected := map[string]any{
+		"name":      "build #3455",
+		"timestamp": "2017-09-17T19:43:12+03:00",
+		"plain":     true,
+	}
+	match := StructMatcher{
+		"name":      Like("build #3455"),
+		"timestamp": Term("2017-09-17T19:43:12+03:00", `\d+-\d+-\d+T\d+:\d+:\d+.+`),
+		"plain":     true,
+	}.GetValue()
+
+	assert.Equal(t, expected, match)
+}
+
+func TestMatcher_StructMatcherGetValueNested(t *testing.T) {
+	expected := map[string]any{
+		"user": map[string]any{
+			"id":       123,
+			"username": "firstlast",
+		},
+	}
+	match := StructMatcher{
+		"user": Like(StructMatcher{
+			"id":       Like(123),
+			"username": Term("firstlast", `[a-zA-Z]+`),
+		}),
+	}.GetValue()
+
+	assert.Equal(t, expected, match)
+}
+
 func TestMatcher_NestLikeInEachLike(t *testing.T) {
 	expected := formatJSON(`
 		{
