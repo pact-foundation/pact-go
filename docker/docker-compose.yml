@@ -20,7 +20,7 @@ services:
       POSTGRES_DB: postgres
 
   broker_app:
-    image: pactfoundation/pact-broker:latest@sha256:420341d4fbfb00a621c313f47e530ad75703f969bbc7520d0d72bc71bb53cef9
+    image: pactfoundation/pact-broker:latest@sha256:b5b9af2e571e2f6a2f9e2ebe85f0e09158ae5e707349d5afce66bfc7cb7437a5
     links:
       - postgres
     ports:
