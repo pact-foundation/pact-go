@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.27@sha256:fe517acaa580cc7915457080f850c37e618b3c1e750f98b58fc6429b605147a1
+ARG GO_VERSION=1.27@sha256:5f1b98fa02fe396ebce2a0227a0e08309e11792915b9dd2e1f71053d7e7e6666
 FROM golang:${GO_VERSION}
 
 RUN apt-get update && apt-get install -y openjdk-21-jre file protobuf-compiler curl
