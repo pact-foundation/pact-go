@@ -5,7 +5,7 @@ services:
       - "8000:80"
 
   postgres:
-    image: postgres@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc
+    image: postgres@sha256:4ea94de574c17f0372722806c949757050fbb1cd7648410fe45d6bba275cc00e
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "postgres", "-h", "127.0.0.1" ]
       interval: 2s
